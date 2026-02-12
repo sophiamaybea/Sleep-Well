@@ -13,7 +13,7 @@ export default function Manifesto() {
   const y = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
   return (
-    <Section id="manifesto" className="bg-[#0e141f] text-primary relative overflow-hidden py-40">
+    <Section id="manifesto" className="bg-transparent text-primary relative overflow-hidden py-40">
       
       {/* Background typographic texture - Parallax */}
       <motion.div 

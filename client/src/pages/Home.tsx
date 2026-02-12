@@ -9,21 +9,19 @@ import StarBackground from "@/components/StarBackground";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-secondary selection:text-background relative">
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-background relative">
       <StarBackground />
       <Navigation />
       
       <main className="relative z-10">
         <Hero />
-        <div className="bg-background/80 backdrop-blur-[2px]">
-          <TwoDoors />
-          <Featured />
-          <HowItWorks />
-          <Manifesto />
-        </div>
+        <TwoDoors />
+        <Featured />
+        <HowItWorks />
+        <Manifesto />
       </main>
 
-      <div className="relative z-10 bg-background/90">
+      <div className="relative z-10">
         <Footer />
       </div>
     </div>

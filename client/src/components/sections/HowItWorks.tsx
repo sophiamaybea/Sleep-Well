@@ -34,7 +34,7 @@ export default function HowItWorks() {
               >
                 {/* Node */}
                 <div className="flex-shrink-0 relative">
-                  <div className="w-14 h-14 rounded-full border border-white/10 bg-[#0b101a] flex items-center justify-center font-mono text-sm relative z-10 group-hover:border-white/40 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500">
+                  <div className="w-14 h-14 rounded-full border border-white/10 bg-background/60 backdrop-blur-sm flex items-center justify-center font-mono text-sm relative z-10 group-hover:border-white/40 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500">
                     {step.number}
                   </div>
                   {/* Active glow dot */}
