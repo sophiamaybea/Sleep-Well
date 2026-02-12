@@ -147,14 +147,6 @@ export default function GardenIntro() {
   return (
     <section id="garden-intro" className="relative py-32 overflow-hidden" data-testid="section-garden-intro">
       <div className="max-w-5xl mx-auto w-full px-6 relative">
-        <InkBouquet className="absolute -left-4 md:left-4 top-0 w-20 md:w-28 opacity-50" delay={0.2} />
-        <InkFlowerEye className="absolute right-0 md:right-8 top-4 w-16 md:w-24 opacity-45" delay={0.4} />
-        <InkLeaf className="absolute -left-2 md:left-16 bottom-16 w-14 md:w-20 opacity-40" delay={0.6} />
-        <InkStar className="absolute right-4 md:right-20 bottom-4 w-20 md:w-28 opacity-35" delay={0.8} />
-        <InkHeart className="absolute left-1/4 top-12 w-14 md:w-18 opacity-30" delay={0.5} />
-        <InkSprout className="absolute right-1/3 bottom-28 w-10 md:w-14 opacity-35" delay={0.7} />
-        <InkSprout className="absolute left-[15%] bottom-40 w-8 opacity-25" delay={0.9} />
-
         <div className="text-center space-y-10 relative z-10">
           <motion.span
             initial={{ opacity: 0 }}
