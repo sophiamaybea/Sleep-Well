@@ -1,11 +1,13 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, LogOut, PenLine } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, isLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,18 +35,38 @@ export default function Navigation() {
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
 
-          {/* Desktop Menu - Floating Pill */}
           <div className={`hidden lg:flex items-center gap-8 font-mono text-xs uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-8 py-3 rounded-full border border-white/10' : ''}`}>
-            {menuItems.map((item, i) => (
+            {menuItems.map((item) => (
               <a 
                 key={item.label} 
                 href={item.href}
                 className="text-white/70 hover:text-white transition-colors relative group"
+                data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
               >
                 {item.label}
                 <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
               </a>
             ))}
+            <span className="w-[1px] h-4 bg-white/10" />
+            {!isLoading && (
+              isAuthenticated ? (
+                <>
+                  <Link href="/garden" className="text-white/70 hover:text-white transition-colors flex items-center gap-2" data-testid="nav-garden">
+                    <PenLine size={14} />
+                    My Garden
+                  </Link>
+                  <a href="/api/logout" className="text-white/70 hover:text-white transition-colors flex items-center gap-2" data-testid="nav-logout">
+                    <LogOut size={14} />
+                    Logout
+                  </a>
+                </>
+              ) : (
+                <a href="/api/login" className="text-white/70 hover:text-white transition-colors flex items-center gap-2" data-testid="nav-login">
+                  <User size={14} />
+                  Sign In
+                </a>
+              )
+            )}
           </div>
 
           <button 
@@ -86,6 +108,37 @@ export default function Navigation() {
                   {item.label}
                 </motion.a>
               ))}
+              <div className="w-12 h-[1px] bg-white/10 mx-auto my-4" />
+              {!isLoading && (
+                isAuthenticated ? (
+                  <>
+                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                      <Link href="/garden" onClick={() => setIsOpen(false)} className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform">
+                        My Garden
+                      </Link>
+                    </motion.div>
+                    <motion.a 
+                      href="/api/logout"
+                      initial={{ y: 20, opacity: 0 }} 
+                      animate={{ y: 0, opacity: 1 }} 
+                      transition={{ delay: 0.6 }}
+                      className="font-mono text-sm text-white/40 hover:text-white uppercase tracking-widest"
+                    >
+                      Logout
+                    </motion.a>
+                  </>
+                ) : (
+                  <motion.a 
+                    href="/api/login"
+                    initial={{ y: 20, opacity: 0 }} 
+                    animate={{ y: 0, opacity: 1 }} 
+                    transition={{ delay: 0.5 }}
+                    className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
+                  >
+                    Sign In
+                  </motion.a>
+                )
+              )}
             </div>
           </motion.div>
         )}
