@@ -7,20 +7,18 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    "Process",
-    "Rhythm", 
-    "Overclock",
-    "Blue Light",
-    "Layers",
-    "Tips"
+    { label: "The Two Doors", href: "#two-doors" },
+    { label: "Featured Works", href: "#featured" },
+    { label: "How It Works", href: "#how-it-works" },
+    { label: "Manifesto", href: "#manifesto" }
   ];
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 p-6 mix-blend-difference text-primary">
       <div className="flex justify-between items-center max-w-7xl mx-auto">
         <Link href="/">
-          <a className="font-display font-bold text-xl tracking-tighter hover:opacity-70 transition-opacity">
-            SLEEP WELL CREATIVES
+          <a className="font-display font-medium text-2xl tracking-tight hover:opacity-70 transition-opacity italic">
+            The Page Gallery Journal
           </a>
         </Link>
 
@@ -31,14 +29,14 @@ export default function Navigation() {
           {isOpen ? <X /> : <Menu />}
         </button>
 
-        <div className="hidden lg:flex gap-8 font-mono text-sm uppercase tracking-widest">
+        <div className="hidden lg:flex gap-8 font-mono text-xs uppercase tracking-widest">
           {menuItems.map((item, i) => (
             <a 
-              key={item} 
-              href={`#section-${i + 1}`}
+              key={item.label} 
+              href={item.href}
               className="hover:text-white transition-colors opacity-70 hover:opacity-100"
             >
-              {`0${i + 1} ${item}`}
+              {`0${i + 1} ${item.label}`}
             </a>
           ))}
         </div>
@@ -55,12 +53,12 @@ export default function Navigation() {
           <div className="flex flex-col gap-6 font-mono text-lg uppercase">
             {menuItems.map((item, i) => (
               <a 
-                key={item} 
-                href={`#section-${i + 1}`}
+                key={item.label} 
+                href={item.href}
                 onClick={() => setIsOpen(false)}
                 className="hover:text-white transition-colors opacity-70 hover:opacity-100"
               >
-                {`0${i + 1} ${item}`}
+                {`0${i + 1} ${item.label}`}
               </a>
             ))}
           </div>
