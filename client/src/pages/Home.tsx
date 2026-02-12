@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/sections/Hero";
+import GardenIntro from "@/components/sections/GardenIntro";
 import TwoDoors from "@/components/sections/TwoDoors";
 import Featured from "@/components/sections/Featured";
 import HowItWorks from "@/components/sections/HowItWorks";
@@ -15,6 +16,7 @@ export default function Home() {
       
       <main className="relative z-10">
         <Hero />
+        <GardenIntro />
         <TwoDoors />
         <Featured />
         <HowItWorks />
