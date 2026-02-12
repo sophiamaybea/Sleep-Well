@@ -64,10 +64,10 @@ export default function Hero() {
                   </span>
                 </div>
                
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-light leading-[1.1] tracking-tight text-white/90">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-light leading-[1.1] tracking-tight text-white/90 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
                   You don't submit.<br/>
                   You don't query.<br/>
-                  <span className="italic font-normal text-white">You just write.</span>
+                  <span className="italic font-medium text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.15)]">You just write.</span>
                 </h2>
               </motion.div>
 
