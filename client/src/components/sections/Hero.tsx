@@ -1,7 +1,7 @@
 import { Section } from "@/components/ui/section";
 import { content } from "@/data";
 import { motion, useScroll, useTransform, useMotionValue } from "framer-motion";
-import BookAnimation from "@/components/BookAnimation";
+import StarTitle from "@/components/StarTitle";
 
 export default function Hero() {
   const mouseX = useMotionValue(0);
@@ -22,7 +22,7 @@ export default function Hero() {
   return (
     <>
       {/* The Opening Sequence */}
-      <BookAnimation />
+      <StarTitle />
 
       {/* The Original Hero Content (now appearing after the book opens) */}
       <Section 
