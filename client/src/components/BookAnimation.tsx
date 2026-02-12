@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionTemplate } from "framer-motion";
 import { useRef } from "react";
 
 export default function BookAnimation() {
