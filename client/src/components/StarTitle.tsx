@@ -38,7 +38,7 @@ export default function StarTitle() {
     let cancelled = false;
 
     async function init() {
-      try { await document.fonts.load('300 italic 80px "Cormorant Garamond"'); } catch {}
+      try { await document.fonts.load('400 80px "Special Elite"'); } catch {}
 
       if (cancelled || !cvs) return;
       const rect = cvs.getBoundingClientRect();
@@ -58,7 +58,7 @@ export default function StarTitle() {
       const oc = off.getContext("2d")!;
       oc.fillStyle = "#000";
       oc.fillRect(0, 0, w, h);
-      oc.font = `300 italic ${fontSize}px "Cormorant Garamond", "Georgia", serif`;
+      oc.font = `400 ${fontSize}px "Special Elite", "Courier New", monospace`;
       oc.fillStyle = "#fff";
       oc.textAlign = "center";
       oc.textBaseline = "middle";
