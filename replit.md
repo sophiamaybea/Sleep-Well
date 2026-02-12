@@ -4,6 +4,8 @@
 A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
 
 ## Recent Changes
+- 2026-02-12: Added GardenIntro section with crayon flower doodles (CrayonFlower, CrayonDaisy, CrayonTulip, SmallSprout SVGs)
+- 2026-02-12: Changed star title font to "Special Elite" (messy typewriter)
 - 2026-02-12: Set up Replit Auth integration (OAuth with Google, GitHub, email)
 - 2026-02-12: Built Garden page (writing interface for authenticated users)
 - 2026-02-12: Connected Featured section to real gallery API
@@ -27,7 +29,7 @@ A literary journal platform with an immersive, space-themed design. Writers crea
 - Garden metaphor: writings go through stages (seed → sprout → bloom)
 
 ### Pages
-- `/` - Landing page with hero, book animation, two doors, featured, how it works, manifesto
+- `/` - Landing page with hero, star title, garden intro (crayon doodles), two doors, featured, how it works, manifesto
 - `/garden` - Authenticated writing interface (create, edit, delete writings)
 
 ### API Routes
