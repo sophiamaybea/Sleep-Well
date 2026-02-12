@@ -26,13 +26,11 @@ export default function Navigation() {
     <>
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-4' : 'py-8'}`}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
-          <Link href="/">
-            <a className="relative group">
-              <span className="font-display font-medium text-2xl tracking-tight italic mix-blend-difference text-white">
-                The Page Gallery Journal
-              </span>
-              <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
-            </a>
+          <Link href="/" className="relative group">
+            <span className="font-display font-medium text-2xl tracking-tight italic mix-blend-difference text-white">
+              The Page Gallery Journal
+            </span>
+            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
 
           {/* Desktop Menu - Floating Pill */}

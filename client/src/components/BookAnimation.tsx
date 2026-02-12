@@ -10,24 +10,17 @@ export default function BookAnimation() {
 
   const smoothScroll = useSpring(scrollYProgress, { stiffness: 50, damping: 20 });
 
-  // 1. SCROLL RANGES
-  // 0.0 - 0.3: Book is closed, static or slightly breathing
-  // 0.3 - 0.6: Book opens (transitions from closed shape to open shape)
-  // 0.6 - 0.8: Text emerges
-  // 0.8 - 1.0: Fade out / Scroll away
-
   const bookY = useTransform(smoothScroll, [0, 0.2], [0, 50]);
   const bookScale = useTransform(smoothScroll, [0, 0.4], [0.8, 1.2]);
   
-  // Opacity Crossfade
   const opacityClosed = useTransform(smoothScroll, [0.25, 0.35], [1, 0]);
   const opacityOpen = useTransform(smoothScroll, [0.25, 0.35], [0, 1]);
   const openBookScale = useTransform(smoothScroll, [0.3, 0.6], [0.8, 1]);
   
-  // Text Reveal
   const textOpacity = useTransform(smoothScroll, [0.5, 0.7], [0, 1]);
   const textY = useTransform(smoothScroll, [0.5, 0.7], [20, 0]);
   const textBlur = useTransform(smoothScroll, [0.5, 0.7], ["10px", "0px"]);
+  const textFilter = useMotionTemplate`blur(${textBlur})`;
 
   // --- SVG PATHS ---
   // A vertical closed book
@@ -157,7 +150,7 @@ export default function BookAnimation() {
 
           {/* THE TITLE REVEAL */}
           <motion.div 
-            style={{ opacity: textOpacity, y: textY, filter: useMotionTemplate`blur(${textBlur})` }}
+            style={{ opacity: textOpacity, y: textY, filter: textFilter }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-[800px]"
           >
             <h1 className="font-display text-6xl md:text-8xl tracking-widest text-white mix-blend-overlay drop-shadow-[0_0_30px_rgba(255,255,255,0.6)]">
