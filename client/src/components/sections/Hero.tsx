@@ -1,9 +1,24 @@
+import { useState, useEffect } from "react";
 import { Section } from "@/components/ui/section";
 import { content } from "@/data";
 import { motion, useScroll, useTransform, useMotionValue } from "framer-motion";
 import StarTitle from "@/components/StarTitle";
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Good morning, writer.";
+  if (hour >= 12 && hour < 17) return "Good afternoon, writer.";
+  if (hour >= 17 && hour < 21) return "Good evening, writer.";
+  return "The night is yours, writer.";
+}
+
 export default function Hero() {
+  const [greeting, setGreeting] = useState(getGreeting);
+
+  useEffect(() => {
+    const interval = setInterval(() => setGreeting(getGreeting()), 60000);
+    return () => clearInterval(interval);
+  }, []);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -44,8 +59,8 @@ export default function Hero() {
               >
                 <div className="flex items-center gap-4 mb-6">
                    <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-                   <span className="font-mono text-xs tracking-[0.2em] text-secondary opacity-70 uppercase">
-                    Open For Submissions
+                   <span className="font-mono text-xs tracking-[0.2em] text-secondary opacity-70 uppercase" data-testid="text-greeting">
+                    {greeting}
                   </span>
                 </div>
                
