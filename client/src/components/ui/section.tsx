@@ -23,7 +23,7 @@ export function Section({ children, className, id, fullHeight = true }: SectionP
     <motion.section
       ref={ref}
       id={id}
-      style={{ opacity, scale }}
+      style={{ opacity, scale, position: "relative" }}
       className={cn(
         "relative w-full flex flex-col justify-center items-center px-6 py-24 md:px-12 lg:px-24 overflow-hidden",
         fullHeight && "min-h-screen",

@@ -1,4 +1,4 @@
-import { useRef, useMemo, Component, type ReactNode } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback, Component, type ReactNode } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
@@ -99,15 +99,43 @@ function hasWebGL(): boolean {
 
 export default function StarBackground() {
   const webgl = useMemo(() => hasWebGL(), []);
+  const [contextLost, setContextLost] = useState(false);
+  const [canvasKey, setCanvasKey] = useState(0);
+
+  const handleCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
+    const canvas = gl.domElement;
+    const onLost = (e: Event) => {
+      e.preventDefault();
+      setContextLost(true);
+    };
+    const onRestored = () => {
+      setContextLost(false);
+      setCanvasKey(k => k + 1);
+    };
+    canvas.addEventListener("webglcontextlost", onLost);
+    canvas.addEventListener("webglcontextrestored", onRestored);
+  }, []);
+
+  useEffect(() => {
+    if (contextLost) {
+      const timer = setTimeout(() => {
+        setContextLost(false);
+        setCanvasKey(k => k + 1);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [contextLost]);
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none bg-background">
-      {webgl ? (
+      {webgl && !contextLost ? (
         <WebGLErrorBoundary fallback={<CSSStarFallback />}>
           <Canvas
+            key={canvasKey}
             camera={{ position: [0, 0, 10], fov: 60 }}
-            gl={{ alpha: false, antialias: true }}
+            gl={{ alpha: false, antialias: true, powerPreference: "low-power" }}
             className="bg-background"
+            onCreated={handleCreated}
           >
             <fog attach="fog" args={['#0e141f', 20, 90]} />
             <StarField />

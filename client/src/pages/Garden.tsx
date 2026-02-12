@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, ChevronLeft, Feather } from "lucide-react";
 import Navigation from "@/components/Navigation";
@@ -91,7 +90,6 @@ function timeAgo(date: string | Date | null | undefined) {
 
 export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
-  useLocation();
   const queryClient = useQueryClient();
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [editTitle, setEditTitle] = useState("");
