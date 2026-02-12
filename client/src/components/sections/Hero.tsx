@@ -1,7 +1,6 @@
 import { Section } from "@/components/ui/section";
 import { content } from "@/data";
 import { motion, useScroll, useTransform, useMotionValue } from "framer-motion";
-import StarTunnel from "@/components/StarTunnel";
 
 export default function Hero() {
   const mouseX = useMotionValue(0);
@@ -22,15 +21,8 @@ export default function Hero() {
   return (
     <Section 
       id="hero" 
-      className="bg-background text-primary cursor-none"
+      className="bg-transparent text-primary cursor-none relative z-10"
     >
-      {/* 3D Star Tunnel Background */}
-      <StarTunnel />
-      
-      {/* Gradient Overlays for depth */}
-      <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-background via-transparent to-background opacity-80" />
-      <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
-
       <div 
         className="absolute inset-0 z-10" 
         onMouseMove={handleMouseMove}

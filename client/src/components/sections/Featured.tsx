@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function Featured() {
   return (
-    <Section id="featured" className="bg-card/50 text-primary">
+    <Section id="featured" className="bg-transparent text-primary">
       <div className="max-w-5xl mx-auto w-full space-y-16">
         <div className="grid md:grid-cols-2 gap-12 items-end border-b border-white/10 pb-12">
           <div className="space-y-4">
@@ -20,7 +20,7 @@ export default function Featured() {
           </p>
         </div>
 
-        <div className="py-24 text-center space-y-8 border border-dashed border-white/10 rounded-lg bg-background/30 backdrop-blur-sm relative overflow-hidden">
+        <div className="py-24 text-center space-y-8 border border-dashed border-white/10 rounded-lg bg-background/20 backdrop-blur-sm relative overflow-hidden">
           {/* Animated scan line */}
           <motion.div 
             className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"

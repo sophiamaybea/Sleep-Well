@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function HowItWorks() {
   return (
-    <Section id="how-it-works" className="bg-background text-primary">
+    <Section id="how-it-works" className="bg-transparent text-primary">
       <div className="max-w-6xl mx-auto w-full space-y-24">
         <div className="text-center space-y-6">
           <span className="font-mono text-xs tracking-[0.2em] opacity-60 block uppercase">
@@ -32,7 +32,7 @@ export default function HowItWorks() {
               className="flex flex-col md:flex-row gap-8 md:gap-16 relative"
             >
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 rounded-full border border-white/20 bg-background flex items-center justify-center font-mono text-sm relative z-10">
+                <div className="w-14 h-14 rounded-full border border-white/20 bg-background/50 backdrop-blur-sm flex items-center justify-center font-mono text-sm relative z-10">
                   {step.number}
                 </div>
               </div>
