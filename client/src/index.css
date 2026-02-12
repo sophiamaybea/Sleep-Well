@@ -8,7 +8,7 @@
   --font-display: 'Space Grotesk', sans-serif;
   --font-mono: 'Space Mono', monospace;
 
-  --color-background: hsl(217 100% 12%); /* Darker blue for better contrast */
+  --color-background: hsl(217 100% 12%);
   --color-foreground: hsl(43 96% 90%);
   
   --color-card: hsl(217 100% 15%);
@@ -41,11 +41,20 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto; /* Disabled for Lenis */
   }
   * {
     @apply border-border;
+    cursor: none; /* Hide default cursor */
   }
+  
+  /* Show default cursor on small screens */
+  @media (max-width: 768px) {
+    * {
+      cursor: auto;
+    }
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground;
   }
@@ -66,5 +75,32 @@
   
   .glass-panel {
     @apply bg-background/80 backdrop-blur-md border border-white/10;
+  }
+
+  @keyframes noise {
+    0% { transform: translate(0, 0); }
+    10% { transform: translate(-5%, -5%); }
+    20% { transform: translate(-10%, 5%); }
+    30% { transform: translate(5%, -10%); }
+    40% { transform: translate(-5%, 15%); }
+    50% { transform: translate(-10%, 5%); }
+    60% { transform: translate(15%, 0); }
+    70% { transform: translate(0, 10%); }
+    80% { transform: translate(-15%, 0); }
+    90% { transform: translate(10%, 5%); }
+    100% { transform: translate(5%, 0); }
+  }
+
+  .animate-noise {
+    animation: noise 2s steps(10) infinite;
+  }
+
+  @keyframes scan {
+    0% { transform: translateY(0%); }
+    100% { transform: translateY(1000%); }
+  }
+
+  .animate-scan {
+    animation: scan 4s linear infinite;
   }
 }
