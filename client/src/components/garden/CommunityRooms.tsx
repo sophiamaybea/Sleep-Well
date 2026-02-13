@@ -105,7 +105,7 @@ function CategoryPill({ label, active, onClick, testId }: { label: string; activ
       className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
         active
           ? "bg-white/[0.08] border-white/15 text-white/80"
-          : "border-white/[0.04] text-white/25 hover:text-white/45 hover:border-white/10"
+          : "border-white/[0.08] text-white/40 hover:text-white/45 hover:border-white/10"
       }`}
       data-testid={testId}
     >
@@ -154,33 +154,33 @@ function TopicReplies({ topicId }: { topicId: string }) {
   return (
     <div className="space-y-3" data-testid={`topic-replies-${topicId}`}>
       {isLoading && (
-        <p className="font-serif text-sm text-white/20 italic">Loading replies...</p>
+        <p className="font-serif text-sm text-white/35 italic">Loading replies...</p>
       )}
       {replies.length === 0 && !isLoading && (
-        <p className="font-serif text-sm text-white/15 italic">No replies yet — start the conversation.</p>
+        <p className="font-serif text-sm text-white/30 italic">No replies yet — start the conversation.</p>
       )}
       {replies.map((reply) => (
-        <div key={reply.id} className={`flex items-start gap-3 ${reply.parentId ? "ml-8 border-l border-white/[0.06] pl-4" : ""}`} data-testid={`reply-${reply.id}`}>
+        <div key={reply.id} className={`flex items-start gap-3 ${reply.parentId ? "ml-8 border-l border-white/[0.12] pl-4" : ""}`} data-testid={`reply-${reply.id}`}>
           <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/40 font-mono text-[8px] uppercase flex-shrink-0">
             {reply.authorName?.[0] || "?"}
           </div>
           <div className="flex-grow min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <span className="font-mono text-[10px] text-white/40 tracking-wide">{reply.authorName}</span>
-              <span className="font-mono text-[9px] text-white/15">{timeAgo(reply.createdAt)}</span>
+              <span className="font-mono text-[9px] text-white/30">{timeAgo(reply.createdAt)}</span>
             </div>
             <p className="font-serif text-sm text-white/50 leading-relaxed">{reply.content}</p>
           </div>
         </div>
       ))}
-      <div className="flex gap-2 pt-2 border-t border-white/[0.04]">
+      <div className="flex gap-2 pt-2 border-t border-white/[0.08]">
         <input
           type="text"
           value={replyContent}
           onChange={(e) => setReplyContent(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitReply(); } }}
           placeholder="Write a reply..."
-          className="flex-grow bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+          className="flex-grow bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
           data-testid={`input-reply-${topicId}`}
         />
         <button
@@ -252,7 +252,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
       <div className="flex items-center justify-between mb-8">
         <BackButton onBack={onBack} />
         <div className="flex items-center gap-3">
-          <Users size={16} className="text-white/20" />
+          <Users size={16} className="text-white/35" />
           <h2 className="text-xl font-display font-light italic text-white/70">Tables</h2>
         </div>
         <motion.button
@@ -285,7 +285,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Give your topic a name..."
-                className="w-full bg-transparent border-b border-white/[0.06] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                className="w-full bg-transparent border-b border-white/[0.12] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/30 focus:outline-none focus:border-white/20 transition-colors"
                 data-testid="input-topic-title"
               />
               <textarea
@@ -293,15 +293,15 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setNewBody(e.target.value)}
                 placeholder="Share your thoughts, questions, or ideas with the community..."
                 rows={4}
-                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
                 data-testid="input-topic-body"
               />
               <div className="flex items-center justify-between">
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 mr-1">Category</label>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 mr-1">Category</label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.06] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                  className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.12] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
                   data-testid="select-topic-category"
                 >
                   {TABLE_CATEGORIES.map((c) => (
@@ -340,7 +340,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
 
       {isLoading && (
         <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/20 italic">Loading discussions...</p>
+          <p className="font-serif text-sm text-white/35 italic">Loading discussions...</p>
         </div>
       )}
 
@@ -348,7 +348,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
         <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
           <MessageSquare size={32} className="mx-auto text-white/10" />
           <h3 className="text-xl font-display font-light italic text-white/40">No discussions yet</h3>
-          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
             This is where writers gather to talk — about craft, about life, about the strange joy of finding the right word. Start a thread and pull up a chair.
           </p>
           <button
@@ -376,7 +376,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
               <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
                 isExpanded
                   ? "border-white/15 bg-white/[0.025]"
-                  : "border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01]"
+                  : "border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01]"
               }`}>
                 <button
                   onClick={() => setExpandedTopic(isExpanded ? null : topic.id)}
@@ -389,20 +389,20 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                         {topic.isPinned && <span className="text-amber-400/50 text-[9px] font-mono uppercase tracking-widest">pinned</span>}
                         <h3 className="text-base font-display font-light truncate text-white/70 italic">{topic.title}</h3>
                       </div>
-                      <div className="flex items-center gap-3 text-white/20">
+                      <div className="flex items-center gap-3 text-white/35">
                         <span className="font-mono text-[10px]">{topic.authorName}</span>
                         <span className="font-mono text-[9px]">{timeAgo(topic.updatedAt || topic.createdAt)}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="px-2 py-0.5 rounded-full border border-white/[0.06] font-mono text-[8px] uppercase tracking-widest text-white/20" data-testid={`badge-category-${topic.id}`}>
+                      <span className="px-2 py-0.5 rounded-full border border-white/[0.12] font-mono text-[8px] uppercase tracking-widest text-white/35" data-testid={`badge-category-${topic.id}`}>
                         {topic.category}
                       </span>
-                      <div className="flex items-center gap-1 text-white/20">
+                      <div className="flex items-center gap-1 text-white/35">
                         <MessageSquare size={11} />
                         <span className="font-mono text-[9px]" data-testid={`text-reply-count-${topic.id}`}>{topic.replyCount}</span>
                       </div>
-                      <ChevronDown size={13} className={`text-white/15 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                      <ChevronDown size={13} className={`text-white/30 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
                 </button>
@@ -416,7 +416,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                       transition={{ duration: 0.25 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.04]">
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.08]">
                         <p className="font-serif text-sm text-white/40 leading-relaxed pt-4" data-testid={`text-topic-body-${topic.id}`}>{topic.body}</p>
                         <TopicReplies topicId={topic.id} />
                       </div>
@@ -471,9 +471,9 @@ function ExerciseResponses({ exerciseId }: { exerciseId: string }) {
 
   return (
     <div className="space-y-4" data-testid={`exercise-responses-${exerciseId}`}>
-      {isLoading && <p className="font-serif text-sm text-white/20 italic">Loading responses...</p>}
+      {isLoading && <p className="font-serif text-sm text-white/35 italic">Loading responses...</p>}
       {responses.length === 0 && !isLoading && (
-        <p className="font-serif text-sm text-white/15 italic">No responses yet — be the first to write.</p>
+        <p className="font-serif text-sm text-white/30 italic">No responses yet — be the first to write.</p>
       )}
       {responses.map((r) => (
         <div key={r.id} className="flex items-start gap-3" data-testid={`response-${r.id}`}>
@@ -483,19 +483,19 @@ function ExerciseResponses({ exerciseId }: { exerciseId: string }) {
           <div className="flex-grow min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="font-mono text-[10px] text-white/40 tracking-wide">{r.authorName}</span>
-              <span className="font-mono text-[9px] text-white/15">{timeAgo(r.createdAt)}</span>
+              <span className="font-mono text-[9px] text-white/30">{timeAgo(r.createdAt)}</span>
             </div>
             <p className="font-serif text-sm text-white/50 leading-relaxed whitespace-pre-wrap">{r.content}</p>
           </div>
         </div>
       ))}
-      <div className="pt-3 border-t border-white/[0.04] space-y-2">
+      <div className="pt-3 border-t border-white/[0.08] space-y-2">
         <textarea
           value={responseContent}
           onChange={(e) => setResponseContent(e.target.value)}
           placeholder="Write your response to this exercise here..."
           rows={4}
-          className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+          className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
           data-testid={`input-response-${exerciseId}`}
         />
         <div className="flex justify-end">
@@ -575,7 +575,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
       <div className="flex items-center justify-between mb-8">
         <BackButton onBack={onBack} />
         <div className="flex items-center gap-3">
-          <BookOpen size={16} className="text-white/20" />
+          <BookOpen size={16} className="text-white/35" />
           <h2 className="text-xl font-display font-light italic text-white/70">Workshop</h2>
         </div>
         <motion.button
@@ -608,7 +608,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Name this exercise..."
-                className="w-full bg-transparent border-b border-white/[0.06] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                className="w-full bg-transparent border-b border-white/[0.12] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/30 focus:outline-none focus:border-white/20 transition-colors"
                 data-testid="input-exercise-title"
               />
               <textarea
@@ -616,7 +616,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setNewPrompt(e.target.value)}
                 placeholder="Describe the exercise — what should writers try? Give a starting line, constraint, or form..."
                 rows={4}
-                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
                 data-testid="input-exercise-prompt"
               />
               <div className="flex items-center justify-between flex-wrap gap-3">
@@ -624,7 +624,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.06] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                    className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.12] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
                     data-testid="select-exercise-category"
                   >
                     {WORKSHOP_CATEGORIES.map((c) => (
@@ -638,10 +638,10 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                       onChange={(e) => setNewDuration(e.target.value)}
                       placeholder="Time"
                       min="1"
-                      className="w-16 bg-transparent border border-white/[0.06] rounded-full px-3 py-1.5 font-mono text-[9px] text-white/40 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors text-center"
+                      className="w-16 bg-transparent border border-white/[0.12] rounded-full px-3 py-1.5 font-mono text-[9px] text-white/40 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors text-center"
                       data-testid="input-exercise-duration"
                     />
-                    <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest">min</span>
+                    <span className="font-mono text-[8px] text-white/30 uppercase tracking-widest">min</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -676,7 +676,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
 
       {isLoading && (
         <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/20 italic">Loading exercises...</p>
+          <p className="font-serif text-sm text-white/35 italic">Loading exercises...</p>
         </div>
       )}
 
@@ -684,7 +684,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
         <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
           <Feather size={32} className="mx-auto text-white/10" />
           <h3 className="text-xl font-display font-light italic text-white/40">No exercises yet</h3>
-          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
             Create a writing prompt for the community — a constraint, a starting line, a form to try. Others can respond and share what they wrote.
           </p>
           <button
@@ -712,7 +712,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
               <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
                 isExpanded
                   ? "border-white/15 bg-white/[0.025]"
-                  : "border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01]"
+                  : "border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01]"
               }`}>
                 <button
                   onClick={() => setExpandedExercise(isExpanded ? null : exercise.id)}
@@ -720,31 +720,31 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                   data-testid={`button-expand-exercise-${exercise.id}`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-white/25">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-white/40">
                       <Feather size={14} />
                     </div>
                     <div className="flex-grow min-w-0">
                       <h3 className="text-base font-display font-light text-white/70 italic mb-1">{exercise.title}</h3>
                       <p className="font-serif text-sm text-white/30 line-clamp-2 leading-relaxed">{exercise.prompt}</p>
-                      <div className="flex items-center gap-3 mt-2 text-white/20">
+                      <div className="flex items-center gap-3 mt-2 text-white/35">
                         <span className="font-mono text-[10px]">{exercise.authorName}</span>
                         <span className="font-mono text-[9px]">{timeAgo(exercise.createdAt)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                      <span className="px-2 py-0.5 rounded-full border border-white/[0.06] font-mono text-[8px] uppercase tracking-widest text-white/20" data-testid={`badge-exercise-category-${exercise.id}`}>
+                      <span className="px-2 py-0.5 rounded-full border border-white/[0.12] font-mono text-[8px] uppercase tracking-widest text-white/35" data-testid={`badge-exercise-category-${exercise.id}`}>
                         {exercise.category}
                       </span>
                       <div className="flex items-center gap-2">
                         {exercise.durationMinutes && (
-                          <span className="font-mono text-[9px] text-white/20" data-testid={`text-duration-${exercise.id}`}>{exercise.durationMinutes}m</span>
+                          <span className="font-mono text-[9px] text-white/35" data-testid={`text-duration-${exercise.id}`}>{exercise.durationMinutes}m</span>
                         )}
-                        <div className="flex items-center gap-1 text-white/20">
+                        <div className="flex items-center gap-1 text-white/35">
                           <PenLine size={10} />
                           <span className="font-mono text-[9px]" data-testid={`text-response-count-${exercise.id}`}>{exercise.responseCount}</span>
                         </div>
                       </div>
-                      <ChevronDown size={13} className={`text-white/15 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                      <ChevronDown size={13} className={`text-white/30 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
                 </button>
@@ -758,8 +758,8 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                       transition={{ duration: 0.25 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.04]">
-                        <div className="pt-4 p-4 bg-white/[0.02] rounded-lg border border-white/[0.04]">
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.08]">
+                        <div className="pt-4 p-4 bg-white/[0.02] rounded-lg border border-white/[0.08]">
                           <p className="font-serif text-sm text-white/45 leading-relaxed italic" data-testid={`text-exercise-prompt-${exercise.id}`}>{exercise.prompt}</p>
                         </div>
                         <ExerciseResponses exerciseId={exercise.id} />
@@ -907,7 +907,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
       <div className="flex items-center justify-between mb-8">
         <BackButton onBack={onBack} />
         <div className="flex items-center gap-3">
-          <ArrowLeftRight size={16} className="text-white/20" />
+          <ArrowLeftRight size={16} className="text-white/35" />
           <h2 className="text-xl font-display font-light italic text-white/70">Swap</h2>
         </div>
         <motion.button
@@ -936,11 +936,11 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
           >
             <div className="border border-white/[0.08] rounded-xl p-5 space-y-4 bg-white/[0.02]" data-testid="new-swap-form">
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/25 mb-2 block">Select your writing</label>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-2 block">Select your writing</label>
                 <select
                   value={selectedWritingId}
                   onChange={(e) => setSelectedWritingId(e.target.value)}
-                  className="w-full bg-transparent text-white/50 font-serif text-sm border border-white/[0.06] rounded-lg px-3 py-2.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                  className="w-full bg-transparent text-white/50 font-serif text-sm border border-white/[0.12] rounded-lg px-3 py-2.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
                   data-testid="select-swap-writing"
                 >
                   <option value="" className="bg-[#0b101a]">Choose a piece...</option>
@@ -954,7 +954,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                 value={swapGenre}
                 onChange={(e) => setSwapGenre(e.target.value)}
                 placeholder="What genre do you prefer to read? (optional)"
-                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
                 data-testid="input-swap-genre"
               />
               <textarea
@@ -962,7 +962,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setSwapNote(e.target.value)}
                 placeholder="Tell potential partners what kind of feedback you're looking for (optional)..."
                 rows={2}
-                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
                 data-testid="input-swap-note"
               />
               <div className="flex justify-end gap-2">
@@ -996,7 +996,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
 
       {isLoading && (
         <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/20 italic">Loading swaps...</p>
+          <p className="font-serif text-sm text-white/35 italic">Loading swaps...</p>
         </div>
       )}
 
@@ -1004,7 +1004,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
         <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
           <ArrowLeftRight size={32} className="mx-auto text-white/10" />
           <h3 className="text-xl font-display font-light italic text-white/40">No swap requests yet</h3>
-          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
             Offer one of your pieces for beta reading. Another writer will match with you, and you'll each read and give feedback on the other's work.
           </p>
           <button
@@ -1027,19 +1027,19 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
             transition={{ delay: i * 0.03, duration: 0.3 }}
             data-testid={`swap-card-${swap.id}`}
           >
-            <div className="rounded-xl border border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01] overflow-hidden transition-all duration-300">
+            <div className="rounded-xl border border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01] overflow-hidden transition-all duration-300">
               <div className="p-4 md:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded-full border font-mono text-[8px] uppercase tracking-widest ${statusColors[swap.status] || "text-white/20 border-white/[0.06]"}`} data-testid={`badge-status-${swap.id}`}>
+                      <span className={`px-2 py-0.5 rounded-full border font-mono text-[8px] uppercase tracking-widest ${statusColors[swap.status] || "text-white/35 border-white/[0.12]"}`} data-testid={`badge-status-${swap.id}`}>
                         {swap.status}
                       </span>
                       <h3 className="text-base font-display font-light text-white/70 italic truncate" data-testid={`text-swap-title-${swap.id}`}>{swap.writingTitle}</h3>
                     </div>
-                    <div className="flex items-center gap-3 text-white/20 mb-2">
+                    <div className="flex items-center gap-3 text-white/35 mb-2">
                       <span className="font-mono text-[10px]">{swap.requesterName}</span>
-                      {swap.genre && <span className="font-mono text-[9px] text-white/15">·  {swap.genre}</span>}
+                      {swap.genre && <span className="font-mono text-[9px] text-white/30">·  {swap.genre}</span>}
                       <span className="font-mono text-[9px]">{timeAgo(swap.createdAt)}</span>
                     </div>
                     {swap.note && (
@@ -1060,7 +1060,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                             <select
                               value={matchWritingId}
                               onChange={(e) => setMatchWritingId(e.target.value)}
-                              className="bg-transparent text-white/40 font-serif text-xs border border-white/[0.06] rounded-lg px-2 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer w-40"
+                              className="bg-transparent text-white/40 font-serif text-xs border border-white/[0.12] rounded-lg px-2 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer w-40"
                               data-testid={`select-match-writing-${swap.id}`}
                             >
                               <option value="" className="bg-[#0b101a]">Pick your piece...</option>
@@ -1071,7 +1071,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                             <div className="flex gap-1">
                               <button
                                 onClick={() => setMatchingSwapId(null)}
-                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/40 hover:text-white/50 transition-colors"
                                 data-testid={`button-cancel-match-${swap.id}`}
                               >
                                 Cancel
@@ -1106,37 +1106,37 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                               type="hidden"
                               value={feedbackToUserId}
                             />
-                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-1">What worked well?</label>
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 block mb-1">What worked well?</label>
                             <textarea
                               value={feedbackStrengths}
                               onChange={(e) => setFeedbackStrengths(e.target.value)}
                               placeholder="Strengths..."
                               rows={2}
-                              className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                              className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
                               data-testid={`input-feedback-strengths-${swap.id}`}
                             />
-                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-1">Suggestions for improvement</label>
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 block mb-1">Suggestions for improvement</label>
                             <textarea
                               value={feedbackSuggestions}
                               onChange={(e) => setFeedbackSuggestions(e.target.value)}
                               placeholder="Suggestions..."
                               rows={2}
-                              className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                              className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
                               data-testid={`input-feedback-suggestions-${swap.id}`}
                             />
-                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-1">Favorite lines (optional)</label>
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 block mb-1">Favorite lines (optional)</label>
                             <input
                               type="text"
                               value={feedbackFavoriteLines}
                               onChange={(e) => setFeedbackFavoriteLines(e.target.value)}
                               placeholder="Favorite lines (optional)..."
-                              className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+                              className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
                               data-testid={`input-feedback-favorites-${swap.id}`}
                             />
                             <div className="flex gap-1">
                               <button
                                 onClick={() => setFeedbackSwapId(null)}
-                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/40 hover:text-white/50 transition-colors"
                                 data-testid={`button-cancel-feedback-${swap.id}`}
                               >
                                 Cancel

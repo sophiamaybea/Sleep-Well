@@ -150,8 +150,8 @@ export default function NotificationPanel() {
 
       {isLoading && (
         <div className="text-center py-20">
-          <Bell size={24} className="mx-auto text-white/20 animate-pulse mb-4" />
-          <p className="font-mono text-xs text-white/25 tracking-widest uppercase">Loading whispers...</p>
+          <Bell size={24} className="mx-auto text-white/35 animate-pulse mb-4" />
+          <p className="font-mono text-xs text-white/40 tracking-widest uppercase">Loading whispers...</p>
         </div>
       )}
 
@@ -166,7 +166,7 @@ export default function NotificationPanel() {
             <h3 className="text-2xl font-display font-light italic text-white/50">
               All quiet in the garden
             </h3>
-            <p className="font-serif text-white/25 max-w-md mx-auto leading-relaxed">
+            <p className="font-serif text-white/40 max-w-md mx-auto leading-relaxed">
               No whispers yet. When others interact with your work, you'll hear about it here.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function NotificationPanel() {
                 <div className="flex items-start gap-3">
                   <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${
                     notification.isRead
-                      ? "border-white/[0.06] text-white/20"
+                      ? "border-white/[0.12] text-white/35"
                       : "border-amber-500/20 text-amber-400/60"
                   }`}>
                     <Icon size={14} />
@@ -213,17 +213,17 @@ export default function NotificationPanel() {
                           {notification.actorName}
                         </span>
                       )}
-                      <span className={`font-serif text-sm ${notification.isRead ? "text-white/25" : "text-white/45"}`}>
+                      <span className={`font-serif text-sm ${notification.isRead ? "text-white/40" : "text-white/45"}`}>
                         {notification.message}
                       </span>
                     </div>
-                    <span className="font-mono text-[9px] text-white/15 mt-1 block">
+                    <span className="font-mono text-[9px] text-white/30 mt-1 block">
                       {timeAgo(notification.createdAt)}
                     </span>
                   </div>
                   {!notification.isRead && (
                     <div className="flex-shrink-0 mt-1">
-                      <Check size={12} className="text-white/15 group-hover:text-white/30 transition-colors" />
+                      <Check size={12} className="text-white/30 group-hover:text-white/30 transition-colors" />
                     </div>
                   )}
                 </div>

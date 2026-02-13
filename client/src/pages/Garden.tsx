@@ -117,7 +117,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl">
+      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.12] bg-white/[0.02] backdrop-blur-xl">
         {zones.map((z) => (
           <button
             key={z.id}
@@ -145,7 +145,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
           transition={{ duration: 0.15 }}
-          className="font-serif text-[12px] text-white/20 text-center"
+          className="font-serif text-[12px] text-white/35 text-center"
         >
           {zones.find(z => z.id === active)?.desc}
         </motion.p>
@@ -170,7 +170,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
               isActive
                 ? "border-white/20 bg-white/[0.08] text-white/70"
-                : "border-white/[0.06] text-white/25 hover:text-white/45 hover:border-white/12"
+                : "border-white/[0.12] text-white/40 hover:text-white/45 hover:border-white/12"
             }`}
             data-testid={`room-${room.id}`}
           >
@@ -180,7 +180,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
         ) : (
           <div
             key={room.id}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.04] text-white/15 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.08] text-white/30 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none"
             title={room.desc}
             data-testid={`room-${room.id}`}
           >
@@ -233,7 +233,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
     <div className="max-w-3xl mx-auto">
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
-          <p className="text-sm font-serif text-white/25">
+          <p className="text-sm font-serif text-white/40">
             {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
           </p>
         </div>
@@ -252,13 +252,13 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-grow">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/15" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search your pieces..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-xl text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.02] border border-white/[0.12] rounded-xl text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
             data-testid="input-search"
           />
         </div>
@@ -268,12 +268,12 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest transition-all ${
-                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/25 hover:text-white/45"
+                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/40 hover:text-white/45"
               }`}
               data-testid={`filter-${f.id}`}
             >
               {f.label}
-              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/40" : "text-white/12"}`}>{f.count}</span>
+              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/40" : "text-white/25"}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -288,7 +288,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
           </div>
           <div className="space-y-2">
             <h3 className="text-2xl font-display font-light italic text-white/50">Your garden awaits its first seed</h3>
-            <p className="font-serif text-sm text-white/25 max-w-md mx-auto leading-relaxed">
+            <p className="font-serif text-sm text-white/40 max-w-md mx-auto leading-relaxed">
               A line, a fragment, a whole draft — whatever wants to come out.
             </p>
           </div>
@@ -306,7 +306,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
       )}
 
       {filteredWritings.length === 0 && writings.length > 0 && (
-        <p className="text-center py-12 font-serif text-white/25 text-sm">No pieces match your search.</p>
+        <p className="text-center py-12 font-serif text-white/40 text-sm">No pieces match your search.</p>
       )}
 
       <div className="space-y-2">
@@ -326,7 +326,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                 className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
                   isExpanded
                     ? `${stageColors[readiness]?.split(" ")[0] || "border-white/15"} bg-white/[0.025]`
-                    : "border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01]"
+                    : "border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01]"
                 }`}
               >
                 {isExpanded && (
@@ -356,14 +356,14 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0 text-white/15">
+                    <div className="flex items-center gap-3 flex-shrink-0 text-white/30">
                       <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">{w.genre}</span>
                       <span className="font-mono text-[9px]">{timeAgo(w.updatedAt)}</span>
                       <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
                   {!isExpanded && w.content && (
-                    <p className="text-sm font-serif text-white/20 line-clamp-1 mt-1 ml-10">
+                    <p className="text-sm font-serif text-white/35 line-clamp-1 mt-1 ml-10">
                       {w.content.slice(0, 120)}
                     </p>
                   )}
@@ -384,7 +384,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                             {w.content.slice(0, 400)}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 text-white/15">
+                        <div className="flex items-center gap-3 text-white/30">
                           <span className="font-mono text-[9px] tracking-widest">{wordCount(w.content)} words</span>
                           <VisibilityBadge visibility={vis} readiness={readiness} editorialAvailable={w.editorialAvailable} compact />
                         </div>
@@ -399,7 +399,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onOpenPlanting(w); }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.06] hover:border-white/15 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.12] hover:border-white/15 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-all"
                             data-testid={`button-plant-${w.id}`}
                           >
                             <MapPin size={11} />
@@ -471,13 +471,13 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           Back
         </button>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[9px] tracking-widest text-white/15">
+          <span className="font-mono text-[9px] tracking-widest text-white/30">
             {saving ? "saving..." : lastSaved ? `saved ${timeAgo(lastSaved)}` : ""}
           </span>
-          <span className="font-mono text-[9px] tracking-widest text-white/15">{wordCount(editContent)} words</span>
+          <span className="font-mono text-[9px] tracking-widest text-white/30">{wordCount(editContent)} words</span>
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="p-1.5 text-white/15 hover:text-red-400/70 transition-colors"
+            className="p-1.5 text-white/30 hover:text-red-400/70 transition-colors"
             data-testid="button-delete"
           >
             <Trash2 size={14} />
@@ -514,7 +514,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           data-testid="input-title"
         />
 
-        <div className="flex items-center gap-3 pb-5 border-b border-white/[0.04] flex-wrap">
+        <div className="flex items-center gap-3 pb-5 border-b border-white/[0.08] flex-wrap">
           <div className="flex gap-0.5">
             {([
               { id: "raw_seed", label: "Seed" },
@@ -527,7 +527,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                   editStage === s.id
                     ? `${stageColors[s.id]} ${stageAccent[s.id]}`
-                    : "border-transparent text-white/20 hover:text-white/40"
+                    : "border-transparent text-white/35 hover:text-white/40"
                 }`}
                 data-testid={`button-stage-${s.id}`}
               >
@@ -540,7 +540,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           <select
             value={editGenre}
             onChange={(e) => { setEditGenre(e.target.value); setTimeout(doSave, 100); }}
-            className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.04] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+            className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.08] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
             data-testid="select-genre"
           >
             {genreOptions.map((g) => (
@@ -550,7 +550,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           <span className="w-px h-4 bg-white/[0.04]" />
           <button
             onClick={onOpenPlanting}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/[0.04] text-white/25 hover:text-white/50 hover:border-white/15 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/[0.08] text-white/40 hover:text-white/50 hover:border-white/15 transition-all"
             data-testid="button-open-planting"
           >
             <MapPin size={11} />
@@ -613,10 +613,10 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
   return (
     <div className="max-w-2xl mx-auto">
       {allPieces.length === 0 && (
-        <div className="border border-dashed border-white/[0.06] rounded-2xl p-16 text-center space-y-4">
+        <div className="border border-dashed border-white/[0.12] rounded-2xl p-16 text-center space-y-4">
           <Feather size={32} className="mx-auto text-white/10" />
           <h3 className="text-xl font-display font-light italic text-white/40">No letters yet</h3>
-          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
             When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
           </p>
         </div>
@@ -635,7 +635,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
               data-testid={`letter-${piece.id}`}
             >
               <div className={`rounded-xl border transition-all duration-300 ${
-                isExpanded ? "border-white/[0.1] bg-white/[0.02]" : "border-transparent hover:border-white/[0.06]"
+                isExpanded ? "border-white/[0.1] bg-white/[0.02]" : "border-transparent hover:border-white/[0.12]"
               }`}>
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : piece.id)}
@@ -663,13 +663,13 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                   <p className={`font-serif text-white/35 leading-[1.9] ${isExpanded ? "" : "line-clamp-3"}`}>
                     {isExpanded ? piece.content.slice(0, 2000) : piece.content.slice(0, 250)}
                     {isExpanded && piece.content.length > 2000 && (
-                      <span className="text-white/15 italic"> ...continues</span>
+                      <span className="text-white/30 italic"> ...continues</span>
                     )}
                   </p>
 
                   {!isExpanded && (
                     <div className="flex items-center gap-3 mt-3">
-                      <span className="font-mono text-[8px] uppercase tracking-widest text-white/12">{piece.genre}</span>
+                      <span className="font-mono text-[8px] uppercase tracking-widest text-white/25">{piece.genre}</span>
                       <ResonanceBar writingId={piece.id} compact />
                     </div>
                   )}
@@ -687,7 +687,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                       <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <span className="font-mono text-[8px] uppercase tracking-widest text-white/12">{piece.genre}</span>
+                            <span className="font-mono text-[8px] uppercase tracking-widest text-white/25">{piece.genre}</span>
                             <span className="font-mono text-[8px] text-white/10">{wordCount(piece.content)} words</span>
                           </div>
                           <TendButton gardenerId={piece.authorId} size="sm" />
@@ -710,7 +710,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
         <div className="text-center mt-10">
           <button
             onClick={() => setPage(p => p + 1)}
-            className="inline-flex items-center gap-2 px-6 py-3 border border-white/[0.06] hover:border-white/15 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-white/[0.12] hover:border-white/15 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white/50 transition-all"
             data-testid="button-more-letters"
           >
             <Feather size={12} />
@@ -749,7 +749,7 @@ function GreenhouseZone() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <p className="font-serif text-sm text-white/25 mb-8">
+      <p className="font-serif text-sm text-white/40 mb-8">
         Your private creative toolkit — a quiet space just for you. No one else can see what's here. Use these tools to tend your practice, track your energy, and nurture your creative life.
       </p>
 
@@ -776,7 +776,7 @@ function GreenhouseZone() {
                 <h3 className="font-display text-base font-light italic text-white/65 group-hover:text-white/85 transition-colors mb-1">
                   {tool.label}
                 </h3>
-                <p className="font-serif text-xs text-white/20 leading-relaxed">{tool.desc}</p>
+                <p className="font-serif text-xs text-white/35 leading-relaxed">{tool.desc}</p>
               </div>
             </motion.button>
           );
@@ -802,7 +802,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
     <div className="max-w-3xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/25 hover:text-white/60 transition-colors group mb-6"
+        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors group mb-6"
         data-testid="button-back-greenhouse"
       >
         <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
@@ -812,7 +812,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
         <div className={`${toolColorMap[toolInfo.color].text}`}>{toolInfo.icon}</div>
         <h2 className="text-2xl font-display font-light italic text-white/80">{toolInfo.label}</h2>
       </div>
-      <p className="font-serif text-sm text-white/20 leading-relaxed mt-1 max-w-lg">{toolInfo.desc}</p>
+      <p className="font-serif text-sm text-white/35 leading-relaxed mt-1 max-w-lg">{toolInfo.desc}</p>
       {toolContent[tool]}
     </div>
   );
@@ -841,18 +841,18 @@ function GrowthJournalView() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="What's growing in your practice today..."
-          className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 resize-none h-28 transition-colors"
+          className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 resize-none h-28 transition-colors"
           data-testid="input-journal-entry"
         />
         <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">Add Entry</button>
       </div>
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.04] rounded-xl p-4">
+        <div key={e.id} className="border border-white/[0.08] rounded-xl p-4">
           <p className="font-serif text-sm text-white/40 leading-relaxed">{e.content}</p>
-          <span className="font-mono text-[8px] text-white/12 mt-2 block">{timeAgo(e.createdAt)}</span>
+          <span className="font-mono text-[8px] text-white/25 mt-2 block">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">No entries yet. Start reflecting on your growth.</p>}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">No entries yet. Start reflecting on your growth.</p>}
     </div>
   );
 }
@@ -881,21 +881,21 @@ function InnerWeatherView() {
     <div className="space-y-4">
       <div className="flex gap-1 mb-2">
         {moods.map(m => (
-          <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/20 hover:text-white/40"}`}>{m}</button>
+          <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/35 hover:text-white/40"}`}>{m}</button>
         ))}
       </div>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[9px] text-white/20 uppercase tracking-widest">Energy</span>
+        <span className="font-mono text-[9px] text-white/35 uppercase tracking-widest">Energy</span>
         <input type="range" min="1" max="10" value={energy} onChange={(e) => setEnergy(Number(e.target.value))} className="flex-grow accent-white/40" />
         <span className="font-mono text-[10px] text-white/30">{energy}</span>
       </div>
-      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief note..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors" data-testid="input-weather-note" />
+      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief note..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors" data-testid="input-weather-note" />
       <button onClick={() => addMutation.mutate()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white transition-all" data-testid="button-log-weather">Log Weather</button>
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.04] rounded-xl p-3 flex items-center gap-3">
+        <div key={e.id} className="border border-white/[0.08] rounded-xl p-3 flex items-center gap-3">
           <span className="font-mono text-[9px] uppercase text-white/30">{e.mood}</span>
-          <span className="font-mono text-[9px] text-white/15">energy {e.energy}/10</span>
-          {e.note && <span className="font-serif text-xs text-white/25">{e.note}</span>}
+          <span className="font-mono text-[9px] text-white/30">energy {e.energy}/10</span>
+          {e.note && <span className="font-serif text-xs text-white/40">{e.note}</span>}
           <span className="ml-auto font-mono text-[8px] text-white/10">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
@@ -941,7 +941,7 @@ function RitualsView() {
           <>
             <div className="flex items-center justify-center gap-3">
               {[5, 10, 15, 25, 45].map(d => (
-                <button key={d} onClick={() => setDuration(d)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${duration === d ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/20 hover:text-white/40"}`}>{d}m</button>
+                <button key={d} onClick={() => setDuration(d)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${duration === d ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/35 hover:text-white/40"}`}>{d}m</button>
               ))}
             </div>
             <button onClick={startTimer} className="px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-300 transition-all" data-testid="button-start-ritual">Begin Ritual</button>
@@ -949,16 +949,16 @@ function RitualsView() {
         ) : (
           <div className="py-8">
             <p className="text-5xl font-display font-light text-white/80 tabular-nums">{mins}:{secs.toString().padStart(2, "0")}</p>
-            <p className="font-serif text-sm text-white/20 mt-3">Write freely. The timer is tending to the time.</p>
+            <p className="font-serif text-sm text-white/35 mt-3">Write freely. The timer is tending to the time.</p>
           </div>
         )}
       </div>
       {sessions.length > 0 && (
         <div>
-          <p className="font-mono text-[9px] uppercase tracking-widest text-white/15 mb-2">Past Sessions</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-white/30 mb-2">Past Sessions</p>
           {sessions.slice(0, 5).map((s: any) => (
             <div key={s.id} className="flex items-center gap-3 py-2 border-b border-white/[0.03]">
-              <span className="font-mono text-[9px] text-white/25">{s.duration}min</span>
+              <span className="font-mono text-[9px] text-white/40">{s.duration}min</span>
               <span className="font-mono text-[8px] text-white/10">{timeAgo(s.createdAt)}</span>
             </div>
           ))}
@@ -987,11 +987,11 @@ function CompostView() {
   return (
     <div className="space-y-4">
       <div>
-        <textarea value={fragment} onChange={(e) => setFragment(e.target.value)} placeholder="Toss a fragment, a cut line, an abandoned thought..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 resize-none h-24 transition-colors" data-testid="input-compost" />
+        <textarea value={fragment} onChange={(e) => setFragment(e.target.value)} placeholder="Toss a fragment, a cut line, an abandoned thought..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 resize-none h-24 transition-colors" data-testid="input-compost" />
         <button onClick={() => addMutation.mutate()} disabled={!fragment.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-compost">Add to Compost</button>
       </div>
       {entries.map((e: any) => (
-        <div key={e.id} className={`border rounded-xl p-4 ${e.isRecycled ? "border-emerald-500/10 bg-emerald-500/[0.02]" : "border-white/[0.04]"}`}>
+        <div key={e.id} className={`border rounded-xl p-4 ${e.isRecycled ? "border-emerald-500/10 bg-emerald-500/[0.02]" : "border-white/[0.08]"}`}>
           <p className="font-serif text-sm text-white/35 leading-relaxed italic">{e.content}</p>
           <div className="flex items-center gap-2 mt-2">
             <span className="font-mono text-[8px] text-white/10">{timeAgo(e.createdAt)}</span>
@@ -999,7 +999,7 @@ function CompostView() {
           </div>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">Nothing composting yet. Toss in your fragments.</p>}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">Nothing composting yet. Toss in your fragments.</p>}
     </div>
   );
 }
@@ -1024,18 +1024,18 @@ function ReflectionsView() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Reflection title..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors" data-testid="input-reflection-title" />
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What are you learning about your craft..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Reflection title..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors" data-testid="input-reflection-title" />
+        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What are you learning about your craft..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
         <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-reflection">Add Reflection</button>
       </div>
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.04] rounded-xl p-4">
+        <div key={e.id} className="border border-white/[0.08] rounded-xl p-4">
           {e.title && <h4 className="font-display text-base font-light italic text-white/50 mb-1">{e.title}</h4>}
           <p className="font-serif text-sm text-white/35 leading-relaxed">{e.content}</p>
           <span className="font-mono text-[8px] text-white/10 mt-2 block">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">No reflections yet. Begin exploring your craft.</p>}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">No reflections yet. Begin exploring your craft.</p>}
     </div>
   );
 }
@@ -1049,16 +1049,16 @@ function CirclesView() {
   return (
     <div className="space-y-4">
       {circles.map((c: any) => (
-        <div key={c.id} className="border border-white/[0.06] rounded-xl p-4">
+        <div key={c.id} className="border border-white/[0.12] rounded-xl p-4">
           <h4 className="font-display text-base font-light italic text-white/60">{c.name}</h4>
-          {c.description && <p className="font-serif text-xs text-white/25 mt-1">{c.description}</p>}
+          {c.description && <p className="font-serif text-xs text-white/40 mt-1">{c.description}</p>}
           <div className="flex items-center gap-2 mt-2">
-            <Users size={10} className="text-white/15" />
-            <span className="font-mono text-[8px] text-white/15">{c.memberCount || 0} members</span>
+            <Users size={10} className="text-white/30" />
+            <span className="font-mono text-[8px] text-white/30">{c.memberCount || 0} members</span>
           </div>
         </div>
       ))}
-      {circles.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
+      {circles.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
     </div>
   );
 }
@@ -1151,7 +1151,7 @@ export default function Garden() {
             <div className="w-12 h-12 mx-auto border border-white/10 rounded-full flex items-center justify-center">
               <Feather size={20} className="text-white/30 animate-pulse" />
             </div>
-            <p className="font-mono text-[10px] tracking-widest text-white/25 uppercase">Opening your garden...</p>
+            <p className="font-mono text-[10px] tracking-widest text-white/40 uppercase">Opening your garden...</p>
           </div>
         </div>
       </div>
@@ -1165,7 +1165,7 @@ export default function Garden() {
         <div className="relative z-10 pt-20 pb-24 px-6 max-w-2xl mx-auto">
           <button
             onClick={() => setShowNotifications(false)}
-            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/25 hover:text-white/60 transition-colors group mb-6"
+            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors group mb-6"
           >
             <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back
@@ -1181,15 +1181,15 @@ export default function Garden() {
       <StarBackground />
 
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/60 border-b border-white/[0.04]">
+        <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/60 border-b border-white/[0.08]">
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
-              <a href="/" className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20 hover:text-white/40 transition-colors" data-testid="link-home">
+              <a href="/" className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/35 hover:text-white/40 transition-colors" data-testid="link-home">
                 <Home size={15} />
               </a>
 
               {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setProfileUserId(null); }} />}
-              {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">Writing</span>}
+              {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">Writing</span>}
 
               <div className="flex items-center gap-1">
                 <NotificationBell onClick={() => setShowNotifications(true)} />
@@ -1209,11 +1209,11 @@ export default function Garden() {
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
                         className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-white/[0.08] bg-[#0b101a]/95 backdrop-blur-xl overflow-hidden shadow-xl"
                       >
-                        <div className="p-3 border-b border-white/[0.04]">
+                        <div className="p-3 border-b border-white/[0.08]">
                           <p className="font-serif text-sm text-white/60 truncate">{user?.firstName} {user?.lastName}</p>
-                          <p className="font-mono text-[8px] text-white/15 uppercase tracking-widest">Writer</p>
+                          <p className="font-mono text-[8px] text-white/30 uppercase tracking-widest">Writer</p>
                         </div>
-                        <a href="/api/logout" className="flex items-center gap-2 px-3 py-2.5 text-white/25 hover:text-red-400/60 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
+                        <a href="/api/logout" className="flex items-center gap-2 px-3 py-2.5 text-white/40 hover:text-red-400/60 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
                           <LogOut size={13} />
                           Sign Out
                         </a>

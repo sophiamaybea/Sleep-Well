@@ -115,7 +115,7 @@ export function ResonanceBar({ writingId, compact }: { writingId: string; compac
             } ${
               active
                 ? `border-white/15 bg-white/[0.08] ${reaction.color}`
-                : "border-white/[0.04] bg-transparent text-white/30 hover:text-white/50 hover:border-white/10"
+                : "border-white/[0.08] bg-transparent text-white/30 hover:text-white/50 hover:border-white/10"
             }`}
             title={reaction.label}
             data-testid={`resonance-${reaction.type}-${writingId}`}
@@ -213,7 +213,7 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className={`${isReply ? "ml-8 border-l border-white/[0.06] pl-4" : ""}`}
+      className={`${isReply ? "ml-8 border-l border-white/[0.12] pl-4" : ""}`}
       data-testid={`marginalia-note-${note.id}`}
     >
       <div className="flex items-start gap-3 py-3">
@@ -225,13 +225,13 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
             <span className="font-mono text-[10px] text-white/40 tracking-wide">
               {note.userName || "Anonymous"}
             </span>
-            <span className="font-mono text-[9px] text-white/15">
+            <span className="font-mono text-[9px] text-white/30">
               {timeAgo(note.createdAt)}
             </span>
           </div>
           {note.highlightText && (
             <div className="border-l-2 border-white/10 pl-3 mb-2">
-              <p className="font-serif text-xs text-white/20 italic leading-relaxed">
+              <p className="font-serif text-xs text-white/35 italic leading-relaxed">
                 "{note.highlightText}"
               </p>
             </div>
@@ -242,7 +242,7 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
           <div className="flex items-center gap-3 mt-1.5">
             <button
               onClick={() => setReplyTo(replyTo === note.id ? null : note.id)}
-              className="font-mono text-[9px] text-white/20 hover:text-white/40 transition-colors tracking-widest uppercase"
+              className="font-mono text-[9px] text-white/35 hover:text-white/40 transition-colors tracking-widest uppercase"
               data-testid={`button-reply-${note.id}`}
             >
               {replyTo === note.id ? "Cancel" : "Reply"}
@@ -250,7 +250,7 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
             {user && note.userId === user.id && (
               <button
                 onClick={() => deleteMutation.mutate(note.id)}
-                className="text-white/15 hover:text-red-400/60 transition-colors"
+                className="text-white/30 hover:text-red-400/60 transition-colors"
                 data-testid={`button-delete-note-${note.id}`}
               >
                 <Trash2 size={10} />
@@ -271,7 +271,7 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
                   onChange={(e) => setNewNote(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Reply..."
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm font-serif text-white/60 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
+                  className="w-full bg-white/[0.03] border border-white/[0.12] rounded-lg px-3 py-2 text-sm font-serif text-white/60 placeholder:text-white/35 focus:outline-none focus:border-white/25 transition-colors"
                   data-testid={`input-reply-${note.id}`}
                 />
               </motion.div>
@@ -284,8 +284,8 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
   );
 
   return (
-    <div className="border-t border-white/[0.04] pt-4 mt-4" data-testid={`marginalia-section-${writingId}`}>
-      <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/20 mb-3">
+    <div className="border-t border-white/[0.08] pt-4 mt-4" data-testid={`marginalia-section-${writingId}`}>
+      <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/35 mb-3">
         Marginalia
       </p>
 
@@ -294,7 +294,7 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
       </div>
 
       {notes.length === 0 && (
-        <p className="font-serif text-sm text-white/15 italic py-4">
+        <p className="font-serif text-sm text-white/30 italic py-4">
           No notes yet — be the first to leave a mark.
         </p>
       )}
@@ -307,7 +307,7 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
             onChange={(e) => setNewNote(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Leave a note in the margins..."
-            className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
+            className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/35 focus:outline-none focus:border-white/25 transition-colors"
             data-testid={`input-marginalia-${writingId}`}
           />
         </div>
