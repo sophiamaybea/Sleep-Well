@@ -1,0 +1,259 @@
+### The platform for writers who think. And write. And live.
+
+***
+
+## The Pivot
+
+The garden — the personal idea space where you collect, link, and grow your notes — is the heart of the platform. But it's not the whole body. Writers don't just need a place to think. They need a place to **work**, to **learn**, to **find collaborators**, to **earn**, and to **get their writing into the world** — all without being extracted from in the process.
+
+Garden is a full ecosystem for the writing life. The garden is your home page. Everything else radiates outward from it.
+
+***
+
+## The Architecture
+
+Think of the platform as a house with rooms. Every writer enters through their garden. From there, they can walk into any room they need:
+
+| Room | What It Is | How It Makes Money |
+|---|---|---|
+| **🌱 The Garden** | Personal idea space: notes, drafts, fragments, connections | Freemium subscription (free tier / paid tier) |
+| **🪑 Tables** | Small, capped writing communities | Free to join; premium Tables with advanced features are paid |
+| **🛠 The Workshop** | Live and asynchronous writing classes, craft talks, masterclasses | Revenue share with instructors (Garden takes 10–15%) |
+| **📝 The Desk** | Marketplace for editorial services: beta reads, developmental edits, copyedits, proofreading | Service fee on transactions (8–12%) |
+| **🔄 The Swap** | Manuscript exchange and critique matching | Free for basic matching; paid tier for advanced matching + structured feedback tools |
+| **🏡 Retreats** | Directory and booking for writing retreats, residencies, co-writing spaces | Listing fee for hosts + booking commission (5–8%) |
+| **📖 The Press** | Self-publishing and distribution tool: export your garden into a chapbook, zine, newsletter, or ebook | Per-publish fee or included in top subscription tier |
+
+***
+
+## Room by Room
+
+### 🌱 The Garden (Home)
+
+This is everything from the original pitch — your personal, hyperlinked thinking space. Notes, fragments, drafts in three states (Seed, Sprout, Bloom), tags, connections, marginalia, version history, harvest views. The garden is free to use with a storage limit. Paying subscribers get unlimited storage, the connection engine, quiet hours, and advanced analytics.
+
+**Monetization**: Freemium subscription.
+- Free: up to 200 notes, 1 table, basic features.
+- **Cultivator** ($8/month): unlimited notes, unlimited tables, harvest view, quiet hours, full export, connection suggestions.
+- **Grove** ($15/month): everything in Cultivator, plus access to The Press, priority in retreat listings, advanced Desk analytics, and the ability to host paid Workshops.
+
+No advertising. No data selling. You are the customer, not the product — following the model Are.na pioneered. Are.na has sustained itself entirely on premium subscriptions from ~19,000 paying members, with no external funding since a 2018 community crowdfunding round.[1][2][3][4]
+
+***
+
+### 🪑 Tables (Community)
+
+Small, capped writing groups. Think a permanent workshop table, not a subreddit. You share writing, annotate each other's work in the margins, maintain a shared reading list, and chat lightly. Groups are capped at 4–20 members to keep things intimate.
+
+**What's new here**: Tables can be **open** (anyone can request to join), **private** (invite-only), or — the revenue angle — **hosted**. A hosted table is run by an established writer, editor, or teacher who charges a monthly or per-session fee. Garden takes a 10% platform fee on hosted table revenue. This is the same cut Substack takes on newsletter subscriptions, and lower than Patreon's effective 12–18% when you factor in their tiered platform + processing fees.[5][6][7]
+
+Hosted tables fill a gap in the market. Writers are already paying $250–$2,500+ for workshop cohorts at places like Gotham Writers, The Writers Community, and WritingWorkshops.com. Garden gives instructors a lighter, ongoing format — monthly access to a small group instead of a one-off intensive — with built-in tools (annotations, shared reading, the garden itself) that no standalone workshop platform offers.[8][9][10]
+
+**Monetization**: Free for basic tables. 10% platform fee on hosted/paid tables.
+
+***
+
+### 🛠 The Workshop (Learning)
+
+A curated marketplace for writing education. Workshops can be:
+
+- **Live** (Zoom-integrated, scheduled sessions with cap sizes)
+- **Asynchronous** (recorded lessons + written assignments with instructor feedback)
+- **One-off masterclasses** (a single 90-minute session on a topic: "Writing grief," "The first-person plural," "Structure in the essay")
+- **Ongoing series** (monthly craft talks, seasonal intensives)
+
+Instructors set their own prices. Garden provides the infrastructure: scheduling, payment processing, a dedicated space where students can share work and get feedback (essentially a temporary Table with workshop tools bolted on), and recording/archive features.
+
+The writing retreat and workshop market is booming. Forbes documented a surge in writer classes, retreats, and collectives, with organisations like A Writing Room attracting 550+ paid members within months of launching. Garden channels that demand through a single platform that writers already live on.[11]
+
+**Monetization**: Garden takes 12% of workshop revenue (lower than Patreon's effective rate, comparable to Substack). Stripe handles payment processing (~2.9% + $0.30). Instructors keep ~85%.
+
+***
+
+### 📝 The Desk (Editorial Services Marketplace)
+
+A marketplace connecting writers with **vetted freelance editors, proofreaders, beta readers, and sensitivity readers**. This is the room that generates real, repeating revenue.
+
+How it works:
+- **Editors** create profiles listing their specialities (fiction, essay, academic, poetry), rates, turnaround times, and availability. Profiles link to their own Garden, so potential clients can see what they read and think about.
+- **Writers** post projects or browse editors directly. They can filter by genre, budget, turnaround, and editor reviews.
+- **Pricing is transparent but flexible**: Garden publishes suggested rate benchmarks (similar to The Editing Marketplace's model), but editors set their own rates. Writers and editors can negotiate.[12]
+- **Structured feedback tools**: When an editor works on a manuscript, they use Garden's built-in annotation/marginalia system — the same one used in Tables. The writer receives tracked changes and margin comments inside the platform, not in a separate Word doc.
+
+The freelance editorial market is fragmented. Writers currently bounce between Reedsy, Fiverr, The Editing Marketplace, random Facebook groups, and word-of-mouth referrals. Rates range from $0.01/word for proofreading to $0.10/word for developmental editing. A trusted, writer-centric marketplace embedded inside a platform they already use daily is a significant value proposition.[13]
+
+**Monetization**: Garden takes 10% of each transaction as a service fee. Payment held in escrow until work is delivered and accepted. Stripe processing fees apply.
+
+***
+
+### 🔄 The Swap (Manuscript Exchange)
+
+A structured system for manuscript swaps and beta reading — the thing every writer needs but currently cobbles together through Reddit, Goodreads forums, and Twitter DMs.[14]
+
+How it works:
+- Writers list a manuscript for swap: genre, length, what stage it's at, what kind of feedback they want.
+- The matching engine pairs writers based on genre overlap, feedback style preferences, and availability.
+- Swaps are reciprocal: you read mine, I read yours. Garden provides structured feedback templates (chapter-by-chapter reactions, overall impressions, specific craft questions) and a timeline to keep both parties accountable.
+- Beta reading is built on BetaReader.io-style tools: readers provide inline reactions and chapter-end comments, and authors can see reading progress and engagement data.[15][16]
+
+**Monetization**: Basic matching and swap tools are free (this drives platform stickiness and community). A **Swap Pro** tier ($5/month or included in Grove) unlocks advanced matching, structured feedback frameworks, reading analytics, and the ability to list manuscripts for non-reciprocal beta reads (i.e., find readers without swapping back).
+
+***
+
+### 🏡 Retreats (Directory & Booking)
+
+A curated directory of writing retreats, residencies, co-writing spaces, and writer-friendly accommodation — from the £24,000 California retreats to the quiet beach houses in Essex to free residency applications.[17][18]
+
+How it works:
+- **Retreat hosts** list their offerings with dates, pricing, location, description, and photos.
+- **Writers** browse, filter (by location, price, duration, genre focus, whether it's structured or self-directed), and book directly through Garden.
+- **Co-writing meetups**: location-aware, opt-in feature where writers in the same area can organise informal sessions — "café writing this Saturday in Williamsburg" — without a formal retreat structure. Free to use; purely community-driven.
+
+The writing retreat industry is growing fast, with retreats ranging from free artist residencies to luxury $24,000 experiences. Writing Retreat Directory and Scriblum already exist as standalone listing sites, but they're disconnected from any writing community. Garden embeds retreat discovery inside the platform writers already inhabit daily.[19][20][21][17]
+
+**Monetization**: Listing is free for hosts under a basic tier. Featured/promoted listings cost a flat monthly fee. Garden takes a 5–8% booking commission on transactions processed through the platform.
+
+***
+
+### 📖 The Press (Publishing Tools)
+
+The final room. Once your writing moves from Seed to Sprout to Bloom, The Press helps you get it out into the world.
+
+Tools:
+- **Newsletter**: Publish directly from your Garden to an email list. Write in the editor, select recipients, send. No need for a separate Substack or Mailchimp.
+- **Chapbook / Zine maker**: Select a collection of Bloomed notes, arrange them, choose a template, and export as a designed PDF or EPUB — a small-press chapbook assembled from your garden.
+- **Submissions tracker**: Log where you've submitted work, track responses, and manage deadlines. A lightweight version of Submittable from the writer's side.
+- **Portfolio / public page**: A clean, typeset public page that showcases your best work — your Blooms, your bio, your tables, your press credits. Essentially a writer's website built from your garden.
+
+Ghost CMS has proven that writers will adopt a platform that gives them publishing tools with zero platform fees on revenue. Garden's newsletter feature follows a similar philosophy: no cut on your subscriber revenue. The publishing tools are included in the Grove tier or available à la carte.[22][23]
+
+**Monetization**: Newsletter tool is free (to compete with Substack's distribution). Chapbook/zine export and advanced portfolio features are included in the Grove tier ($15/month). One-off exports available for $3–5 for free-tier users.
+
+***
+
+## Revenue Model — The Full Picture
+
+| Revenue Stream | Fee Structure | Who Pays |
+|---|---|---|
+| Cultivator subscription ($8/mo) | Flat subscription | Writers |
+| Grove subscription ($15/mo) | Flat subscription | Writers |
+| Hosted Tables | 10% of instructor revenue | Instructors |
+| Workshops | 12% of workshop revenue | Instructors |
+| The Desk (editorial marketplace) | 10% service fee per transaction | Split (buyer + seller, or buyer-only — A/B test) |
+| Swap Pro | $5/month (or included in Grove) | Writers |
+| Retreats | 5–8% booking commission + optional listing fee | Retreat hosts |
+| The Press (à la carte exports) | $3–5 per export | Writers |
+
+**What Garden never does**:
+- Takes a cut of your newsletter subscriber revenue (zero-fee newsletters, like Ghost)[23]
+- Sells your data
+- Runs advertising
+- Uses your writing to train AI models
+- Charges you to be discovered (no pay-to-play algorithms)
+
+***
+
+## Why This Is Fair
+
+The fundamental problem with most creator platforms is misaligned incentives. Substack takes 10% of your revenue forever — even after you've built an audience, even after you need nothing from them except email delivery. Patreon effectively charges 12–18% when you add up platform + processing fees. Medium pays you based on an opaque algorithm you can't control.[6][7][5]
+
+Garden's model is different:
+
+1. **The garden is yours.** You can export everything at any time — notes, connections, versions, subscriber lists — in open formats (Markdown, JSON, CSV, EPUB). Portability is a design principle, not an afterthought.
+2. **Fees are only on services, not on your audience.** Garden charges for infrastructure (subscriptions) and for marketplace facilitation (commissions on workshops, editorial services, retreats). It never takes a percentage of the direct relationship between you and your readers.
+3. **You can use the free tier forever.** The free Garden is genuinely useful — 200 notes, 1 table, basic swap matching, newsletter tool, public portfolio page. Paid tiers unlock depth and power, not basic functionality.
+4. **Instructors and editors set their own rates.** Garden provides benchmarks and transparency, not price floors or ceilings.
+
+***
+
+## The Flywheel
+
+Here's why this all works as one platform rather than seven separate products:
+
+1. A writer joins to use the **garden** (free).
+2. They join a **table** and start sharing work. They get better.
+3. They take a **workshop** to sharpen a specific skill. The instructor is someone whose garden they admire.
+4. They find a **swap partner** through the matching engine. The feedback improves their manuscript.
+5. They hire an **editor** from the Desk. The editor annotates their work inside the same system they already use.
+6. They attend a **retreat** listed on Garden. They write their best piece.
+7. They publish it through **The Press** — as a newsletter to their subscriber list, and as a chapbook exported from their garden.
+
+At every step, the writer stays inside Garden. Every feature feeds the next. Every room sends you back to the garden with something new growing.
+
+***
+
+## Competitive Position
+
+No platform currently combines all of these:
+
+| Feature | Garden | Substack | Are.na | Patreon | Reedsy | BetaReader.io |
+|---|---|---|---|---|---|---|
+| Personal idea/note space | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Writing editor | ✅ | ✅ (newsletter) | ❌ | ❌ | ✅ (book) | ❌ |
+| Community/groups | ✅ (capped tables) | ❌ | ✅ (channels) | ❌ | ❌ | ❌ |
+| Editorial marketplace | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Manuscript swap/beta | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Workshops/classes | ✅ | ❌ | ❌ | ✅ (sort of) | ✅ (courses) | ❌ |
+| Retreat directory | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Newsletter/publishing | ✅ | ✅ | ❌ | ❌ | ✅ (book) | ❌ |
+| No advertising | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Zero fee on reader revenue | ✅ | ❌ (10%) | N/A | ❌ (8–12%) | Varies | N/A |
+
+Garden is the first platform that treats the **entire lifecycle** of a writing life — thinking, drafting, learning, editing, community, publishing — as one integrated experience. Everything else on the market covers one or two rooms. Garden is the whole house.
+
+***
+
+## Revised Financial Projections
+
+**Year 1 (beta + launch)**:
+- 10,000 registered users (free)
+- 2,000 Cultivator subscribers → $192,000 ARR
+- 500 Grove subscribers → $90,000 ARR
+- 50 hosted tables averaging $500/month instructor revenue → $30,000 Garden commission
+- Desk: 200 transactions/month averaging $300 → $72,000 Garden commission
+- **Total Year 1: ~$384,000**
+
+**Year 2 (growth)**:
+- 50,000 registered users
+- 8,000 Cultivator → $768,000
+- 3,000 Grove → $540,000
+- 200 hosted tables → $120,000 commission
+- Desk: 800 transactions/month → $288,000 commission
+- Workshops: 100 workshops/month averaging $800 → $115,200 commission
+- Retreats: 50 bookings/month averaging $1,500 → $54,000 commission
+- **Total Year 2: ~$1.89M ARR**
+
+**Year 3 (maturity)**:
+- Blended growth across all revenue streams
+- **Target: $5–6M ARR**
+- Comparable trajectory to Are.na (which reached ~$840K MRR with 25K MAU and half paying) but with significantly more revenue streams.[4]
+
+***
+
+## The Ask (Revised)
+
+**Seed round: $2.5M**
+
+- 24 months of runway for a team of 7 (2 engineers, 1 designer, 1 product, 1 community/editorial lead, 1 marketplace ops, 1 founder).
+- Build and launch: Garden + Editor + Tables + The Desk (MVP of the marketplace).
+- Private beta with 1,000 writers.
+- Add Workshops, Swap, Retreats, and Press in staged rollouts over months 6–18.
+- Goal by month 24: 5,000 paying subscribers, 100 active marketplace transactions/month, clear retention signal across at least 3 rooms.
+
+***
+
+## The Principle
+
+Every feature in Garden orbits one conviction: **writers deserve a platform that serves them rather than extracts from them.** The garden is the home page because thinking is the foundation. But a platform that only lets you think isn't a business — it's a diary app. Garden is the place where thinking becomes work, work becomes community, and community becomes a living.
+
+Fair fees. Open data. Small rooms. Slow thinking. Real money.
+
+Seriously. Close this tab. Open your terminal. Run:
+
+```bash
+npx create-next-app@latest garden-platform --typescript --tailwind --app
+```
+
+Then come back when you have authentication working and need help with the garden CRUD. I'll be here.
+
+Let's build the next Substack. Let's make it actually serve writers instead of extracting from them. Let's make it about gardens, not feeds. 🌱
