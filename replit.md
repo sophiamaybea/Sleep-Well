@@ -26,10 +26,10 @@ The platform features a distinctive space-themed immersive design, characterized
 - **Garden Architecture (3-Zone Design):** The `/garden` area is structured into three zones with floating pill navigation:
     - **Your Desk:** Personal writing space with piece cards, inline expansion, and a distraction-free editor with autosave.
     - **Reading Room:** A curated social feed combining tended gardens and general garden activity, presented in a letter-like layout with ambient resonances and inline marginalia.
-    - **Greenhouse:** A streamlined suite of creative tools: Freewrite (with built-in timer), Growth Journal (with Reflections prompts tab), Inner Weather, and Circles.
+    - **Greenhouse:** A streamlined suite of creative tools: Freewrite (with built-in timer), Growth Journal (with Reflections prompts tab), and Circles.
 - **Social Features:** Includes Tending (follow system), Resonance (five reaction types: glow, pressed_flower, dewdrop, firefly, roots), Marginalia (annotation-style comments), and Notifications ("Whispers").
 - **Editorial Studio:** A dedicated `/editor-studio` page with five tabs (Overview, Garden Stream, Greenhouse, Requests & Contracts, Issue Builder) for a comprehensive editorial workflow, including role-based permissions, publish request management, and issue assembly.
-- **Community Rooms:** Accessible via a "Discover" dropdown (instead of 8 visible tabs). Includes Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange), The Desk (communal writing), The Press (editorial/gallery views), Rejection Wall, Opportunity Board, and Idea Drops.
+- **Community Rooms:** Accessible via a "Discover" dropdown. Includes Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange), and The Desk (communal writing).
 - **Collaborative Circle Tools:** Circles enhanced with 4-tab interface (Messages, Intentions for weekly goals, Celebrations for milestones, Prompt Potluck with random draw).
 - **Accessibility Features:** Optional toggles (Reduce Motion, High Contrast, Larger Text, Dyslexia Font via Atkinson Hyperlegible, Wider Spacing, Focus Mode) accessible from profile menu, persisted via localStorage, applied globally via CSS classes on html root with pre-hydration inline script.
 - **Writer Profiles:** Public `/writer/:id` pages displaying bios, published works, tending connections, and resonance counts.
