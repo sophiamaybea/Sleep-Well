@@ -1,0 +1,190 @@
+Global navigation
+
+Top navigation with four primary groups: Create, Discover, Practice, Reflect, plus a Community section, each containing multiple tools (see below). Each item links to its own dedicated page/experience.
+
+Persistent access to profile (show username “sophia sharkey”), settings, and a toggleable sidebar.
+
+Site runs in a dark, starry theme: black or deep blue background, white Cardo font text, and subtle stars/constellations that appear or animate on hover over the page background.
+​
+
+Garden metaphor + states
+
+Every piece of writing has a growth state: “seed”, “sprout”, or “bloom”, plus a total count of pieces in the user’s garden. These states are visible as counters on the personal dashboard and used as filters.
+​
+
+Growth states are purely conceptual; the UI should show them as badges, icons, or labels attached to each piece card and as numeric counters in the dashboard.
+​
+
+Create section
+Garden (Landing / Home)
+
+Landing page that explains “how the site will work” in three steps:
+
+Step 1 “Plant”: Users open their personal Garden and can write anything (line, draft, fragment), then leave it; no deadlines or due dates.
+​
+
+Step 2 “Editors Walk Through”: Editorial team slowly browses user Gardens like a bookshop, marking pieces that stand out.
+​
+
+Step 3 “A Knock on the Door”: When editors want to feature a piece, the writer receives a “Replant Request” they can accept, revise first, or decline; accepted pieces move into the public Gallery and are paid.
+​
+
+This page should be interactive: each step is presented as a card that expands/collapses to reveal details when clicked.
+​
+
+My Garden
+
+Personal dashboard listing all of the user’s pieces in card form, with:
+
+Search bar (“search pieces…”) to filter by title or text.
+
+Filters/tabs for “all”, “seeds”, “sprouts”, and “blooms” that change the visible cards.
+​
+
+Visible counters for number of seeds, sprouts, blooms, and total pieces.
+​
+
+Each piece card can expand to show details (description, status, actions); collapse hides details completely (details not rendered when collapsed).
+​
+
+This should be the main “home” for a logged-in writer.
+​
+
+Write
+
+Dedicated writing interface where a user can draft new pieces (“new piece”) or edit existing ones.
+
+Minimal, distraction-light editor: large text area, Cardo font, white text on dark background, with basic formatting at most (paragraphs, italics).
+​
+
+Ability to save drafts into “My Garden” with an initial state (seed by default).
+​
+
+Discover section
+Gallery
+
+Public-facing gallery of featured / accepted pieces that have been “replanted” by editors.
+
+Each card shows title, author, short excerpt, and a visual indicator that this piece is a “bloom” (or comparable mature state).
+​
+
+Sort options (e.g., latest, most read) and optional filters by theme/genre are recommended.
+
+Queue (Reading queue)
+
+Personal reading list: pieces the user has saved “to read later.”
+
+Cards show title and author; user can mark items as “read” or remove them, and re-order if possible.
+
+Explore
+
+Discovery page for browsing the wider ecosystem: recommendations, curated shelves, or tags.
+
+Includes search, filters (e.g., mood, form), and possibly carousels/sections like “New blooms”, “Quiet seeds”, etc.
+
+Saved (Bookmarks)
+
+Page showing all pieces the user has explicitly bookmarked.
+
+Separate from queue: these are favorites, not just “to read later.”
+
+Pollination
+
+Interaction/feedback hub where users can leave gentle, non-extractive feedback on each other’s work (e.g., highlight lines they love, short affirmations).
+
+No harsh critique by default; UI should nudge towards appreciation and resonance.
+
+Practice section
+Rituals (Writing rituals)
+
+Page offering guided prompts, timed sessions, or repeatable writing rituals to help users build a writing habit.
+
+User can start a ritual (e.g., a 10‑minute freewrite) and have the output saved directly into My Garden as a new seed piece.
+
+Compost
+
+Archive space for abandoned, cut, or “not working yet” pieces or fragments.
+
+Pieces moved here are not deleted; they can be revisited or recycled into new work later.
+
+Growth journal
+
+Private journal where users can reflect on their writing process over time.
+
+Entries are date-stamped and can be linked to specific pieces (e.g., “today I worked on X”).
+
+Submissions
+
+Page showing all submission-related activity for the lit mag side:
+
+Status of works under editorial review, accepted, or declined.
+
+History of pieces that have been featured and paid.
+
+Integrates with Replant Requests (see Community section).
+
+Reflect section
+Inner weather
+
+Check‑in tool where the user tags or selects their current emotional/creative “weather” (e.g., clear, overcast, stormy).
+
+Data should feed into reflections/analytics so the writer can see patterns between mood and writing over time.
+​
+
+Reflections
+
+Space to write slightly more structured reflections than the Growth Journal, possibly tied to specific prompts about craft, voice, or process.
+
+Entries may be grouped or summarized in analytics (e.g., how often the writer feels stuck, excited, etc.).
+​
+
+Seasonal review
+
+Quarterly or seasonal summary of the user’s practice: number of pieces started, finished, replanted, etc.
+
+Page should show simple analytics/visualizations (counts over time, maybe a small timeline) so the writer can see their growth season by season.
+​
+
+Root system
+
+Tool for mapping influences and connections: favorite writers, sources, and themes.
+
+UI could allow users to create a network or list that links back to their pieces (e.g., “this piece is rooted in X influence”).
+
+Community section
+Circles
+
+Small group spaces or cohorts where writers can share work privately and hold one another accountable.
+
+Each circle has a feed of shared pieces and lightweight discussion or reactions (aligned with the gentle Garden aesthetic).
+
+Moonlit readings
+
+Event-based interface for scheduled live or asynchronous readings.
+
+Could display upcoming events, RSVP, and a way to host or watch readings (recordings or text-based).
+
+Replant requests
+
+Inbox-style page where writers receive editorial invitations to feature individual pieces.
+
+Each request card shows which piece is being requested, optional editor notes, and three actions: accept, revise then accept, or decline; acceptance moves the piece into the Gallery and marks it as paid.
+​
+
+Additional behaviours and styling
+Fallow mode / quiet hours
+
+Global mode toggle that temporarily quiets notifications and possibly mutes certain interactive elements, supporting rest.
+
+UI cue (e.g., a “fallow mode” indicator) and an easy way to turn it on/off.
+
+Analytics (Your Garden analytics)
+
+Behind “Your Garden” / dashboard, include basic analytics showing:
+
+Counts of seeds, sprouts, blooms over time.
+
+Simple correlations between writing frequency, inner weather check‑ins, and submissions/acceptances.
+​
+
+Visualizations should be gentle and non-gamified (no streak shaming).
