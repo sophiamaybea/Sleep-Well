@@ -824,74 +824,166 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
 
 function useTypewriterSound() {
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const noiseBufferRef = useRef<AudioBuffer | null>(null);
 
   const getCtx = useCallback(() => {
-    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+      const sr = audioCtxRef.current.sampleRate;
+      const buf = audioCtxRef.current.createBuffer(1, sr * 0.15, sr);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      noiseBufferRef.current = buf;
+    }
     return audioCtxRef.current;
+  }, []);
+
+  const makeNoise = useCallback((ctx: AudioContext, duration: number) => {
+    const src = ctx.createBufferSource();
+    src.buffer = noiseBufferRef.current;
+    src.loop = false;
+    return src;
   }, []);
 
   const playKey = useCallback(() => {
     try {
       const ctx = getCtx();
       const t = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      osc.type = "square";
-      osc.frequency.setValueAtTime(1800 + Math.random() * 600, t);
-      osc.frequency.exponentialRampToValueAtTime(300, t + 0.03);
-      filter.type = "bandpass";
-      filter.frequency.value = 2000;
-      filter.Q.value = 0.5;
-      gain.gain.setValueAtTime(0.06, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.06);
+      const v = 0.7 + Math.random() * 0.3;
+
+      const click = makeNoise(ctx, 0.04);
+      const clickFilter = ctx.createBiquadFilter();
+      clickFilter.type = "bandpass";
+      clickFilter.frequency.value = 3000 + Math.random() * 2000;
+      clickFilter.Q.value = 1.2;
+      const clickGain = ctx.createGain();
+      clickGain.gain.setValueAtTime(0.18 * v, t);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+      click.connect(clickFilter);
+      clickFilter.connect(clickGain);
+      clickGain.connect(ctx.destination);
+      click.start(t);
+      click.stop(t + 0.03);
+
+      const thud = makeNoise(ctx, 0.06);
+      const thudFilter = ctx.createBiquadFilter();
+      thudFilter.type = "lowpass";
+      thudFilter.frequency.value = 800 + Math.random() * 400;
+      thudFilter.Q.value = 0.7;
+      const thudGain = ctx.createGain();
+      thudGain.gain.setValueAtTime(0.12 * v, t + 0.003);
+      thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+      thud.connect(thudFilter);
+      thudFilter.connect(thudGain);
+      thudGain.connect(ctx.destination);
+      thud.start(t + 0.002);
+      thud.stop(t + 0.07);
+
+      const mech = ctx.createOscillator();
+      mech.type = "square";
+      mech.frequency.setValueAtTime(1200 + Math.random() * 800, t);
+      mech.frequency.exponentialRampToValueAtTime(200, t + 0.015);
+      const mechGain = ctx.createGain();
+      mechGain.gain.setValueAtTime(0.04 * v, t);
+      mechGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+      mech.connect(mechGain);
+      mechGain.connect(ctx.destination);
+      mech.start(t);
+      mech.stop(t + 0.025);
     } catch {}
-  }, [getCtx]);
+  }, [getCtx, makeNoise]);
 
   const playSpace = useCallback(() => {
     try {
       const ctx = getCtx();
       const t = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(400, t);
-      osc.frequency.exponentialRampToValueAtTime(150, t + 0.04);
-      gain.gain.setValueAtTime(0.04, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.08);
+
+      const click = makeNoise(ctx, 0.05);
+      const clickFilter = ctx.createBiquadFilter();
+      clickFilter.type = "bandpass";
+      clickFilter.frequency.value = 2200;
+      clickFilter.Q.value = 0.8;
+      const clickGain = ctx.createGain();
+      clickGain.gain.setValueAtTime(0.2, t);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+      click.connect(clickFilter);
+      clickFilter.connect(clickGain);
+      clickGain.connect(ctx.destination);
+      click.start(t);
+      click.stop(t + 0.05);
+
+      const thud = makeNoise(ctx, 0.08);
+      const thudFilter = ctx.createBiquadFilter();
+      thudFilter.type = "lowpass";
+      thudFilter.frequency.value = 500;
+      thudFilter.Q.value = 0.5;
+      const thudGain = ctx.createGain();
+      thudGain.gain.setValueAtTime(0.16, t + 0.005);
+      thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      thud.connect(thudFilter);
+      thudFilter.connect(thudGain);
+      thudGain.connect(ctx.destination);
+      thud.start(t + 0.003);
+      thud.stop(t + 0.09);
     } catch {}
-  }, [getCtx]);
+  }, [getCtx, makeNoise]);
 
   const playReturn = useCallback(() => {
     try {
       const ctx = getCtx();
       const t = ctx.currentTime;
-      const noise = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      noise.type = "sawtooth";
-      noise.frequency.setValueAtTime(200, t);
-      noise.frequency.linearRampToValueAtTime(80, t + 0.15);
-      filter.type = "lowpass";
-      filter.frequency.value = 600;
-      gain.gain.setValueAtTime(0.05, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-      noise.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      noise.start(t);
-      noise.stop(t + 0.15);
+
+      const lever = makeNoise(ctx, 0.12);
+      const leverFilter = ctx.createBiquadFilter();
+      leverFilter.type = "bandpass";
+      leverFilter.frequency.value = 1500;
+      leverFilter.Q.value = 0.6;
+      const leverGain = ctx.createGain();
+      leverGain.gain.setValueAtTime(0.14, t);
+      leverGain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      lever.connect(leverFilter);
+      leverFilter.connect(leverGain);
+      leverGain.connect(ctx.destination);
+      lever.start(t);
+      lever.stop(t + 0.12);
+
+      const slide = ctx.createOscillator();
+      slide.type = "sine";
+      slide.frequency.setValueAtTime(600, t + 0.02);
+      slide.frequency.exponentialRampToValueAtTime(200, t + 0.15);
+      const slideGain = ctx.createGain();
+      slideGain.gain.setValueAtTime(0.06, t + 0.02);
+      slideGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      slide.connect(slideGain);
+      slideGain.connect(ctx.destination);
+      slide.start(t + 0.02);
+      slide.stop(t + 0.16);
+
+      const bell = ctx.createOscillator();
+      bell.type = "sine";
+      bell.frequency.value = 2400;
+      const bellGain = ctx.createGain();
+      bellGain.gain.setValueAtTime(0.08, t + 0.01);
+      bellGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      bell.connect(bellGain);
+      bellGain.connect(ctx.destination);
+      bell.start(t + 0.01);
+      bell.stop(t + 0.4);
+
+      const clunk = makeNoise(ctx, 0.06);
+      const clunkFilter = ctx.createBiquadFilter();
+      clunkFilter.type = "lowpass";
+      clunkFilter.frequency.value = 400;
+      const clunkGain = ctx.createGain();
+      clunkGain.gain.setValueAtTime(0.15, t + 0.12);
+      clunkGain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      clunk.connect(clunkFilter);
+      clunkFilter.connect(clunkGain);
+      clunkGain.connect(ctx.destination);
+      clunk.start(t + 0.12);
+      clunk.stop(t + 0.2);
     } catch {}
-  }, [getCtx]);
+  }, [getCtx, makeNoise]);
 
   return { playKey, playSpace, playReturn };
 }
