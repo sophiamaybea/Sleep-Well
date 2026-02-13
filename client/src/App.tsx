@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Garden from "@/pages/Garden";
+import WriterProfile from "@/pages/WriterProfile";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/garden" component={Garden} />
+      <Route path="/writer/:id" component={WriterProfile} />
       <Route component={NotFound} />
     </Switch>
   );

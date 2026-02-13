@@ -17,10 +17,13 @@ import {
   type Resonance, resonances,
   type Marginalia, marginalia,
   type Notification, notifications,
+  type TableTopic, tableTopics, type TableReply, tableReplies,
+  type WorkshopExercise, workshopExercises, type WorkshopResponse, workshopResponses,
+  type SwapRequest, swapRequests, type SwapFeedbackEntry, swapFeedback,
 } from "@shared/schema";
-import { users } from "@shared/models/auth";
+import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
-import { eq, and, desc, ilike, or, sql } from "drizzle-orm";
+import { eq, and, desc, ilike, or, sql, count } from "drizzle-orm";
 
 export interface IStorage {
   // Writings
@@ -141,6 +144,34 @@ export interface IStorage {
     ritualCount: number;
     journalEntries: number;
   }>;
+
+  // Tables (community discussions)
+  getTableTopics(category?: string): Promise<(TableTopic & { authorName: string | null; replyCount: number })[]>;
+  getTableTopic(id: string): Promise<(TableTopic & { authorName: string | null }) | undefined>;
+  createTableTopic(authorId: string, data: { title: string; body: string; category?: string }): Promise<TableTopic>;
+  getTableReplies(topicId: string): Promise<(TableReply & { authorName: string | null })[]>;
+  createTableReply(authorId: string, data: { topicId: string; content: string; parentId?: string }): Promise<TableReply>;
+
+  // Workshop (exercises & responses)
+  getWorkshopExercises(category?: string): Promise<(WorkshopExercise & { authorName: string | null; responseCount: number })[]>;
+  createWorkshopExercise(userId: string, data: { title: string; prompt: string; category?: string; durationMinutes?: number }): Promise<WorkshopExercise>;
+  getWorkshopResponses(exerciseId: string): Promise<(WorkshopResponse & { authorName: string | null })[]>;
+  createWorkshopResponse(userId: string, data: { exerciseId: string; content: string }): Promise<WorkshopResponse>;
+
+  // Swap (beta reading exchange)
+  getSwapRequests(status?: string): Promise<(SwapRequest & { requesterName: string | null; writingTitle: string; matchedName: string | null })[]>;
+  createSwapRequest(userId: string, data: { writingId: string; genre?: string; note?: string }): Promise<SwapRequest>;
+  matchSwap(requestId: string, userId: string, writingId: string): Promise<SwapRequest | undefined>;
+  getSwapFeedback(swapId: string): Promise<SwapFeedbackEntry[]>;
+  createSwapFeedback(userId: string, data: { swapId: string; toUserId: string; strengths: string; suggestions: string; favoriteLines?: string }): Promise<SwapFeedbackEntry>;
+
+  // Writer Profile
+  getWriterProfile(userId: string): Promise<{ user: User; writings: (Writing & { resonanceCount: number })[]; tenderCount: number; tendingCount: number } | null>;
+  updateBio(userId: string, bio: string): Promise<void>;
+
+  // Publishing (editorial)
+  getEditorialPieces(): Promise<(Writing & { authorName: string | null })[]>;
+  publishWritingByEditor(writingId: string, editorNote?: string): Promise<Writing | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -748,6 +779,220 @@ export class DatabaseStorage implements IStorage {
       ritualCount: rituals.length,
       journalEntries: journals.length,
     };
+  }
+
+  // === TABLES (COMMUNITY DISCUSSIONS) ===
+  async getTableTopics(category?: string): Promise<(TableTopic & { authorName: string | null; replyCount: number })[]> {
+    const conditions: any[] = [];
+    if (category) conditions.push(eq(tableTopics.category, category));
+
+    const topics = await db.select({
+      id: tableTopics.id, authorId: tableTopics.authorId, title: tableTopics.title,
+      body: tableTopics.body, category: tableTopics.category, isPinned: tableTopics.isPinned,
+      createdAt: tableTopics.createdAt, updatedAt: tableTopics.updatedAt,
+      authorName: users.firstName,
+    }).from(tableTopics)
+      .leftJoin(users, eq(tableTopics.authorId, users.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(tableTopics.isPinned), desc(tableTopics.createdAt));
+
+    const result: (TableTopic & { authorName: string | null; replyCount: number })[] = [];
+    for (const topic of topics) {
+      const replies = await db.select({ cnt: count() }).from(tableReplies).where(eq(tableReplies.topicId, topic.id));
+      result.push({ ...topic, replyCount: replies[0]?.cnt ?? 0 });
+    }
+    return result;
+  }
+
+  async getTableTopic(id: string): Promise<(TableTopic & { authorName: string | null }) | undefined> {
+    const [topic] = await db.select({
+      id: tableTopics.id, authorId: tableTopics.authorId, title: tableTopics.title,
+      body: tableTopics.body, category: tableTopics.category, isPinned: tableTopics.isPinned,
+      createdAt: tableTopics.createdAt, updatedAt: tableTopics.updatedAt,
+      authorName: users.firstName,
+    }).from(tableTopics)
+      .leftJoin(users, eq(tableTopics.authorId, users.id))
+      .where(eq(tableTopics.id, id));
+    return topic || undefined;
+  }
+
+  async createTableTopic(authorId: string, data: { title: string; body: string; category?: string }): Promise<TableTopic> {
+    const [topic] = await db.insert(tableTopics).values({ authorId, ...data }).returning();
+    return topic;
+  }
+
+  async getTableReplies(topicId: string): Promise<(TableReply & { authorName: string | null })[]> {
+    return await db.select({
+      id: tableReplies.id, topicId: tableReplies.topicId, authorId: tableReplies.authorId,
+      content: tableReplies.content, parentId: tableReplies.parentId,
+      createdAt: tableReplies.createdAt, authorName: users.firstName,
+    }).from(tableReplies)
+      .leftJoin(users, eq(tableReplies.authorId, users.id))
+      .where(eq(tableReplies.topicId, topicId))
+      .orderBy(tableReplies.createdAt);
+  }
+
+  async createTableReply(authorId: string, data: { topicId: string; content: string; parentId?: string }): Promise<TableReply> {
+    const [reply] = await db.insert(tableReplies).values({ authorId, ...data }).returning();
+    return reply;
+  }
+
+  // === WORKSHOP (EXERCISES & RESPONSES) ===
+  async getWorkshopExercises(category?: string): Promise<(WorkshopExercise & { authorName: string | null; responseCount: number })[]> {
+    const conditions: any[] = [];
+    if (category) conditions.push(eq(workshopExercises.category, category));
+
+    const exercises = await db.select({
+      id: workshopExercises.id, createdById: workshopExercises.createdById, title: workshopExercises.title,
+      prompt: workshopExercises.prompt, category: workshopExercises.category,
+      durationMinutes: workshopExercises.durationMinutes, isPublic: workshopExercises.isPublic,
+      createdAt: workshopExercises.createdAt, authorName: users.firstName,
+    }).from(workshopExercises)
+      .leftJoin(users, eq(workshopExercises.createdById, users.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(workshopExercises.createdAt));
+
+    const result: (WorkshopExercise & { authorName: string | null; responseCount: number })[] = [];
+    for (const exercise of exercises) {
+      const responses = await db.select({ cnt: count() }).from(workshopResponses).where(eq(workshopResponses.exerciseId, exercise.id));
+      result.push({ ...exercise, responseCount: responses[0]?.cnt ?? 0 });
+    }
+    return result;
+  }
+
+  async createWorkshopExercise(userId: string, data: { title: string; prompt: string; category?: string; durationMinutes?: number }): Promise<WorkshopExercise> {
+    const [exercise] = await db.insert(workshopExercises).values({ createdById: userId, ...data }).returning();
+    return exercise;
+  }
+
+  async getWorkshopResponses(exerciseId: string): Promise<(WorkshopResponse & { authorName: string | null })[]> {
+    return await db.select({
+      id: workshopResponses.id, exerciseId: workshopResponses.exerciseId, authorId: workshopResponses.authorId,
+      content: workshopResponses.content, createdAt: workshopResponses.createdAt,
+      authorName: users.firstName,
+    }).from(workshopResponses)
+      .leftJoin(users, eq(workshopResponses.authorId, users.id))
+      .where(eq(workshopResponses.exerciseId, exerciseId))
+      .orderBy(desc(workshopResponses.createdAt));
+  }
+
+  async createWorkshopResponse(userId: string, data: { exerciseId: string; content: string }): Promise<WorkshopResponse> {
+    const [response] = await db.insert(workshopResponses).values({ authorId: userId, ...data }).returning();
+    return response;
+  }
+
+  // === SWAP (BETA READING EXCHANGE) ===
+  async getSwapRequests(status?: string): Promise<(SwapRequest & { requesterName: string | null; writingTitle: string; matchedName: string | null })[]> {
+    const conditions: any[] = [];
+    if (status) conditions.push(eq(swapRequests.status, status));
+
+    const results = await db.select({
+      id: swapRequests.id, requesterId: swapRequests.requesterId, writingId: swapRequests.writingId,
+      genre: swapRequests.genre, note: swapRequests.note, status: swapRequests.status,
+      matchedWithId: swapRequests.matchedWithId, matchedWritingId: swapRequests.matchedWritingId,
+      createdAt: swapRequests.createdAt,
+      requesterName: users.firstName,
+      writingTitle: writings.title,
+    }).from(swapRequests)
+      .innerJoin(writings, eq(swapRequests.writingId, writings.id))
+      .leftJoin(users, eq(swapRequests.requesterId, users.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(swapRequests.createdAt));
+
+    const enriched: (SwapRequest & { requesterName: string | null; writingTitle: string; matchedName: string | null })[] = [];
+    for (const r of results) {
+      let matchedName: string | null = null;
+      if (r.matchedWithId) {
+        const [matched] = await db.select({ firstName: users.firstName }).from(users).where(eq(users.id, r.matchedWithId));
+        matchedName = matched?.firstName ?? null;
+      }
+      enriched.push({ ...r, matchedName });
+    }
+    return enriched;
+  }
+
+  async createSwapRequest(userId: string, data: { writingId: string; genre?: string; note?: string }): Promise<SwapRequest> {
+    const [request] = await db.insert(swapRequests).values({ requesterId: userId, ...data }).returning();
+    return request;
+  }
+
+  async matchSwap(requestId: string, userId: string, writingId: string): Promise<SwapRequest | undefined> {
+    const [updated] = await db.update(swapRequests).set({
+      matchedWithId: userId, matchedWritingId: writingId, status: "matched",
+    }).where(and(eq(swapRequests.id, requestId), eq(swapRequests.status, "open"))).returning();
+    return updated || undefined;
+  }
+
+  async getSwapFeedback(swapId: string): Promise<SwapFeedbackEntry[]> {
+    return await db.select().from(swapFeedback).where(eq(swapFeedback.swapId, swapId)).orderBy(desc(swapFeedback.createdAt));
+  }
+
+  async createSwapFeedback(userId: string, data: { swapId: string; toUserId: string; strengths: string; suggestions: string; favoriteLines?: string }): Promise<SwapFeedbackEntry> {
+    const [feedback] = await db.insert(swapFeedback).values({ fromUserId: userId, ...data }).returning();
+    return feedback;
+  }
+
+  // === WRITER PROFILE ===
+  async getWriterProfile(userId: string): Promise<{ user: User; writings: (Writing & { resonanceCount: number })[]; tenderCount: number; tendingCount: number } | null> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return null;
+
+    const gardenWritings = await db.select().from(writings)
+      .where(and(eq(writings.authorId, userId), eq(writings.visibility, "garden")))
+      .orderBy(desc(writings.updatedAt));
+
+    const writingsWithResonance: (Writing & { resonanceCount: number })[] = [];
+    for (const w of gardenWritings) {
+      const [res] = await db.select({ cnt: count() }).from(resonances).where(eq(resonances.writingId, w.id));
+      writingsWithResonance.push({ ...w, resonanceCount: res?.cnt ?? 0 });
+    }
+
+    const [tenderResult] = await db.select({ cnt: count() }).from(tending).where(eq(tending.gardenerId, userId));
+    const [tendingResult] = await db.select({ cnt: count() }).from(tending).where(eq(tending.tenderId, userId));
+
+    return {
+      user,
+      writings: writingsWithResonance,
+      tenderCount: tenderResult?.cnt ?? 0,
+      tendingCount: tendingResult?.cnt ?? 0,
+    };
+  }
+
+  async updateBio(userId: string, bio: string): Promise<void> {
+    await db.update(users).set({ bio, updatedAt: new Date() }).where(eq(users.id, userId));
+  }
+
+  // === PUBLISHING (EDITORIAL) ===
+  async getEditorialPieces(): Promise<(Writing & { authorName: string | null })[]> {
+    return await db.select({
+      ...this.writingSelectFields(),
+      authorName: users.firstName,
+    }).from(writings)
+      .leftJoin(users, eq(writings.authorId, users.id))
+      .where(and(
+        eq(writings.editorialAvailable, true),
+        eq(writings.readiness, "ready_to_show"),
+        eq(writings.visibility, "garden"),
+        eq(writings.isPublished, false),
+      ))
+      .orderBy(desc(writings.updatedAt));
+  }
+
+  async publishWritingByEditor(writingId: string, editorNote?: string): Promise<Writing | undefined> {
+    const [updated] = await db.update(writings)
+      .set({ isPublished: true, publishedAt: new Date(), updatedAt: new Date() })
+      .where(eq(writings.id, writingId)).returning();
+    if (!updated) return undefined;
+
+    await this.createNotification(updated.authorId, {
+      type: "published",
+      message: editorNote
+        ? `Your writing "${updated.title}" has been published! Editor note: ${editorNote}`
+        : `Your writing "${updated.title}" has been published!`,
+      writingId: updated.id,
+    });
+
+    return updated;
   }
 }
 

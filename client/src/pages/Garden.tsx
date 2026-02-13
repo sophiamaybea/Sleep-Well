@@ -17,8 +17,10 @@ import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow"
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
 import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
+import { TablesRoom, WorkshopRoom, SwapRoom } from "@/components/garden/CommunityRooms";
 
 type Zone = "desk" | "reading-room" | "greenhouse";
+type ActiveRoom = "tables" | "workshop" | "swap" | null;
 type GreenhouseTool = "growth-journal" | "inner-weather" | "rituals" | "compost" | "reflections" | "circles" | null;
 
 const stageColors: Record<string, string> = {
@@ -138,21 +140,41 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
   );
 }
 
-function RoomsStrip() {
+const activeRoomIds = ["tables", "workshop", "swap"];
+
+function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSelectRoom: (room: ActiveRoom) => void }) {
   return (
     <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-      {rooms.map((room) => (
-        <div
-          key={room.id}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.04] text-white/15 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none"
-          title="Coming soon"
-          data-testid={`room-${room.id}`}
-        >
-          {room.icon}
-          {room.label}
-          <span className="text-[7px] text-white/10 ml-0.5">soon</span>
-        </div>
-      ))}
+      {rooms.map((room) => {
+        const isActive = activeRoom === room.id;
+        const isClickable = activeRoomIds.includes(room.id);
+        return isClickable ? (
+          <button
+            key={room.id}
+            onClick={() => onSelectRoom(isActive ? null : room.id as ActiveRoom)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
+              isActive
+                ? "border-white/20 bg-white/[0.08] text-white/70"
+                : "border-white/[0.06] text-white/25 hover:text-white/45 hover:border-white/12"
+            }`}
+            data-testid={`room-${room.id}`}
+          >
+            {room.icon}
+            {room.label}
+          </button>
+        ) : (
+          <div
+            key={room.id}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.04] text-white/15 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none"
+            title="Coming soon"
+            data-testid={`room-${room.id}`}
+          >
+            {room.icon}
+            {room.label}
+            <span className="text-[7px] text-white/10 ml-0.5">soon</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1037,6 +1059,7 @@ export default function Garden() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
@@ -1187,7 +1210,7 @@ export default function Garden() {
 
             {!isEditing && (
               <div className="mt-2 -mb-1">
-                <RoomsStrip />
+                <RoomsStrip activeRoom={activeRoom} onSelectRoom={(r) => { setActiveRoom(r); if (r) setActiveZone("desk"); }} />
               </div>
             )}
           </div>
@@ -1196,13 +1219,19 @@ export default function Garden() {
         <main className="pt-8 pb-24 px-6" onClick={() => showProfileMenu && setShowProfileMenu(false)}>
           <AnimatePresence mode="wait">
             <motion.div
-              key={isEditing ? `editor-${activeWriting?.id}` : activeZone}
+              key={activeRoom ? `room-${activeRoom}` : (isEditing ? `editor-${activeWriting?.id}` : activeZone)}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
             >
-              {isEditing && activeWriting ? (
+              {activeRoom === "tables" ? (
+                <TablesRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "workshop" ? (
+                <WorkshopRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "swap" ? (
+                <SwapRoom onBack={() => setActiveRoom(null)} />
+              ) : isEditing && activeWriting ? (
                 <WriteEditor
                   key={activeWriting.id}
                   writing={activeWriting}

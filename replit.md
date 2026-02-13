@@ -4,6 +4,9 @@
 A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
 
 ## Recent Changes
+- 2026-02-13: Community rooms live — Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange) now clickable in Rooms strip, each with full CRUD and matching Garden aesthetic
+- 2026-02-13: Writer profiles — public `/writer/:id` page showing bio, published work, tending connections, and resonance counts
+- 2026-02-13: Editorial publishing flow — editorial pieces endpoint, editor publish action with author notification
 - 2026-02-13: Complete Garden redesign — replaced sidebar+16-page structure with 3-zone architecture (Your Desk / Reading Room / Greenhouse), floating pill nav, Rooms strip for future spaces (Tables, Workshop, Desk, Swap, Retreats, Press), calm reading-room aesthetic
 - 2026-02-13: Social features — Tending (follow system), Resonance (5 reaction types: glow/pressed_flower/dewdrop/firefly/roots), Marginalia (annotation-style comments), Notifications ("Whispers")
 - 2026-02-13: Planting flow & visibility layers — three-tier visibility (personal/circle/garden), readiness stages (raw_seed/growing/ready_to_show), editorial availability flags, PlantingFlow modal
@@ -47,6 +50,7 @@ Supporting components in `client/src/components/garden/`:
 ### Pages
 - `/` - Landing page with hero, star title, garden intro (crayon doodles), two doors, featured, how it works, manifesto
 - `/garden` - Authenticated Garden with 3-zone architecture (Desk / Reading Room / Greenhouse), floating nav, Rooms strip
+- `/writer/:id` - Public writer profile (bio, published work, tending connections, resonance counts)
 
 ### API Routes
 - `GET /api/gallery` - Public: list published writings (supports ?q= search and ?genre= filter)
@@ -93,6 +97,18 @@ Supporting components in `client/src/components/garden/`:
 - `POST/DELETE /api/moonlit-readings/:id/join|leave` - Auth: RSVP
 - `GET /api/replant-requests` - Auth: view editorial invitations
 - `PATCH /api/replant-requests/:id` - Auth: accept/decline
+- `GET/POST /api/tables` - Auth: community discussion topics (optional ?category= filter)
+- `GET /api/tables/:id` - Auth: single topic with author info
+- `GET/POST /api/tables/:id/replies` - Auth: manage topic replies (threaded via parentId)
+- `GET/POST /api/workshop` - Auth: writing exercises (optional ?category= filter)
+- `GET/POST /api/workshop/:id/responses` - Auth: exercise responses
+- `GET/POST /api/swaps` - Auth: beta-reading swap requests (optional ?status= filter)
+- `POST /api/swaps/:id/match` - Auth: match a swap with your writing
+- `GET/POST /api/swaps/:id/feedback` - Auth: swap feedback
+- `GET /api/writer/:id` - Public: writer profile (user, writings, tending stats)
+- `PATCH /api/profile/bio` - Auth: update bio
+- `GET /api/editorial/pieces` - Auth: editorial-available writings
+- `POST /api/editorial/publish/:writingId` - Auth: publish a writing (editor action)
 - Auth routes: `/api/login`, `/api/logout`, `/api/callback`, `/api/auth/user`
 
 ### Database Tables
@@ -119,6 +135,12 @@ Supporting components in `client/src/components/garden/`:
 - `resonances` - Reactions on writings (glow, pressed_flower, dewdrop, firefly, roots)
 - `marginalia` - Annotation-style comments on writings (threaded via parentId)
 - `notifications` - User notifications (type, actor, message, read status)
+- `table_topics` - Community discussion topics
+- `table_replies` - Replies to discussion topics (threaded via parentId)
+- `workshop_exercises` - Writing exercises with prompts
+- `workshop_responses` - Responses to writing exercises
+- `swap_requests` - Beta-reading swap requests (status: open/matched/completed)
+- `swap_feedback` - Feedback entries for completed swaps
 
 ## User Preferences
 - "Super immersive" star background with warp-speed effect

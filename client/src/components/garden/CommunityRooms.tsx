@@ -1,0 +1,1132 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine } from "lucide-react";
+
+function timeAgo(date: string | Date | null | undefined) {
+  if (!date) return "";
+  const d = new Date(date);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+const TABLE_CATEGORIES = ["general", "craft", "inspiration", "feedback", "off-topic"] as const;
+const WORKSHOP_CATEGORIES = ["freewrite", "ekphrasis", "constraint", "form", "revision"] as const;
+const SWAP_STATUSES = ["open", "matched", "completed"] as const;
+
+type TableTopic = {
+  id: string;
+  authorId: string;
+  title: string;
+  body: string;
+  category: string;
+  isPinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  authorName: string;
+  replyCount: number;
+};
+
+type TableReply = {
+  id: string;
+  topicId: string;
+  authorId: string;
+  content: string;
+  parentId: string | null;
+  createdAt: string;
+  authorName: string;
+};
+
+type Exercise = {
+  id: string;
+  title: string;
+  prompt: string;
+  category: string;
+  durationMinutes: number | null;
+  createdAt: string;
+  authorName: string;
+  responseCount: number;
+};
+
+type ExerciseResponse = {
+  id: string;
+  exerciseId: string;
+  authorId: string;
+  content: string;
+  createdAt: string;
+  authorName: string;
+};
+
+type SwapRequest = {
+  id: string;
+  requesterId: string;
+  writingId: string;
+  genre: string | null;
+  note: string | null;
+  status: string;
+  matchedWithId: string | null;
+  matchedWritingId: string | null;
+  createdAt: string;
+  requesterName: string;
+  writingTitle: string;
+  matchedName: string | null;
+};
+
+type Writing = {
+  id: string;
+  title: string;
+};
+
+function BackButton({ onBack }: { onBack: () => void }) {
+  return (
+    <button
+      onClick={onBack}
+      className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors group"
+      data-testid="button-back"
+    >
+      <ChevronLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
+      Back
+    </button>
+  );
+}
+
+function CategoryPill({ label, active, onClick, testId }: { label: string; active: boolean; onClick: () => void; testId: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
+        active
+          ? "bg-white/[0.08] border-white/15 text-white/80"
+          : "border-white/[0.04] text-white/25 hover:text-white/45 hover:border-white/10"
+      }`}
+      data-testid={testId}
+    >
+      {label}
+    </button>
+  );
+}
+
+function TopicReplies({ topicId }: { topicId: string }) {
+  const [replyContent, setReplyContent] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: replies = [], isLoading } = useQuery<TableReply[]>({
+    queryKey: ["/api/tables", topicId, "replies"],
+    queryFn: async () => {
+      const res = await fetch(`/api/tables/${topicId}/replies`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch replies");
+      return res.json();
+    },
+  });
+
+  const replyMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(`/api/tables/${topicId}/replies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error("Failed to post reply");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables", topicId, "replies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      setReplyContent("");
+    },
+  });
+
+  const handleSubmitReply = () => {
+    const trimmed = replyContent.trim();
+    if (!trimmed) return;
+    replyMutation.mutate(trimmed);
+  };
+
+  return (
+    <div className="space-y-3" data-testid={`topic-replies-${topicId}`}>
+      {isLoading && (
+        <p className="font-serif text-sm text-white/20 italic">Loading replies...</p>
+      )}
+      {replies.length === 0 && !isLoading && (
+        <p className="font-serif text-sm text-white/15 italic">No replies yet — start the conversation.</p>
+      )}
+      {replies.map((reply) => (
+        <div key={reply.id} className={`flex items-start gap-3 ${reply.parentId ? "ml-8 border-l border-white/[0.06] pl-4" : ""}`} data-testid={`reply-${reply.id}`}>
+          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/40 font-mono text-[8px] uppercase flex-shrink-0">
+            {reply.authorName?.[0] || "?"}
+          </div>
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="font-mono text-[10px] text-white/40 tracking-wide">{reply.authorName}</span>
+              <span className="font-mono text-[9px] text-white/15">{timeAgo(reply.createdAt)}</span>
+            </div>
+            <p className="font-serif text-sm text-white/50 leading-relaxed">{reply.content}</p>
+          </div>
+        </div>
+      ))}
+      <div className="flex gap-2 pt-2 border-t border-white/[0.04]">
+        <input
+          type="text"
+          value={replyContent}
+          onChange={(e) => setReplyContent(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitReply(); } }}
+          placeholder="Write a reply..."
+          className="flex-grow bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+          data-testid={`input-reply-${topicId}`}
+        />
+        <button
+          onClick={handleSubmitReply}
+          disabled={!replyContent.trim() || replyMutation.isPending}
+          className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          data-testid={`button-submit-reply-${topicId}`}
+        >
+          Reply
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function TablesRoom({ onBack }: { onBack: () => void }) {
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newBody, setNewBody] = useState("");
+  const [newCategory, setNewCategory] = useState<string>("general");
+  const queryClient = useQueryClient();
+
+  const { data: topics = [], isLoading } = useQuery<TableTopic[]>({
+    queryKey: ["/api/tables"],
+    queryFn: async () => {
+      const res = await fetch("/api/tables", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch topics");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { title: string; body: string; category: string }) => {
+      const res = await fetch("/api/tables", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to create topic");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      setShowNewForm(false);
+      setNewTitle("");
+      setNewBody("");
+      setNewCategory("general");
+    },
+  });
+
+  const handleCreateTopic = () => {
+    if (!newTitle.trim() || !newBody.trim()) return;
+    createMutation.mutate({ title: newTitle.trim(), body: newBody.trim(), category: newCategory });
+  };
+
+  const filteredTopics = topics
+    .filter((t) => activeCategory === "all" || t.category === activeCategory)
+    .sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+    });
+
+  return (
+    <div className="max-w-3xl mx-auto" data-testid="tables-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <Users size={16} className="text-white/20" />
+          <h2 className="text-xl font-display font-light italic text-white/70">Tables</h2>
+        </div>
+        <motion.button
+          onClick={() => setShowNewForm(!showNewForm)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          data-testid="button-new-topic"
+        >
+          <Plus size={13} />
+          New Topic
+        </motion.button>
+      </div>
+
+      <AnimatePresence>
+        {showNewForm && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className="border border-white/[0.08] rounded-xl p-5 space-y-4 bg-white/[0.02]" data-testid="new-topic-form">
+              <input
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Topic title..."
+                className="w-full bg-transparent border-b border-white/[0.06] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                data-testid="input-topic-title"
+              />
+              <textarea
+                value={newBody}
+                onChange={(e) => setNewBody(e.target.value)}
+                placeholder="What's on your mind..."
+                rows={4}
+                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                data-testid="input-topic-body"
+              />
+              <div className="flex items-center justify-between">
+                <select
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.06] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                  data-testid="select-topic-category"
+                >
+                  {TABLE_CATEGORIES.map((c) => (
+                    <option key={c} value={c} className="bg-[#0b101a]">{c}</option>
+                  ))}
+                </select>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowNewForm(false)}
+                    className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                    data-testid="button-cancel-topic"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateTopic}
+                    disabled={!newTitle.trim() || !newBody.trim() || createMutation.isPending}
+                    className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    data-testid="button-submit-topic"
+                  >
+                    Post
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-wrap gap-1.5 mb-6">
+        <CategoryPill label="All" active={activeCategory === "all"} onClick={() => setActiveCategory("all")} testId="filter-tables-all" />
+        {TABLE_CATEGORIES.map((c) => (
+          <CategoryPill key={c} label={c} active={activeCategory === c} onClick={() => setActiveCategory(c)} testId={`filter-tables-${c}`} />
+        ))}
+      </div>
+
+      {isLoading && (
+        <div className="text-center py-16">
+          <p className="font-serif text-sm text-white/20 italic">Loading discussions...</p>
+        </div>
+      )}
+
+      {!isLoading && filteredTopics.length === 0 && (
+        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
+          <MessageSquare size={32} className="mx-auto text-white/10" />
+          <h3 className="text-xl font-display font-light italic text-white/40">No discussions yet</h3>
+          <p className="font-serif text-sm text-white/20">Start a conversation — pull up a chair.</p>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {filteredTopics.map((topic, i) => {
+          const isExpanded = expandedTopic === topic.id;
+          return (
+            <motion.div
+              key={topic.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03, duration: 0.3 }}
+              data-testid={`topic-card-${topic.id}`}
+            >
+              <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
+                isExpanded
+                  ? "border-white/15 bg-white/[0.025]"
+                  : "border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01]"
+              }`}>
+                <button
+                  onClick={() => setExpandedTopic(isExpanded ? null : topic.id)}
+                  className="w-full text-left p-4 md:p-5"
+                  data-testid={`button-expand-topic-${topic.id}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        {topic.isPinned && <span className="text-amber-400/50 text-[9px] font-mono uppercase tracking-widest">pinned</span>}
+                        <h3 className="text-base font-display font-light truncate text-white/70 italic">{topic.title}</h3>
+                      </div>
+                      <div className="flex items-center gap-3 text-white/20">
+                        <span className="font-mono text-[10px]">{topic.authorName}</span>
+                        <span className="font-mono text-[9px]">{timeAgo(topic.updatedAt || topic.createdAt)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className="px-2 py-0.5 rounded-full border border-white/[0.06] font-mono text-[8px] uppercase tracking-widest text-white/20" data-testid={`badge-category-${topic.id}`}>
+                        {topic.category}
+                      </span>
+                      <div className="flex items-center gap-1 text-white/20">
+                        <MessageSquare size={11} />
+                        <span className="font-mono text-[9px]" data-testid={`text-reply-count-${topic.id}`}>{topic.replyCount}</span>
+                      </div>
+                      <ChevronDown size={13} className={`text-white/15 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                    </div>
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.04]">
+                        <p className="font-serif text-sm text-white/40 leading-relaxed pt-4" data-testid={`text-topic-body-${topic.id}`}>{topic.body}</p>
+                        <TopicReplies topicId={topic.id} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ExerciseResponses({ exerciseId }: { exerciseId: string }) {
+  const [responseContent, setResponseContent] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: responses = [], isLoading } = useQuery<ExerciseResponse[]>({
+    queryKey: ["/api/workshop", exerciseId, "responses"],
+    queryFn: async () => {
+      const res = await fetch(`/api/workshop/${exerciseId}/responses`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch responses");
+      return res.json();
+    },
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(`/api/workshop/${exerciseId}/responses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error("Failed to submit response");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/workshop", exerciseId, "responses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workshop"] });
+      setResponseContent("");
+    },
+  });
+
+  const handleSubmit = () => {
+    const trimmed = responseContent.trim();
+    if (!trimmed) return;
+    submitMutation.mutate(trimmed);
+  };
+
+  return (
+    <div className="space-y-4" data-testid={`exercise-responses-${exerciseId}`}>
+      {isLoading && <p className="font-serif text-sm text-white/20 italic">Loading responses...</p>}
+      {responses.length === 0 && !isLoading && (
+        <p className="font-serif text-sm text-white/15 italic">No responses yet — be the first to write.</p>
+      )}
+      {responses.map((r) => (
+        <div key={r.id} className="flex items-start gap-3" data-testid={`response-${r.id}`}>
+          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/40 font-mono text-[8px] uppercase flex-shrink-0">
+            {r.authorName?.[0] || "?"}
+          </div>
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono text-[10px] text-white/40 tracking-wide">{r.authorName}</span>
+              <span className="font-mono text-[9px] text-white/15">{timeAgo(r.createdAt)}</span>
+            </div>
+            <p className="font-serif text-sm text-white/50 leading-relaxed whitespace-pre-wrap">{r.content}</p>
+          </div>
+        </div>
+      ))}
+      <div className="pt-3 border-t border-white/[0.04] space-y-2">
+        <textarea
+          value={responseContent}
+          onChange={(e) => setResponseContent(e.target.value)}
+          placeholder="Write your response..."
+          rows={4}
+          className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+          data-testid={`input-response-${exerciseId}`}
+        />
+        <div className="flex justify-end">
+          <button
+            onClick={handleSubmit}
+            disabled={!responseContent.trim() || submitMutation.isPending}
+            className="px-5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            data-testid={`button-submit-response-${exerciseId}`}
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function WorkshopRoom({ onBack }: { onBack: () => void }) {
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newPrompt, setNewPrompt] = useState("");
+  const [newCategory, setNewCategory] = useState<string>("freewrite");
+  const [newDuration, setNewDuration] = useState<string>("");
+  const queryClient = useQueryClient();
+
+  const { data: exercises = [], isLoading } = useQuery<Exercise[]>({
+    queryKey: ["/api/workshop"],
+    queryFn: async () => {
+      const res = await fetch("/api/workshop", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch exercises");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { title: string; prompt: string; category: string; durationMinutes?: number }) => {
+      const res = await fetch("/api/workshop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to create exercise");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/workshop"] });
+      setShowNewForm(false);
+      setNewTitle("");
+      setNewPrompt("");
+      setNewCategory("freewrite");
+      setNewDuration("");
+    },
+  });
+
+  const handleCreate = () => {
+    if (!newTitle.trim() || !newPrompt.trim()) return;
+    const data: { title: string; prompt: string; category: string; durationMinutes?: number } = {
+      title: newTitle.trim(),
+      prompt: newPrompt.trim(),
+      category: newCategory,
+    };
+    if (newDuration && parseInt(newDuration) > 0) {
+      data.durationMinutes = parseInt(newDuration);
+    }
+    createMutation.mutate(data);
+  };
+
+  const filteredExercises = exercises
+    .filter((e) => activeCategory === "all" || e.category === activeCategory)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  return (
+    <div className="max-w-3xl mx-auto" data-testid="workshop-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <BookOpen size={16} className="text-white/20" />
+          <h2 className="text-xl font-display font-light italic text-white/70">Workshop</h2>
+        </div>
+        <motion.button
+          onClick={() => setShowNewForm(!showNewForm)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          data-testid="button-create-exercise"
+        >
+          <Plus size={13} />
+          Create Exercise
+        </motion.button>
+      </div>
+
+      <AnimatePresence>
+        {showNewForm && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className="border border-white/[0.08] rounded-xl p-5 space-y-4 bg-white/[0.02]" data-testid="new-exercise-form">
+              <input
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Exercise title..."
+                className="w-full bg-transparent border-b border-white/[0.06] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                data-testid="input-exercise-title"
+              />
+              <textarea
+                value={newPrompt}
+                onChange={(e) => setNewPrompt(e.target.value)}
+                placeholder="Write the prompt or instructions..."
+                rows={4}
+                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                data-testid="input-exercise-prompt"
+              />
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.06] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                    data-testid="select-exercise-category"
+                  >
+                    {WORKSHOP_CATEGORIES.map((c) => (
+                      <option key={c} value={c} className="bg-[#0b101a]">{c}</option>
+                    ))}
+                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      value={newDuration}
+                      onChange={(e) => setNewDuration(e.target.value)}
+                      placeholder="min"
+                      min="1"
+                      className="w-16 bg-transparent border border-white/[0.06] rounded-full px-3 py-1.5 font-mono text-[9px] text-white/40 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors text-center"
+                      data-testid="input-exercise-duration"
+                    />
+                    <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest">min</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowNewForm(false)}
+                    className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                    data-testid="button-cancel-exercise"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreate}
+                    disabled={!newTitle.trim() || !newPrompt.trim() || createMutation.isPending}
+                    className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    data-testid="button-submit-exercise"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-wrap gap-1.5 mb-6">
+        <CategoryPill label="All" active={activeCategory === "all"} onClick={() => setActiveCategory("all")} testId="filter-workshop-all" />
+        {WORKSHOP_CATEGORIES.map((c) => (
+          <CategoryPill key={c} label={c} active={activeCategory === c} onClick={() => setActiveCategory(c)} testId={`filter-workshop-${c}`} />
+        ))}
+      </div>
+
+      {isLoading && (
+        <div className="text-center py-16">
+          <p className="font-serif text-sm text-white/20 italic">Loading exercises...</p>
+        </div>
+      )}
+
+      {!isLoading && filteredExercises.length === 0 && (
+        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
+          <Feather size={32} className="mx-auto text-white/10" />
+          <h3 className="text-xl font-display font-light italic text-white/40">No exercises yet</h3>
+          <p className="font-serif text-sm text-white/20">Create a writing prompt for the community.</p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {filteredExercises.map((exercise, i) => {
+          const isExpanded = expandedExercise === exercise.id;
+          return (
+            <motion.div
+              key={exercise.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03, duration: 0.3 }}
+              data-testid={`exercise-card-${exercise.id}`}
+            >
+              <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
+                isExpanded
+                  ? "border-white/15 bg-white/[0.025]"
+                  : "border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01]"
+              }`}>
+                <button
+                  onClick={() => setExpandedExercise(isExpanded ? null : exercise.id)}
+                  className="w-full text-left p-4 md:p-5"
+                  data-testid={`button-expand-exercise-${exercise.id}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-white/25">
+                      <Feather size={14} />
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <h3 className="text-base font-display font-light text-white/70 italic mb-1">{exercise.title}</h3>
+                      <p className="font-serif text-sm text-white/30 line-clamp-2 leading-relaxed">{exercise.prompt}</p>
+                      <div className="flex items-center gap-3 mt-2 text-white/20">
+                        <span className="font-mono text-[10px]">{exercise.authorName}</span>
+                        <span className="font-mono text-[9px]">{timeAgo(exercise.createdAt)}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <span className="px-2 py-0.5 rounded-full border border-white/[0.06] font-mono text-[8px] uppercase tracking-widest text-white/20" data-testid={`badge-exercise-category-${exercise.id}`}>
+                        {exercise.category}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {exercise.durationMinutes && (
+                          <span className="font-mono text-[9px] text-white/20" data-testid={`text-duration-${exercise.id}`}>{exercise.durationMinutes}m</span>
+                        )}
+                        <div className="flex items-center gap-1 text-white/20">
+                          <PenLine size={10} />
+                          <span className="font-mono text-[9px]" data-testid={`text-response-count-${exercise.id}`}>{exercise.responseCount}</span>
+                        </div>
+                      </div>
+                      <ChevronDown size={13} className={`text-white/15 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                    </div>
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.04]">
+                        <div className="pt-4 p-4 bg-white/[0.02] rounded-lg border border-white/[0.04]">
+                          <p className="font-serif text-sm text-white/45 leading-relaxed italic" data-testid={`text-exercise-prompt-${exercise.id}`}>{exercise.prompt}</p>
+                        </div>
+                        <ExerciseResponses exerciseId={exercise.id} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function SwapRoom({ onBack }: { onBack: () => void }) {
+  const [activeStatus, setActiveStatus] = useState<string>("all");
+  const [showOfferForm, setShowOfferForm] = useState(false);
+  const [selectedWritingId, setSelectedWritingId] = useState<string>("");
+  const [swapGenre, setSwapGenre] = useState("");
+  const [swapNote, setSwapNote] = useState("");
+  const [matchingSwapId, setMatchingSwapId] = useState<string | null>(null);
+  const [matchWritingId, setMatchWritingId] = useState<string>("");
+  const [feedbackSwapId, setFeedbackSwapId] = useState<string | null>(null);
+  const [feedbackToUserId, setFeedbackToUserId] = useState("");
+  const [feedbackStrengths, setFeedbackStrengths] = useState("");
+  const [feedbackSuggestions, setFeedbackSuggestions] = useState("");
+  const [feedbackFavoriteLines, setFeedbackFavoriteLines] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: swaps = [], isLoading } = useQuery<SwapRequest[]>({
+    queryKey: ["/api/swaps"],
+    queryFn: async () => {
+      const res = await fetch("/api/swaps", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch swaps");
+      return res.json();
+    },
+  });
+
+  const { data: writings = [] } = useQuery<Writing[]>({
+    queryKey: ["/api/writings"],
+    queryFn: async () => {
+      const res = await fetch("/api/writings", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch writings");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { writingId: string; genre?: string; note?: string }) => {
+      const res = await fetch("/api/swaps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to create swap");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/swaps"] });
+      setShowOfferForm(false);
+      setSelectedWritingId("");
+      setSwapGenre("");
+      setSwapNote("");
+    },
+  });
+
+  const matchMutation = useMutation({
+    mutationFn: async ({ swapId, writingId }: { swapId: string; writingId: string }) => {
+      const res = await fetch(`/api/swaps/${swapId}/match`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ writingId }),
+      });
+      if (!res.ok) throw new Error("Failed to match swap");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/swaps"] });
+      setMatchingSwapId(null);
+      setMatchWritingId("");
+    },
+  });
+
+  const feedbackMutation = useMutation({
+    mutationFn: async ({ swapId, data }: { swapId: string; data: { toUserId: string; strengths: string; suggestions: string; favoriteLines?: string } }) => {
+      const res = await fetch(`/api/swaps/${swapId}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to submit feedback");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/swaps"] });
+      setFeedbackSwapId(null);
+      setFeedbackToUserId("");
+      setFeedbackStrengths("");
+      setFeedbackSuggestions("");
+      setFeedbackFavoriteLines("");
+    },
+  });
+
+  const handleCreateSwap = () => {
+    if (!selectedWritingId) return;
+    const data: { writingId: string; genre?: string; note?: string } = { writingId: selectedWritingId };
+    if (swapGenre.trim()) data.genre = swapGenre.trim();
+    if (swapNote.trim()) data.note = swapNote.trim();
+    createMutation.mutate(data);
+  };
+
+  const handleMatch = (swapId: string) => {
+    if (!matchWritingId) return;
+    matchMutation.mutate({ swapId, writingId: matchWritingId });
+  };
+
+  const handleFeedback = (swapId: string) => {
+    if (!feedbackStrengths.trim() || !feedbackSuggestions.trim() || !feedbackToUserId) return;
+    const data: { toUserId: string; strengths: string; suggestions: string; favoriteLines?: string } = {
+      toUserId: feedbackToUserId,
+      strengths: feedbackStrengths.trim(),
+      suggestions: feedbackSuggestions.trim(),
+    };
+    if (feedbackFavoriteLines.trim()) data.favoriteLines = feedbackFavoriteLines.trim();
+    feedbackMutation.mutate({ swapId, data });
+  };
+
+  const filteredSwaps = swaps
+    .filter((s) => activeStatus === "all" || s.status === activeStatus)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const statusColors: Record<string, string> = {
+    open: "text-amber-400/60 border-amber-500/20",
+    matched: "text-emerald-400/60 border-emerald-500/20",
+    completed: "text-pink-400/60 border-pink-500/20",
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto" data-testid="swap-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <ArrowLeftRight size={16} className="text-white/20" />
+          <h2 className="text-xl font-display font-light italic text-white/70">Swap</h2>
+        </div>
+        <motion.button
+          onClick={() => setShowOfferForm(!showOfferForm)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          data-testid="button-offer-swap"
+        >
+          <Plus size={13} />
+          Offer a Swap
+        </motion.button>
+      </div>
+
+      <AnimatePresence>
+        {showOfferForm && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className="border border-white/[0.08] rounded-xl p-5 space-y-4 bg-white/[0.02]" data-testid="new-swap-form">
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/25 mb-2 block">Select your writing</label>
+                <select
+                  value={selectedWritingId}
+                  onChange={(e) => setSelectedWritingId(e.target.value)}
+                  className="w-full bg-transparent text-white/50 font-serif text-sm border border-white/[0.06] rounded-lg px-3 py-2.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                  data-testid="select-swap-writing"
+                >
+                  <option value="" className="bg-[#0b101a]">Choose a piece...</option>
+                  {writings.map((w) => (
+                    <option key={w.id} value={w.id} className="bg-[#0b101a]">{w.title}</option>
+                  ))}
+                </select>
+              </div>
+              <input
+                type="text"
+                value={swapGenre}
+                onChange={(e) => setSwapGenre(e.target.value)}
+                placeholder="Genre preference (optional)..."
+                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+                data-testid="input-swap-genre"
+              />
+              <textarea
+                value={swapNote}
+                onChange={(e) => setSwapNote(e.target.value)}
+                placeholder="A note for potential partners (optional)..."
+                rows={2}
+                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                data-testid="input-swap-note"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowOfferForm(false)}
+                  className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                  data-testid="button-cancel-swap"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateSwap}
+                  disabled={!selectedWritingId || createMutation.isPending}
+                  className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  data-testid="button-submit-swap"
+                >
+                  Offer
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-wrap gap-1.5 mb-6">
+        <CategoryPill label="All" active={activeStatus === "all"} onClick={() => setActiveStatus("all")} testId="filter-swap-all" />
+        {SWAP_STATUSES.map((s) => (
+          <CategoryPill key={s} label={s} active={activeStatus === s} onClick={() => setActiveStatus(s)} testId={`filter-swap-${s}`} />
+        ))}
+      </div>
+
+      {isLoading && (
+        <div className="text-center py-16">
+          <p className="font-serif text-sm text-white/20 italic">Loading swaps...</p>
+        </div>
+      )}
+
+      {!isLoading && filteredSwaps.length === 0 && (
+        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
+          <ArrowLeftRight size={32} className="mx-auto text-white/10" />
+          <h3 className="text-xl font-display font-light italic text-white/40">No swap requests</h3>
+          <p className="font-serif text-sm text-white/20">Offer a piece for beta reading and find a partner.</p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {filteredSwaps.map((swap, i) => (
+          <motion.div
+            key={swap.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.03, duration: 0.3 }}
+            data-testid={`swap-card-${swap.id}`}
+          >
+            <div className="rounded-xl border border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01] overflow-hidden transition-all duration-300">
+              <div className="p-4 md:p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded-full border font-mono text-[8px] uppercase tracking-widest ${statusColors[swap.status] || "text-white/20 border-white/[0.06]"}`} data-testid={`badge-status-${swap.id}`}>
+                        {swap.status}
+                      </span>
+                      <h3 className="text-base font-display font-light text-white/70 italic truncate" data-testid={`text-swap-title-${swap.id}`}>{swap.writingTitle}</h3>
+                    </div>
+                    <div className="flex items-center gap-3 text-white/20 mb-2">
+                      <span className="font-mono text-[10px]">{swap.requesterName}</span>
+                      {swap.genre && <span className="font-mono text-[9px] text-white/15">·  {swap.genre}</span>}
+                      <span className="font-mono text-[9px]">{timeAgo(swap.createdAt)}</span>
+                    </div>
+                    {swap.note && (
+                      <p className="font-serif text-sm text-white/30 leading-relaxed" data-testid={`text-swap-note-${swap.id}`}>{swap.note}</p>
+                    )}
+                    {swap.status === "matched" && swap.matchedName && (
+                      <div className="mt-3 p-3 bg-emerald-500/[0.04] border border-emerald-500/10 rounded-lg">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-emerald-400/50 mb-1">Matched with</p>
+                        <p className="font-serif text-sm text-white/50">{swap.matchedName}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    {swap.status === "open" && (
+                      <>
+                        {matchingSwapId === swap.id ? (
+                          <div className="space-y-2" data-testid={`match-form-${swap.id}`}>
+                            <select
+                              value={matchWritingId}
+                              onChange={(e) => setMatchWritingId(e.target.value)}
+                              className="bg-transparent text-white/40 font-serif text-xs border border-white/[0.06] rounded-lg px-2 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer w-40"
+                              data-testid={`select-match-writing-${swap.id}`}
+                            >
+                              <option value="" className="bg-[#0b101a]">Pick your piece...</option>
+                              {writings.map((w) => (
+                                <option key={w.id} value={w.id} className="bg-[#0b101a]">{w.title}</option>
+                              ))}
+                            </select>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => setMatchingSwapId(null)}
+                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+                                data-testid={`button-cancel-match-${swap.id}`}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleMatch(swap.id)}
+                                disabled={!matchWritingId || matchMutation.isPending}
+                                className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                data-testid={`button-confirm-match-${swap.id}`}
+                              >
+                                Confirm
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setMatchingSwapId(swap.id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white/70 transition-all"
+                            data-testid={`button-match-${swap.id}`}
+                          >
+                            <ArrowLeftRight size={10} />
+                            Match
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {swap.status === "matched" && (
+                      <>
+                        {feedbackSwapId === swap.id ? (
+                          <div className="space-y-2 w-60" data-testid={`feedback-form-${swap.id}`}>
+                            <input
+                              type="hidden"
+                              value={feedbackToUserId}
+                            />
+                            <textarea
+                              value={feedbackStrengths}
+                              onChange={(e) => setFeedbackStrengths(e.target.value)}
+                              placeholder="Strengths..."
+                              rows={2}
+                              className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                              data-testid={`input-feedback-strengths-${swap.id}`}
+                            />
+                            <textarea
+                              value={feedbackSuggestions}
+                              onChange={(e) => setFeedbackSuggestions(e.target.value)}
+                              placeholder="Suggestions..."
+                              rows={2}
+                              className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
+                              data-testid={`input-feedback-suggestions-${swap.id}`}
+                            />
+                            <input
+                              type="text"
+                              value={feedbackFavoriteLines}
+                              onChange={(e) => setFeedbackFavoriteLines(e.target.value)}
+                              placeholder="Favorite lines (optional)..."
+                              className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+                              data-testid={`input-feedback-favorites-${swap.id}`}
+                            />
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => setFeedbackSwapId(null)}
+                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+                                data-testid={`button-cancel-feedback-${swap.id}`}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleFeedback(swap.id)}
+                                disabled={!feedbackStrengths.trim() || !feedbackSuggestions.trim() || feedbackMutation.isPending}
+                                className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                data-testid={`button-submit-feedback-${swap.id}`}
+                              >
+                                Send
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setFeedbackSwapId(swap.id);
+                              setFeedbackToUserId(swap.requesterId);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-500/15 hover:border-emerald-500/30 rounded-full font-mono text-[9px] uppercase tracking-widest text-emerald-400/50 hover:text-emerald-400/80 transition-all"
+                            data-testid={`button-give-feedback-${swap.id}`}
+                          >
+                            <PenLine size={10} />
+                            Feedback
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}

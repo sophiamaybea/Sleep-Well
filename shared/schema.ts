@@ -158,6 +158,70 @@ export const rootInfluences = pgTable("root_influences", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === COMMUNITY ROOMS ===
+
+export const tableTopics = pgTable("table_topics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  category: text("category").notNull().default("general"),
+  isPinned: boolean("is_pinned").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const tableReplies = pgTable("table_replies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  topicId: varchar("topic_id").notNull().references(() => tableTopics.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  parentId: varchar("parent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const workshopExercises = pgTable("workshop_exercises", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  prompt: text("prompt").notNull(),
+  category: text("category").notNull().default("freewrite"),
+  durationMinutes: integer("duration_minutes"),
+  isPublic: boolean("is_public").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const workshopResponses = pgTable("workshop_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  exerciseId: varchar("exercise_id").notNull().references(() => workshopExercises.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const swapRequests = pgTable("swap_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  requesterId: varchar("requester_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  genre: text("genre").notNull().default("any"),
+  note: text("note"),
+  status: text("status").notNull().default("open"),
+  matchedWithId: varchar("matched_with_id").references(() => users.id),
+  matchedWritingId: varchar("matched_writing_id").references(() => writings.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const swapFeedback = pgTable("swap_feedback", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  swapId: varchar("swap_id").notNull().references(() => swapRequests.id),
+  fromUserId: varchar("from_user_id").notNull().references(() => users.id),
+  toUserId: varchar("to_user_id").notNull().references(() => users.id),
+  strengths: text("strengths").notNull(),
+  suggestions: text("suggestions").notNull(),
+  favoriteLines: text("favorite_lines"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SOCIAL FEATURES ===
 
 export const tending = pgTable("tending", {
@@ -239,6 +303,12 @@ export const insertReplantRequestSchema = createInsertSchema(replantRequests).om
 export const insertRootInfluenceSchema = createInsertSchema(rootInfluences).omit({ id: true, userId: true, createdAt: true });
 export const insertResonanceSchema = createInsertSchema(resonances).omit({ id: true, userId: true, createdAt: true });
 export const insertMarginaliaSchema = createInsertSchema(marginalia).omit({ id: true, userId: true, createdAt: true });
+export const insertTableTopicSchema = createInsertSchema(tableTopics).omit({ id: true, authorId: true, isPinned: true, createdAt: true, updatedAt: true });
+export const insertTableReplySchema = createInsertSchema(tableReplies).omit({ id: true, authorId: true, createdAt: true });
+export const insertWorkshopExerciseSchema = createInsertSchema(workshopExercises).omit({ id: true, createdById: true, createdAt: true });
+export const insertWorkshopResponseSchema = createInsertSchema(workshopResponses).omit({ id: true, authorId: true, createdAt: true });
+export const insertSwapRequestSchema = createInsertSchema(swapRequests).omit({ id: true, requesterId: true, status: true, matchedWithId: true, matchedWritingId: true, createdAt: true });
+export const insertSwapFeedbackSchema = createInsertSchema(swapFeedback).omit({ id: true, fromUserId: true, createdAt: true });
 
 // Types
 export type InsertWriting = z.infer<typeof insertWritingSchema>;
@@ -264,3 +334,9 @@ export type Tending = typeof tending.$inferSelect;
 export type Resonance = typeof resonances.$inferSelect;
 export type Marginalia = typeof marginalia.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+export type TableTopic = typeof tableTopics.$inferSelect;
+export type TableReply = typeof tableReplies.$inferSelect;
+export type WorkshopExercise = typeof workshopExercises.$inferSelect;
+export type WorkshopResponse = typeof workshopResponses.$inferSelect;
+export type SwapRequest = typeof swapRequests.$inferSelect;
+export type SwapFeedbackEntry = typeof swapFeedback.$inferSelect;

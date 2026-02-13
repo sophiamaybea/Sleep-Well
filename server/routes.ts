@@ -9,6 +9,9 @@ import {
   insertInnerWeatherSchema, insertReflectionSchema, insertCircleSchema,
   insertCircleMessageSchema, insertMoonlitReadingSchema, insertRootInfluenceSchema,
   insertResonanceSchema, insertMarginaliaSchema,
+  insertTableTopicSchema, insertTableReplySchema,
+  insertWorkshopExerciseSchema, insertWorkshopResponseSchema,
+  insertSwapRequestSchema, insertSwapFeedbackSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -771,6 +774,222 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark all read" });
+    }
+  });
+
+  // === TABLES (DISCUSSION THREADS) ===
+  app.get("/api/tables", async (req, res) => {
+    try {
+      const { category } = req.query;
+      const topics = await storage.getTableTopics(category as string | undefined);
+      res.json(topics);
+    } catch (error) {
+      console.error("Error fetching table topics:", error);
+      res.status(500).json({ message: "Failed to fetch table topics" });
+    }
+  });
+
+  app.get("/api/tables/:id", async (req, res) => {
+    try {
+      const topic = await storage.getTableTopic(req.params.id);
+      if (!topic) return res.status(404).json({ message: "Topic not found" });
+      res.json(topic);
+    } catch (error) {
+      console.error("Error fetching table topic:", error);
+      res.status(500).json({ message: "Failed to fetch table topic" });
+    }
+  });
+
+  app.post("/api/tables", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const parsed = insertTableTopicSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const topic = await storage.createTableTopic(userId, parsed.data);
+      res.status(201).json(topic);
+    } catch (error) {
+      console.error("Error creating table topic:", error);
+      res.status(500).json({ message: "Failed to create table topic" });
+    }
+  });
+
+  app.get("/api/tables/:id/replies", async (req, res) => {
+    try {
+      const replies = await storage.getTableReplies(req.params.id);
+      res.json(replies);
+    } catch (error) {
+      console.error("Error fetching table replies:", error);
+      res.status(500).json({ message: "Failed to fetch table replies" });
+    }
+  });
+
+  app.post("/api/tables/:id/replies", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const parsed = insertTableReplySchema.safeParse({ ...req.body, topicId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const reply = await storage.createTableReply(userId, { topicId: req.params.id, content: parsed.data.content, parentId: parsed.data.parentId ?? undefined });
+      res.status(201).json(reply);
+    } catch (error) {
+      console.error("Error creating table reply:", error);
+      res.status(500).json({ message: "Failed to create table reply" });
+    }
+  });
+
+  // === WORKSHOP (EXERCISES & RESPONSES) ===
+  app.get("/api/workshop", async (req, res) => {
+    try {
+      const { category } = req.query;
+      const exercises = await storage.getWorkshopExercises(category as string | undefined);
+      res.json(exercises);
+    } catch (error) {
+      console.error("Error fetching workshop exercises:", error);
+      res.status(500).json({ message: "Failed to fetch workshop exercises" });
+    }
+  });
+
+  app.post("/api/workshop", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const parsed = insertWorkshopExerciseSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const exercise = await storage.createWorkshopExercise(userId, { title: parsed.data.title, prompt: parsed.data.prompt, category: parsed.data.category, durationMinutes: parsed.data.durationMinutes ?? undefined });
+      res.status(201).json(exercise);
+    } catch (error) {
+      console.error("Error creating workshop exercise:", error);
+      res.status(500).json({ message: "Failed to create workshop exercise" });
+    }
+  });
+
+  app.get("/api/workshop/:id/responses", async (req, res) => {
+    try {
+      const responses = await storage.getWorkshopResponses(req.params.id);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching workshop responses:", error);
+      res.status(500).json({ message: "Failed to fetch workshop responses" });
+    }
+  });
+
+  app.post("/api/workshop/:id/responses", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const parsed = insertWorkshopResponseSchema.safeParse({ ...req.body, exerciseId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const response = await storage.createWorkshopResponse(userId, { exerciseId: req.params.id, content: parsed.data.content });
+      res.status(201).json(response);
+    } catch (error) {
+      console.error("Error creating workshop response:", error);
+      res.status(500).json({ message: "Failed to create workshop response" });
+    }
+  });
+
+  // === SWAP (BETA READING EXCHANGE) ===
+  app.get("/api/swaps", async (req, res) => {
+    try {
+      const { status } = req.query;
+      const swaps = await storage.getSwapRequests(status as string | undefined);
+      res.json(swaps);
+    } catch (error) {
+      console.error("Error fetching swap requests:", error);
+      res.status(500).json({ message: "Failed to fetch swap requests" });
+    }
+  });
+
+  app.post("/api/swaps", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const parsed = insertSwapRequestSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const swap = await storage.createSwapRequest(userId, { writingId: parsed.data.writingId, genre: parsed.data.genre, note: parsed.data.note ?? undefined });
+      res.status(201).json(swap);
+    } catch (error) {
+      console.error("Error creating swap request:", error);
+      res.status(500).json({ message: "Failed to create swap request" });
+    }
+  });
+
+  app.post("/api/swaps/:id/match", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { writingId } = req.body;
+      if (!writingId) return res.status(400).json({ message: "writingId is required" });
+      const swap = await storage.matchSwap(req.params.id, userId, writingId);
+      if (!swap) return res.status(404).json({ message: "Swap request not found" });
+      res.json(swap);
+    } catch (error) {
+      console.error("Error matching swap:", error);
+      res.status(500).json({ message: "Failed to match swap" });
+    }
+  });
+
+  app.get("/api/swaps/:id/feedback", async (req, res) => {
+    try {
+      const feedback = await storage.getSwapFeedback(req.params.id);
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error fetching swap feedback:", error);
+      res.status(500).json({ message: "Failed to fetch swap feedback" });
+    }
+  });
+
+  app.post("/api/swaps/:id/feedback", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const parsed = insertSwapFeedbackSchema.safeParse({ ...req.body, swapId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const feedback = await storage.createSwapFeedback(userId, { swapId: parsed.data.swapId, toUserId: parsed.data.toUserId, strengths: parsed.data.strengths, suggestions: parsed.data.suggestions, favoriteLines: parsed.data.favoriteLines ?? undefined });
+      res.status(201).json(feedback);
+    } catch (error) {
+      console.error("Error creating swap feedback:", error);
+      res.status(500).json({ message: "Failed to create swap feedback" });
+    }
+  });
+
+  // === WRITER PROFILE ===
+  app.get("/api/writer/:id", async (req, res) => {
+    try {
+      const profile = await storage.getWriterProfile(req.params.id);
+      if (!profile) return res.status(404).json({ message: "Writer not found" });
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching writer profile:", error);
+      res.status(500).json({ message: "Failed to fetch writer profile" });
+    }
+  });
+
+  app.patch("/api/profile/bio", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { bio } = req.body;
+      if (typeof bio !== "string") return res.status(400).json({ message: "bio must be a string" });
+      const result = await storage.updateBio(userId, bio);
+      res.json(result);
+    } catch (error) {
+      console.error("Error updating bio:", error);
+      res.status(500).json({ message: "Failed to update bio" });
+    }
+  });
+
+  // === EDITORIAL / PUBLISHING ===
+  app.get("/api/editorial/pieces", isAuthenticated, async (req: any, res) => {
+    try {
+      const pieces = await storage.getEditorialPieces();
+      res.json(pieces);
+    } catch (error) {
+      console.error("Error fetching editorial pieces:", error);
+      res.status(500).json({ message: "Failed to fetch editorial pieces" });
+    }
+  });
+
+  app.post("/api/editorial/publish/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const result = await storage.publishWritingByEditor(req.params.writingId);
+      if (!result) return res.status(404).json({ message: "Writing not found" });
+      res.json(result);
+    } catch (error) {
+      console.error("Error publishing writing:", error);
+      res.status(500).json({ message: "Failed to publish writing" });
     }
   });
 
