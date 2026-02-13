@@ -76,7 +76,7 @@ export default function WriterProfile() {
             Writer not found
           </h1>
           <p className="font-serif text-sm text-white/20">
-            This garden doesn't exist, or has been hidden from view.
+            This writer's garden doesn't exist — they may have moved on, or the link might be incorrect.
           </p>
           <Link
             href="/"
@@ -138,12 +138,16 @@ export default function WriterProfile() {
               >
                 {fullName}
               </h1>
-              {user.bio && (
+              {user.bio ? (
                 <p
                   className="font-serif text-sm text-white/35 leading-relaxed mt-3 max-w-xl"
                   data-testid="text-bio"
                 >
                   {user.bio}
+                </p>
+              ) : (
+                <p className="font-serif text-sm text-white/15 italic mt-3">
+                  This writer hasn't added a bio yet.
                 </p>
               )}
             </div>
@@ -170,6 +174,12 @@ export default function WriterProfile() {
           <TendButton gardenerId={user.id} gardenerName={fullName} />
         </header>
 
+        <div className="border-t border-white/[0.04] pt-8 mb-8">
+          <p className="font-serif text-xs text-white/15 leading-relaxed max-w-lg">
+            This is {fullName.split(' ')[0]}'s public garden — a space where their published writings live. Tend their garden to follow along as they share new work.
+          </p>
+        </div>
+
         <section>
           <div className="flex items-center gap-3 mb-6">
             <h2 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/20">
@@ -180,15 +190,23 @@ export default function WriterProfile() {
               {writings.length} piece{writings.length !== 1 ? "s" : ""}
             </span>
           </div>
+          {writings.length > 0 && (
+            <p className="font-serif text-xs text-white/15 mb-4">
+              Click any piece to read a preview. Resonances show how readers have responded.
+            </p>
+          )}
 
           {writings.length === 0 && (
             <div
-              className="border border-dashed border-white/[0.06] rounded-2xl p-12 text-center"
+              className="border border-dashed border-white/[0.06] rounded-2xl p-12 text-center space-y-3"
               data-testid="empty-writings"
             >
               <Sparkles size={20} className="text-white/10 mx-auto mb-3" />
-              <p className="font-serif text-sm text-white/20 italic">
-                No published writings yet.
+              <h3 className="font-display text-lg font-light italic text-white/30">
+                No published writings yet
+              </h3>
+              <p className="font-serif text-sm text-white/15 max-w-sm mx-auto leading-relaxed">
+                This writer's garden is still growing. When they share their work with the community, it will appear here.
               </p>
             </div>
           )}

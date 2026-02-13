@@ -267,6 +267,10 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
         </motion.button>
       </div>
 
+      <p className="font-serif text-sm text-white/30 leading-relaxed mb-6 max-w-xl">
+        Pull up a chair and join the conversation. Share thoughts on craft, swap inspiration, ask for feedback, or simply chat with fellow writers.
+      </p>
+
       <AnimatePresence>
         {showNewForm && (
           <motion.div
@@ -280,19 +284,20 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Topic title..."
+                placeholder="Give your topic a name..."
                 className="w-full bg-transparent border-b border-white/[0.06] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                 data-testid="input-topic-title"
               />
               <textarea
                 value={newBody}
                 onChange={(e) => setNewBody(e.target.value)}
-                placeholder="What's on your mind..."
+                placeholder="Share your thoughts, questions, or ideas with the community..."
                 rows={4}
                 className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
                 data-testid="input-topic-body"
               />
               <div className="flex items-center justify-between">
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 mr-1">Category</label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
@@ -343,7 +348,17 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
         <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
           <MessageSquare size={32} className="mx-auto text-white/10" />
           <h3 className="text-xl font-display font-light italic text-white/40">No discussions yet</h3>
-          <p className="font-serif text-sm text-white/20">Start a conversation — pull up a chair.</p>
+          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+            This is where writers gather to talk — about craft, about life, about the strange joy of finding the right word. Start a thread and pull up a chair.
+          </p>
+          <button
+            onClick={() => setShowNewForm(true)}
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            data-testid="button-start-first-topic"
+          >
+            <Plus size={13} />
+            Start the First Conversation
+          </button>
         </div>
       )}
 
@@ -478,7 +493,7 @@ function ExerciseResponses({ exerciseId }: { exerciseId: string }) {
         <textarea
           value={responseContent}
           onChange={(e) => setResponseContent(e.target.value)}
-          placeholder="Write your response..."
+          placeholder="Write your response to this exercise here..."
           rows={4}
           className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
           data-testid={`input-response-${exerciseId}`}
@@ -575,6 +590,10 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
         </motion.button>
       </div>
 
+      <p className="font-serif text-sm text-white/30 leading-relaxed mb-6 max-w-xl">
+        A space for creative play. Try a writing exercise, respond to a prompt, or create one for others. No pressure, no grades — just practice.
+      </p>
+
       <AnimatePresence>
         {showNewForm && (
           <motion.div
@@ -588,14 +607,14 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Exercise title..."
+                placeholder="Name this exercise..."
                 className="w-full bg-transparent border-b border-white/[0.06] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                 data-testid="input-exercise-title"
               />
               <textarea
                 value={newPrompt}
                 onChange={(e) => setNewPrompt(e.target.value)}
-                placeholder="Write the prompt or instructions..."
+                placeholder="Describe the exercise — what should writers try? Give a starting line, constraint, or form..."
                 rows={4}
                 className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
                 data-testid="input-exercise-prompt"
@@ -617,7 +636,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                       type="number"
                       value={newDuration}
                       onChange={(e) => setNewDuration(e.target.value)}
-                      placeholder="min"
+                      placeholder="Time"
                       min="1"
                       className="w-16 bg-transparent border border-white/[0.06] rounded-full px-3 py-1.5 font-mono text-[9px] text-white/40 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors text-center"
                       data-testid="input-exercise-duration"
@@ -665,7 +684,17 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
         <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
           <Feather size={32} className="mx-auto text-white/10" />
           <h3 className="text-xl font-display font-light italic text-white/40">No exercises yet</h3>
-          <p className="font-serif text-sm text-white/20">Create a writing prompt for the community.</p>
+          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+            Create a writing prompt for the community — a constraint, a starting line, a form to try. Others can respond and share what they wrote.
+          </p>
+          <button
+            onClick={() => setShowNewForm(true)}
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            data-testid="button-create-first-exercise"
+          >
+            <Plus size={13} />
+            Create the First Exercise
+          </button>
         </div>
       )}
 
@@ -893,6 +922,10 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
         </motion.button>
       </div>
 
+      <p className="font-serif text-sm text-white/30 leading-relaxed mb-6 max-w-xl">
+        Find a reading partner. Offer one of your pieces, get matched with another writer, and exchange thoughtful feedback. Every swap is a gift — someone reading your work with real attention.
+      </p>
+
       <AnimatePresence>
         {showOfferForm && (
           <motion.div
@@ -920,14 +953,14 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                 type="text"
                 value={swapGenre}
                 onChange={(e) => setSwapGenre(e.target.value)}
-                placeholder="Genre preference (optional)..."
+                placeholder="What genre do you prefer to read? (optional)"
                 className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
                 data-testid="input-swap-genre"
               />
               <textarea
                 value={swapNote}
                 onChange={(e) => setSwapNote(e.target.value)}
-                placeholder="A note for potential partners (optional)..."
+                placeholder="Tell potential partners what kind of feedback you're looking for (optional)..."
                 rows={2}
                 className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
                 data-testid="input-swap-note"
@@ -970,8 +1003,18 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
       {!isLoading && filteredSwaps.length === 0 && (
         <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
           <ArrowLeftRight size={32} className="mx-auto text-white/10" />
-          <h3 className="text-xl font-display font-light italic text-white/40">No swap requests</h3>
-          <p className="font-serif text-sm text-white/20">Offer a piece for beta reading and find a partner.</p>
+          <h3 className="text-xl font-display font-light italic text-white/40">No swap requests yet</h3>
+          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+            Offer one of your pieces for beta reading. Another writer will match with you, and you'll each read and give feedback on the other's work.
+          </p>
+          <button
+            onClick={() => setShowOfferForm(true)}
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            data-testid="button-offer-first-swap"
+          >
+            <Plus size={13} />
+            Offer the First Swap
+          </button>
         </div>
       )}
 
@@ -1063,6 +1106,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                               type="hidden"
                               value={feedbackToUserId}
                             />
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-1">What worked well?</label>
                             <textarea
                               value={feedbackStrengths}
                               onChange={(e) => setFeedbackStrengths(e.target.value)}
@@ -1071,6 +1115,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                               className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
                               data-testid={`input-feedback-strengths-${swap.id}`}
                             />
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-1">Suggestions for improvement</label>
                             <textarea
                               value={feedbackSuggestions}
                               onChange={(e) => setFeedbackSuggestions(e.target.value)}
@@ -1079,6 +1124,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                               className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
                               data-testid={`input-feedback-suggestions-${swap.id}`}
                             />
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-1">Favorite lines (optional)</label>
                             <input
                               type="text"
                               value={feedbackFavoriteLines}

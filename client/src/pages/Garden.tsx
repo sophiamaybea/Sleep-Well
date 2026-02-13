@@ -100,42 +100,56 @@ function timeAgo(date: string | Date | null | undefined) {
 }
 
 const rooms = [
-  { id: "tables", label: "Tables", icon: <Users size={13} /> },
-  { id: "workshop", label: "Workshop", icon: <BookOpen size={13} /> },
-  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} /> },
-  { id: "swap", label: "Swap", icon: <MessageCircle size={13} /> },
-  { id: "retreats", label: "Retreats", icon: <Compass size={13} /> },
-  { id: "press", label: "The Press", icon: <FileCheck size={13} /> },
+  { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Community discussions" },
+  { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises" },
+  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Coming soon" },
+  { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange" },
+  { id: "retreats", label: "Retreats", icon: <Compass size={13} />, desc: "Coming soon" },
+  { id: "press", label: "The Press", icon: <FileCheck size={13} />, desc: "Coming soon" },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
-  const zones: { id: Zone; label: string }[] = [
-    { id: "desk", label: "Your Desk" },
-    { id: "reading-room", label: "Reading Room" },
-    { id: "greenhouse", label: "Greenhouse" },
+  const zones: { id: Zone; label: string; desc: string }[] = [
+    { id: "desk", label: "Your Desk", desc: "Your private writing space — drafts, fragments, and works in progress" },
+    { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond" },
+    { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice" },
   ];
 
   return (
-    <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl">
-      {zones.map((z) => (
-        <button
-          key={z.id}
-          onClick={() => onChange(z.id)}
-          className={`relative px-5 py-2.5 rounded-xl font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
-            active === z.id ? "text-white/90" : "text-white/30 hover:text-white/55"
-          }`}
-          data-testid={`zone-tab-${z.id}`}
+    <div className="flex flex-col items-center gap-2">
+      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl">
+        {zones.map((z) => (
+          <button
+            key={z.id}
+            onClick={() => onChange(z.id)}
+            className={`relative px-5 py-2.5 rounded-xl font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
+              active === z.id ? "text-white/90" : "text-white/30 hover:text-white/55"
+            }`}
+            data-testid={`zone-tab-${z.id}`}
+          >
+            {active === z.id && (
+              <motion.div
+                layoutId="activeZone"
+                className="absolute inset-0 rounded-xl bg-white/[0.08] border border-white/[0.1]"
+                transition={{ type: "spring", stiffness: 500, damping: 35 }}
+              />
+            )}
+            <span className="relative z-10">{z.label}</span>
+          </button>
+        ))}
+      </div>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={active}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 4 }}
+          transition={{ duration: 0.15 }}
+          className="font-serif text-[12px] text-white/20 text-center"
         >
-          {active === z.id && (
-            <motion.div
-              layoutId="activeZone"
-              className="absolute inset-0 rounded-xl bg-white/[0.08] border border-white/[0.1]"
-              transition={{ type: "spring", stiffness: 500, damping: 35 }}
-            />
-          )}
-          <span className="relative z-10">{z.label}</span>
-        </button>
-      ))}
+          {zones.find(z => z.id === active)?.desc}
+        </motion.p>
+      </AnimatePresence>
     </div>
   );
 }
@@ -152,6 +166,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
           <button
             key={room.id}
             onClick={() => onSelectRoom(isActive ? null : room.id as ActiveRoom)}
+            title={room.desc}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
               isActive
                 ? "border-white/20 bg-white/[0.08] text-white/70"
@@ -166,7 +181,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
           <div
             key={room.id}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.04] text-white/15 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none"
-            title="Coming soon"
+            title={room.desc}
             data-testid={`room-${room.id}`}
           >
             {room.icon}
@@ -708,12 +723,12 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
 }
 
 const greenhouseTools = [
-  { id: "growth-journal" as const, label: "Growth Journal", desc: "Private reflections on your writing journey", icon: <NotebookPen size={20} />, color: "emerald" },
-  { id: "inner-weather" as const, label: "Inner Weather", desc: "Track your creative mood and energy", icon: <CloudSun size={20} />, color: "sky" },
-  { id: "rituals" as const, label: "Rituals", desc: "Timed writing sessions and creative routines", icon: <Flame size={20} />, color: "amber" },
-  { id: "compost" as const, label: "Compost", desc: "Archive fragments — nothing is wasted", icon: <Archive size={20} />, color: "violet" },
-  { id: "reflections" as const, label: "Reflections", desc: "Structured thoughts on your craft", icon: <Brain size={20} />, color: "pink" },
-  { id: "circles" as const, label: "Circles", desc: "Small writing groups and conversation", icon: <Users size={20} />, color: "indigo" },
+  { id: "growth-journal" as const, label: "Growth Journal", desc: "A private space to reflect on your writing journey — celebrate progress, note struggles, track what you're learning", icon: <NotebookPen size={20} />, color: "emerald" },
+  { id: "inner-weather" as const, label: "Inner Weather", desc: "Check in with your creative mood and energy before you write — track patterns over time", icon: <CloudSun size={20} />, color: "sky" },
+  { id: "rituals" as const, label: "Rituals", desc: "Set a timer and write — timed sessions to build a consistent creative practice", icon: <Flame size={20} />, color: "amber" },
+  { id: "compost" as const, label: "Compost", desc: "Save fragments, abandoned drafts, and stray lines here — nothing is wasted, everything can be recycled", icon: <Archive size={20} />, color: "violet" },
+  { id: "reflections" as const, label: "Reflections", desc: "Structured prompts to think about your craft — what you're reading, what you're trying, what's working", icon: <Brain size={20} />, color: "pink" },
+  { id: "circles" as const, label: "Circles", desc: "Create or join small writing groups for ongoing conversation and mutual support", icon: <Users size={20} />, color: "indigo" },
 ];
 
 const toolColorMap: Record<string, { border: string; text: string; bg: string; glow: string }> = {
@@ -735,7 +750,7 @@ function GreenhouseZone() {
   return (
     <div className="max-w-3xl mx-auto">
       <p className="font-serif text-sm text-white/25 mb-8">
-        Your private creative toolkit. These tools are for you alone — no one else sees them.
+        Your private creative toolkit — a quiet space just for you. No one else can see what's here. Use these tools to tend your practice, track your energy, and nurture your creative life.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -797,6 +812,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
         <div className={`${toolColorMap[toolInfo.color].text}`}>{toolInfo.icon}</div>
         <h2 className="text-2xl font-display font-light italic text-white/80">{toolInfo.label}</h2>
       </div>
+      <p className="font-serif text-sm text-white/20 leading-relaxed mt-1 max-w-lg">{toolInfo.desc}</p>
       {toolContent[tool]}
     </div>
   );
