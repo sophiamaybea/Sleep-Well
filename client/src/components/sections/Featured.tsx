@@ -1,96 +1,20 @@
 import { Section } from "@/components/ui/section";
-import { content } from "@/data";
-import { ContentRenderer } from "@/components/garden/RichEditor";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { Link } from "wouter";
+import { ArrowRight, BookOpen } from "lucide-react";
+
 const frameImg = "/images/gold-frame.png";
 
 interface GalleryItem {
   id: string;
   title: string;
-  content: string;
   genre: string;
   authorName: string | null;
-  publishedAt: string | null;
-}
-
-function MuseumFrame({ children, index }: { children: React.ReactNode; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.15, duration: 0.8, ease: "easeOut" }}
-      viewport={{ once: true }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative group"
-    >
-      <div className="absolute -inset-1 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-      <div className="relative museum-frame-outer">
-        <div
-          className="relative"
-          style={{
-            borderImage: `url("${frameImg}") 120 fill / 50px / 0 stretch`,
-            borderWidth: "50px",
-            borderStyle: "solid",
-          }}
-        >
-          <div className="relative bg-[#0a0e17] p-8 md:p-12">
-            <motion.div
-              animate={{
-                boxShadow: hovered
-                  ? "inset 0 0 80px rgba(180, 140, 60, 0.04), inset 0 0 20px rgba(0,0,0,0.3)"
-                  : "inset 0 0 40px rgba(0,0,0,0.4)"
-              }}
-              className="absolute inset-0 pointer-events-none"
-              transition={{ duration: 0.6 }}
-            />
-            <div className="relative z-10">
-              {children}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <motion.div
-        className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        animate={hovered ? { y: [2, 0] } : {}}
-      >
-        <div className="h-px w-20 bg-gradient-to-r from-transparent via-amber-600/30 to-transparent" />
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function MuseumLabel({ genre, authorName, publishedAt }: { genre: string; authorName?: string | null; publishedAt?: string | null }) {
-  const date = publishedAt ? new Date(publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : null;
-  return (
-    <div className="flex items-center gap-4 mb-8">
-      <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/30 px-3 py-1.5 border border-amber-200/10 bg-amber-200/[0.02]">
-        {genre}
-      </span>
-      {authorName && (
-        <span className="font-serif text-[11px] italic text-white/25">
-          {authorName}
-        </span>
-      )}
-      {date && (
-        <span className="font-mono text-[8px] text-white/15 ml-auto uppercase tracking-widest">
-          {date}
-        </span>
-      )}
-    </div>
-  );
 }
 
 export default function Featured() {
-  const { data: gallery = [], isLoading } = useQuery<GalleryItem[]>({
+  const { data: gallery = [] } = useQuery<GalleryItem[]>({
     queryKey: ["/api/gallery"],
     queryFn: async () => {
       const res = await fetch("/api/gallery");
@@ -99,79 +23,109 @@ export default function Featured() {
     },
   });
 
+  const pieceCount = gallery.length;
+
   return (
     <Section id="featured" className="bg-transparent text-primary py-32">
-      <div className="max-w-5xl mx-auto w-full px-6 space-y-24">
-        <div className="text-center space-y-6">
+      <div className="max-w-4xl mx-auto w-full px-6 space-y-16">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-center space-y-6"
+        >
           <span className="font-mono text-[10px] tracking-[0.4em] text-amber-200/25 block uppercase">
             The Gallery
           </span>
           <h2 className="text-5xl md:text-6xl font-display font-light tracking-tight">
-            {content.featured.title}
+            Read the Journal
           </h2>
-          <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto">
-            {content.featured.subtitle}
+          <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto leading-relaxed">
+            Found in the Gardens. Chosen because they wouldn't let go.
           </p>
-          <div className="flex items-center justify-center gap-4 pt-4">
+          <div className="flex items-center justify-center gap-4 pt-2">
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />
             <div className="w-1.5 h-1.5 rotate-45 border border-amber-600/20" />
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-600/20" />
           </div>
-        </div>
+        </motion.div>
 
-        {isLoading ? (
-          <div className="space-y-16 animate-pulse">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="border-[50px] border-amber-900/10 p-8 md:p-12 space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-5 w-16 bg-white/[0.04] rounded" />
-                  <div className="h-4 w-24 bg-white/[0.03] rounded" />
-                </div>
-                <div className="h-8 w-72 bg-white/[0.04] rounded" />
-                <div className="space-y-2">
-                  <div className="h-4 w-full bg-white/[0.03] rounded" />
-                  <div className="h-4 w-full bg-white/[0.03] rounded" />
-                  <div className="h-4 w-2/3 bg-white/[0.03] rounded" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          <Link href="/gallery" data-testid="link-read-journal">
+            <div className="relative group cursor-pointer">
+              <div className="absolute -inset-2 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+              <div className="relative museum-frame-outer">
+                <div
+                  className="relative"
+                  style={{
+                    borderImage: `url("${frameImg}") 120 fill / 40px / 0 stretch`,
+                    borderWidth: "40px",
+                    borderStyle: "solid",
+                  }}
+                >
+                  <div className="relative bg-[#0a0e17] py-16 px-8 md:px-16">
+                    <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 40px rgba(0,0,0,0.4)" }} />
+                    <div className="relative z-10 text-center space-y-8">
+                      <BookOpen size={36} className="mx-auto text-amber-200/20 group-hover:text-amber-200/40 transition-colors duration-500" />
+
+                      {pieceCount > 0 ? (
+                        <>
+                          <div className="space-y-3">
+                            <p className="font-display text-2xl md:text-3xl font-light text-white/80 group-hover:text-white transition-colors duration-500 italic">
+                              {pieceCount} {pieceCount === 1 ? "piece" : "pieces"} on exhibition
+                            </p>
+                            <p className="font-serif text-white/35 text-sm">
+                              Poetry, fiction, essays, and fragments — each one discovered in a writer's garden
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                            {gallery.slice(0, 3).map((item) => (
+                              <span
+                                key={item.id}
+                                className="font-mono text-[8px] uppercase tracking-[0.2em] text-amber-200/25 px-3 py-1.5 border border-amber-200/8 bg-amber-200/[0.02]"
+                              >
+                                {item.genre}
+                              </span>
+                            ))}
+                            {pieceCount > 3 && (
+                              <span className="font-mono text-[8px] text-white/20 tracking-widest">
+                                + {pieceCount - 3} more
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="font-display text-2xl md:text-3xl font-light text-white/70 italic">
+                            The Gallery is Preparing
+                          </p>
+                          <p className="font-serif text-white/35 text-sm max-w-md mx-auto">
+                            Editors are reading the Gardens. When a piece stops them, they'll publish it here.
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-center gap-3 pt-4">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200/50 group-hover:text-amber-200/80 transition-colors duration-500">
+                          Enter the Gallery
+                        </span>
+                        <ArrowRight size={16} className="text-amber-200/40 group-hover:text-amber-200/70 group-hover:translate-x-1 transition-all duration-500" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : gallery.length > 0 ? (
-          <div className="space-y-20">
-            {gallery.map((item, i) => (
-              <MuseumFrame key={item.id} index={i}>
-                <div data-testid={`card-gallery-${item.id}`}>
-                  <MuseumLabel genre={item.genre} authorName={item.authorName} publishedAt={item.publishedAt} />
-                  <h3 className="text-3xl md:text-4xl font-display font-light tracking-tight mb-8 text-white/90 group-hover:text-white transition-colors duration-500">
-                    {item.title}
-                  </h3>
-                  <div className="font-serif text-lg leading-[2] text-white/55 max-w-3xl group-hover:text-white/70 transition-colors duration-500">
-                    <ContentRenderer content={item.content} maxLength={600} />
-                  </div>
-                  <div className="mt-8 pt-4 border-t border-white/[0.06]">
-                    <p className="font-serif text-xs italic text-white/25">
-                      This piece grew in The Garden, our private members-only writing space.
-                    </p>
-                  </div>
-                </div>
-              </MuseumFrame>
-            ))}
-          </div>
-        ) : (
-          <MuseumFrame index={0}>
-            <div className="text-center py-12 space-y-6">
-              <span className="inline-block px-4 py-1.5 border border-amber-200/10 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/30">
-                Awaiting First Exhibition
-              </span>
-              <h3 className="text-3xl md:text-4xl font-display font-light tracking-wide text-white/70">
-                {content.featured.emptyState.title}
-              </h3>
-              <p className="max-w-lg mx-auto text-white/40 leading-relaxed font-serif italic">
-                {content.featured.emptyState.description}
-              </p>
             </div>
-          </MuseumFrame>
-        )}
+          </Link>
+        </motion.div>
       </div>
     </Section>
   );

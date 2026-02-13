@@ -17,9 +17,9 @@ export default function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const menuItems = [
+  const menuItems: { label: string; href: string; isPage?: boolean }[] = [
     { label: "The Two Doors", href: "#two-doors" },
-    { label: "Featured Works", href: "#featured" },
+    { label: "Read the Journal", href: "/gallery", isPage: true },
     { label: "How It Works", href: "#how-it-works" },
     { label: "Manifesto", href: "#manifesto" }
   ];
@@ -36,17 +36,29 @@ export default function Navigation() {
           </Link>
 
           <div className={`hidden lg:flex items-center gap-8 font-mono text-xs uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-8 py-3 rounded-full border border-white/10' : ''}`}>
-            {menuItems.map((item) => (
-              <a 
-                key={item.label} 
-                href={item.href}
-                className="text-white/70 hover:text-white transition-colors relative group"
-                data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
-              >
-                {item.label}
-                <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
-              </a>
-            ))}
+            {menuItems.map((item) =>
+              item.isPage ? (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="text-white/70 hover:text-white transition-colors relative group"
+                  data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
+                >
+                  {item.label}
+                  <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
+                </Link>
+              ) : (
+                <a 
+                  key={item.label} 
+                  href={item.href}
+                  className="text-white/70 hover:text-white transition-colors relative group"
+                  data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
+                >
+                  {item.label}
+                  <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
+                </a>
+              )
+            )}
             <span className="w-[1px] h-4 bg-white/10" />
             {!isLoading && (
               isAuthenticated ? (
@@ -95,7 +107,23 @@ export default function Navigation() {
             </button>
 
             <div className="flex flex-col gap-8 text-center">
-              {menuItems.map((item, i) => (
+              {menuItems.map((item, i) =>
+                item.isPage ? (
+                  <motion.div
+                    key={item.label}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
+                ) : (
                 <motion.a 
                   key={item.label} 
                   href={item.href}
@@ -107,7 +135,8 @@ export default function Navigation() {
                 >
                   {item.label}
                 </motion.a>
-              ))}
+                )
+              )}
               <div className="w-12 h-[1px] bg-white/10 mx-auto my-4" />
               {!isLoading && (
                 isAuthenticated ? (

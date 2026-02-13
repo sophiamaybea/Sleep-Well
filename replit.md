@@ -40,6 +40,7 @@ The platform features a distinctive space-themed immersive design, characterized
 
 ### Pages
 - `/`: Landing page.
+- `/gallery`: Public gallery page with museum-framed published works, search, and genre filters.
 - `/garden`: Authenticated user garden with 3-zone architecture.
 - `/writer/:id`: Public writer profile.
 - `/editor-studio`: Editor-only dashboard.

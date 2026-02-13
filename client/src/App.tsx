@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import Garden from "@/pages/Garden";
 import WriterProfile from "@/pages/WriterProfile";
 import EditorStudio from "@/pages/EditorStudio";
+import Gallery from "@/pages/Gallery";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/garden" component={Garden} />
       <Route path="/writer/:id" component={WriterProfile} />
+      <Route path="/gallery" component={Gallery} />
       <Route path="/editor-studio" component={EditorStudio} />
       <Route component={NotFound} />
     </Switch>
