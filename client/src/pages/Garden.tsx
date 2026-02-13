@@ -13,7 +13,6 @@ import {
   Pin, PinOff, ArchiveRestore, Tag, X,
   TreePine, Glasses, ShieldOff, Lightbulb
 } from "lucide-react";
-import StarBackground, { useStarsVisible } from "@/components/StarBackground";
 import type { Writing } from "@shared/schema";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
@@ -1905,7 +1904,6 @@ export default function Garden() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
-  const { starsVisible, toggleStars } = useStarsVisible();
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
@@ -1975,8 +1973,7 @@ export default function Garden() {
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground relative">
-        <StarBackground />
-        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 mx-auto border border-white/20 rounded-full flex items-center justify-center">
               <Feather size={20} className="text-white/50 animate-pulse" />
@@ -1991,7 +1988,6 @@ export default function Garden() {
   if (showNotifications) {
     return (
       <div className="min-h-screen bg-background text-foreground relative">
-        <StarBackground />
         <div className="relative z-10 pt-20 pb-24 px-6 max-w-2xl mx-auto">
           <button
             onClick={() => setShowNotifications(false)}
@@ -2008,7 +2004,6 @@ export default function Garden() {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative" style={{ background: "linear-gradient(180deg, #0b101a 0%, #0a1210 30%, #0b1318 60%, #0b101a 100%)" }}>
-      <StarBackground />
       <NightGardenAtmosphere />
 
       <div className="relative z-10">
@@ -2085,19 +2080,6 @@ export default function Garden() {
                           >
                             <Bell size={14} />
                             Whispers
-                          </button>
-                          <button
-                            onClick={toggleStars}
-                            className="w-full flex items-center justify-between px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
-                            data-testid="toggle-stars"
-                          >
-                            <span className="flex items-center gap-2">
-                              <Sparkles size={14} />
-                              Stars
-                            </span>
-                            <span className={`text-[9px] font-mono uppercase tracking-wider ${starsVisible ? "text-amber-400/70" : "text-white/30"}`}>
-                              {starsVisible ? "on" : "off"}
-                            </span>
                           </button>
                         </div>
                         <div className="p-2">
