@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowLeft, Search, BookOpen } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, X, ChevronRight } from "lucide-react";
 import { ContentRenderer } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
 
@@ -18,45 +18,12 @@ interface GalleryItem {
   authorId?: string;
 }
 
-function MuseumFrame({ children, index }: { children: React.ReactNode; index: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.12, duration: 0.8, ease: "easeOut" }}
-      viewport={{ once: true }}
-      className="relative group"
-    >
-      <div className="absolute -inset-1 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-      <div className="relative museum-frame-outer">
-        <div
-          className="relative"
-          style={{
-            borderImage: `url("${frameImg}") 120 fill / 50px / 0 stretch`,
-            borderWidth: "50px",
-            borderStyle: "solid",
-          }}
-        >
-          <div className="relative bg-[#0a0e17] p-8 md:p-12">
-            <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 40px rgba(0,0,0,0.4)" }} />
-            <div className="relative z-10">
-              {children}
-            </div>
-          </div>
-        </div>
-      </div>
-      <motion.div className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <div className="h-px w-20 bg-gradient-to-r from-transparent via-amber-600/30 to-transparent" />
-      </motion.div>
-    </motion.div>
-  );
-}
-
 const genreFilters = ["all", "poetry", "fiction", "essay", "fragment", "other"];
 
 export default function Gallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeGenre, setActiveGenre] = useState("all");
+  const [selectedPiece, setSelectedPiece] = useState<GalleryItem | null>(null);
 
   const { data: gallery = [], isLoading } = useQuery<GalleryItem[]>({
     queryKey: ["/api/gallery", searchQuery, activeGenre],
@@ -142,85 +109,71 @@ export default function Gallery() {
           </motion.div>
 
           {isLoading ? (
-            <div className="space-y-16 animate-pulse">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="border-[50px] border-amber-900/10 p-8 md:p-12 space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-5 w-16 bg-white/[0.04] rounded" />
-                    <div className="h-4 w-24 bg-white/[0.03] rounded" />
-                  </div>
-                  <div className="h-8 w-72 bg-white/[0.04] rounded" />
-                  <div className="space-y-2">
-                    <div className="h-4 w-full bg-white/[0.03] rounded" />
-                    <div className="h-4 w-full bg-white/[0.03] rounded" />
-                    <div className="h-4 w-2/3 bg-white/[0.03] rounded" />
+            <div className="max-w-3xl mx-auto space-y-0">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="py-6 border-b border-white/[0.04] animate-pulse">
+                  <div className="h-7 w-64 bg-white/[0.04] rounded mb-2" />
+                  <div className="flex gap-4">
+                    <div className="h-3 w-16 bg-white/[0.03] rounded" />
+                    <div className="h-3 w-20 bg-white/[0.03] rounded" />
                   </div>
                 </div>
               ))}
             </div>
           ) : gallery.length > 0 ? (
-            <div className="space-y-20">
-              {gallery.map((item, i) => (
-                <MuseumFrame key={item.id} index={i}>
-                  <div data-testid={`card-gallery-${item.id}`}>
-                    <div className="flex items-center gap-4 mb-8">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/30 px-3 py-1.5 border border-amber-200/10 bg-amber-200/[0.02]">
-                        {item.genre}
-                      </span>
-                      {item.authorName && (
-                        <Link
-                          href={item.authorId ? `/writer/${item.authorId}` : "#"}
-                          className="font-serif text-[11px] italic text-white/30 hover:text-white/50 transition-colors"
-                          data-testid={`link-author-${item.id}`}
-                        >
-                          {item.authorName}
-                        </Link>
-                      )}
-                      {item.publishedAt && (
-                        <span className="font-mono text-[8px] text-white/15 ml-auto uppercase tracking-widest">
-                          {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                        </span>
-                      )}
+            <div className="max-w-3xl mx-auto">
+              <div className="border-t border-white/[0.06]">
+                {gallery.map((item, i) => (
+                  <motion.button
+                    key={item.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.5 }}
+                    viewport={{ once: true }}
+                    onClick={() => setSelectedPiece(item)}
+                    className="w-full text-left py-7 border-b border-white/[0.06] group cursor-pointer hover:bg-white/[0.02] transition-colors px-4 -mx-4 rounded"
+                    data-testid={`button-piece-${item.id}`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-2 min-w-0">
+                        <h3 className="text-2xl md:text-3xl font-display font-light tracking-tight text-white/75 group-hover:text-white transition-colors duration-300 italic truncate">
+                          {item.title}
+                        </h3>
+                        <div className="flex items-center gap-4">
+                          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25">
+                            {item.genre}
+                          </span>
+                          {item.authorName && (
+                            <span className="font-serif text-[12px] italic text-white/25">
+                              {item.authorName}
+                            </span>
+                          )}
+                          {item.publishedAt && (
+                            <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
+                              {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-white/15 group-hover:text-amber-200/50 group-hover:translate-x-1 transition-all duration-300 mt-2 flex-shrink-0" />
                     </div>
-                    <h3 className="text-3xl md:text-4xl font-display font-light tracking-tight mb-8 text-white/90 group-hover:text-white transition-colors duration-500">
-                      {item.title}
-                    </h3>
-                    <div className="font-serif text-[17px] leading-[2] text-white/60 max-w-3xl group-hover:text-white/75 transition-colors duration-500">
-                      <ContentRenderer content={item.content} />
-                    </div>
-                    <div className="mt-10 pt-5 border-t border-white/[0.06] flex items-center justify-between">
-                      <p className="font-serif text-xs italic text-white/25">
-                        This piece grew in The Garden.
-                      </p>
-                      {item.authorId && (
-                        <Link
-                          href={`/writer/${item.authorId}`}
-                          className="font-mono text-[9px] uppercase tracking-widest text-amber-200/30 hover:text-amber-200/60 transition-colors"
-                          data-testid={`link-writer-profile-${item.id}`}
-                        >
-                          Visit Writer
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </MuseumFrame>
-              ))}
+                  </motion.button>
+                ))}
+              </div>
             </div>
           ) : (
-            <MuseumFrame index={0}>
-              <div className="text-center py-16 space-y-6">
-                <BookOpen size={32} className="mx-auto text-amber-200/20" />
-                <span className="inline-block px-4 py-1.5 border border-amber-200/10 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/30">
-                  Awaiting First Exhibition
-                </span>
-                <h3 className="text-3xl md:text-4xl font-display font-light tracking-wide text-white/70">
-                  The Gallery is Preparing
-                </h3>
-                <p className="max-w-lg mx-auto text-white/40 leading-relaxed font-serif italic text-lg">
-                  Editors are reading the Gardens. When a piece stops them, they'll publish it here. The first works will appear soon.
-                </p>
-              </div>
-            </MuseumFrame>
+            <div className="max-w-3xl mx-auto text-center py-20 space-y-6">
+              <BookOpen size={32} className="mx-auto text-amber-200/20" />
+              <span className="inline-block px-4 py-1.5 border border-amber-200/10 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/30">
+                Awaiting First Exhibition
+              </span>
+              <h3 className="text-3xl md:text-4xl font-display font-light tracking-wide text-white/70">
+                The Gallery is Preparing
+              </h3>
+              <p className="max-w-lg mx-auto text-white/40 leading-relaxed font-serif italic text-lg">
+                Editors are reading the Gardens. When a piece stops them, they'll publish it here.
+              </p>
+            </div>
           )}
         </div>
 
@@ -230,6 +183,100 @@ export default function Gallery() {
           </p>
         </footer>
       </div>
+
+      <AnimatePresence>
+        {selectedPiece && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 bg-[#0b101a]/90 backdrop-blur-md overflow-y-auto"
+            onClick={() => setSelectedPiece(null)}
+          >
+            <div className="min-h-screen flex items-start justify-center py-12 px-4 md:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="relative w-full max-w-4xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setSelectedPiece(null)}
+                  className="absolute -top-2 right-0 md:-right-12 z-10 p-2 text-white/40 hover:text-white transition-colors"
+                  data-testid="button-close-piece"
+                >
+                  <X size={24} />
+                </button>
+
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-60" />
+                  <div className="relative museum-frame-outer">
+                    <div
+                      className="relative"
+                      style={{
+                        borderImage: `url("${frameImg}") 120 fill / 50px / 0 stretch`,
+                        borderWidth: "50px",
+                        borderStyle: "solid",
+                      }}
+                    >
+                      <div className="relative bg-[#0a0e17] p-8 md:p-14">
+                        <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.5)" }} />
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-4 mb-8">
+                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/30 px-3 py-1.5 border border-amber-200/10 bg-amber-200/[0.02]">
+                              {selectedPiece.genre}
+                            </span>
+                            {selectedPiece.authorName && (
+                              <Link
+                                href={selectedPiece.authorId ? `/writer/${selectedPiece.authorId}` : "#"}
+                                className="font-serif text-[12px] italic text-white/30 hover:text-white/50 transition-colors"
+                                data-testid="link-piece-author"
+                              >
+                                {selectedPiece.authorName}
+                              </Link>
+                            )}
+                            {selectedPiece.publishedAt && (
+                              <span className="font-mono text-[8px] text-white/15 ml-auto uppercase tracking-widest">
+                                {new Date(selectedPiece.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                              </span>
+                            )}
+                          </div>
+
+                          <h2 className="text-3xl md:text-5xl font-display font-light tracking-tight mb-10 text-white/90 italic">
+                            {selectedPiece.title}
+                          </h2>
+
+                          <div className="font-serif text-[17px] leading-[2.2] text-white/65 max-w-3xl">
+                            <ContentRenderer content={selectedPiece.content} />
+                          </div>
+
+                          <div className="mt-12 pt-6 border-t border-white/[0.06] flex items-center justify-between">
+                            <p className="font-serif text-xs italic text-white/25">
+                              This piece grew in The Garden.
+                            </p>
+                            {selectedPiece.authorId && (
+                              <Link
+                                href={`/writer/${selectedPiece.authorId}`}
+                                className="font-mono text-[9px] uppercase tracking-widest text-amber-200/30 hover:text-amber-200/60 transition-colors"
+                                data-testid="link-piece-writer-profile"
+                              >
+                                Visit Writer
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
