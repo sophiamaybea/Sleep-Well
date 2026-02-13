@@ -46,14 +46,6 @@
   }
   * {
     @apply border-border;
-    cursor: none; /* Hide default cursor */
-  }
-  
-  /* Show default cursor on small screens */
-  @media (max-width: 768px) {
-    * {
-      cursor: auto;
-    }
   }
 
   body {

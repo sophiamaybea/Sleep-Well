@@ -71,11 +71,13 @@ export default function CustomCursor() {
 
   return (
     <>
-      <style>{`
-        @media (pointer: fine) {
-          * { cursor: none !important; }
-        }
-      `}</style>
+      {isVisible && (
+        <style>{`
+          @media (pointer: fine) and (min-width: 768px) {
+            * { cursor: none !important; }
+          }
+        `}</style>
+      )}
 
       <div
         ref={ringRef}
