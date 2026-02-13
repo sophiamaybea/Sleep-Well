@@ -830,18 +830,18 @@ function useTypewriterSound() {
     if (!audioCtxRef.current) {
       audioCtxRef.current = new AudioContext();
       const sr = audioCtxRef.current.sampleRate;
-      const buf = audioCtxRef.current.createBuffer(1, sr * 0.15, sr);
+      const len = sr * 0.5;
+      const buf = audioCtxRef.current.createBuffer(1, len, sr);
       const data = buf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
       noiseBufferRef.current = buf;
     }
     return audioCtxRef.current;
   }, []);
 
-  const makeNoise = useCallback((ctx: AudioContext, duration: number) => {
+  const noise = useCallback((ctx: AudioContext) => {
     const src = ctx.createBufferSource();
     src.buffer = noiseBufferRef.current;
-    src.loop = false;
     return src;
   }, []);
 
@@ -849,141 +849,178 @@ function useTypewriterSound() {
     try {
       const ctx = getCtx();
       const t = ctx.currentTime;
-      const v = 0.7 + Math.random() * 0.3;
+      const p = 0.85 + Math.random() * 0.3;
 
-      const click = makeNoise(ctx, 0.04);
-      const clickFilter = ctx.createBiquadFilter();
-      clickFilter.type = "bandpass";
-      clickFilter.frequency.value = 3000 + Math.random() * 2000;
-      clickFilter.Q.value = 1.2;
-      const clickGain = ctx.createGain();
-      clickGain.gain.setValueAtTime(0.18 * v, t);
-      clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
-      click.connect(clickFilter);
-      clickFilter.connect(clickGain);
-      clickGain.connect(ctx.destination);
-      click.start(t);
-      click.stop(t + 0.03);
+      const tick = noise(ctx);
+      const tickHp = ctx.createBiquadFilter();
+      tickHp.type = "highpass";
+      tickHp.frequency.value = 1800 + Math.random() * 800;
+      tickHp.Q.value = 0.4;
+      const tickLp = ctx.createBiquadFilter();
+      tickLp.type = "lowpass";
+      tickLp.frequency.value = 6000;
+      const tickG = ctx.createGain();
+      tickG.gain.setValueAtTime(0, t);
+      tickG.gain.linearRampToValueAtTime(0.09 * p, t + 0.001);
+      tickG.gain.exponentialRampToValueAtTime(0.01 * p, t + 0.008);
+      tickG.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+      tick.connect(tickHp).connect(tickLp).connect(tickG).connect(ctx.destination);
+      tick.start(t);
+      tick.stop(t + 0.05);
 
-      const thud = makeNoise(ctx, 0.06);
-      const thudFilter = ctx.createBiquadFilter();
-      thudFilter.type = "lowpass";
-      thudFilter.frequency.value = 800 + Math.random() * 400;
-      thudFilter.Q.value = 0.7;
-      const thudGain = ctx.createGain();
-      thudGain.gain.setValueAtTime(0.12 * v, t + 0.003);
-      thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
-      thud.connect(thudFilter);
-      thudFilter.connect(thudGain);
-      thudGain.connect(ctx.destination);
-      thud.start(t + 0.002);
-      thud.stop(t + 0.07);
+      const body = noise(ctx);
+      const bodyLp = ctx.createBiquadFilter();
+      bodyLp.type = "lowpass";
+      bodyLp.frequency.value = 350 + Math.random() * 150;
+      bodyLp.Q.value = 2.5;
+      const bodyG = ctx.createGain();
+      bodyG.gain.setValueAtTime(0, t);
+      bodyG.gain.linearRampToValueAtTime(0.22 * p, t + 0.002);
+      bodyG.gain.exponentialRampToValueAtTime(0.06 * p, t + 0.025);
+      bodyG.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      body.connect(bodyLp).connect(bodyG).connect(ctx.destination);
+      body.start(t + 0.001);
+      body.stop(t + 0.14);
 
-      const mech = ctx.createOscillator();
-      mech.type = "square";
-      mech.frequency.setValueAtTime(1200 + Math.random() * 800, t);
-      mech.frequency.exponentialRampToValueAtTime(200, t + 0.015);
-      const mechGain = ctx.createGain();
-      mechGain.gain.setValueAtTime(0.04 * v, t);
-      mechGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-      mech.connect(mechGain);
-      mechGain.connect(ctx.destination);
-      mech.start(t);
-      mech.stop(t + 0.025);
+      const res = ctx.createOscillator();
+      res.type = "sine";
+      res.frequency.value = 180 + Math.random() * 60;
+      const resG = ctx.createGain();
+      resG.gain.setValueAtTime(0, t);
+      resG.gain.linearRampToValueAtTime(0.035 * p, t + 0.003);
+      resG.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      res.connect(resG).connect(ctx.destination);
+      res.start(t + 0.002);
+      res.stop(t + 0.1);
+
+      const tail = noise(ctx);
+      const tailBp = ctx.createBiquadFilter();
+      tailBp.type = "bandpass";
+      tailBp.frequency.value = 1200 + Math.random() * 600;
+      tailBp.Q.value = 0.3;
+      const tailG = ctx.createGain();
+      tailG.gain.setValueAtTime(0, t + 0.005);
+      tailG.gain.linearRampToValueAtTime(0.025 * p, t + 0.01);
+      tailG.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      tail.connect(tailBp).connect(tailG).connect(ctx.destination);
+      tail.start(t + 0.004);
+      tail.stop(t + 0.12);
     } catch {}
-  }, [getCtx, makeNoise]);
+  }, [getCtx, noise]);
 
   const playSpace = useCallback(() => {
     try {
       const ctx = getCtx();
       const t = ctx.currentTime;
 
-      const click = makeNoise(ctx, 0.05);
-      const clickFilter = ctx.createBiquadFilter();
-      clickFilter.type = "bandpass";
-      clickFilter.frequency.value = 2200;
-      clickFilter.Q.value = 0.8;
-      const clickGain = ctx.createGain();
-      clickGain.gain.setValueAtTime(0.2, t);
-      clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-      click.connect(clickFilter);
-      clickFilter.connect(clickGain);
-      clickGain.connect(ctx.destination);
-      click.start(t);
-      click.stop(t + 0.05);
+      const tick = noise(ctx);
+      const tickBp = ctx.createBiquadFilter();
+      tickBp.type = "bandpass";
+      tickBp.frequency.value = 1400;
+      tickBp.Q.value = 0.5;
+      const tickG = ctx.createGain();
+      tickG.gain.setValueAtTime(0, t);
+      tickG.gain.linearRampToValueAtTime(0.1, t + 0.001);
+      tickG.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+      tick.connect(tickBp).connect(tickG).connect(ctx.destination);
+      tick.start(t);
+      tick.stop(t + 0.04);
 
-      const thud = makeNoise(ctx, 0.08);
-      const thudFilter = ctx.createBiquadFilter();
-      thudFilter.type = "lowpass";
-      thudFilter.frequency.value = 500;
-      thudFilter.Q.value = 0.5;
-      const thudGain = ctx.createGain();
-      thudGain.gain.setValueAtTime(0.16, t + 0.005);
-      thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-      thud.connect(thudFilter);
-      thudFilter.connect(thudGain);
-      thudGain.connect(ctx.destination);
-      thud.start(t + 0.003);
-      thud.stop(t + 0.09);
+      const thock = noise(ctx);
+      const thockLp = ctx.createBiquadFilter();
+      thockLp.type = "lowpass";
+      thockLp.frequency.value = 250;
+      thockLp.Q.value = 3.5;
+      const thockG = ctx.createGain();
+      thockG.gain.setValueAtTime(0, t);
+      thockG.gain.linearRampToValueAtTime(0.3, t + 0.002);
+      thockG.gain.exponentialRampToValueAtTime(0.08, t + 0.04);
+      thockG.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      thock.connect(thockLp).connect(thockG).connect(ctx.destination);
+      thock.start(t + 0.001);
+      thock.stop(t + 0.2);
+
+      const sub = ctx.createOscillator();
+      sub.type = "sine";
+      sub.frequency.value = 100;
+      const subG = ctx.createGain();
+      subG.gain.setValueAtTime(0, t);
+      subG.gain.linearRampToValueAtTime(0.06, t + 0.004);
+      subG.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      sub.connect(subG).connect(ctx.destination);
+      sub.start(t + 0.002);
+      sub.stop(t + 0.17);
     } catch {}
-  }, [getCtx, makeNoise]);
+  }, [getCtx, noise]);
 
   const playReturn = useCallback(() => {
     try {
       const ctx = getCtx();
       const t = ctx.currentTime;
 
-      const lever = makeNoise(ctx, 0.12);
-      const leverFilter = ctx.createBiquadFilter();
-      leverFilter.type = "bandpass";
-      leverFilter.frequency.value = 1500;
-      leverFilter.Q.value = 0.6;
-      const leverGain = ctx.createGain();
-      leverGain.gain.setValueAtTime(0.14, t);
-      leverGain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-      lever.connect(leverFilter);
-      leverFilter.connect(leverGain);
-      leverGain.connect(ctx.destination);
-      lever.start(t);
-      lever.stop(t + 0.12);
+      const clack = noise(ctx);
+      const clackBp = ctx.createBiquadFilter();
+      clackBp.type = "bandpass";
+      clackBp.frequency.value = 2000;
+      clackBp.Q.value = 0.6;
+      const clackG = ctx.createGain();
+      clackG.gain.setValueAtTime(0, t);
+      clackG.gain.linearRampToValueAtTime(0.12, t + 0.001);
+      clackG.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+      clack.connect(clackBp).connect(clackG).connect(ctx.destination);
+      clack.start(t);
+      clack.stop(t + 0.05);
 
-      const slide = ctx.createOscillator();
-      slide.type = "sine";
-      slide.frequency.setValueAtTime(600, t + 0.02);
-      slide.frequency.exponentialRampToValueAtTime(200, t + 0.15);
-      const slideGain = ctx.createGain();
-      slideGain.gain.setValueAtTime(0.06, t + 0.02);
-      slideGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-      slide.connect(slideGain);
-      slideGain.connect(ctx.destination);
-      slide.start(t + 0.02);
-      slide.stop(t + 0.16);
+      const whoosh = noise(ctx);
+      const whooshBp = ctx.createBiquadFilter();
+      whooshBp.type = "bandpass";
+      whooshBp.frequency.setValueAtTime(800, t + 0.02);
+      whooshBp.frequency.exponentialRampToValueAtTime(300, t + 0.25);
+      whooshBp.Q.value = 0.3;
+      const whooshG = ctx.createGain();
+      whooshG.gain.setValueAtTime(0, t + 0.02);
+      whooshG.gain.linearRampToValueAtTime(0.07, t + 0.05);
+      whooshG.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      whoosh.connect(whooshBp).connect(whooshG).connect(ctx.destination);
+      whoosh.start(t + 0.02);
+      whoosh.stop(t + 0.35);
 
       const bell = ctx.createOscillator();
       bell.type = "sine";
-      bell.frequency.value = 2400;
-      const bellGain = ctx.createGain();
-      bellGain.gain.setValueAtTime(0.08, t + 0.01);
-      bellGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-      bell.connect(bellGain);
-      bellGain.connect(ctx.destination);
-      bell.start(t + 0.01);
-      bell.stop(t + 0.4);
+      bell.frequency.value = 1800;
+      const bellG = ctx.createGain();
+      bellG.gain.setValueAtTime(0, t + 0.03);
+      bellG.gain.linearRampToValueAtTime(0.04, t + 0.04);
+      bellG.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+      bell.connect(bellG).connect(ctx.destination);
+      bell.start(t + 0.03);
+      bell.stop(t + 0.65);
 
-      const clunk = makeNoise(ctx, 0.06);
-      const clunkFilter = ctx.createBiquadFilter();
-      clunkFilter.type = "lowpass";
-      clunkFilter.frequency.value = 400;
-      const clunkGain = ctx.createGain();
-      clunkGain.gain.setValueAtTime(0.15, t + 0.12);
-      clunkGain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-      clunk.connect(clunkFilter);
-      clunkFilter.connect(clunkGain);
-      clunkGain.connect(ctx.destination);
-      clunk.start(t + 0.12);
-      clunk.stop(t + 0.2);
+      const bell2 = ctx.createOscillator();
+      bell2.type = "sine";
+      bell2.frequency.value = 2700;
+      const bell2G = ctx.createGain();
+      bell2G.gain.setValueAtTime(0, t + 0.035);
+      bell2G.gain.linearRampToValueAtTime(0.02, t + 0.045);
+      bell2G.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      bell2.connect(bell2G).connect(ctx.destination);
+      bell2.start(t + 0.035);
+      bell2.stop(t + 0.55);
+
+      const settle = noise(ctx);
+      const settleLp = ctx.createBiquadFilter();
+      settleLp.type = "lowpass";
+      settleLp.frequency.value = 300;
+      settleLp.Q.value = 2;
+      const settleG = ctx.createGain();
+      settleG.gain.setValueAtTime(0, t + 0.2);
+      settleG.gain.linearRampToValueAtTime(0.12, t + 0.22);
+      settleG.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      settle.connect(settleLp).connect(settleG).connect(ctx.destination);
+      settle.start(t + 0.2);
+      settle.stop(t + 0.4);
     } catch {}
-  }, [getCtx, makeNoise]);
+  }, [getCtx, noise]);
 
   return { playKey, playSpace, playReturn };
 }
