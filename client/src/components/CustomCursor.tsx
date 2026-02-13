@@ -1,78 +1,155 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 
 export default function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
-  
+  const [isPressed, setIsPressed] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [hoverText, setHoverText] = useState<string | null>(null);
+
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
-  
-  const springConfig = { damping: 25, stiffness: 700 };
-  const cursorXSpring = useSpring(cursorX, springConfig);
-  const cursorYSpring = useSpring(cursorY, springConfig);
 
-  useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      cursorX.set(e.clientX - 16);
-      cursorY.set(e.clientY - 16);
-    };
+  const dotSpring = { damping: 40, stiffness: 900, mass: 0.2 };
+  const dotX = useSpring(cursorX, dotSpring);
+  const dotY = useSpring(cursorY, dotSpring);
 
-    const handleMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'BUTTON' || 
-        target.tagName === 'A' || 
-        target.closest('button') || 
-        target.closest('a') ||
-        target.getAttribute('role') === 'button'
-      ) {
-        setIsHovering(true);
-      } else {
-        setIsHovering(false);
-      }
-    };
+  const ringSpring = { damping: 20, stiffness: 200, mass: 0.5 };
+  const ringX = useSpring(cursorX, ringSpring);
+  const ringY = useSpring(cursorY, ringSpring);
 
-    window.addEventListener("mousemove", moveCursor);
-    window.addEventListener("mouseover", handleMouseOver);
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    cursorX.set(e.clientX);
+    cursorY.set(e.clientY);
+    if (!isVisible) setIsVisible(true);
+  }, [isVisible]);
 
-    return () => {
-      window.removeEventListener("mousemove", moveCursor);
-      window.removeEventListener("mouseover", handleMouseOver);
-    };
+  const handleMouseOver = useCallback((e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const interactive = target.closest("button, a, [role='button'], input, textarea, select, [data-cursor-hover]");
+    if (interactive) {
+      setIsHovering(true);
+      const label = interactive.getAttribute("data-cursor-text");
+      setHoverText(label || null);
+    } else {
+      setIsHovering(false);
+      setHoverText(null);
+    }
   }, []);
 
+  useEffect(() => {
+    const onDown = () => setIsPressed(true);
+    const onUp = () => setIsPressed(false);
+    const onLeave = () => setIsVisible(false);
+    const onEnter = () => setIsVisible(true);
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseover", handleMouseOver);
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("mouseup", onUp);
+    document.documentElement.addEventListener("mouseleave", onLeave);
+    document.documentElement.addEventListener("mouseenter", onEnter);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseover", handleMouseOver);
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("mouseup", onUp);
+      document.documentElement.removeEventListener("mouseleave", onLeave);
+      document.documentElement.removeEventListener("mouseenter", onEnter);
+    };
+  }, [handleMouseMove, handleMouseOver]);
+
+  const ringSize = isHovering ? 64 : 36;
+  const dotSize = 6;
+
   return (
-    <motion.div
-      className="fixed top-0 left-0 w-8 h-8 pointer-events-none z-[9999] hidden md:flex items-center justify-center mix-blend-difference"
-      style={{
-        x: cursorXSpring,
-        y: cursorYSpring,
-      }}
-    >
-      <motion.div 
-        className="absolute inset-0 border border-primary rounded-full"
-        animate={{
-          scale: isHovering ? 2.5 : 1,
-          opacity: isHovering ? 1 : 0.5,
-          borderColor: isHovering ? 'var(--color-primary)' : 'var(--color-primary)'
+    <>
+      <style>{`
+        @media (pointer: fine) {
+          * { cursor: none !important; }
+        }
+      `}</style>
+
+      <motion.div
+        className="fixed top-0 left-0 pointer-events-none z-[9999] hidden md:block"
+        style={{
+          x: ringX,
+          y: ringY,
+          width: ringSize,
+          height: ringSize,
+          marginLeft: -ringSize / 2,
+          marginTop: -ringSize / 2,
         }}
-        transition={{ duration: 0.2 }}
-      />
-      <motion.div 
-        className="w-1 h-1 bg-primary rounded-full"
         animate={{
-          scale: isHovering ? 0 : 1
+          width: ringSize,
+          height: ringSize,
+          marginLeft: -ringSize / 2,
+          marginTop: -ringSize / 2,
+          opacity: isVisible ? 1 : 0,
+          scale: isPressed ? 0.85 : 1,
         }}
-      />
-      {isHovering && (
-        <motion.span 
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-[8px] font-mono text-primary absolute -bottom-4 uppercase tracking-widest whitespace-nowrap"
+        transition={{
+          width: { type: "spring", stiffness: 300, damping: 25 },
+          height: { type: "spring", stiffness: 300, damping: 25 },
+          marginLeft: { type: "spring", stiffness: 300, damping: 25 },
+          marginTop: { type: "spring", stiffness: 300, damping: 25 },
+          opacity: { duration: 0.15 },
+          scale: { type: "spring", stiffness: 400, damping: 20 },
+        }}
+      >
+        <motion.div
+          className="w-full h-full rounded-full flex items-center justify-center"
+          animate={{
+            backgroundColor: isHovering
+              ? "rgba(255, 255, 255, 0.08)"
+              : "rgba(255, 255, 255, 0)",
+            borderWidth: isHovering ? 1.5 : 1,
+            borderColor: isHovering
+              ? "rgba(255, 255, 255, 0.35)"
+              : "rgba(255, 255, 255, 0.2)",
+          }}
+          transition={{ duration: 0.25 }}
+          style={{
+            borderStyle: "solid",
+            backdropFilter: isHovering ? "blur(4px)" : "none",
+          }}
         >
-          View
-        </motion.span>
-      )}
-    </motion.div>
+          {hoverText && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              className="text-[8px] font-mono text-white/70 uppercase tracking-[0.2em] whitespace-nowrap select-none"
+            >
+              {hoverText}
+            </motion.span>
+          )}
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        className="fixed top-0 left-0 pointer-events-none z-[10000] hidden md:block rounded-full"
+        style={{
+          x: dotX,
+          y: dotY,
+          width: dotSize,
+          height: dotSize,
+          marginLeft: -dotSize / 2,
+          marginTop: -dotSize / 2,
+        }}
+        animate={{
+          opacity: isVisible ? 1 : 0,
+          scale: isHovering ? 0.5 : isPressed ? 0.7 : 1,
+          backgroundColor: isHovering
+            ? "rgba(255, 255, 255, 0.9)"
+            : "rgba(255, 255, 255, 0.8)",
+        }}
+        transition={{
+          opacity: { duration: 0.15 },
+          scale: { type: "spring", stiffness: 500, damping: 25 },
+        }}
+      />
+    </>
   );
 }
