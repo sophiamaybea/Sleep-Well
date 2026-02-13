@@ -4,10 +4,10 @@
 A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
 
 ## Recent Changes
-- 2026-02-13: Social features — Tending (follow system), Resonance (5 reaction types: glow/pressed_flower/dewdrop/firefly/roots), Marginalia (annotation-style comments), Notifications ("Whispers"), TendingFeed page, enhanced ProfileGarden with tending counts
-- 2026-02-13: Planting flow & visibility layers — three-tier visibility (personal/circle/garden), readiness stages (raw_seed/growing/ready_to_show), editorial availability flags, PlantingFlow modal, Garden Gallery feed with filters, ProfileGarden view, garden-feed/profile-garden/circle-feed API endpoints
-- 2026-02-13: Built all 16 Garden features — Gallery, Reading Queue, Explore, Saved, Pollination, Rituals, Compost, Growth Journal, Submissions, Inner Weather, Reflections, Seasonal Review, Root System, Circles, Moonlit Readings, Replant Requests
-- 2026-02-13: Complete Garden redesign — sidebar navigation with 5 section groups, 3-step interactive landing, My Garden with search/filters/expandable cards, dedicated Write editor
+- 2026-02-13: Complete Garden redesign — replaced sidebar+16-page structure with 3-zone architecture (Your Desk / Reading Room / Greenhouse), floating pill nav, Rooms strip for future spaces (Tables, Workshop, Desk, Swap, Retreats, Press), calm reading-room aesthetic
+- 2026-02-13: Social features — Tending (follow system), Resonance (5 reaction types: glow/pressed_flower/dewdrop/firefly/roots), Marginalia (annotation-style comments), Notifications ("Whispers")
+- 2026-02-13: Planting flow & visibility layers — three-tier visibility (personal/circle/garden), readiness stages (raw_seed/growing/ready_to_show), editorial availability flags, PlantingFlow modal
+- 2026-02-13: Built greenhouse tools — Rituals, Compost, Growth Journal, Inner Weather, Reflections, Circles
 - 2026-02-13: Enhanced landing page interactivity: 3D tilt cards (TwoDoors), word-by-word text reveals (Hero, Manifesto), magnetic cursor buttons, shine sweep cards (Featured), interactive grow cards (GardenIntro), animated timeline (HowItWorks)
 - 2026-02-12: Added GardenIntro section with crayon flower doodles (CrayonFlower, CrayonDaisy, CrayonTulip, SmallSprout SVGs)
 - 2026-02-12: Changed star title font to "Special Elite" (messy typewriter)
@@ -31,22 +31,22 @@ A literary journal platform with an immersive, space-themed design. Writers crea
 - Opening book animation with scroll-triggered reveal
 - Garden metaphor: writings go through stages (seed → sprout → bloom)
 
-### Garden Feature Architecture
-Feature pages are organized in `client/src/components/garden/`:
-- `PlantingFlow.tsx` - 3-step modal for setting visibility/readiness/editorial availability
-- `GardenFeed.tsx` - Garden Gallery feed with readiness/genre filters, integrated social features
-- `ProfileGarden.tsx` - View another member's shared pieces with tending counts
-- `SocialFeatures.tsx` - ResonanceBar (5 reaction types), MarginaliaSection (comments), TendButton (follow)
-- `TendingFeed.tsx` - "Gardens I Tend" feed from followed writers
-- `NotificationPanel.tsx` - Notification center ("Whispers") with bell indicator
-- `DiscoverFeatures.tsx` - Gallery, ReadingQueue, Explore, Saved, Pollination
-- `PracticeFeatures.tsx` - Rituals, Compost, GrowthJournal, Submissions
-- `ReflectFeatures.tsx` - InnerWeather, Reflections, SeasonalReview, RootSystem
-- `CommunityFeatures.tsx` - Circles, MoonlitReadings, ReplantRequests
+### Garden Architecture (3-Zone Design)
+The Garden (`/garden`) uses a 3-zone architecture with floating pill navigation:
+- **Your Desk** — Personal writing space: piece cards by stage, inline expand, distraction-free editor with autosave
+- **Reading Room** — Curated social feed merging tended gardens + garden feed, letter-like layout, ambient resonances, inline marginalia, "more letters" pagination
+- **Greenhouse** — Private creative tools as card grid: Growth Journal, Inner Weather, Rituals, Compost, Reflections, Circles
+
+Navigation: Sticky header with zone pill tabs + Rooms strip (Tables, Workshop, Desk, Swap, Retreats, Press — placeholders for future rooms). Whispers bell + profile menu in header.
+
+Supporting components in `client/src/components/garden/`:
+- `PlantingFlow.tsx` - 3-step modal for visibility/readiness/editorial
+- `SocialFeatures.tsx` - ResonanceBar, MarginaliaSection, TendButton
+- `NotificationPanel.tsx` - Notification center ("Whispers")
 
 ### Pages
 - `/` - Landing page with hero, star title, garden intro (crayon doodles), two doors, featured, how it works, manifesto
-- `/garden` - Authenticated Garden with sidebar navigation, 5 section groups (Create/Discover/Practice/Reflect/Community), all 16+ feature pages fully implemented
+- `/garden` - Authenticated Garden with 3-zone architecture (Desk / Reading Room / Greenhouse), floating nav, Rooms strip
 
 ### API Routes
 - `GET /api/gallery` - Public: list published writings (supports ?q= search and ?genre= filter)

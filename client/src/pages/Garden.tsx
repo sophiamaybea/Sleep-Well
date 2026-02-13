@@ -1,63 +1,42 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, ChevronLeft, Feather, Sparkles, PenLine,
-  Search, Filter, ChevronDown, ArrowRight, BookOpen, Lock,
-  Globe, Users, Eye, MapPin, User
+  Plus, Trash2, ChevronLeft, Feather, PenLine,
+  Search, ChevronDown, BookOpen, Lock,
+  Globe, Users, MapPin, Home, LogOut,
+  Sprout, Sparkles, Flower2, Droplets, Zap, Leaf,
+  Flame, Archive, NotebookPen, CloudSun, Brain,
+  CalendarRange, Network, Mic, Moon, Bell,
+  FileCheck, Heart, Bookmark, Compass, MessageCircle
 } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
-import GardenSidebar from "@/components/GardenSidebar";
-import type { GardenView } from "@/components/GardenSidebar";
 import type { Writing } from "@shared/schema";
-import { GalleryPage, ReadingQueuePage, ExplorePage, SavedPage, PollinationPage } from "@/components/garden/DiscoverFeatures";
-import { RitualsPage, CompostPage, GrowthJournalPage, SubmissionsPage } from "@/components/garden/PracticeFeatures";
-import { InnerWeatherPage, ReflectionsPage, SeasonalReviewPage, RootSystemPage } from "@/components/garden/ReflectFeatures";
-import { CirclesPage, MoonlitReadingsPage, ReplantRequestsPage } from "@/components/garden/CommunityFeatures";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
-import GardenFeed from "@/components/garden/GardenFeed";
-import ProfileGarden from "@/components/garden/ProfileGarden";
-import TendingFeed from "@/components/garden/TendingFeed";
-import NotificationPanel, { NotificationBell } from "@/components/garden/NotificationPanel";
+import { NotificationBell } from "@/components/garden/NotificationPanel";
+import NotificationPanel from "@/components/garden/NotificationPanel";
+import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
+
+type Zone = "desk" | "reading-room" | "greenhouse";
+type GreenhouseTool = "growth-journal" | "inner-weather" | "rituals" | "compost" | "reflections" | "circles" | null;
 
 const stageColors: Record<string, string> = {
-  seed: "border-amber-500/30 text-amber-400/80",
-  sprout: "border-emerald-500/30 text-emerald-400/80",
-  bloom: "border-pink-500/30 text-pink-400/80",
   raw_seed: "border-amber-500/30 text-amber-400/80",
   growing: "border-emerald-500/30 text-emerald-400/80",
   ready_to_show: "border-pink-500/30 text-pink-400/80",
 };
 
 const stageAccent: Record<string, string> = {
-  seed: "bg-amber-500/10",
-  sprout: "bg-emerald-500/10",
-  bloom: "bg-pink-500/10",
   raw_seed: "bg-amber-500/10",
   growing: "bg-emerald-500/10",
   ready_to_show: "bg-pink-500/10",
 };
 
 const stageGlow: Record<string, string> = {
-  seed: "rgba(245, 158, 11, 0.2)",
-  sprout: "rgba(16, 185, 129, 0.2)",
-  bloom: "rgba(236, 72, 153, 0.2)",
-  raw_seed: "rgba(245, 158, 11, 0.2)",
-  growing: "rgba(16, 185, 129, 0.2)",
-  ready_to_show: "rgba(236, 72, 153, 0.2)",
-};
-
-const visibilityColors: Record<string, string> = {
-  personal: "text-amber-400/50",
-  circle: "text-violet-400/50",
-  garden: "text-emerald-400/50",
-};
-
-const visibilityIcons: Record<string, React.ReactNode> = {
-  personal: <Lock size={12} />,
-  circle: <Users size={12} />,
-  garden: <Globe size={12} />,
+  raw_seed: "rgba(245, 158, 11, 0.15)",
+  growing: "rgba(16, 185, 129, 0.15)",
+  ready_to_show: "rgba(236, 72, 153, 0.15)",
 };
 
 const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
@@ -67,7 +46,6 @@ function SeedIcon({ className }: { className?: string }) {
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <path d="M12 22 Q12 20 12 14" />
       <path d="M12 15 Q8 9 9 5 Q10 2 12 3 Q14 2 15 5 Q16 9 12 15Z" />
-      <path d="M10 3 Q9 1 10 0 Q12 -0.5 14 0 Q15 1 14 3" />
     </svg>
   );
 }
@@ -78,7 +56,6 @@ function SproutIcon({ className }: { className?: string }) {
       <path d="M12 22 Q12 20 12 12" />
       <path d="M12 16 Q7 11 6 9 Q5 7 7 6 Q9 5 11 9 L12 12Z" />
       <path d="M12 12 Q17 7 18 5 Q19 3 21 4 Q23 6 19 8 L12 12Z" />
-      <path d="M12 10 Q11 5 12 2 Q13 0 14 2 Q15 5 13 9Z" />
     </svg>
   );
 }
@@ -90,18 +67,12 @@ function BloomIcon({ className }: { className?: string }) {
       <path d="M12 12 Q8 6 5 5 Q3 4.5 4 7 Q5 9 10 12Z" />
       <path d="M12 12 Q16 6 19 5 Q21 4.5 20 7 Q19 9 14 12Z" />
       <path d="M12 12 Q12 4 11 2 Q10 0 12 0 Q14 0 13 2 Q12 4 12 12Z" />
-      <path d="M12 12 Q6 10 3 11 Q1 12 3 13 Q5 14 12 12Z" />
-      <path d="M12 12 Q18 10 21 11 Q23 12 21 13 Q19 14 12 12Z" />
       <circle cx="12" cy="12" r="2" fill="currentColor" />
-      <path d="M9 18 Q8 16 6 17" />
     </svg>
   );
 }
 
 const stageIcons: Record<string, React.ReactNode> = {
-  seed: <SeedIcon className="w-4 h-4" />,
-  sprout: <SproutIcon className="w-4 h-4" />,
-  bloom: <BloomIcon className="w-4 h-4" />,
   raw_seed: <SeedIcon className="w-4 h-4" />,
   growing: <SproutIcon className="w-4 h-4" />,
   ready_to_show: <BloomIcon className="w-4 h-4" />,
@@ -126,191 +97,69 @@ function timeAgo(date: string | Date | null | undefined) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function AnimatedCounter({ target, duration = 1.5, delay = 0 }: { target: number; duration?: number; delay?: number }) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (target === 0) return;
-    const timer = setTimeout(() => {
-      let start = 0;
-      const step = Math.max(1, Math.ceil(target / (duration * 60)));
-      const interval = setInterval(() => {
-        start += step;
-        if (start >= target) {
-          setCount(target);
-          clearInterval(interval);
-        } else {
-          setCount(start);
-        }
-      }, 1000 / 60);
-      return () => clearInterval(interval);
-    }, delay * 1000);
-    return () => clearTimeout(timer);
-  }, [target, duration, delay]);
-  return <>{count.toLocaleString()}</>;
-}
+const rooms = [
+  { id: "tables", label: "Tables", icon: <Users size={13} /> },
+  { id: "workshop", label: "Workshop", icon: <BookOpen size={13} /> },
+  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} /> },
+  { id: "swap", label: "Swap", icon: <MessageCircle size={13} /> },
+  { id: "retreats", label: "Retreats", icon: <Compass size={13} /> },
+  { id: "press", label: "The Press", icon: <FileCheck size={13} /> },
+];
 
-function GardenLanding({ onNavigate }: { onNavigate: (view: GardenView) => void }) {
-  const [expandedStep, setExpandedStep] = useState<number | null>(null);
-
-  const steps = [
-    {
-      number: "01",
-      title: "Plant",
-      subtitle: "Open your Garden and write anything",
-      description: "A line, a fragment, a whole draft — whatever wants to come out. There are no deadlines, no due dates, no pressure. Just plant your seed and let it sit. Come back when you're ready. Your Garden is yours alone.",
-      icon: <SeedIcon className="w-8 h-8" />,
-      color: "amber",
-      glow: stageGlow.seed,
-    },
-    {
-      number: "02",
-      title: "Editors Walk Through",
-      subtitle: "Our editorial team browses Gardens like a bookshop",
-      description: "Slowly, carefully, the editorial team walks through the Gardens of writers who've opened their doors. No algorithms, no submissions. Just people reading — marking the pieces that make them stop, the lines that stay with them.",
-      icon: <SproutIcon className="w-8 h-8" />,
-      color: "emerald",
-      glow: stageGlow.sprout,
-    },
-    {
-      number: "03",
-      title: "A Knock on the Door",
-      subtitle: "When editors want to feature your piece",
-      description: "If a piece speaks to the editors, you receive a Replant Request — a gentle invitation. You can accept it as-is, revise it first, or decline entirely. Accepted pieces bloom into the public Gallery and are paid. Your work, your terms.",
-      icon: <BloomIcon className="w-8 h-8" />,
-      color: "pink",
-      glow: stageGlow.bloom,
-    },
+function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
+  const zones: { id: Zone; label: string }[] = [
+    { id: "desk", label: "Your Desk" },
+    { id: "reading-room", label: "Reading Room" },
+    { id: "greenhouse", label: "Greenhouse" },
   ];
 
-  const colorMap: Record<string, { border: string; text: string; bg: string; borderActive: string }> = {
-    amber: { border: "border-amber-500/10", text: "text-amber-400", bg: "bg-amber-500/5", borderActive: "border-amber-500/30" },
-    emerald: { border: "border-emerald-500/10", text: "text-emerald-400", bg: "bg-emerald-500/5", borderActive: "border-emerald-500/30" },
-    pink: { border: "border-pink-500/10", text: "text-pink-400", bg: "bg-pink-500/5", borderActive: "border-pink-500/30" },
-  };
-
   return (
-    <div className="max-w-4xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="mb-16 text-center"
-      >
-        <motion.div
-          className="inline-flex items-center gap-2 text-white/25 mb-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
+    <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl">
+      {zones.map((z) => (
+        <button
+          key={z.id}
+          onClick={() => onChange(z.id)}
+          className={`relative px-5 py-2.5 rounded-xl font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
+            active === z.id ? "text-white/90" : "text-white/30 hover:text-white/55"
+          }`}
+          data-testid={`zone-tab-${z.id}`}
         >
-          <Feather size={14} />
-          <span className="font-mono text-[10px] tracking-[0.3em] uppercase">How It Works</span>
-        </motion.div>
-        <h1 className="text-4xl md:text-6xl font-display font-light tracking-tight italic text-white/90 mb-6" data-testid="heading-garden-landing">
-          Your Garden, Your Pace
-        </h1>
-        <p className="text-lg font-serif text-white/35 max-w-2xl mx-auto leading-relaxed">
-          No submissions. No deadlines. Just a quiet space to grow your words, and editors who come to you.
-        </p>
-      </motion.div>
-
-      <div className="space-y-4 mb-16">
-        {steps.map((step, i) => {
-          const isExpanded = expandedStep === i;
-          const colors = colorMap[step.color];
-
-          return (
+          {active === z.id && (
             <motion.div
-              key={step.number}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.15, duration: 0.5 }}
-            >
-              <motion.button
-                onClick={() => setExpandedStep(isExpanded ? null : i)}
-                whileHover={{ scale: 1.01, y: -2 }}
-                whileTap={{ scale: 0.995 }}
-                className={`w-full text-left rounded-xl border transition-all duration-500 overflow-hidden group ${
-                  isExpanded ? `${colors.borderActive} ${colors.bg}` : `${colors.border} bg-white/[0.01] hover:bg-white/[0.03]`
-                }`}
-                data-testid={`step-card-${i}`}
-              >
-                <div className="p-6 md:p-8">
-                  <div className="flex items-start gap-5">
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-full border ${colors.border} flex items-center justify-center ${colors.text} opacity-50 group-hover:opacity-80 transition-opacity`}>
-                      {step.icon}
-                    </div>
-                    <div className="flex-grow min-w-0">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <span className={`font-mono text-[10px] tracking-widest ${colors.text} opacity-60 uppercase block mb-1`}>
-                            Step {step.number}
-                          </span>
-                          <h3 className="text-xl md:text-2xl font-display font-light italic text-white/80 group-hover:text-white/95 transition-colors">
-                            {step.title}
-                          </h3>
-                        </div>
-                        <motion.div
-                          animate={{ rotate: isExpanded ? 180 : 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="text-white/20"
-                        >
-                          <ChevronDown size={20} />
-                        </motion.div>
-                      </div>
-                      <p className="text-sm font-serif text-white/30 mt-1">{step.subtitle}</p>
-                    </div>
-                  </div>
+              layoutId="activeZone"
+              className="absolute inset-0 rounded-xl bg-white/[0.08] border border-white/[0.1]"
+              transition={{ type: "spring", stiffness: 500, damping: 35 }}
+            />
+          )}
+          <span className="relative z-10">{z.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-6 pl-[68px]">
-                          <p className="text-base font-serif text-white/50 leading-relaxed max-w-xl">
-                            {step.description}
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.button>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
-        className="text-center space-y-4"
-      >
-        <motion.button
-          onClick={() => onNavigate("my-garden")}
-          whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(245, 158, 11, 0.12)" }}
-          whileTap={{ scale: 0.97 }}
-          className="inline-flex items-center gap-3 px-10 py-4 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-xs uppercase tracking-widest text-white/70 hover:text-white transition-all group"
-          data-testid="button-enter-garden"
+function RoomsStrip() {
+  return (
+    <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+      {rooms.map((room) => (
+        <div
+          key={room.id}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.04] text-white/15 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none"
+          title="Coming soon"
+          data-testid={`room-${room.id}`}
         >
-          <Sparkles size={14} className="group-hover:text-amber-400 transition-colors" />
-          Enter Your Garden
-          <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-        </motion.button>
-      </motion.div>
+          {room.icon}
+          {room.label}
+          <span className="text-[7px] text-white/10 ml-0.5">soon</span>
+        </div>
+      ))}
     </div>
   );
 }
 
 type StageFilter = "all" | "raw_seed" | "growing" | "ready_to_show";
-type VisibilityFilter = "all" | "personal" | "circle" | "garden";
 
-function MyGarden({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCreating }: {
+function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCreating }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
   onCreateNew: () => void;
@@ -319,23 +168,12 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
-  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   const readinessKey = (w: Writing) => w.readiness || "raw_seed";
-  const visKey = (w: Writing) => w.visibility || "personal";
-
-  const seedCount = writings.filter(w => readinessKey(w) === "raw_seed").length;
-  const growingCount = writings.filter(w => readinessKey(w) === "growing").length;
-  const readyCount = writings.filter(w => readinessKey(w) === "ready_to_show").length;
-  const personalCount = writings.filter(w => visKey(w) === "personal").length;
-  const circleCount = writings.filter(w => visKey(w) === "circle").length;
-  const gardenCount = writings.filter(w => visKey(w) === "garden").length;
-  const totalWords = writings.reduce((acc, w) => acc + wordCount(w.content), 0);
 
   const filteredWritings = writings
     .filter(w => activeFilter === "all" || readinessKey(w) === activeFilter)
-    .filter(w => visibilityFilter === "all" || visKey(w) === visibilityFilter)
     .filter(w => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -343,259 +181,155 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
     })
     .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
 
-  const filters: { id: StageFilter; label: string; count: number; color?: string }[] = [
-    { id: "all", label: "All", count: writings.length },
-    { id: "raw_seed", label: "Seeds", count: seedCount, color: "amber" },
-    { id: "growing", label: "Growing", count: growingCount, color: "emerald" },
-    { id: "ready_to_show", label: "Ready", count: readyCount, color: "pink" },
-  ];
+  const seedCount = writings.filter(w => readinessKey(w) === "raw_seed").length;
+  const growingCount = writings.filter(w => readinessKey(w) === "growing").length;
+  const readyCount = writings.filter(w => readinessKey(w) === "ready_to_show").length;
 
-  const visFilters: { id: VisibilityFilter; label: string; count: number; icon: React.ReactNode }[] = [
-    { id: "all", label: "All", count: writings.length, icon: <BookOpen size={12} /> },
-    { id: "personal", label: "Private", count: personalCount, icon: <Lock size={12} /> },
-    { id: "circle", label: "Circle", count: circleCount, icon: <Users size={12} /> },
-    { id: "garden", label: "Gallery", count: gardenCount, icon: <Globe size={12} /> },
+  const filters: { id: StageFilter; label: string; count: number }[] = [
+    { id: "all", label: "All", count: writings.length },
+    { id: "raw_seed", label: "Seeds", count: seedCount },
+    { id: "growing", label: "Growing", count: growingCount },
+    { id: "ready_to_show", label: "Ready", count: readyCount },
   ];
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="mb-10"
-      >
-        <div className="flex items-end justify-between gap-6 flex-wrap mb-8">
-          <div>
-            <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90" data-testid="heading-my-garden">
-              My Garden
-            </h1>
-            <p className="text-base font-serif text-white/30 mt-2">
-              {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {totalWords.toLocaleString()} words
-            </p>
-          </div>
-          <motion.button
-            onClick={onCreateNew}
-            disabled={isCreating}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all group"
-            data-testid="button-new-piece"
-          >
-            <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
-            New Piece
-          </motion.button>
+    <div className="max-w-3xl mx-auto">
+      <div className="flex items-end justify-between gap-4 mb-8">
+        <div>
+          <p className="text-sm font-serif text-white/25">
+            {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
+          </p>
         </div>
+        <motion.button
+          onClick={onCreateNew}
+          disabled={isCreating}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all group"
+          data-testid="button-new-piece"
+        >
+          <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
+          New Piece
+        </motion.button>
+      </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          {[
-            { label: "Total", count: writings.length, icon: <BookOpen size={16} />, color: "white" },
-            { label: "Seeds", count: seedCount, icon: <SeedIcon className="w-4 h-4" />, color: "amber" },
-            { label: "Growing", count: growingCount, icon: <SproutIcon className="w-4 h-4" />, color: "emerald" },
-            { label: "Ready", count: readyCount, icon: <BloomIcon className="w-4 h-4" />, color: "pink" },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.08 }}
-              whileHover={{ scale: 1.03, y: -2 }}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-center hover:border-white/15 transition-all cursor-default"
-              data-testid={`counter-${stat.label.toLowerCase()}`}
-            >
-              <div className={`inline-flex mb-2 ${stat.color === "amber" ? "text-amber-400/50" : stat.color === "emerald" ? "text-emerald-400/50" : stat.color === "pink" ? "text-pink-400/50" : "text-white/30"}`}>
-                {stat.icon}
-              </div>
-              <div className="text-2xl font-display font-light text-white/80">
-                <AnimatedCounter target={stat.count} delay={0.2 + i * 0.1} />
-              </div>
-              <span className="font-mono text-[9px] tracking-widest text-white/25 uppercase">{stat.label}</span>
-            </motion.div>
-          ))}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-grow">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/15" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search your pieces..."
+            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.02] border border-white/[0.06] rounded-xl text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors"
+            data-testid="input-search"
+          />
         </div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-3 mb-6"
-        >
-          <div className="relative flex-grow">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search pieces..."
-              className="w-full pl-11 pr-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
-              data-testid="input-search"
-            />
-          </div>
-
-          <div className="flex gap-1 p-1 bg-white/[0.02] rounded-xl border border-white/[0.06]">
-            {filters.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setActiveFilter(f.id)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
-                  activeFilter === f.id
-                    ? "bg-white/[0.08] text-white/80"
-                    : "text-white/30 hover:text-white/50"
-                }`}
-                data-testid={`filter-${f.id}`}
-              >
-                {f.label}
-                <span className={`text-[9px] ${activeFilter === f.id ? "text-white/50" : "text-white/15"}`}>
-                  {f.count}
-                </span>
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35 }}
-          className="flex gap-1 p-1 bg-white/[0.02] rounded-xl border border-white/[0.06] mb-6 w-fit"
-        >
-          {visFilters.map((f) => (
+        <div className="flex gap-0.5 p-0.5 bg-white/[0.02] rounded-xl border border-white/[0.05]">
+          {filters.map((f) => (
             <button
               key={f.id}
-              onClick={() => setVisibilityFilter(f.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
-                visibilityFilter === f.id
-                  ? "bg-white/[0.08] text-white/80"
-                  : "text-white/30 hover:text-white/50"
+              onClick={() => setActiveFilter(f.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest transition-all ${
+                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/25 hover:text-white/45"
               }`}
-              data-testid={`vis-filter-${f.id}`}
+              data-testid={`filter-${f.id}`}
             >
-              {f.icon}
               {f.label}
-              <span className={`text-[9px] ${visibilityFilter === f.id ? "text-white/50" : "text-white/15"}`}>
-                {f.count}
-              </span>
+              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/40" : "text-white/12"}`}>{f.count}</span>
             </button>
           ))}
-        </motion.div>
-      </motion.div>
-
-      {filteredWritings.length === 0 && writings.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
-          <p className="font-serif text-white/30 text-base">No pieces match your search or filter.</p>
-        </motion.div>
-      )}
+        </div>
+      </div>
 
       {writings.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="border border-dashed border-white/10 rounded-2xl p-16 md:p-20 text-center space-y-8"
-          data-testid="empty-garden"
-        >
-          <div className="flex items-center justify-center gap-8">
-            <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}>
-              <SeedIcon className="w-10 h-10 text-amber-400/20" />
-            </motion.div>
-            <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, delay: 0.3 }}>
-              <SproutIcon className="w-12 h-12 text-emerald-400/20" />
-            </motion.div>
-            <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, delay: 0.6 }}>
-              <BloomIcon className="w-10 h-10 text-pink-400/20" />
-            </motion.div>
+        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-6">
+          <div className="flex items-center justify-center gap-6">
+            <SeedIcon className="w-8 h-8 text-amber-400/15" />
+            <SproutIcon className="w-10 h-10 text-emerald-400/15" />
+            <BloomIcon className="w-8 h-8 text-pink-400/15" />
           </div>
-          <div className="space-y-3">
-            <h3 className="text-2xl md:text-3xl font-display font-light italic text-white/60">
-              Your garden awaits its first seed
-            </h3>
-            <p className="font-serif text-white/30 max-w-md mx-auto leading-relaxed">
-              A line, a fragment, a whole draft — whatever wants to come out. Plant it and watch it grow.
+          <div className="space-y-2">
+            <h3 className="text-2xl font-display font-light italic text-white/50">Your garden awaits its first seed</h3>
+            <p className="font-serif text-sm text-white/25 max-w-md mx-auto leading-relaxed">
+              A line, a fragment, a whole draft — whatever wants to come out.
             </p>
           </div>
           <motion.button
             onClick={onCreateNew}
-            whileHover={{ scale: 1.08, boxShadow: "0 0 40px rgba(245, 158, 11, 0.15)" }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-3 px-8 py-3.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white transition-all group"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-all"
             data-testid="button-plant-seed"
           >
-            <Sparkles size={14} className="group-hover:text-amber-400 transition-colors" />
+            <Sparkles size={13} />
             Plant Your First Seed
           </motion.button>
-        </motion.div>
+        </div>
       )}
 
-      <div className="grid gap-3">
+      {filteredWritings.length === 0 && writings.length > 0 && (
+        <p className="text-center py-12 font-serif text-white/25 text-sm">No pieces match your search.</p>
+      )}
+
+      <div className="space-y-2">
         {filteredWritings.map((w, i) => {
           const isExpanded = expandedCard === w.id;
+          const readiness = readinessKey(w);
+          const vis = w.visibility || "personal";
           return (
             <motion.div
               key={w.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04, duration: 0.4 }}
+              transition={{ delay: i * 0.03, duration: 0.3 }}
               data-testid={`card-piece-${w.id}`}
             >
-              <motion.div
-                whileHover={{ scale: isExpanded ? 1 : 1.008, x: isExpanded ? 0 : 4 }}
+              <div
                 className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
                   isExpanded
-                    ? `${stageColors[readinessKey(w)].split(" ")[0]} bg-white/[0.03]`
-                    : "border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03]"
+                    ? `${stageColors[readiness]?.split(" ")[0] || "border-white/15"} bg-white/[0.025]`
+                    : "border-white/[0.04] hover:border-white/[0.08] bg-white/[0.01]"
                 }`}
               >
                 {isExpanded && (
-                  <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    style={{
-                      background: `linear-gradient(135deg, ${stageGlow[readinessKey(w)]} 0%, transparent 50%)`,
-                    }}
-                  />
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    background: `linear-gradient(135deg, ${stageGlow[readiness] || "transparent"} 0%, transparent 50%)`,
+                  }} />
                 )}
 
                 <button
                   onClick={() => setExpandedCard(isExpanded ? null : w.id)}
-                  className="w-full text-left p-5 md:p-6 relative z-10"
+                  className="w-full text-left p-4 md:p-5 relative z-10"
                   data-testid={`button-expand-${w.id}`}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[readinessKey(w)]} ${stageAccent[readinessKey(w)]}`}>
-                      {stageIcons[readinessKey(w)] || stageIcons.raw_seed}
+                  <div className="flex items-center gap-3">
+                    <div className={`flex-shrink-0 w-7 h-7 rounded-full border flex items-center justify-center ${stageColors[readiness] || "border-white/10 text-white/30"} ${stageAccent[readiness] || ""}`}>
+                      {stageIcons[readiness] || stageIcons.raw_seed}
                     </div>
-                    <div className="flex-grow min-w-0 space-y-1">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <h3 className="text-lg font-display font-light truncate text-white/70 italic">
-                            {w.title || "Untitled"}
-                          </h3>
-                          <VisibilityBadge visibility={visKey(w)} readiness={readinessKey(w)} editorialAvailable={w.editorialAvailable} compact />
-                        </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">{w.genre}</span>
-                          <span className="font-mono text-[9px] text-white/10">{timeAgo(w.updatedAt)}</span>
-                          <motion.div
-                            animate={{ rotate: isExpanded ? 180 : 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="text-white/15"
-                          >
-                            <ChevronDown size={14} />
-                          </motion.div>
-                        </div>
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-display font-light truncate text-white/70 italic">
+                          {w.title || "Untitled"}
+                        </h3>
+                        {vis !== "personal" && (
+                          <span className={`text-[9px] ${vis === "circle" ? "text-violet-400/40" : "text-emerald-400/40"}`}>
+                            {vis === "circle" ? <Users size={10} /> : <Globe size={10} />}
+                          </span>
+                        )}
                       </div>
-                      {!isExpanded && w.content && (
-                        <p className="text-sm font-serif text-white/25 line-clamp-1">
-                          {w.content.slice(0, 150)}
-                        </p>
-                      )}
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0 text-white/15">
+                      <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">{w.genre}</span>
+                      <span className="font-mono text-[9px]">{timeAgo(w.updatedAt)}</span>
+                      <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
+                  {!isExpanded && w.content && (
+                    <p className="text-sm font-serif text-white/20 line-clamp-1 mt-1 ml-10">
+                      {w.content.slice(0, 120)}
+                    </p>
+                  )}
                 </button>
 
                 <AnimatePresence>
@@ -604,48 +338,42 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.25 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-5 md:px-6 pb-5 md:pb-6 pl-[52px] md:pl-[60px] space-y-4 relative z-10">
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 ml-10 space-y-3 relative z-10">
                         {w.content && (
-                          <p className="text-sm font-serif text-white/40 leading-relaxed line-clamp-4">
+                          <p className="text-sm font-serif text-white/35 leading-relaxed line-clamp-4">
                             {w.content.slice(0, 400)}
                           </p>
                         )}
-                        <div className="flex items-center gap-4 pt-2">
-                          <span className="font-mono text-[9px] text-white/20 tracking-widest">
-                            {wordCount(w.content)} words
-                          </span>
-                          <VisibilityBadge visibility={visKey(w)} readiness={readinessKey(w)} editorialAvailable={w.editorialAvailable} />
+                        <div className="flex items-center gap-3 text-white/15">
+                          <span className="font-mono text-[9px] tracking-widest">{wordCount(w.content)} words</span>
+                          <VisibilityBadge visibility={vis} readiness={readiness} editorialAvailable={w.editorialAvailable} compact />
                         </div>
                         <div className="flex gap-2 pt-1">
-                          <motion.button
+                          <button
                             onClick={(e) => { e.stopPropagation(); onOpenWriting(w); }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-lg font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white transition-all"
                             data-testid={`button-edit-${w.id}`}
                           >
-                            <PenLine size={12} />
-                            Open & Edit
-                          </motion.button>
-                          <motion.button
+                            <PenLine size={11} />
+                            Open
+                          </button>
+                          <button
                             onClick={(e) => { e.stopPropagation(); onOpenPlanting(w); }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/15 rounded-lg font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/70 transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.06] hover:border-white/15 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-all"
                             data-testid={`button-plant-${w.id}`}
                           >
-                            <MapPin size={12} />
+                            <MapPin size={11} />
                             Plant
-                          </motion.button>
+                          </button>
                         </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </div>
             </motion.div>
           );
         })}
@@ -657,14 +385,14 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
 function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   writing: Writing;
   onBack: () => void;
-  onSave: (data: { title: string; content: string; genre: string; stage: string; readiness?: string; visibility?: string; editorialAvailable?: boolean }) => void;
+  onSave: (data: { title: string; content: string; genre: string; readiness?: string }) => void;
   onDelete: () => void;
   onOpenPlanting: () => void;
 }) {
   const [editTitle, setEditTitle] = useState(writing.title);
   const [editContent, setEditContent] = useState(writing.content);
   const [editGenre, setEditGenre] = useState(writing.genre);
-  const [editStage, setEditStage] = useState(writing.readiness || writing.stage || "raw_seed");
+  const [editStage, setEditStage] = useState(writing.readiness || "raw_seed");
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -673,11 +401,8 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
 
   const doSave = useCallback(() => {
     setSaving(true);
-    onSave({ title: editTitle, content: editContent, genre: editGenre, stage: editStage, readiness: editStage });
-    setTimeout(() => {
-      setSaving(false);
-      setLastSaved(new Date());
-    }, 500);
+    onSave({ title: editTitle, content: editContent, genre: editGenre, readiness: editStage });
+    setTimeout(() => { setSaving(false); setLastSaved(new Date()); }, 500);
   }, [editTitle, editContent, editGenre, editStage, onSave]);
 
   function handleContentChange(value: string) {
@@ -698,34 +423,27 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="max-w-3xl mx-auto"
-    >
+    <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => { doSave(); onBack(); }}
-          className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors group"
+          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors group"
           data-testid="button-back"
         >
-          <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          My Garden
+          <ChevronLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
+          Back
         </button>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] tracking-widest text-white/20">
+          <span className="font-mono text-[9px] tracking-widest text-white/15">
             {saving ? "saving..." : lastSaved ? `saved ${timeAgo(lastSaved)}` : ""}
           </span>
-          <span className="font-mono text-[10px] tracking-widest text-white/20">
-            {wordCount(editContent)} words
-          </span>
+          <span className="font-mono text-[9px] tracking-widest text-white/15">{wordCount(editContent)} words</span>
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="p-2 text-white/20 hover:text-red-400/80 transition-colors"
+            className="p-1.5 text-white/15 hover:text-red-400/70 transition-colors"
             data-testid="button-delete"
           >
-            <Trash2 size={15} />
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
@@ -741,20 +459,8 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             <div className="border border-red-500/20 bg-red-500/5 rounded-lg p-4 flex items-center justify-between">
               <p className="font-serif text-sm text-red-300/70">Delete this writing permanently?</p>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors"
-                  data-testid="button-cancel-delete"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={onDelete}
-                  className="px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest bg-red-500/20 text-red-300 rounded-full hover:bg-red-500/30 transition-colors"
-                  data-testid="button-confirm-delete"
-                >
-                  Delete
-                </button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white" data-testid="button-cancel-delete">Cancel</button>
+                <button onClick={onDelete} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest bg-red-500/20 text-red-300 rounded-full hover:bg-red-500/30" data-testid="button-confirm-delete">Delete</button>
               </div>
             </div>
           </motion.div>
@@ -767,12 +473,12 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           value={editTitle}
           onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Title..."
-          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-tight text-white/90 placeholder:text-white/15 focus:outline-none border-none italic"
+          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-tight text-white/90 placeholder:text-white/10 focus:outline-none border-none italic"
           data-testid="input-title"
         />
 
-        <div className="flex items-center gap-4 pb-6 border-b border-white/5 flex-wrap">
-          <div className="flex gap-1">
+        <div className="flex items-center gap-3 pb-5 border-b border-white/[0.04] flex-wrap">
+          <div className="flex gap-0.5">
             {([
               { id: "raw_seed", label: "Seed" },
               { id: "growing", label: "Growing" },
@@ -781,10 +487,10 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               <button
                 key={s.id}
                 onClick={() => { setEditStage(s.id); setTimeout(doSave, 100); }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all border ${
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                   editStage === s.id
                     ? `${stageColors[s.id]} ${stageAccent[s.id]}`
-                    : "border-transparent text-white/25 hover:text-white/50"
+                    : "border-transparent text-white/20 hover:text-white/40"
                 }`}
                 data-testid={`button-stage-${s.id}`}
               >
@@ -793,28 +499,26 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               </button>
             ))}
           </div>
-          <span className="w-[1px] h-4 bg-white/5" />
+          <span className="w-px h-4 bg-white/[0.04]" />
           <select
             value={editGenre}
             onChange={(e) => { setEditGenre(e.target.value); setTimeout(doSave, 100); }}
-            className="bg-transparent text-white/40 font-mono text-[10px] uppercase tracking-widest border border-white/5 rounded-full px-3 py-1.5 focus:outline-none focus:border-white/15 hover:border-white/15 transition-colors cursor-pointer"
+            className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.04] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
             data-testid="select-genre"
           >
             {genreOptions.map((g) => (
               <option key={g} value={g} className="bg-[#0b101a]">{g}</option>
             ))}
           </select>
-          <span className="w-[1px] h-4 bg-white/5" />
-          <motion.button
+          <span className="w-px h-4 bg-white/[0.04]" />
+          <button
             onClick={onOpenPlanting}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest border border-white/[0.06] text-white/30 hover:text-white/60 hover:border-white/15 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/[0.04] text-white/25 hover:text-white/50 hover:border-white/15 transition-all"
             data-testid="button-open-planting"
           >
-            <MapPin size={12} />
+            <MapPin size={11} />
             {(writing.visibility || "personal") === "personal" ? "Private" : (writing.visibility || "personal") === "circle" ? "Circle" : "Gallery"}
-          </motion.button>
+          </button>
         </div>
 
         <textarea
@@ -822,35 +526,502 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           value={editContent}
           onChange={(e) => handleContentChange(e.target.value)}
           placeholder="Begin writing..."
-          className="w-full min-h-[65vh] bg-transparent text-lg font-serif leading-[2] text-white/75 placeholder:text-white/10 focus:outline-none resize-none border-none tracking-wide"
+          className="w-full min-h-[60vh] bg-transparent text-lg font-serif leading-[2] text-white/70 placeholder:text-white/8 focus:outline-none resize-none border-none tracking-wide"
           data-testid="textarea-content"
         />
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-function ComingSoonPage({ title, description }: { title: string; description: string }) {
+type FeedWriting = Writing & { authorName: string | null };
+
+function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) => void }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const perPage = 8;
+
+  const { data: tendingFeed = [] } = useQuery<FeedWriting[]>({
+    queryKey: ["/api/tending-feed"],
+    queryFn: async () => {
+      const res = await fetch("/api/tending-feed", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const { data: gardenFeed = [] } = useQuery<FeedWriting[]>({
+    queryKey: ["/api/garden-feed"],
+    queryFn: async () => {
+      const res = await fetch("/api/garden-feed", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const seen = new Set<string>();
+  const allPieces: FeedWriting[] = [];
+  for (const piece of tendingFeed) {
+    if (!seen.has(piece.id)) { seen.add(piece.id); allPieces.push(piece); }
+  }
+  for (const piece of gardenFeed) {
+    if (!seen.has(piece.id)) { seen.add(piece.id); allPieces.push(piece); }
+  }
+
+  allPieces.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+
+  const visiblePieces = allPieces.slice(0, page * perPage);
+  const hasMore = allPieces.length > visiblePieces.length;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto text-center py-20"
-    >
-      <motion.div
-        className="w-16 h-16 mx-auto mb-6 rounded-full border border-white/10 flex items-center justify-center text-white/20"
-        animate={{ rotate: [0, 5, -5, 0] }}
-        transition={{ duration: 4, repeat: Infinity }}
-      >
-        <Lock size={24} />
-      </motion.div>
-      <h2 className="text-3xl md:text-4xl font-display font-light italic text-white/70 mb-4">{title}</h2>
-      <p className="font-serif text-white/30 leading-relaxed max-w-lg mx-auto">{description}</p>
-      <div className="mt-8 inline-flex items-center gap-2 px-5 py-2.5 border border-white/[0.06] rounded-full">
-        <Sparkles size={12} className="text-white/20" />
-        <span className="font-mono text-[10px] tracking-widest text-white/20 uppercase">Coming Soon</span>
+    <div className="max-w-2xl mx-auto">
+      {allPieces.length === 0 && (
+        <div className="border border-dashed border-white/[0.06] rounded-2xl p-16 text-center space-y-4">
+          <Feather size={32} className="mx-auto text-white/10" />
+          <h3 className="text-xl font-display font-light italic text-white/40">No letters yet</h3>
+          <p className="font-serif text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+            When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        {visiblePieces.map((piece, i) => {
+          const isExpanded = expandedId === piece.id;
+          return (
+            <motion.article
+              key={piece.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.04, duration: 0.4 }}
+              className="group"
+              data-testid={`letter-${piece.id}`}
+            >
+              <div className={`rounded-xl border transition-all duration-300 ${
+                isExpanded ? "border-white/[0.1] bg-white/[0.02]" : "border-transparent hover:border-white/[0.06]"
+              }`}>
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : piece.id)}
+                  className="w-full text-left p-5 md:p-6"
+                  data-testid={`button-open-letter-${piece.id}`}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onViewProfile?.(piece.authorId); }}
+                      className="flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors"
+                      data-testid={`link-author-${piece.id}`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/30 font-mono text-[8px] uppercase">
+                        {piece.authorName?.[0] || "?"}
+                      </div>
+                      <span className="font-serif text-xs">{piece.authorName || "Anonymous"}</span>
+                    </button>
+                    <span className="font-mono text-[8px] text-white/10">{timeAgo(piece.updatedAt)}</span>
+                  </div>
+
+                  <h3 className="text-lg md:text-xl font-display font-light text-white/70 italic mb-2 leading-snug">
+                    {piece.title || "Untitled"}
+                  </h3>
+
+                  <p className={`font-serif text-white/35 leading-[1.9] ${isExpanded ? "" : "line-clamp-3"}`}>
+                    {isExpanded ? piece.content.slice(0, 2000) : piece.content.slice(0, 250)}
+                    {isExpanded && piece.content.length > 2000 && (
+                      <span className="text-white/15 italic"> ...continues</span>
+                    )}
+                  </p>
+
+                  {!isExpanded && (
+                    <div className="flex items-center gap-3 mt-3">
+                      <span className="font-mono text-[8px] uppercase tracking-widest text-white/12">{piece.genre}</span>
+                      <ResonanceBar writingId={piece.id} compact />
+                    </div>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-[8px] uppercase tracking-widest text-white/12">{piece.genre}</span>
+                            <span className="font-mono text-[8px] text-white/10">{wordCount(piece.content)} words</span>
+                          </div>
+                          <TendButton gardenerId={piece.authorId} size="sm" />
+                        </div>
+                        <ResonanceBar writingId={piece.id} />
+                        <MarginaliaSection writingId={piece.id} authorId={piece.authorId} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {!isExpanded && <div className="border-b border-white/[0.03] mx-6 mt-2" />}
+            </motion.article>
+          );
+        })}
       </div>
-    </motion.div>
+
+      {hasMore && (
+        <div className="text-center mt-10">
+          <button
+            onClick={() => setPage(p => p + 1)}
+            className="inline-flex items-center gap-2 px-6 py-3 border border-white/[0.06] hover:border-white/15 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-all"
+            data-testid="button-more-letters"
+          >
+            <Feather size={12} />
+            More letters
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const greenhouseTools = [
+  { id: "growth-journal" as const, label: "Growth Journal", desc: "Private reflections on your writing journey", icon: <NotebookPen size={20} />, color: "emerald" },
+  { id: "inner-weather" as const, label: "Inner Weather", desc: "Track your creative mood and energy", icon: <CloudSun size={20} />, color: "sky" },
+  { id: "rituals" as const, label: "Rituals", desc: "Timed writing sessions and creative routines", icon: <Flame size={20} />, color: "amber" },
+  { id: "compost" as const, label: "Compost", desc: "Archive fragments — nothing is wasted", icon: <Archive size={20} />, color: "violet" },
+  { id: "reflections" as const, label: "Reflections", desc: "Structured thoughts on your craft", icon: <Brain size={20} />, color: "pink" },
+  { id: "circles" as const, label: "Circles", desc: "Small writing groups and conversation", icon: <Users size={20} />, color: "indigo" },
+];
+
+const toolColorMap: Record<string, { border: string; text: string; bg: string; glow: string }> = {
+  emerald: { border: "border-emerald-500/15", text: "text-emerald-400/60", bg: "hover:bg-emerald-500/[0.04]", glow: "rgba(16,185,129,0.08)" },
+  sky: { border: "border-sky-500/15", text: "text-sky-400/60", bg: "hover:bg-sky-500/[0.04]", glow: "rgba(14,165,233,0.08)" },
+  amber: { border: "border-amber-500/15", text: "text-amber-400/60", bg: "hover:bg-amber-500/[0.04]", glow: "rgba(245,158,11,0.08)" },
+  violet: { border: "border-violet-500/15", text: "text-violet-400/60", bg: "hover:bg-violet-500/[0.04]", glow: "rgba(139,92,246,0.08)" },
+  pink: { border: "border-pink-500/15", text: "text-pink-400/60", bg: "hover:bg-pink-500/[0.04]", glow: "rgba(236,72,153,0.08)" },
+  indigo: { border: "border-indigo-500/15", text: "text-indigo-400/60", bg: "hover:bg-indigo-500/[0.04]", glow: "rgba(99,102,241,0.08)" },
+};
+
+function GreenhouseZone() {
+  const [activeTool, setActiveTool] = useState<GreenhouseTool>(null);
+
+  if (activeTool) {
+    return <GreenhouseToolView tool={activeTool} onBack={() => setActiveTool(null)} />;
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <p className="font-serif text-sm text-white/25 mb-8">
+        Your private creative toolkit. These tools are for you alone — no one else sees them.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {greenhouseTools.map((tool, i) => {
+          const colors = toolColorMap[tool.color];
+          return (
+            <motion.button
+              key={tool.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.3 }}
+              onClick={() => setActiveTool(tool.id)}
+              className={`relative text-left p-5 rounded-xl border ${colors.border} bg-white/[0.01] ${colors.bg} transition-all duration-300 group overflow-hidden`}
+              data-testid={`tool-${tool.id}`}
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
+                background: `radial-gradient(ellipse at 30% 20%, ${colors.glow} 0%, transparent 70%)`,
+              }} />
+              <div className="relative z-10">
+                <div className={`${colors.text} mb-3 group-hover:scale-110 transition-transform origin-left`}>
+                  {tool.icon}
+                </div>
+                <h3 className="font-display text-base font-light italic text-white/65 group-hover:text-white/85 transition-colors mb-1">
+                  {tool.label}
+                </h3>
+                <p className="font-serif text-xs text-white/20 leading-relaxed">{tool.desc}</p>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool>; onBack: () => void }) {
+  const toolInfo = greenhouseTools.find(t => t.id === tool)!;
+
+  const toolContent: Record<string, React.ReactNode> = {
+    "growth-journal": <GrowthJournalView />,
+    "inner-weather": <InnerWeatherView />,
+    "rituals": <RitualsView />,
+    "compost": <CompostView />,
+    "reflections": <ReflectionsView />,
+    "circles": <CirclesView />,
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/25 hover:text-white/60 transition-colors group mb-6"
+        data-testid="button-back-greenhouse"
+      >
+        <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+        Greenhouse
+      </button>
+      <div className="flex items-center gap-3 mb-6">
+        <div className={`${toolColorMap[toolInfo.color].text}`}>{toolInfo.icon}</div>
+        <h2 className="text-2xl font-display font-light italic text-white/80">{toolInfo.label}</h2>
+      </div>
+      {toolContent[tool]}
+    </div>
+  );
+}
+
+function GrowthJournalView() {
+  const { data: entries = [] } = useQuery<any[]>({
+    queryKey: ["/api/growth-journal"],
+    queryFn: async () => { const r = await fetch("/api/growth-journal", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+  const queryClient = useQueryClient();
+  const [content, setContent] = useState("");
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const r = await fetch("/api/growth-journal", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ content, mood: "reflective" }) });
+      if (!r.ok) throw new Error("Failed"); return r.json();
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/growth-journal"] }); setContent(""); },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="What's growing in your practice today..."
+          className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 resize-none h-28 transition-colors"
+          data-testid="input-journal-entry"
+        />
+        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">Add Entry</button>
+      </div>
+      {entries.map((e: any) => (
+        <div key={e.id} className="border border-white/[0.04] rounded-xl p-4">
+          <p className="font-serif text-sm text-white/40 leading-relaxed">{e.content}</p>
+          <span className="font-mono text-[8px] text-white/12 mt-2 block">{timeAgo(e.createdAt)}</span>
+        </div>
+      ))}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">No entries yet. Start reflecting on your growth.</p>}
+    </div>
+  );
+}
+
+function InnerWeatherView() {
+  const { data: entries = [] } = useQuery<any[]>({
+    queryKey: ["/api/inner-weather"],
+    queryFn: async () => { const r = await fetch("/api/inner-weather", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+  const queryClient = useQueryClient();
+  const [mood, setMood] = useState("clear");
+  const [energy, setEnergy] = useState(5);
+  const [note, setNote] = useState("");
+
+  const moods = ["stormy", "cloudy", "misty", "clear", "radiant"];
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const r = await fetch("/api/inner-weather", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ mood, energy, note }) });
+      if (!r.ok) throw new Error("Failed"); return r.json();
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/inner-weather"] }); setNote(""); },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-1 mb-2">
+        {moods.map(m => (
+          <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/20 hover:text-white/40"}`}>{m}</button>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="font-mono text-[9px] text-white/20 uppercase tracking-widest">Energy</span>
+        <input type="range" min="1" max="10" value={energy} onChange={(e) => setEnergy(Number(e.target.value))} className="flex-grow accent-white/40" />
+        <span className="font-mono text-[10px] text-white/30">{energy}</span>
+      </div>
+      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief note..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors" data-testid="input-weather-note" />
+      <button onClick={() => addMutation.mutate()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white transition-all" data-testid="button-log-weather">Log Weather</button>
+      {entries.map((e: any) => (
+        <div key={e.id} className="border border-white/[0.04] rounded-xl p-3 flex items-center gap-3">
+          <span className="font-mono text-[9px] uppercase text-white/30">{e.mood}</span>
+          <span className="font-mono text-[9px] text-white/15">energy {e.energy}/10</span>
+          {e.note && <span className="font-serif text-xs text-white/25">{e.note}</span>}
+          <span className="ml-auto font-mono text-[8px] text-white/10">{timeAgo(e.createdAt)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RitualsView() {
+  const { data: sessions = [] } = useQuery<any[]>({
+    queryKey: ["/api/rituals"],
+    queryFn: async () => { const r = await fetch("/api/rituals", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+  const queryClient = useQueryClient();
+  const [duration, setDuration] = useState(15);
+  const [isRunning, setIsRunning] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function startTimer() {
+    setTimeLeft(duration * 60);
+    setIsRunning(true);
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          setIsRunning(false);
+          fetch("/api/rituals", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ type: "timed_write", duration, wordsWritten: 0, notes: "" }) })
+            .then(() => queryClient.invalidateQueries({ queryKey: ["/api/rituals"] }));
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-4">
+        {!isRunning ? (
+          <>
+            <div className="flex items-center justify-center gap-3">
+              {[5, 10, 15, 25, 45].map(d => (
+                <button key={d} onClick={() => setDuration(d)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${duration === d ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/20 hover:text-white/40"}`}>{d}m</button>
+              ))}
+            </div>
+            <button onClick={startTimer} className="px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-300 transition-all" data-testid="button-start-ritual">Begin Ritual</button>
+          </>
+        ) : (
+          <div className="py-8">
+            <p className="text-5xl font-display font-light text-white/80 tabular-nums">{mins}:{secs.toString().padStart(2, "0")}</p>
+            <p className="font-serif text-sm text-white/20 mt-3">Write freely. The timer is tending to the time.</p>
+          </div>
+        )}
+      </div>
+      {sessions.length > 0 && (
+        <div>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-white/15 mb-2">Past Sessions</p>
+          {sessions.slice(0, 5).map((s: any) => (
+            <div key={s.id} className="flex items-center gap-3 py-2 border-b border-white/[0.03]">
+              <span className="font-mono text-[9px] text-white/25">{s.duration}min</span>
+              <span className="font-mono text-[8px] text-white/10">{timeAgo(s.createdAt)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CompostView() {
+  const { data: entries = [] } = useQuery<any[]>({
+    queryKey: ["/api/compost"],
+    queryFn: async () => { const r = await fetch("/api/compost", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+  const queryClient = useQueryClient();
+  const [fragment, setFragment] = useState("");
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const r = await fetch("/api/compost", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ content: fragment, source: "manual" }) });
+      if (!r.ok) throw new Error("Failed"); return r.json();
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/compost"] }); setFragment(""); },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <textarea value={fragment} onChange={(e) => setFragment(e.target.value)} placeholder="Toss a fragment, a cut line, an abandoned thought..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 resize-none h-24 transition-colors" data-testid="input-compost" />
+        <button onClick={() => addMutation.mutate()} disabled={!fragment.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-compost">Add to Compost</button>
+      </div>
+      {entries.map((e: any) => (
+        <div key={e.id} className={`border rounded-xl p-4 ${e.isRecycled ? "border-emerald-500/10 bg-emerald-500/[0.02]" : "border-white/[0.04]"}`}>
+          <p className="font-serif text-sm text-white/35 leading-relaxed italic">{e.content}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="font-mono text-[8px] text-white/10">{timeAgo(e.createdAt)}</span>
+            {e.isRecycled && <span className="font-mono text-[8px] text-emerald-400/40">recycled</span>}
+          </div>
+        </div>
+      ))}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">Nothing composting yet. Toss in your fragments.</p>}
+    </div>
+  );
+}
+
+function ReflectionsView() {
+  const { data: entries = [] } = useQuery<any[]>({
+    queryKey: ["/api/reflections"],
+    queryFn: async () => { const r = await fetch("/api/reflections", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const r = await fetch("/api/reflections", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ title, content, category: "craft" }) });
+      if (!r.ok) throw new Error("Failed"); return r.json();
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/reflections"] }); setTitle(""); setContent(""); },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Reflection title..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors" data-testid="input-reflection-title" />
+        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What are you learning about your craft..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
+        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-reflection">Add Reflection</button>
+      </div>
+      {entries.map((e: any) => (
+        <div key={e.id} className="border border-white/[0.04] rounded-xl p-4">
+          {e.title && <h4 className="font-display text-base font-light italic text-white/50 mb-1">{e.title}</h4>}
+          <p className="font-serif text-sm text-white/35 leading-relaxed">{e.content}</p>
+          <span className="font-mono text-[8px] text-white/10 mt-2 block">{timeAgo(e.createdAt)}</span>
+        </div>
+      ))}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">No reflections yet. Begin exploring your craft.</p>}
+    </div>
+  );
+}
+
+function CirclesView() {
+  const { data: circles = [] } = useQuery<any[]>({
+    queryKey: ["/api/circles"],
+    queryFn: async () => { const r = await fetch("/api/circles", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+
+  return (
+    <div className="space-y-4">
+      {circles.map((c: any) => (
+        <div key={c.id} className="border border-white/[0.06] rounded-xl p-4">
+          <h4 className="font-display text-base font-light italic text-white/60">{c.name}</h4>
+          {c.description && <p className="font-serif text-xs text-white/25 mt-1">{c.description}</p>}
+          <div className="flex items-center gap-2 mt-2">
+            <Users size={10} className="text-white/15" />
+            <span className="font-mono text-[8px] text-white/15">{c.memberCount || 0} members</span>
+          </div>
+        </div>
+      ))}
+      {circles.length === 0 && <p className="font-serif text-sm text-white/15 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
+    </div>
   );
 }
 
@@ -858,12 +1029,13 @@ function ComingSoonPage({ title, description }: { title: string; description: st
 export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
-  const [currentView, setCurrentView] = useState<GardenView>("landing");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeZone, setActiveZone] = useState<Zone>("desk");
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
   const [showPlantingFlow, setShowPlantingFlow] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
@@ -891,7 +1063,6 @@ export default function Garden() {
       queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
       setActiveWriting(data);
       setIsEditing(true);
-      setCurrentView("write");
     },
   });
 
@@ -908,9 +1079,7 @@ export default function Garden() {
     },
     onSuccess: (data: Writing) => {
       queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
-      if (activeWriting && data.id === activeWriting.id) {
-        setActiveWriting(data);
-      }
+      if (activeWriting && data.id === activeWriting.id) setActiveWriting(data);
     },
   });
 
@@ -923,158 +1092,141 @@ export default function Garden() {
       queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
       setActiveWriting(null);
       setIsEditing(false);
-      setCurrentView("my-garden");
     },
   });
 
-  function openWriting(w: Writing) {
-    setActiveWriting(w);
-    setIsEditing(true);
-    setCurrentView("write");
-  }
-
-  function openPlanting(w: Writing) {
-    setPlantingTarget(w);
-    setShowPlantingFlow(true);
-  }
-
+  function openWriting(w: Writing) { setActiveWriting(w); setIsEditing(true); }
+  function openPlanting(w: Writing) { setPlantingTarget(w); setShowPlantingFlow(true); }
   function handlePlantingSave(data: { visibility: string; readiness: string; editorialAvailable: boolean }) {
-    if (plantingTarget) {
-      updateMutation.mutate({ id: plantingTarget.id, ...data });
-    }
+    if (plantingTarget) updateMutation.mutate({ id: plantingTarget.id, ...data });
   }
 
-  function handleNavigate(view: GardenView) {
-    setCurrentView(view);
-    setIsEditing(false);
-    setActiveWriting(null);
-    setSidebarOpen(false);
-    setProfileUserId(null);
-  }
-
-  if (!authLoading && !isAuthenticated) {
-    window.location.href = "/api/login";
-    return null;
-  }
+  if (!authLoading && !isAuthenticated) { window.location.href = "/api/login"; return null; }
 
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground relative">
         <StarBackground />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-4">
+          <div className="text-center space-y-4">
             <div className="w-12 h-12 mx-auto border border-white/10 rounded-full flex items-center justify-center">
               <Feather size={20} className="text-white/30 animate-pulse" />
             </div>
-            <p className="font-mono text-xs tracking-widest opacity-40 uppercase">Opening your garden...</p>
-          </motion.div>
+            <p className="font-mono text-[10px] tracking-widest text-white/25 uppercase">Opening your garden...</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  function renderView() {
-    if (isEditing && activeWriting) {
-      return (
-        <WriteEditor
-          key={activeWriting.id}
-          writing={activeWriting}
-          onBack={() => { setIsEditing(false); setActiveWriting(null); setCurrentView("my-garden"); }}
-          onSave={(data) => updateMutation.mutate({ id: activeWriting.id, ...data })}
-          onDelete={() => deleteMutation.mutate(activeWriting.id)}
-          onOpenPlanting={() => openPlanting(activeWriting)}
-        />
-      );
-    }
-
-    switch (currentView) {
-      case "landing":
-        return <GardenLanding onNavigate={handleNavigate} />;
-      case "my-garden":
-        return (
-          <MyGarden
-            writings={writings}
-            onOpenWriting={openWriting}
-            onCreateNew={() => createMutation.mutate()}
-            onOpenPlanting={openPlanting}
-            isCreating={createMutation.isPending}
-          />
-        );
-      case "write":
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto text-center py-20">
-            <PenLine size={32} className="mx-auto mb-6 text-white/20" />
-            <h2 className="text-2xl font-display font-light italic text-white/60 mb-4">Start Writing</h2>
-            <p className="font-serif text-white/30 mb-8">Create a new piece or select one from your Garden.</p>
-            <div className="flex justify-center gap-3">
-              <motion.button
-                onClick={() => createMutation.mutate()}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 px-6 py-3 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all"
-                data-testid="button-new-piece-write"
-              >
-                <Plus size={14} />
-                New Piece
-              </motion.button>
-              <motion.button
-                onClick={() => setCurrentView("my-garden")}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 px-6 py-3 border border-white/[0.06] hover:border-white/15 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/70 transition-all"
-                data-testid="button-browse-garden"
-              >
-                <BookOpen size={14} />
-                Browse Garden
-              </motion.button>
-            </div>
-          </motion.div>
-        );
-      case "garden-feed":
-        if (profileUserId) {
-          return <ProfileGarden userId={profileUserId} onBack={() => setProfileUserId(null)} />;
-        }
-        return <GardenFeed onViewProfile={(id) => setProfileUserId(id)} />;
-      case "tending-feed":
-        return <TendingFeed onViewProfile={(id) => { setProfileUserId(id); setCurrentView("garden-feed"); }} />;
-      case "notifications": return <NotificationPanel />;
-      case "gallery": return <GalleryPage />;
-      case "queue": return <ReadingQueuePage />;
-      case "explore": return <ExplorePage />;
-      case "saved": return <SavedPage />;
-      case "pollination": return <PollinationPage />;
-      case "rituals": return <RitualsPage />;
-      case "compost": return <CompostPage />;
-      case "growth-journal": return <GrowthJournalPage />;
-      case "submissions": return <SubmissionsPage />;
-      case "inner-weather": return <InnerWeatherPage />;
-      case "reflections": return <ReflectionsPage />;
-      case "seasonal-review": return <SeasonalReviewPage />;
-      case "root-system": return <RootSystemPage />;
-      case "circles": return <CirclesPage />;
-      case "moonlit-readings": return <MoonlitReadingsPage />;
-      case "replant-requests": return <ReplantRequestsPage />;
-      default:
-        return <ComingSoonPage title="Coming Soon" description="This feature is being cultivated." />;
-    }
+  if (showNotifications) {
+    return (
+      <div className="min-h-screen bg-background text-foreground relative">
+        <StarBackground />
+        <div className="relative z-10 pt-20 pb-24 px-6 max-w-2xl mx-auto">
+          <button
+            onClick={() => setShowNotifications(false)}
+            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/25 hover:text-white/60 transition-colors group mb-6"
+          >
+            <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+            Back
+          </button>
+          <NotificationPanel />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground relative">
       <StarBackground />
-      <GardenSidebar
-        currentView={isEditing ? "write" : currentView}
-        onNavigate={handleNavigate}
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-      />
 
-      <div className={`relative z-10 pt-20 pb-24 px-6 transition-all duration-300 ${sidebarOpen ? "lg:ml-[260px]" : ""}`}>
-        <AnimatePresence mode="wait">
-          <motion.div key={isEditing ? `editor-${activeWriting?.id}` : currentView}>
-            {renderView()}
-          </motion.div>
-        </AnimatePresence>
+      <div className="relative z-10">
+        <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/60 border-b border-white/[0.04]">
+          <div className="max-w-5xl mx-auto px-6 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <a href="/" className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20 hover:text-white/40 transition-colors" data-testid="link-home">
+                <Home size={15} />
+              </a>
+
+              {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setProfileUserId(null); }} />}
+              {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">Writing</span>}
+
+              <div className="flex items-center gap-1">
+                <NotificationBell onClick={() => setShowNotifications(true)} />
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="w-7 h-7 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/30 font-mono text-[9px] uppercase hover:border-white/20 transition-colors"
+                    data-testid="button-profile-menu"
+                  >
+                    {user?.firstName?.[0] || "?"}
+                  </button>
+                  <AnimatePresence>
+                    {showProfileMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                        className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-white/[0.08] bg-[#0b101a]/95 backdrop-blur-xl overflow-hidden shadow-xl"
+                      >
+                        <div className="p-3 border-b border-white/[0.04]">
+                          <p className="font-serif text-sm text-white/60 truncate">{user?.firstName} {user?.lastName}</p>
+                          <p className="font-mono text-[8px] text-white/15 uppercase tracking-widest">Writer</p>
+                        </div>
+                        <a href="/api/logout" className="flex items-center gap-2 px-3 py-2.5 text-white/25 hover:text-red-400/60 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
+                          <LogOut size={13} />
+                          Sign Out
+                        </a>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+
+            {!isEditing && (
+              <div className="mt-2 -mb-1">
+                <RoomsStrip />
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main className="pt-8 pb-24 px-6" onClick={() => showProfileMenu && setShowProfileMenu(false)}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={isEditing ? `editor-${activeWriting?.id}` : activeZone}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              {isEditing && activeWriting ? (
+                <WriteEditor
+                  key={activeWriting.id}
+                  writing={activeWriting}
+                  onBack={() => { setIsEditing(false); setActiveWriting(null); }}
+                  onSave={(data) => updateMutation.mutate({ id: activeWriting.id, ...data })}
+                  onDelete={() => deleteMutation.mutate(activeWriting.id)}
+                  onOpenPlanting={() => openPlanting(activeWriting)}
+                />
+              ) : activeZone === "desk" ? (
+                <DeskZone
+                  writings={writings}
+                  onOpenWriting={openWriting}
+                  onCreateNew={() => createMutation.mutate()}
+                  onOpenPlanting={openPlanting}
+                  isCreating={createMutation.isPending}
+                />
+              ) : activeZone === "reading-room" ? (
+                <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} />
+              ) : (
+                <GreenhouseZone />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
 
       <PlantingFlow
