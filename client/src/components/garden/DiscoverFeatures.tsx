@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, BookOpen, Bookmark, Heart, MessageCircle, Plus, Trash2, Check, ChevronDown, Sparkles } from "lucide-react";
+import { Search, BookOpen, Bookmark, Heart, Plus, Trash2, Check, ChevronDown, Sparkles, Eye } from "lucide-react";
+import { timeAgo, apiFetch, GlassCard, PageHeader, ActionButton, LoadingSkeleton, EmptyState, TabGroup, FormField, inputClass, textareaClass, Badge } from "./GardenUI";
 
 type GalleryWriting = {
   id: string;
@@ -45,25 +46,28 @@ type PollinationItem = {
 
 const genreFilters = ["all", "poetry", "fiction", "essay", "fragment"] as const;
 
-async function apiFetch(url: string, options?: RequestInit) {
-  const res = await fetch(url, { credentials: "include", ...options });
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-  return res.json();
+const genreColorMap: Record<string, { accent: string; border: string; bg: string; glow: string; text: string }> = {
+  poetry: { accent: "amber", border: "border-amber-500/20", bg: "bg-amber-500/10", glow: "rgba(245,158,11,0.06)", text: "text-amber-400/80" },
+  fiction: { accent: "emerald", border: "border-emerald-500/20", bg: "bg-emerald-500/10", glow: "rgba(16,185,129,0.06)", text: "text-emerald-400/80" },
+  essay: { accent: "blue", border: "border-blue-500/20", bg: "bg-blue-500/10", glow: "rgba(59,130,246,0.06)", text: "text-blue-400/80" },
+  fragment: { accent: "purple", border: "border-purple-500/20", bg: "bg-purple-500/10", glow: "rgba(168,85,247,0.06)", text: "text-purple-400/80" },
+  other: { accent: "white", border: "border-white/10", bg: "bg-white/[0.04]", glow: "rgba(255,255,255,0.03)", text: "text-white/50" },
+  all: { accent: "white", border: "border-white/10", bg: "bg-white/[0.04]", glow: "rgba(255,255,255,0.03)", text: "text-white/50" },
+};
+
+function getGenreColors(genre: string) {
+  return genreColorMap[genre] || genreColorMap.other;
 }
 
-function timeAgo(date: string | null | undefined) {
-  if (!date) return "";
-  const d = new Date(date);
-  const diff = Date.now() - d.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05 } },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+};
 
 export function GalleryPage() {
   const [search, setSearch] = useState("");
@@ -103,103 +107,123 @@ export function GalleryPage() {
 
   return (
     <div className="max-w-5xl mx-auto" data-testid="gallery-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-2" data-testid="heading-gallery">
-          Gallery
-        </h1>
-        <p className="font-serif text-white/30 mb-8">Published works from the community</p>
+      <PageHeader
+        icon={<Eye size={18} />}
+        label="Discover"
+        title="Gallery"
+        subtitle="Published works from the community"
+        accentColor="amber"
+        data-testid="heading-gallery"
+      />
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
-          <div className="relative flex-grow">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search writings..."
-              className="w-full pl-11 pr-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
-              data-testid="input-gallery-search"
-            />
-          </div>
-          <div className="flex gap-1 p-1 bg-white/[0.02] rounded-xl border border-white/[0.06]">
-            {genreFilters.map((f) => (
-              <button
+      <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        <div className="relative flex-grow">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search writings..."
+            className={`${inputClass} pl-11`}
+            data-testid="input-gallery-search"
+          />
+        </div>
+        <div
+          className="flex gap-1 p-1 rounded-xl border border-white/[0.06] backdrop-blur-sm"
+          style={{ background: "rgba(255,255,255,0.015)" }}
+        >
+          {genreFilters.map((f) => {
+            const colors = getGenreColors(f);
+            const isActive = genre === f;
+            return (
+              <motion.button
                 key={f}
                 onClick={() => setGenre(f)}
-                className={`px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
-                  genre === f ? "bg-white/[0.08] text-white/80" : "text-white/30 hover:text-white/50"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
+                  isActive ? `${colors.text}` : "text-white/30 hover:text-white/50"
                 }`}
                 data-testid={`filter-genre-${f}`}
               >
-                {f}
-              </button>
-            ))}
-          </div>
+                {isActive && (
+                  <motion.div
+                    layoutId="genreFilter"
+                    className={`absolute inset-0 rounded-lg ${colors.bg} ${colors.border} border`}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{f}</span>
+              </motion.button>
+            );
+          })}
         </div>
-      </motion.div>
+      </div>
 
-      {isLoading && (
-        <div className="text-center py-16">
-          <Sparkles size={20} className="mx-auto text-white/20 animate-pulse" />
-        </div>
-      )}
+      {isLoading && <LoadingSkeleton count={4} />}
 
       {!isLoading && writings.length === 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16" data-testid="gallery-empty">
-          <BookOpen size={32} className="mx-auto text-white/15 mb-4" />
-          <p className="font-serif text-white/30">No published writings found.</p>
-        </motion.div>
+        <EmptyState
+          icon={<BookOpen size={36} />}
+          title="No published writings found"
+          description="Try adjusting your search or explore a different genre."
+          data-testid="gallery-empty"
+        />
       )}
 
-      <div className="grid gap-3">
+      <motion.div
+        className="grid gap-3"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         <AnimatePresence mode="popLayout">
-          {writings.map((w, i) => (
-            <motion.div
-              key={w.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ delay: i * 0.04, duration: 0.4 }}
-              data-testid={`card-gallery-${w.id}`}
-            >
-              <div className="rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] p-5 md:p-6 transition-all">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-display font-light italic text-white/70 truncate">{w.title || "Untitled"}</h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="font-mono text-[9px] uppercase tracking-widest text-white/20">{w.genre}</span>
-                      <span className="font-mono text-[9px] text-white/10">{timeAgo(w.publishedAt || w.createdAt)}</span>
+          {writings.map((w) => {
+            const colors = getGenreColors(w.genre);
+            return (
+              <motion.div
+                key={w.id}
+                variants={staggerItem}
+                exit={{ opacity: 0, y: -10 }}
+                data-testid={`card-gallery-${w.id}`}
+              >
+                <GlassCard hoverGlow={colors.glow} className="p-5 md:p-6">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-display font-light italic text-white/70 truncate">{w.title || "Untitled"}</h3>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <Badge color={colors.accent}>{w.genre}</Badge>
+                        <span className="font-mono text-[9px] text-white/15">{timeAgo(w.publishedAt || w.createdAt)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <p className="text-sm font-serif text-white/30 line-clamp-2 mb-4">{w.content?.slice(0, 200)}</p>
-                <div className="flex gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => addToQueue.mutate(w.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-white/[0.06] rounded-full font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white/70 hover:border-white/15 transition-all"
-                    data-testid={`button-queue-${w.id}`}
-                  >
-                    <Plus size={12} />
-                    Add to Queue
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => savePiece.mutate(w.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-white/[0.06] rounded-full font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-amber-400/70 hover:border-amber-500/20 transition-all"
-                    data-testid={`button-save-${w.id}`}
-                  >
-                    <Bookmark size={12} />
-                    Save
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+                  <p className="text-sm font-serif text-white/30 line-clamp-2 mb-4 leading-relaxed">{w.content?.slice(0, 200)}</p>
+                  <div className="flex gap-2">
+                    <ActionButton
+                      onClick={() => addToQueue.mutate(w.id)}
+                      variant="ghost"
+                      size="sm"
+                      icon={<Plus size={12} />}
+                      data-testid={`button-queue-${w.id}`}
+                    >
+                      Add to Queue
+                    </ActionButton>
+                    <ActionButton
+                      onClick={() => savePiece.mutate(w.id)}
+                      variant="accent"
+                      size="sm"
+                      icon={<Bookmark size={12} />}
+                      data-testid={`button-save-${w.id}`}
+                    >
+                      Save
+                    </ActionButton>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -224,92 +248,120 @@ export function ReadingQueuePage() {
 
   return (
     <div className="max-w-4xl mx-auto" data-testid="reading-queue-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-2" data-testid="heading-reading-queue">
-          Reading Queue
-        </h1>
-        <p className="font-serif text-white/30 mb-8">{items.length} {items.length === 1 ? "piece" : "pieces"} queued</p>
-      </motion.div>
+      <PageHeader
+        icon={<BookOpen size={18} />}
+        label="Your List"
+        title="Reading Queue"
+        subtitle={`${items.length} ${items.length === 1 ? "piece" : "pieces"} queued`}
+        accentColor="emerald"
+        data-testid="heading-reading-queue"
+      />
 
-      {isLoading && (
-        <div className="text-center py-16">
-          <Sparkles size={20} className="mx-auto text-white/20 animate-pulse" />
-        </div>
-      )}
+      {isLoading && <LoadingSkeleton count={3} />}
 
       {!isLoading && items.length === 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16" data-testid="queue-empty">
-          <BookOpen size={32} className="mx-auto text-white/15 mb-4" />
-          <p className="font-serif text-white/30">Your reading queue is empty.</p>
-          <p className="font-serif text-white/20 text-sm mt-1">Browse the Gallery to add pieces.</p>
-        </motion.div>
+        <EmptyState
+          icon={<BookOpen size={36} />}
+          title="Your reading queue is empty"
+          description="Browse the Gallery to add pieces you'd like to read."
+          data-testid="queue-empty"
+        />
       )}
 
-      <div className="space-y-3">
+      <motion.div
+        className="space-y-3"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         <AnimatePresence mode="popLayout">
-          {items.map((item, i) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ delay: i * 0.04, duration: 0.4 }}
-              data-testid={`card-queue-${item.id}`}
-            >
-              <div className={`rounded-xl border p-5 transition-all ${
-                item.isRead
-                  ? "border-emerald-500/10 bg-emerald-500/[0.02]"
-                  : "border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/10"
-              }`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-grow">
-                    <div className="flex items-center gap-2 mb-1">
-                      {item.isRead && <Check size={14} className="text-emerald-400/60 flex-shrink-0" />}
-                      <h3 className={`text-lg font-display font-light italic truncate ${item.isRead ? "text-white/40" : "text-white/70"}`}>
-                        {item.writing?.title || "Untitled"}
-                      </h3>
+          {items.map((item) => {
+            const colors = getGenreColors(item.writing?.genre || "other");
+            return (
+              <motion.div
+                key={item.id}
+                variants={staggerItem}
+                exit={{ opacity: 0, x: -20 }}
+                data-testid={`card-queue-${item.id}`}
+              >
+                <div
+                  className={`relative rounded-2xl border backdrop-blur-sm p-5 transition-all overflow-hidden ${
+                    item.isRead
+                      ? "border-emerald-500/15"
+                      : "border-white/[0.06] hover:border-white/[0.12]"
+                  }`}
+                  style={{
+                    background: item.isRead
+                      ? "linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(16,185,129,0.01) 100%)"
+                      : "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)",
+                  }}
+                >
+                  {item.isRead && (
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background: "radial-gradient(ellipse at 0% 50%, rgba(16,185,129,0.08) 0%, transparent 50%)",
+                      }}
+                    />
+                  )}
+                  <div
+                    className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full"
+                    style={{
+                      background: item.isRead
+                        ? "linear-gradient(180deg, rgba(16,185,129,0.5) 0%, rgba(16,185,129,0.1) 100%)"
+                        : `linear-gradient(180deg, ${colors.glow.replace("0.06", "0.4")} 0%, transparent 100%)`,
+                    }}
+                  />
+                  <div className="relative z-10 flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-grow">
+                      <div className="flex items-center gap-2.5 mb-1.5">
+                        {item.isRead && <Check size={14} className="text-emerald-400/60 flex-shrink-0" />}
+                        <h3 className={`text-lg font-display font-light italic truncate ${item.isRead ? "text-white/40" : "text-white/70"}`}>
+                          {item.writing?.title || "Untitled"}
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <Badge color={colors.accent}>{item.writing?.genre}</Badge>
+                        <span className="font-mono text-[9px] text-white/15">{timeAgo(item.addedAt)}</span>
+                        <Badge color={item.isRead ? "emerald" : "amber"}>
+                          {item.isRead ? "read" : "unread"}
+                        </Badge>
+                      </div>
+                      {item.writing?.content && (
+                        <p className="text-sm font-serif text-white/25 line-clamp-1 mt-2.5 leading-relaxed">{item.writing.content.slice(0, 150)}</p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-[9px] uppercase tracking-widest text-white/20">{item.writing?.genre}</span>
-                      <span className="font-mono text-[9px] text-white/10">{timeAgo(item.addedAt)}</span>
-                      <span className={`font-mono text-[9px] uppercase tracking-widest ${item.isRead ? "text-emerald-400/40" : "text-amber-400/40"}`}>
-                        {item.isRead ? "read" : "unread"}
-                      </span>
-                    </div>
-                    {item.writing?.content && (
-                      <p className="text-sm font-serif text-white/25 line-clamp-1 mt-2">{item.writing.content.slice(0, 150)}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    {!item.isRead && (
+                    <div className="flex gap-2 flex-shrink-0">
+                      {!item.isRead && (
+                        <motion.button
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => markRead.mutate(item.id)}
+                          className="p-2.5 rounded-xl border border-white/[0.06] text-white/30 hover:text-emerald-400/70 hover:border-emerald-500/20 hover:bg-emerald-500/[0.05] transition-all"
+                          title="Mark as read"
+                          data-testid={`button-mark-read-${item.id}`}
+                        >
+                          <Check size={14} />
+                        </motion.button>
+                      )}
                       <motion.button
-                        whileHover={{ scale: 1.1 }}
+                        whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => markRead.mutate(item.id)}
-                        className="p-2 rounded-lg border border-white/[0.06] text-white/30 hover:text-emerald-400/70 hover:border-emerald-500/20 transition-all"
-                        title="Mark as read"
-                        data-testid={`button-mark-read-${item.id}`}
+                        onClick={() => remove.mutate(item.id)}
+                        className="p-2.5 rounded-xl border border-white/[0.06] text-white/30 hover:text-pink-400/70 hover:border-pink-500/20 hover:bg-pink-500/[0.05] transition-all"
+                        title="Remove"
+                        data-testid={`button-remove-queue-${item.id}`}
                       >
-                        <Check size={14} />
+                        <Trash2 size={14} />
                       </motion.button>
-                    )}
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => remove.mutate(item.id)}
-                      className="p-2 rounded-lg border border-white/[0.06] text-white/30 hover:text-pink-400/70 hover:border-pink-500/20 transition-all"
-                      title="Remove"
-                      data-testid={`button-remove-queue-${item.id}`}
-                    >
-                      <Trash2 size={14} />
-                    </motion.button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -332,52 +384,92 @@ export function ExplorePage() {
 
   return (
     <div className="max-w-6xl mx-auto" data-testid="explore-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-2" data-testid="heading-explore">
-          Explore
-        </h1>
-        <p className="font-serif text-white/30 mb-10">Browse by genre</p>
-      </motion.div>
+      <PageHeader
+        icon={<Sparkles size={18} />}
+        label="Browse"
+        title="Explore"
+        subtitle="Browse by genre"
+        accentColor="purple"
+        data-testid="heading-explore"
+      />
 
-      {isLoading && (
-        <div className="text-center py-16">
-          <Sparkles size={20} className="mx-auto text-white/20 animate-pulse" />
-        </div>
-      )}
+      {isLoading && <LoadingSkeleton count={3} />}
 
       {!isLoading && shelves.length === 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16" data-testid="explore-empty">
-          <BookOpen size={32} className="mx-auto text-white/15 mb-4" />
-          <p className="font-serif text-white/30">No published writings to explore yet.</p>
-        </motion.div>
+        <EmptyState
+          icon={<BookOpen size={36} />}
+          title="Nothing to explore yet"
+          description="No published writings to explore. Check back soon."
+          data-testid="explore-empty"
+        />
       )}
 
-      <div className="space-y-10">
-        {shelves.map((genre, si) => (
-          <motion.div
-            key={genre}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: si * 0.1, duration: 0.5 }}
-            data-testid={`shelf-${genre}`}
-          >
-            <h2 className="text-xl font-display font-light italic text-white/60 mb-4 capitalize">{genre}</h2>
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-              {grouped[genre].map((w) => (
-                <motion.div
-                  key={w.id}
-                  whileHover={{ scale: 1.03, y: -4 }}
-                  className="flex-shrink-0 w-64 rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] p-5 transition-all cursor-default"
-                  data-testid={`card-explore-${w.id}`}
-                >
-                  <h3 className="text-base font-display font-light italic text-white/70 truncate mb-2">{w.title || "Untitled"}</h3>
-                  <p className="text-xs font-serif text-white/25 line-clamp-3 mb-3">{w.content?.slice(0, 120)}</p>
-                  <span className="font-mono text-[9px] text-white/15">{timeAgo(w.publishedAt || w.createdAt)}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        ))}
+      <div className="space-y-12">
+        {shelves.map((genre, si) => {
+          const colors = getGenreColors(genre);
+          return (
+            <motion.div
+              key={genre}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: si * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              data-testid={`shelf-${genre}`}
+            >
+              <div className="flex items-center gap-4 mb-5">
+                <h2 className="text-xl font-display font-light italic text-white/60 capitalize">{genre}</h2>
+                <div
+                  className="flex-grow h-px"
+                  style={{
+                    background: `linear-gradient(90deg, ${colors.glow.replace("0.06", "0.3")} 0%, transparent 100%)`,
+                  }}
+                />
+                <span className="font-mono text-[9px] tracking-widest text-white/15 uppercase">
+                  {grouped[genre].length} {grouped[genre].length === 1 ? "piece" : "pieces"}
+                </span>
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-4" style={{ scrollbarWidth: "none" }}>
+                {grouped[genre].map((w, wi) => (
+                  <motion.div
+                    key={w.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: si * 0.1 + wi * 0.05, duration: 0.5 }}
+                    whileHover={{ scale: 1.04, y: -6 }}
+                    className="flex-shrink-0 w-64 relative rounded-2xl border border-white/[0.06] hover:border-white/[0.12] backdrop-blur-sm overflow-hidden cursor-default transition-all group"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)",
+                    }}
+                    data-testid={`card-explore-${w.id}`}
+                  >
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                      style={{
+                        background: `radial-gradient(ellipse at 50% 0%, ${colors.glow} 0%, transparent 70%)`,
+                      }}
+                    />
+                    <div
+                      className="absolute top-0 left-0 right-0 h-[2px]"
+                      style={{
+                        background: `linear-gradient(90deg, transparent, ${colors.glow.replace("0.06", "0.4")}, transparent)`,
+                      }}
+                    />
+                    <div className="relative z-10 p-5">
+                      <h3 className="text-base font-display font-light italic text-white/70 truncate mb-2">{w.title || "Untitled"}</h3>
+                      <p className="text-xs font-serif text-white/25 line-clamp-3 mb-3 leading-relaxed">{w.content?.slice(0, 120)}</p>
+                      <span className="font-mono text-[9px] text-white/15">{timeAgo(w.publishedAt || w.createdAt)}</span>
+                    </div>
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+                      style={{
+                        background: "linear-gradient(180deg, transparent, rgba(0,0,0,0.3))",
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
@@ -398,64 +490,80 @@ export function SavedPage() {
 
   return (
     <div className="max-w-5xl mx-auto" data-testid="saved-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-2" data-testid="heading-saved">
-          Saved
-        </h1>
-        <p className="font-serif text-white/30 mb-8">{items.length} saved {items.length === 1 ? "piece" : "pieces"}</p>
-      </motion.div>
+      <PageHeader
+        icon={<Bookmark size={18} />}
+        label="Collection"
+        title="Saved"
+        subtitle={`${items.length} saved ${items.length === 1 ? "piece" : "pieces"}`}
+        accentColor="amber"
+        data-testid="heading-saved"
+      />
 
-      {isLoading && (
-        <div className="text-center py-16">
-          <Sparkles size={20} className="mx-auto text-white/20 animate-pulse" />
-        </div>
-      )}
+      {isLoading && <LoadingSkeleton count={3} />}
 
       {!isLoading && items.length === 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16" data-testid="saved-empty">
-          <Bookmark size={32} className="mx-auto text-white/15 mb-4" />
-          <p className="font-serif text-white/30">No saved pieces yet.</p>
-          <p className="font-serif text-white/20 text-sm mt-1">Save writings from the Gallery to revisit later.</p>
-        </motion.div>
+        <EmptyState
+          icon={<Bookmark size={36} />}
+          title="No saved pieces yet"
+          description="Save writings from the Gallery to revisit later."
+          data-testid="saved-empty"
+        />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         <AnimatePresence mode="popLayout">
-          {items.map((item, i) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ delay: i * 0.04, duration: 0.4 }}
-              data-testid={`card-saved-${item.id}`}
-            >
-              <div className="rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] p-5 transition-all h-full flex flex-col">
-                <div className="flex-grow">
-                  <h3 className="text-base font-display font-light italic text-white/70 truncate mb-1">{item.writing?.title || "Untitled"}</h3>
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-white/20">{item.writing?.genre}</span>
-                    <span className="font-mono text-[9px] text-white/10">{timeAgo(item.savedAt)}</span>
+          {items.map((item) => {
+            const colors = getGenreColors(item.writing?.genre || "other");
+            return (
+              <motion.div
+                key={item.id}
+                variants={staggerItem}
+                exit={{ opacity: 0, scale: 0.9 }}
+                data-testid={`card-saved-${item.id}`}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -4 }}
+                  className="relative rounded-2xl border border-white/[0.06] hover:border-white/[0.12] backdrop-blur-sm overflow-hidden h-full flex flex-col transition-all group"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)",
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    style={{
+                      background: `radial-gradient(ellipse at 50% 0%, ${colors.glow} 0%, transparent 70%)`,
+                    }}
+                  />
+                  <div className="relative z-10 p-5 flex-grow">
+                    <h3 className="text-base font-display font-light italic text-white/70 truncate mb-1.5">{item.writing?.title || "Untitled"}</h3>
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <Badge color={colors.accent}>{item.writing?.genre}</Badge>
+                      <span className="font-mono text-[9px] text-white/15">{timeAgo(item.savedAt)}</span>
+                    </div>
+                    <p className="text-xs font-serif text-white/25 line-clamp-3 leading-relaxed">{item.writing?.content?.slice(0, 150)}</p>
                   </div>
-                  <p className="text-xs font-serif text-white/25 line-clamp-3">{item.writing?.content?.slice(0, 150)}</p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-white/[0.04]">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => unsave.mutate(item.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-white/[0.06] rounded-full font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-pink-400/70 hover:border-pink-500/20 transition-all"
-                    data-testid={`button-unsave-${item.id}`}
-                  >
-                    <Trash2 size={11} />
-                    Unsave
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+                  <div className="relative z-10 mt-auto px-5 pb-5 pt-3 border-t border-white/[0.04]">
+                    <ActionButton
+                      onClick={() => unsave.mutate(item.id)}
+                      variant="danger"
+                      size="sm"
+                      icon={<Trash2 size={11} />}
+                      data-testid={`button-unsave-${item.id}`}
+                    >
+                      Unsave
+                    </ActionButton>
+                  </div>
+                </motion.div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -499,27 +607,26 @@ export function PollinationPage() {
 
   return (
     <div className="max-w-4xl mx-auto" data-testid="pollination-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-2" data-testid="heading-pollination">
-          Pollination
-        </h1>
-        <p className="font-serif text-white/30 mb-8">Share affirmations on writings you love</p>
+      <PageHeader
+        icon={<Heart size={18} />}
+        label="Connect"
+        title="Pollination"
+        subtitle="Share affirmations on writings you love"
+        accentColor="pink"
+        data-testid="heading-pollination"
+      />
 
-        <div className="flex gap-1 p-1 bg-white/[0.02] rounded-xl border border-white/[0.06] w-fit mb-8">
-          {(["give", "received"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
-                tab === t ? "bg-white/[0.08] text-white/80" : "text-white/30 hover:text-white/50"
-              }`}
-              data-testid={`tab-pollination-${t}`}
-            >
-              {t === "give" ? "Give" : "Received"}
-            </button>
-          ))}
-        </div>
-      </motion.div>
+      <div className="mb-8">
+        <TabGroup
+          tabs={[
+            { id: "give", label: "Give" },
+            { id: "received", label: "Received" },
+          ]}
+          active={tab}
+          onChange={(id) => setTab(id as "give" | "received")}
+          data-testid="tabs-pollination"
+        />
+      </div>
 
       <AnimatePresence mode="wait">
         {tab === "give" && (
@@ -529,64 +636,62 @@ export function PollinationPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="space-y-5"
             data-testid="pollination-give-form"
           >
-            <div>
-              <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-2">Select a piece</label>
-              <div className="relative">
-                <select
-                  value={selectedWritingId}
-                  onChange={(e) => setSelectedWritingId(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-serif text-white/70 focus:outline-none focus:border-white/15 transition-colors appearance-none cursor-pointer"
-                  data-testid="select-writing"
+            <GlassCard className="p-6 md:p-8">
+              <div className="space-y-6">
+                <FormField label="Select a piece">
+                  <div className="relative">
+                    <select
+                      value={selectedWritingId}
+                      onChange={(e) => setSelectedWritingId(e.target.value)}
+                      className={`${inputClass} appearance-none cursor-pointer pr-10`}
+                      data-testid="select-writing"
+                    >
+                      <option value="" className="bg-neutral-900">Choose a writing...</option>
+                      {gallery.map((w) => (
+                        <option key={w.id} value={w.id} className="bg-neutral-900">
+                          {w.title || "Untitled"} — {w.genre}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
+                  </div>
+                </FormField>
+
+                <FormField label="Highlight text (optional)">
+                  <input
+                    type="text"
+                    value={highlightText}
+                    onChange={(e) => setHighlightText(e.target.value)}
+                    placeholder="A line or phrase that resonated..."
+                    className={inputClass}
+                    data-testid="input-highlight"
+                  />
+                </FormField>
+
+                <FormField label="Your affirmation">
+                  <textarea
+                    value={affirmation}
+                    onChange={(e) => setAffirmation(e.target.value)}
+                    placeholder="What moved you about this piece..."
+                    rows={4}
+                    className={textareaClass}
+                    data-testid="input-affirmation"
+                  />
+                </FormField>
+
+                <ActionButton
+                  onClick={() => sendPollination.mutate()}
+                  disabled={!selectedWritingId || !affirmation.trim() || sendPollination.isPending}
+                  variant="accent"
+                  icon={<Heart size={14} />}
+                  data-testid="button-send-pollination"
                 >
-                  <option value="" className="bg-neutral-900">Choose a writing...</option>
-                  {gallery.map((w) => (
-                    <option key={w.id} value={w.id} className="bg-neutral-900">
-                      {w.title || "Untitled"} — {w.genre}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
+                  {sendPollination.isPending ? "Sending..." : "Send Affirmation"}
+                </ActionButton>
               </div>
-            </div>
-
-            <div>
-              <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-2">Highlight text (optional)</label>
-              <input
-                type="text"
-                value={highlightText}
-                onChange={(e) => setHighlightText(e.target.value)}
-                placeholder="A line or phrase that resonated..."
-                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
-                data-testid="input-highlight"
-              />
-            </div>
-
-            <div>
-              <label className="font-mono text-[9px] uppercase tracking-widest text-white/20 block mb-2">Your affirmation</label>
-              <textarea
-                value={affirmation}
-                onChange={(e) => setAffirmation(e.target.value)}
-                placeholder="What moved you about this piece..."
-                rows={4}
-                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors resize-none"
-                data-testid="input-affirmation"
-              />
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => sendPollination.mutate()}
-              disabled={!selectedWritingId || !affirmation.trim() || sendPollination.isPending}
-              className="flex items-center gap-2 px-6 py-3 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-pink-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-              data-testid="button-send-pollination"
-            >
-              <Heart size={14} />
-              {sendPollination.isPending ? "Sending..." : "Send Affirmation"}
-            </motion.button>
+            </GlassCard>
           </motion.div>
         )}
 
@@ -598,49 +703,76 @@ export function PollinationPage() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
-            {loadingReceived && (
-              <div className="text-center py-16">
-                <Sparkles size={20} className="mx-auto text-white/20 animate-pulse" />
-              </div>
-            )}
+            {loadingReceived && <LoadingSkeleton count={3} />}
 
             {!loadingReceived && received.length === 0 && (
-              <div className="text-center py-16" data-testid="pollination-received-empty">
-                <Heart size={32} className="mx-auto text-white/15 mb-4" />
-                <p className="font-serif text-white/30">No affirmations received yet.</p>
-                <p className="font-serif text-white/20 text-sm mt-1">When someone resonates with your work, it'll appear here.</p>
-              </div>
+              <EmptyState
+                icon={<Heart size={36} />}
+                title="No affirmations received yet"
+                description="When someone resonates with your work, it'll appear here."
+                data-testid="pollination-received-empty"
+              />
             )}
 
-            <div className="space-y-3">
-              {received.map((p, i) => (
+            <motion.div
+              className="space-y-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
+              {received.map((p) => (
                 <motion.div
                   key={p.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.4 }}
-                  className="rounded-xl border border-pink-500/10 bg-pink-500/[0.02] p-5"
+                  variants={staggerItem}
                   data-testid={`card-pollination-${p.id}`}
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <Heart size={14} className="text-pink-400/50" />
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-pink-400/40">Affirmation</span>
-                    <span className="font-mono text-[9px] text-white/10 ml-auto">{timeAgo(p.createdAt)}</span>
+                  <div
+                    className="relative rounded-2xl overflow-hidden backdrop-blur-sm"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(236,72,153,0.04) 0%, rgba(236,72,153,0.01) 100%)",
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 rounded-2xl pointer-events-none"
+                      style={{
+                        border: "1px solid transparent",
+                        backgroundClip: "padding-box",
+                        borderImage: "linear-gradient(135deg, rgba(236,72,153,0.2), rgba(168,85,247,0.1), rgba(236,72,153,0.15)) 1",
+                        borderRadius: "1rem",
+                      }}
+                    />
+                    <div className="border border-pink-500/15 rounded-2xl p-5 md:p-6">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <Heart size={14} className="text-pink-400/60" fill="rgba(236,72,153,0.3)" />
+                        </motion.div>
+                        <Badge color="pink">Affirmation</Badge>
+                        <span className="font-mono text-[9px] text-white/15 ml-auto">{timeAgo(p.createdAt)}</span>
+                      </div>
+                      {p.highlightText && (
+                        <div
+                          className="pl-4 mb-4 border-l-2"
+                          style={{
+                            borderImage: "linear-gradient(180deg, rgba(236,72,153,0.3), rgba(168,85,247,0.1)) 1",
+                          }}
+                        >
+                          <p className="text-sm font-serif italic text-white/45 leading-relaxed">"{p.highlightText}"</p>
+                        </div>
+                      )}
+                      <p className="text-sm font-serif text-white/60 leading-relaxed">{p.affirmation}</p>
+                      {p.writing && (
+                        <div className="mt-4 pt-3 border-t border-white/[0.04]">
+                          <span className="font-mono text-[9px] text-white/20">on "{p.writing.title || "Untitled"}"</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {p.highlightText && (
-                    <div className="border-l-2 border-pink-500/20 pl-4 mb-3">
-                      <p className="text-sm font-serif italic text-white/40">"{p.highlightText}"</p>
-                    </div>
-                  )}
-                  <p className="text-sm font-serif text-white/60 leading-relaxed">{p.affirmation}</p>
-                  {p.writing && (
-                    <div className="mt-3 pt-3 border-t border-white/[0.04]">
-                      <span className="font-mono text-[9px] text-white/15">on "{p.writing.title || "Untitled"}"</span>
-                    </div>
-                  )}
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

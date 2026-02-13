@@ -2,27 +2,23 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Mic, Mail, Plus, Trash2, Send, ArrowLeft, Moon, Star, Check, X, UserPlus, LogOut as Leave } from "lucide-react";
-
-function timeAgo(date: string | Date | null | undefined) {
-  if (!date) return "";
-  const d = new Date(date);
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+import { timeAgo, GlassCard, PageHeader, ActionButton, LoadingSkeleton, EmptyState, FormField, inputClass, textareaClass, Badge } from "./GardenUI";
 
 async function apiFetch(url: string, opts?: RequestInit) {
   const res = await fetch(url, { credentials: "include", ...opts, headers: { "Content-Type": "application/json", ...opts?.headers } });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
 
 // ─── CirclesPage ─────────────────────────────────────────────────────────────
 
@@ -66,32 +62,47 @@ export function CirclesPage() {
     const circle = circles.find((c: any) => c.id === activeCircleId);
     return (
       <div className="max-w-3xl mx-auto" data-testid="circle-messages-view">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <button
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+          <motion.button
             onClick={() => setActiveCircleId(null)}
-            className="flex items-center gap-2 text-white/30 hover:text-white/60 font-mono text-xs uppercase tracking-widest mb-6 transition-colors"
+            whileHover={{ x: -4 }}
+            className="flex items-center gap-2 text-white/30 hover:text-white/60 font-mono text-xs uppercase tracking-widest mb-8 transition-colors group"
             data-testid="button-back-circles"
           >
-            <ArrowLeft size={14} /> Back to Circles
-          </button>
+            <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" /> Back to Circles
+          </motion.button>
 
-          <h2 className="text-2xl md:text-3xl font-display font-light italic text-white/90 mb-6" data-testid="heading-circle-name">
-            {circle?.name || "Circle"}
-          </h2>
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-emerald-500/20" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05))" }}>
+              <Users size={18} className="text-emerald-400/60" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-display font-light italic text-white/90" data-testid="heading-circle-name">
+              {circle?.name || "Circle"}
+            </h2>
+          </div>
 
-          <div className="space-y-3 mb-8 max-h-[50vh] overflow-y-auto pr-2">
+          <div className="space-y-2 mb-8 max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin">
             <AnimatePresence>
               {messages.map((msg: any, i: number) => (
                 <motion.div
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
+                  transition={{ delay: i * 0.03, type: "spring", stiffness: 300, damping: 24 }}
+                  className={`rounded-2xl border border-white/[0.06] p-4 backdrop-blur-sm transition-all hover:border-white/[0.1] ${
+                    i % 2 === 0
+                      ? "bg-white/[0.02]"
+                      : "bg-white/[0.035]"
+                  }`}
+                  style={{
+                    background: i % 2 === 0
+                      ? "linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005))"
+                      : "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
+                  }}
                   data-testid={`message-${msg.id}`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-[10px] tracking-widest text-white/50 uppercase">{msg.userName || "Anonymous"}</span>
+                    <span className="font-mono text-[10px] tracking-widest text-emerald-400/50 uppercase">{msg.userName || "Anonymous"}</span>
                     <span className="font-mono text-[9px] text-white/20">{timeAgo(msg.createdAt)}</span>
                   </div>
                   <p className="font-serif text-sm text-white/70 leading-relaxed">{msg.content}</p>
@@ -99,28 +110,35 @@ export function CirclesPage() {
               ))}
             </AnimatePresence>
             {messages.length === 0 && (
-              <p className="text-center font-serif text-white/25 py-8">No messages yet — start the conversation.</p>
+              <div className="text-center py-12">
+                <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
+                  <Send size={24} className="mx-auto text-white/10 mb-3" />
+                </motion.div>
+                <p className="font-serif text-white/25">No messages yet — start the conversation.</p>
+              </div>
             )}
           </div>
 
-          <div className="flex gap-3">
-            <textarea
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              placeholder="Share something with the circle..."
-              className="flex-grow bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 resize-none min-h-[80px] transition-colors"
-              data-testid="input-circle-message"
-            />
-            <motion.button
-              onClick={() => messageText.trim() && sendMessage.mutate()}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              disabled={!messageText.trim() || sendMessage.isPending}
-              className="self-end px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white/80 transition-all disabled:opacity-30"
-              data-testid="button-send-message"
-            >
-              <Send size={16} />
-            </motion.button>
+          <div className="relative rounded-2xl p-[1px]" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(16,185,129,0.15), rgba(255,255,255,0.06))" }}>
+            <div className="flex gap-3 rounded-2xl p-3" style={{ background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(10,10,20,0.98))" }}>
+              <textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Share something with the circle..."
+                className="flex-grow bg-transparent border-0 text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none resize-none min-h-[80px] transition-colors"
+                data-testid="input-circle-message"
+              />
+              <motion.button
+                onClick={() => messageText.trim() && sendMessage.mutate()}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                disabled={!messageText.trim() || sendMessage.isPending}
+                className="self-end p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400/60 hover:text-emerald-400 transition-all disabled:opacity-30 disabled:hover:bg-emerald-500/10"
+                data-testid="button-send-message"
+              >
+                <Send size={16} />
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -129,100 +147,102 @@ export function CirclesPage() {
 
   return (
     <div className="max-w-3xl mx-auto" data-testid="circles-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <div className="flex items-center gap-3 text-white/25 mb-4">
-          <Users size={14} />
-          <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Community</span>
-        </div>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-3" data-testid="heading-circles">
-          Circles
-        </h1>
-        <p className="font-serif text-base text-white/30 mb-10 max-w-xl">
-          Small group spaces for accountability and private sharing.
-        </p>
-
-        <div className="flex justify-end mb-6">
-          <motion.button
+      <PageHeader
+        icon={<Users size={16} />}
+        label="Community"
+        title="Circles"
+        subtitle="Small group spaces for accountability and private sharing."
+        data-testid="heading-circles"
+        action={
+          <ActionButton
             onClick={() => setShowCreate(!showCreate)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-2 px-5 py-2.5 border border-white/10 hover:border-white/20 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            icon={<Plus size={14} />}
+            variant="accent"
             data-testid="button-toggle-create-circle"
           >
-            <Plus size={14} /> New Circle
-          </motion.button>
-        </div>
+            New Circle
+          </ActionButton>
+        }
+      />
 
-        <AnimatePresence>
-          {showCreate && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mb-8"
-            >
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 space-y-4" data-testid="form-create-circle">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Circle name"
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
-                  data-testid="input-circle-name"
-                />
-                <input
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Description"
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
-                  data-testid="input-circle-description"
-                />
-                <motion.button
+      <AnimatePresence>
+        {showCreate && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="overflow-hidden mb-8"
+          >
+            <GlassCard className="p-6" data-testid="form-create-circle">
+              <div className="space-y-4">
+                <FormField label="Circle Name">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="A name for your gathering..."
+                    className={inputClass}
+                    data-testid="input-circle-name"
+                  />
+                </FormField>
+                <FormField label="Description">
+                  <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="What is this circle about?"
+                    className={inputClass}
+                    data-testid="input-circle-description"
+                  />
+                </FormField>
+                <ActionButton
                   onClick={() => name.trim() && createCircle.mutate()}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
                   disabled={!name.trim() || createCircle.isPending}
-                  className="px-6 py-2.5 rounded-full border border-white/10 hover:border-emerald-500/30 bg-white/[0.04] hover:bg-white/[0.08] font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30"
+                  variant="accent"
                   data-testid="button-create-circle"
                 >
                   Create Circle
-                </motion.button>
+                </ActionButton>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </GlassCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {isLoading && <p className="text-center font-serif text-white/25 py-12">Loading circles...</p>}
+      {isLoading && <LoadingSkeleton count={3} />}
 
-        <div className="space-y-3">
-          {circles.map((circle: any, i: number) => (
-            <motion.div
-              key={circle.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.4 }}
-              whileHover={{ scale: 1.008, x: 4 }}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 p-5 cursor-pointer transition-all"
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="space-y-3"
+      >
+        {circles.map((circle: any) => (
+          <motion.div key={circle.id} variants={staggerItem}>
+            <GlassCard
+              className="p-5 cursor-pointer group"
+              hoverGlow="rgba(16,185,129,0.06)"
               onClick={() => setActiveCircleId(circle.id)}
               data-testid={`card-circle-${circle.id}`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-grow min-w-0">
-                  <h3 className="text-lg font-display font-light italic text-white/80 mb-1">{circle.name}</h3>
+                  <h3 className="text-lg font-display font-light italic text-white/80 mb-1 group-hover:text-white/95 transition-colors">{circle.name}</h3>
                   <p className="text-sm font-serif text-white/30 line-clamp-2">{circle.description}</p>
                   <div className="flex items-center gap-3 mt-3">
-                    <span className="font-mono text-[9px] tracking-widest text-white/20 uppercase flex items-center gap-1">
+                    <Badge color="emerald">
                       <Users size={10} /> {circle.memberCount ?? 0} members
-                    </span>
+                    </Badge>
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                   <motion.button
                     onClick={() => joinCircle.mutate(circle.id)}
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.15 }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-2 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-emerald-500/10 hover:border-emerald-500/20 text-white/30 hover:text-emerald-400 transition-all"
+                    className="p-2.5 rounded-xl border border-white/[0.06] backdrop-blur-sm hover:bg-emerald-500/15 hover:border-emerald-500/30 text-white/30 hover:text-emerald-400 transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                    style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))" }}
                     data-testid={`button-join-circle-${circle.id}`}
                     title="Join"
                   >
@@ -230,9 +250,10 @@ export function CirclesPage() {
                   </motion.button>
                   <motion.button
                     onClick={() => leaveCircle.mutate(circle.id)}
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.15 }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-2 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-red-500/10 hover:border-red-500/20 text-white/30 hover:text-red-400 transition-all"
+                    className="p-2.5 rounded-xl border border-white/[0.06] backdrop-blur-sm hover:bg-red-500/15 hover:border-red-500/30 text-white/30 hover:text-red-400 transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.1)]"
+                    style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))" }}
                     data-testid={`button-leave-circle-${circle.id}`}
                     title="Leave"
                   >
@@ -240,17 +261,23 @@ export function CirclesPage() {
                   </motion.button>
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {!isLoading && circles.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 border border-dashed border-white/10 rounded-2xl">
-            <Users size={32} className="mx-auto text-white/10 mb-4" />
-            <p className="font-serif text-white/30">No circles yet — create one to gather your people.</p>
+            </GlassCard>
           </motion.div>
-        )}
+        ))}
       </motion.div>
+
+      {!isLoading && circles.length === 0 && (
+        <EmptyState
+          icon={<Users size={40} />}
+          title="No circles yet"
+          description="Create one to gather your people — small spaces for accountability and shared growth."
+          action={
+            <ActionButton onClick={() => setShowCreate(true)} icon={<Plus size={14} />} variant="accent" data-testid="button-create-first-circle">
+              Create Your First Circle
+            </ActionButton>
+          }
+        />
+      )}
     </div>
   );
 }
@@ -286,117 +313,134 @@ export function MoonlitReadingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto" data-testid="moonlit-readings-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <div className="flex items-center gap-3 text-white/25 mb-4">
-          <Moon size={14} />
-          <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Under the Stars</span>
-        </div>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-3" data-testid="heading-moonlit-readings">
-          Moonlit Readings
-        </h1>
-        <p className="font-serif text-base text-white/30 mb-10 max-w-xl">
-          Live or asynchronous readings under the stars. Share your voice, hear others.
-        </p>
-
-        <div className="flex justify-end mb-6">
-          <motion.button
+      <PageHeader
+        icon={<Moon size={16} />}
+        label="Under the Stars"
+        title="Moonlit Readings"
+        subtitle="Live or asynchronous readings under the stars. Share your voice, hear others."
+        accentColor="purple"
+        data-testid="heading-moonlit-readings"
+        action={
+          <ActionButton
             onClick={() => setShowCreate(!showCreate)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-2 px-5 py-2.5 border border-white/10 hover:border-white/20 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            icon={<Plus size={14} />}
+            variant="accent"
             data-testid="button-toggle-create-reading"
           >
-            <Plus size={14} /> Host a Reading
-          </motion.button>
-        </div>
+            Host a Reading
+          </ActionButton>
+        }
+      />
 
-        <AnimatePresence>
-          {showCreate && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mb-8"
-            >
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 space-y-4" data-testid="form-create-reading">
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Reading title"
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
-                  data-testid="input-reading-title"
-                />
-                <input
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Description"
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-serif text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-colors"
-                  data-testid="input-reading-description"
-                />
-                <input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm font-mono text-white/50 focus:outline-none focus:border-white/15 transition-colors [color-scheme:dark]"
-                  data-testid="input-reading-scheduled"
-                />
-                <motion.button
+      <AnimatePresence>
+        {showCreate && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="overflow-hidden mb-8"
+          >
+            <GlassCard className="p-6" hoverGlow="rgba(168,85,247,0.05)" data-testid="form-create-reading">
+              <div className="space-y-4">
+                <FormField label="Reading Title">
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="What will you read tonight?"
+                    className={inputClass}
+                    data-testid="input-reading-title"
+                  />
+                </FormField>
+                <FormField label="Description">
+                  <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Set the mood for your reading..."
+                    className={inputClass}
+                    data-testid="input-reading-description"
+                  />
+                </FormField>
+                <FormField label="Schedule">
+                  <input
+                    type="datetime-local"
+                    value={scheduledAt}
+                    onChange={(e) => setScheduledAt(e.target.value)}
+                    className={`${inputClass} font-mono [color-scheme:dark]`}
+                    data-testid="input-reading-scheduled"
+                  />
+                </FormField>
+                <ActionButton
                   onClick={() => title.trim() && createReading.mutate()}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
                   disabled={!title.trim() || createReading.isPending}
-                  className="px-6 py-2.5 rounded-full border border-white/10 hover:border-purple-500/30 bg-white/[0.04] hover:bg-white/[0.08] font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30"
+                  variant="accent"
                   data-testid="button-create-reading"
                 >
                   Create Reading
-                </motion.button>
+                </ActionButton>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </GlassCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {isLoading && <p className="text-center font-serif text-white/25 py-12">Loading readings...</p>}
+      {isLoading && <LoadingSkeleton count={3} />}
 
-        <div className="space-y-3">
-          {readings.map((reading: any, i: number) => (
-            <motion.div
-              key={reading.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.4 }}
-              whileHover={{ scale: 1.008, x: 4 }}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 p-5 transition-all"
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="space-y-4"
+      >
+        {readings.map((reading: any) => (
+          <motion.div key={reading.id} variants={staggerItem}>
+            <GlassCard
+              className="p-5 relative overflow-hidden"
+              hoverGlow="rgba(168,85,247,0.06)"
               data-testid={`card-reading-${reading.id}`}
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="absolute top-3 right-4 opacity-[0.04] pointer-events-none">
+                <Star size={60} />
+              </div>
+              <div className="absolute top-8 right-20 w-1 h-1 rounded-full bg-purple-400/20 pointer-events-none" />
+              <div className="absolute top-4 right-28 w-0.5 h-0.5 rounded-full bg-white/15 pointer-events-none" />
+              <div className="absolute bottom-6 right-12 w-0.5 h-0.5 rounded-full bg-purple-300/15 pointer-events-none" />
+
+              <div className="flex items-start justify-between gap-4 relative z-10">
                 <div className="flex-grow min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Star size={12} className="text-amber-400/40" />
+                    <Star size={12} className="text-amber-400/50" />
                     <h3 className="text-lg font-display font-light italic text-white/80">{reading.title}</h3>
                   </div>
                   <p className="text-sm font-serif text-white/30 line-clamp-2 mb-3">{reading.description}</p>
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <span className="font-mono text-[9px] tracking-widest text-white/20 uppercase flex items-center gap-1">
-                      <Mic size={10} /> {reading.hostName || "Host"}
-                    </span>
-                    <span className="font-mono text-[9px] tracking-widest text-white/20 uppercase flex items-center gap-1">
-                      <Users size={10} /> {reading.participantCount ?? 0} joined
-                    </span>
-                    {reading.scheduledAt && (
-                      <span className="font-mono text-[9px] tracking-widest text-purple-400/50 uppercase flex items-center gap-1">
-                        <Moon size={10} /> {new Date(reading.scheduledAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+
+                  {reading.scheduledAt && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-purple-500/20 mb-3" style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.1), rgba(168,85,247,0.03))" }}>
+                      <Moon size={12} className="text-purple-400/70" />
+                      <span className="font-mono text-[10px] tracking-widest text-purple-300/80 uppercase">
+                        {new Date(reading.scheduledAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                       </span>
-                    )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <Badge color="purple">
+                      <Mic size={10} /> {reading.hostName || "Host"}
+                    </Badge>
+                    <Badge>
+                      <Users size={10} /> {reading.participantCount ?? 0} joined
+                    </Badge>
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   <motion.button
                     onClick={() => joinReading.mutate(reading.id)}
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.15 }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-2 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-purple-500/10 hover:border-purple-500/20 text-white/30 hover:text-purple-400 transition-all"
+                    className="p-2.5 rounded-xl border border-white/[0.06] backdrop-blur-sm hover:bg-purple-500/15 hover:border-purple-500/30 text-white/30 hover:text-purple-400 transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.1)]"
+                    style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))" }}
                     data-testid={`button-join-reading-${reading.id}`}
                     title="Join"
                   >
@@ -404,9 +448,10 @@ export function MoonlitReadingsPage() {
                   </motion.button>
                   <motion.button
                     onClick={() => leaveReading.mutate(reading.id)}
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.15 }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-2 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-red-500/10 hover:border-red-500/20 text-white/30 hover:text-red-400 transition-all"
+                    className="p-2.5 rounded-xl border border-white/[0.06] backdrop-blur-sm hover:bg-red-500/15 hover:border-red-500/30 text-white/30 hover:text-red-400 transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.1)]"
+                    style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))" }}
                     data-testid={`button-leave-reading-${reading.id}`}
                     title="Leave"
                   >
@@ -414,17 +459,23 @@ export function MoonlitReadingsPage() {
                   </motion.button>
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {!isLoading && readings.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 border border-dashed border-white/10 rounded-2xl">
-            <Moon size={32} className="mx-auto text-white/10 mb-4" />
-            <p className="font-serif text-white/30">No readings yet — host one under the moonlight.</p>
+            </GlassCard>
           </motion.div>
-        )}
+        ))}
       </motion.div>
+
+      {!isLoading && readings.length === 0 && (
+        <EmptyState
+          icon={<Moon size={40} />}
+          title="The night awaits"
+          description="No readings yet — host one under the moonlight and share your voice with the garden."
+          action={
+            <ActionButton onClick={() => setShowCreate(true)} icon={<Plus size={14} />} variant="accent" data-testid="button-create-first-reading">
+              Host Your First Reading
+            </ActionButton>
+          }
+        />
+      )}
     </div>
   );
 }
@@ -435,6 +486,24 @@ const statusColors: Record<string, string> = {
   pending: "border-amber-500/30 bg-amber-500/10 text-amber-400/80",
   accepted: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400/80",
   declined: "border-red-500/30 bg-red-500/10 text-red-400/80",
+};
+
+const statusBadgeColor: Record<string, string> = {
+  pending: "amber",
+  accepted: "emerald",
+  declined: "red",
+};
+
+const statusLeftBorder: Record<string, string> = {
+  pending: "border-l-amber-500/40",
+  accepted: "border-l-emerald-500/40",
+  declined: "border-l-red-500/40",
+};
+
+const statusGlow: Record<string, string> = {
+  pending: "rgba(245,158,11,0.06)",
+  accepted: "rgba(16,185,129,0.06)",
+  declined: "rgba(239,68,68,0.06)",
 };
 
 export function ReplantRequestsPage() {
@@ -450,55 +519,59 @@ export function ReplantRequestsPage() {
 
   return (
     <div className="max-w-3xl mx-auto" data-testid="replant-requests-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <div className="flex items-center gap-3 text-white/25 mb-4">
-          <Mail size={14} />
-          <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Editorial</span>
-        </div>
-        <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-3" data-testid="heading-replant-requests">
-          Replant Requests
-        </h1>
-        <p className="font-serif text-base text-white/30 mb-10 max-w-xl">
-          When editors want to feature your work, you'll find their invitations here.
-        </p>
+      <PageHeader
+        icon={<Mail size={16} />}
+        label="Editorial"
+        title="Replant Requests"
+        subtitle="When editors want to feature your work, you'll find their invitations here."
+        data-testid="heading-replant-requests"
+      />
 
-        {isLoading && <p className="text-center font-serif text-white/25 py-12">Loading requests...</p>}
+      {isLoading && <LoadingSkeleton count={3} />}
 
-        <div className="space-y-3">
-          {requests.map((req: any, i: number) => (
-            <motion.div
-              key={req.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.4 }}
-              whileHover={{ scale: 1.008, x: 4 }}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 p-5 transition-all"
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="space-y-4"
+      >
+        {requests.map((req: any) => (
+          <motion.div key={req.id} variants={staggerItem}>
+            <GlassCard
+              className={`p-5 border-l-[3px] ${statusLeftBorder[req.status] || statusLeftBorder.pending}`}
+              hoverGlow={statusGlow[req.status] || statusGlow.pending}
               data-testid={`card-request-${req.id}`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-grow min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <h3 className="text-lg font-display font-light italic text-white/80">
                       {req.writingTitle || "Untitled Piece"}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-widest border ${statusColors[req.status] || statusColors.pending}`} data-testid={`badge-status-${req.id}`}>
+                    <Badge color={statusBadgeColor[req.status] || "amber"} data-testid={`badge-status-${req.id}`}>
+                      {req.status === "pending" && <span className="w-1.5 h-1.5 rounded-full bg-amber-400/80 animate-pulse" />}
+                      {req.status === "accepted" && <Check size={9} />}
+                      {req.status === "declined" && <X size={9} />}
                       {req.status}
-                    </span>
+                    </Badge>
                   </div>
                   {req.editorNote && (
-                    <p className="text-sm font-serif text-white/40 italic mb-2">"{req.editorNote}"</p>
+                    <div className="relative pl-4 mb-3 border-l-2 border-white/[0.08]">
+                      <p className="text-sm font-serif text-white/40 italic leading-relaxed">"{req.editorNote}"</p>
+                    </div>
                   )}
-                  <span className="font-mono text-[9px] text-white/15">{timeAgo(req.createdAt)}</span>
+                  <span className="font-mono text-[9px] text-white/20 tracking-widest">{timeAgo(req.createdAt)}</span>
                 </div>
 
                 {req.status === "pending" && (
                   <div className="flex gap-2 flex-shrink-0">
                     <motion.button
                       onClick={() => respond.mutate({ id: req.id, status: "accepted" })}
-                      whileHover={{ scale: 1.1 }}
+                      whileHover={{ scale: 1.15 }}
                       whileTap={{ scale: 0.9 }}
                       disabled={respond.isPending}
-                      className="p-2 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-emerald-500/10 hover:border-emerald-500/20 text-white/30 hover:text-emerald-400 transition-all"
+                      className="p-2.5 rounded-xl border border-white/[0.06] backdrop-blur-sm hover:bg-emerald-500/15 hover:border-emerald-500/30 text-white/30 hover:text-emerald-400 transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                      style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))" }}
                       data-testid={`button-accept-${req.id}`}
                       title="Accept"
                     >
@@ -506,10 +579,11 @@ export function ReplantRequestsPage() {
                     </motion.button>
                     <motion.button
                       onClick={() => respond.mutate({ id: req.id, status: "declined" })}
-                      whileHover={{ scale: 1.1 }}
+                      whileHover={{ scale: 1.15 }}
                       whileTap={{ scale: 0.9 }}
                       disabled={respond.isPending}
-                      className="p-2 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-red-500/10 hover:border-red-500/20 text-white/30 hover:text-red-400 transition-all"
+                      className="p-2.5 rounded-xl border border-white/[0.06] backdrop-blur-sm hover:bg-red-500/15 hover:border-red-500/30 text-white/30 hover:text-red-400 transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.15)]"
+                      style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))" }}
                       data-testid={`button-decline-${req.id}`}
                       title="Decline"
                     >
@@ -518,17 +592,19 @@ export function ReplantRequestsPage() {
                   </div>
                 )}
               </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {!isLoading && requests.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 border border-dashed border-white/10 rounded-2xl" data-testid="empty-replant-requests">
-            <Mail size={32} className="mx-auto text-white/10 mb-4" />
-            <p className="font-serif text-white/30">No replant requests yet — keep growing your garden.</p>
+            </GlassCard>
           </motion.div>
-        )}
+        ))}
       </motion.div>
+
+      {!isLoading && requests.length === 0 && (
+        <EmptyState
+          icon={<Mail size={40} />}
+          title="Your inbox is clear"
+          description="No replant requests yet — keep growing your garden and editors will find you."
+          data-testid="empty-replant-requests"
+        />
+      )}
     </div>
   );
 }
