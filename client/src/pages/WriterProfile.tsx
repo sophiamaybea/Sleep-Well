@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Feather, ChevronDown, Home, Sparkles } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
 import { TendButton } from "@/components/garden/SocialFeatures";
+import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 
 type WriterWriting = {
   id: string;
@@ -32,7 +33,8 @@ type WriterProfile = {
 };
 
 function wordCount(text: string) {
-  return text.trim() ? text.trim().split(/\s+/).length : 0;
+  const plain = text.includes("<") ? stripHtml(text) : text;
+  return plain.trim() ? plain.trim().split(/\s+/).length : 0;
 }
 
 export default function WriterProfile() {
@@ -261,9 +263,7 @@ export default function WriterProfile() {
                         </div>
                       </div>
                       {!isExpanded && w.content && (
-                        <p className="text-sm font-serif text-white/55 line-clamp-1 mt-1">
-                          {w.content.slice(0, 120)}
-                        </p>
+                        <ContentRenderer content={w.content} maxLength={120} className="text-sm font-serif text-white/55 line-clamp-1 mt-1" />
                       )}
                     </button>
 
@@ -278,15 +278,7 @@ export default function WriterProfile() {
                         >
                           <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-3">
                             {w.content && (
-                              <p
-                                className="text-sm font-serif text-white/55 leading-relaxed whitespace-pre-line"
-                                data-testid={`text-preview-${w.id}`}
-                              >
-                                {w.content.slice(0, 600)}
-                                {w.content.length > 600 && (
-                                  <span className="text-white/50"> …</span>
-                                )}
-                              </p>
+                              <ContentRenderer content={w.content} maxLength={600} className="text-sm font-serif text-white/55 leading-relaxed" />
                             )}
                             <div className="flex items-center gap-3 text-white/50">
                               <span className="font-mono text-[9px] tracking-widest">

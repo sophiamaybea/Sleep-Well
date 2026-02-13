@@ -9,7 +9,8 @@ import {
   Sprout, Sparkles, Flower2, Droplets, Zap, Leaf,
   Flame, Archive, NotebookPen, CloudSun, Brain,
   CalendarRange, Network, Mic, Moon, Bell,
-  FileCheck, Heart, Bookmark, Compass, MessageCircle
+  FileCheck, Heart, Bookmark, Compass, MessageCircle,
+  Pin, PinOff, ArchiveRestore, Tag, X
 } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
 import type { Writing } from "@shared/schema";
@@ -18,6 +19,8 @@ import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
 import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
 import { TablesRoom, WorkshopRoom, SwapRoom } from "@/components/garden/CommunityRooms";
+import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
+import ExportMenu from "@/components/garden/ExportMenu";
 
 type Zone = "desk" | "reading-room" | "greenhouse";
 type ActiveRoom = "tables" | "workshop" | "swap" | null;
@@ -80,8 +83,77 @@ const stageIcons: Record<string, React.ReactNode> = {
   ready_to_show: <BloomIcon className="w-4 h-4" />,
 };
 
+function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse bg-white/[0.06] rounded-lg ${className}`} />;
+}
+
+function DeskSkeleton() {
+  return (
+    <div className="space-y-4 animate-in fade-in duration-300">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="border border-white/[0.06] rounded-xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-16 rounded-full" />
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-3/4" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-4 w-14 rounded-full" />
+            <Skeleton className="h-4 w-10 rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReadingRoomSkeleton() {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {[1, 2].map(i => (
+        <div key={i} className="border border-white/[0.06] rounded-xl p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="space-y-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </div>
+          <Skeleton className="h-6 w-56" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CommunityRoomSkeleton() {
+  return (
+    <div className="space-y-3 animate-in fade-in duration-300">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="border border-white/[0.06] rounded-xl p-4 space-y-2">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-3 w-full" />
+          <div className="flex gap-3">
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function wordCount(text: string) {
-  return text.trim() ? text.trim().split(/\s+/).length : 0;
+  const plain = text.includes("<") ? stripHtml(text) : text;
+  return plain.trim() ? plain.trim().split(/\s+/).length : 0;
 }
 
 function timeAgo(date: string | Date | null | undefined) {
@@ -200,34 +272,50 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
 
 type StageFilter = "all" | "raw_seed" | "growing" | "ready_to_show";
 
-function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCreating }: {
+function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
   onCreateNew: () => void;
   onOpenPlanting: (w: Writing) => void;
+  onQuickUpdate: (id: string, data: Record<string, any>) => void;
   isCreating: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const readinessKey = (w: Writing) => w.readiness || "raw_seed";
 
-  const filteredWritings = writings
+  const allTags = Array.from(new Set(writings.flatMap(w => (w as any).tags || [])));
+
+  const activeWritings = writings.filter(w => !(w as any).isArchived);
+  const archivedWritings = writings.filter(w => (w as any).isArchived);
+  const baseWritings = showArchived ? archivedWritings : activeWritings;
+
+  const filteredWritings = baseWritings
     .filter(w => activeFilter === "all" || readinessKey(w) === activeFilter)
+    .filter(w => !activeTag || ((w as any).tags || []).includes(activeTag))
     .filter(w => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return w.title.toLowerCase().includes(q) || w.content.toLowerCase().includes(q);
+      const plainContent = w.content.includes("<") ? stripHtml(w.content) : w.content;
+      return w.title.toLowerCase().includes(q) || plainContent.toLowerCase().includes(q) || ((w as any).tags || []).some((t: string) => t.toLowerCase().includes(q));
     })
-    .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+    .sort((a, b) => {
+      const pinA = (a as any).isPinned ? 1 : 0;
+      const pinB = (b as any).isPinned ? 1 : 0;
+      if (pinB !== pinA) return pinB - pinA;
+      return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
+    });
 
-  const seedCount = writings.filter(w => readinessKey(w) === "raw_seed").length;
-  const growingCount = writings.filter(w => readinessKey(w) === "growing").length;
-  const readyCount = writings.filter(w => readinessKey(w) === "ready_to_show").length;
+  const seedCount = activeWritings.filter(w => readinessKey(w) === "raw_seed").length;
+  const growingCount = activeWritings.filter(w => readinessKey(w) === "growing").length;
+  const readyCount = activeWritings.filter(w => readinessKey(w) === "ready_to_show").length;
 
   const filters: { id: StageFilter; label: string; count: number }[] = [
-    { id: "all", label: "All", count: writings.length },
+    { id: "all", label: "All", count: activeWritings.length },
     { id: "raw_seed", label: "Seeds", count: seedCount },
     { id: "growing", label: "Growing", count: growingCount },
     { id: "ready_to_show", label: "Ready", count: readyCount },
@@ -281,6 +369,48 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-6 flex-wrap">
+        {allTags.length > 0 && (
+          <>
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border transition-all ${
+                  activeTag === tag
+                    ? "border-violet-500/30 bg-violet-500/10 text-violet-300/80"
+                    : "border-white/[0.08] text-white/40 hover:text-white/60 hover:border-white/15"
+                }`}
+                data-testid={`tag-filter-${tag}`}
+              >
+                <Tag size={9} />
+                {tag}
+              </button>
+            ))}
+            {activeTag && (
+              <button onClick={() => setActiveTag(null)} className="text-white/30 hover:text-white/60 transition-colors" data-testid="clear-tag-filter">
+                <X size={12} />
+              </button>
+            )}
+            <span className="w-px h-4 bg-white/[0.06]" />
+          </>
+        )}
+        {archivedWritings.length > 0 && (
+          <button
+            onClick={() => { setShowArchived(!showArchived); setActiveFilter("all"); }}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border transition-all ${
+              showArchived
+                ? "border-stone-400/25 bg-stone-500/10 text-stone-300/70"
+                : "border-white/[0.08] text-white/35 hover:text-white/55"
+            }`}
+            data-testid="toggle-archived"
+          >
+            <Archive size={9} />
+            Archived ({archivedWritings.length})
+          </button>
+        )}
       </div>
 
       {writings.length === 0 && (
@@ -350,6 +480,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                     </div>
                     <div className="flex-grow min-w-0">
                       <div className="flex items-center gap-2">
+                        {(w as any).isPinned && <Pin size={10} className="text-amber-400/50 flex-shrink-0" />}
                         <h3 className="text-base font-display font-light truncate text-white/80 italic">
                           {w.title || "Untitled"}
                         </h3>
@@ -359,6 +490,13 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                           </span>
                         )}
                       </div>
+                      {((w as any).tags || []).length > 0 && (
+                        <div className="flex gap-1 mt-0.5">
+                          {((w as any).tags as string[]).map((tag: string) => (
+                            <span key={tag} className="font-mono text-[7px] uppercase tracking-widest text-violet-400/40 bg-violet-500/[0.06] px-1.5 py-0.5 rounded-full">{tag}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0 text-white/50">
                       <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">{w.genre}</span>
@@ -367,9 +505,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                     </div>
                   </div>
                   {!isExpanded && w.content && (
-                    <p className="text-sm font-serif text-white/55 line-clamp-1 mt-1 ml-10">
-                      {w.content.slice(0, 120)}
-                    </p>
+                    <ContentRenderer content={w.content} maxLength={120} className="text-sm font-serif text-white/55 line-clamp-1 mt-1 ml-10" />
                   )}
                 </button>
 
@@ -384,9 +520,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                     >
                       <div className="px-4 md:px-5 pb-4 md:pb-5 ml-10 space-y-3 relative z-10">
                         {w.content && (
-                          <p className="text-sm font-serif text-white/55 leading-relaxed line-clamp-4">
-                            {w.content.slice(0, 400)}
-                          </p>
+                          <ContentRenderer content={w.content} maxLength={400} className="text-sm font-serif text-white/55 leading-relaxed line-clamp-4" />
                         )}
                         <div className="flex items-center gap-3 text-white/50">
                           <span className="font-mono text-[9px] tracking-widest">{wordCount(w.content)} words</span>
@@ -409,6 +543,25 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                             <MapPin size={11} />
                             Plant
                           </button>
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <ExportMenu title={w.title} content={w.content} />
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onQuickUpdate(w.id, { isPinned: !(w as any).isPinned }); }}
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.15] hover:border-amber-500/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-amber-400/70 transition-all"
+                            data-testid={`button-pin-${w.id}`}
+                          >
+                            {(w as any).isPinned ? <PinOff size={11} /> : <Pin size={11} />}
+                            {(w as any).isPinned ? "Unpin" : "Pin"}
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onQuickUpdate(w.id, { isArchived: !(w as any).isArchived }); }}
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.15] hover:border-stone-400/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-stone-400/70 transition-all"
+                            data-testid={`button-archive-${w.id}`}
+                          >
+                            {(w as any).isArchived ? <ArchiveRestore size={11} /> : <Archive size={11} />}
+                            {(w as any).isArchived ? "Restore" : "Archive"}
+                          </button>
                         </div>
                       </div>
                     </motion.div>
@@ -426,7 +579,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
 function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   writing: Writing;
   onBack: () => void;
-  onSave: (data: { title: string; content: string; genre: string; readiness?: string }) => void;
+  onSave: (data: { title: string; content: string; genre: string; readiness?: string; tags?: string[] }) => void;
   onDelete: () => void;
   onOpenPlanting: () => void;
 }) {
@@ -434,14 +587,15 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [editContent, setEditContent] = useState(writing.content);
   const [editGenre, setEditGenre] = useState(writing.genre);
   const [editStage, setEditStage] = useState(writing.readiness || "raw_seed");
+  const [editTags, setEditTags] = useState<string[]>((writing as any).tags || []);
+  const [tagInput, setTagInput] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasMounted = useRef(false);
 
   const doSave = useCallback(() => {
-    onSave({ title: editTitle, content: editContent, genre: editGenre, readiness: editStage });
-  }, [editTitle, editContent, editGenre, editStage, onSave]);
+    onSave({ title: editTitle, content: editContent, genre: editGenre, readiness: editStage, tags: editTags });
+  }, [editTitle, editContent, editGenre, editStage, editTags, onSave]);
 
   useEffect(() => {
     if (!hasMounted.current) { hasMounted.current = true; return; }
@@ -452,11 +606,15 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
       setTimeout(() => setSaveStatus("saved"), 600);
     }, 800);
     return () => clearTimeout(timer);
-  }, [editTitle, editContent, editGenre, editStage]);
+  }, [editTitle, editContent, editGenre, editStage, editTags]);
 
-  useEffect(() => {
-    if (textareaRef.current) textareaRef.current.focus();
-  }, []);
+  function addTag() {
+    const t = tagInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    if (t && !editTags.includes(t) && editTags.length < 5) {
+      setEditTags([...editTags, t]);
+      setTagInput("");
+    }
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -476,6 +634,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : "Editing..."}
           </span>
           <span className="font-mono text-[9px] tracking-widest text-white/50">{wordCount(editContent)} words</span>
+          <ExportMenu title={editTitle} content={editContent} compact />
           <button
             onClick={() => setShowDeleteConfirm(true)}
             className="p-1.5 text-white/50 hover:text-red-400/70 transition-colors"
@@ -559,13 +718,40 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           </button>
         </div>
 
-        <textarea
-          ref={textareaRef}
-          value={editContent}
-          onChange={(e) => setEditContent(e.target.value)}
+        <div className="flex items-center gap-2 pb-4 flex-wrap">
+          {editTags.map((tag) => (
+            <span key={tag} className="flex items-center gap-1 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 bg-violet-500/[0.06] text-violet-300/70">
+              {tag}
+              <button onClick={() => setEditTags(editTags.filter(t => t !== tag))} className="hover:text-violet-200 transition-colors" data-testid={`remove-tag-${tag}`}>
+                <X size={9} />
+              </button>
+            </span>
+          ))}
+          {editTags.length < 5 && (
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+                placeholder={editTags.length === 0 ? "Add tags..." : "Add..."}
+                className="w-24 bg-transparent font-mono text-[9px] uppercase tracking-widest text-white/50 placeholder:text-white/25 focus:outline-none border-b border-transparent focus:border-white/20 transition-colors py-1"
+                data-testid="input-tag"
+              />
+              {tagInput.trim() && (
+                <button onClick={addTag} className="text-white/30 hover:text-white/60 transition-colors">
+                  <Plus size={11} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <RichEditor
+          content={editContent}
+          onChange={setEditContent}
           placeholder="Begin writing..."
-          className="w-full min-h-[60vh] bg-transparent text-lg font-serif leading-[2] text-white/80 placeholder:text-white/20 focus:outline-none resize-none border-none tracking-wide"
-          data-testid="textarea-content"
+          autoFocus
         />
       </div>
     </div>
@@ -579,7 +765,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
   const [page, setPage] = useState(1);
   const perPage = 8;
 
-  const { data: tendingFeed = [] } = useQuery<FeedWriting[]>({
+  const { data: tendingFeed = [], isLoading: loadingTending } = useQuery<FeedWriting[]>({
     queryKey: ["/api/tending-feed"],
     queryFn: async () => {
       const res = await fetch("/api/tending-feed", { credentials: "include" });
@@ -588,7 +774,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
     },
   });
 
-  const { data: gardenFeed = [] } = useQuery<FeedWriting[]>({
+  const { data: gardenFeed = [], isLoading: loadingGarden } = useQuery<FeedWriting[]>({
     queryKey: ["/api/garden-feed"],
     queryFn: async () => {
       const res = await fetch("/api/garden-feed", { credentials: "include" });
@@ -596,6 +782,8 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
       return res.json();
     },
   });
+
+  if (loadingTending || loadingGarden) return <ReadingRoomSkeleton />;
 
   const seen = new Set<string>();
   const allPieces: FeedWriting[] = [];
@@ -661,12 +849,11 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                     {piece.title || "Untitled"}
                   </h3>
 
-                  <p className={`font-serif text-white/55 leading-[1.9] ${isExpanded ? "" : "line-clamp-3"}`}>
-                    {isExpanded ? piece.content.slice(0, 2000) : piece.content.slice(0, 250)}
-                    {isExpanded && piece.content.length > 2000 && (
-                      <span className="text-white/50 italic"> ...continues</span>
-                    )}
-                  </p>
+                  {isExpanded ? (
+                    <ContentRenderer content={piece.content} maxLength={2000} className="font-serif text-white/55 leading-[1.9]" />
+                  ) : (
+                    <ContentRenderer content={piece.content} maxLength={250} className="font-serif text-white/55 leading-[1.9] line-clamp-3" />
+                  )}
 
                   {!isExpanded && (
                     <div className="flex items-center gap-3 mt-3">
@@ -1216,6 +1403,9 @@ function GrowthJournalView() {
   );
 }
 
+const moodEmoji: Record<string, string> = { stormy: "⛈", cloudy: "☁", misty: "🌫", clear: "☀", radiant: "✨" };
+const moodColor: Record<string, string> = { stormy: "#6366f1", cloudy: "#94a3b8", misty: "#a78bfa", clear: "#fbbf24", radiant: "#f472b6" };
+
 function InnerWeatherView() {
   const { data: entries = [] } = useQuery<any[]>({
     queryKey: ["/api/inner-weather"],
@@ -1236,30 +1426,85 @@ function InnerWeatherView() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/inner-weather"] }); setNote(""); },
   });
 
+  const recentWeek = entries.slice(0, 14);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex gap-1 mb-2">
         {moods.map(m => (
-          <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/80" : "border-transparent text-white/55 hover:text-white/60"}`}>{m}</button>
+          <button key={m} onClick={() => setMood(m)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/80" : "border-transparent text-white/55 hover:text-white/60"}`} data-testid={`mood-${m}`}>
+            <span className="text-sm">{moodEmoji[m]}</span>
+            {m}
+          </button>
         ))}
       </div>
       <div className="flex items-center gap-3">
         <span className="font-mono text-[9px] text-white/55 uppercase tracking-widest">Energy</span>
         <input type="range" min="1" max="10" value={energy} onChange={(e) => setEnergy(Number(e.target.value))} className="flex-grow accent-white/40" />
-        <span className="font-mono text-[10px] text-white/50">{energy}</span>
+        <span className="font-mono text-[10px] text-white/50">{energy}/10</span>
       </div>
       <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief note..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors" data-testid="input-weather-note" />
       <button onClick={() => addMutation.mutate()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all" data-testid="button-log-weather">Log Weather</button>
+
+      {recentWeek.length >= 2 && (
+        <div className="border border-white/[0.08] rounded-xl p-4 space-y-2">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-3">Mood & Energy — Recent</p>
+          <div className="flex items-end gap-1 h-24">
+            {[...recentWeek].reverse().map((e: any, i: number) => (
+              <div key={e.id} className="flex-1 flex flex-col items-center gap-1 group" title={`${e.mood} · energy ${e.energy}/10${e.note ? ` · ${e.note}` : ""}`}>
+                <div className="w-full rounded-t" style={{ height: `${(e.energy / 10) * 80}px`, backgroundColor: moodColor[e.mood] || "#666", opacity: 0.5 + (i / recentWeek.length) * 0.5, transition: "height 0.3s" }} />
+                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">{moodEmoji[e.mood] || "·"}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between font-mono text-[7px] text-white/25 uppercase tracking-widest mt-1">
+            <span>oldest</span>
+            <span>today</span>
+          </div>
+        </div>
+      )}
+
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.15] rounded-xl p-3 flex items-center gap-3">
+        <div key={e.id} className="border border-white/[0.08] rounded-xl p-3 flex items-center gap-3">
+          <span className="text-sm">{moodEmoji[e.mood] || "·"}</span>
           <span className="font-mono text-[9px] uppercase text-white/50">{e.mood}</span>
           <span className="font-mono text-[9px] text-white/50">energy {e.energy}/10</span>
-          {e.note && <span className="font-serif text-xs text-white/60">{e.note}</span>}
-          <span className="ml-auto font-mono text-[8px] text-white/30">{timeAgo(e.createdAt)}</span>
+          {e.note && <span className="font-serif text-xs text-white/60 truncate">{e.note}</span>}
+          <span className="ml-auto font-mono text-[8px] text-white/30 flex-shrink-0">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
     </div>
   );
+}
+
+function calcStreak(sessions: any[]): { current: number; longest: number; thisWeek: number; totalMinutes: number } {
+  if (sessions.length === 0) return { current: 0, longest: 0, thisWeek: 0, totalMinutes: 0 };
+  const days = new Set<string>();
+  let totalMinutes = 0;
+  sessions.forEach((s: any) => {
+    const d = new Date(s.createdAt).toDateString();
+    days.add(d);
+    totalMinutes += (s.duration || 0);
+  });
+  const sortedDays = Array.from(days).map(d => new Date(d)).sort((a, b) => b.getTime() - a.getTime());
+  let current = 0;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  for (let i = 0; i < sortedDays.length; i++) {
+    const expected = new Date(today); expected.setDate(expected.getDate() - i);
+    if (sortedDays[i].toDateString() === expected.toDateString()) current++;
+    else break;
+  }
+  let longest = 0, run = 0;
+  for (let i = 0; i < sortedDays.length; i++) {
+    if (i === 0) { run = 1; } else {
+      const diff = (sortedDays[i - 1].getTime() - sortedDays[i].getTime()) / 86400000;
+      run = diff <= 1.5 ? run + 1 : 1;
+    }
+    if (run > longest) longest = run;
+  }
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const thisWeek = sessions.filter((s: any) => new Date(s.createdAt) >= weekAgo).length;
+  return { current, longest, thisWeek, totalMinutes };
 }
 
 function RitualsView() {
@@ -1272,6 +1517,8 @@ function RitualsView() {
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const streak = calcStreak(sessions);
 
   function startTimer() {
     setTimeLeft(duration * 60);
@@ -1295,6 +1542,27 @@ function RitualsView() {
 
   return (
     <div className="space-y-6">
+      {sessions.length > 0 && (
+        <div className="grid grid-cols-4 gap-2">
+          <div className="border border-amber-500/10 bg-amber-500/[0.03] rounded-xl p-3 text-center">
+            <p className="text-2xl font-display font-light text-amber-400/70">{streak.current}</p>
+            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">Day Streak</p>
+          </div>
+          <div className="border border-white/[0.06] rounded-xl p-3 text-center">
+            <p className="text-2xl font-display font-light text-white/60">{streak.longest}</p>
+            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">Best Streak</p>
+          </div>
+          <div className="border border-white/[0.06] rounded-xl p-3 text-center">
+            <p className="text-2xl font-display font-light text-white/60">{streak.thisWeek}</p>
+            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">This Week</p>
+          </div>
+          <div className="border border-white/[0.06] rounded-xl p-3 text-center">
+            <p className="text-2xl font-display font-light text-white/60">{Math.round(streak.totalMinutes / 60)}h</p>
+            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">Total</p>
+          </div>
+        </div>
+      )}
+
       <div className="text-center space-y-4">
         {!isRunning ? (
           <>
@@ -1303,7 +1571,9 @@ function RitualsView() {
                 <button key={d} onClick={() => setDuration(d)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${duration === d ? "border-white/20 bg-white/[0.08] text-white/80" : "border-transparent text-white/55 hover:text-white/60"}`}>{d}m</button>
               ))}
             </div>
-            <button onClick={startTimer} className="px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-300 transition-all" data-testid="button-start-ritual">Begin Ritual</button>
+            <button onClick={startTimer} className="px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-300 transition-all" data-testid="button-start-ritual">
+              {streak.current > 0 ? `Continue Streak (Day ${streak.current})` : "Begin Ritual"}
+            </button>
           </>
         ) : (
           <div className="py-8">
@@ -1315,8 +1585,9 @@ function RitualsView() {
       {sessions.length > 0 && (
         <div>
           <p className="font-mono text-[9px] uppercase tracking-widest text-white/50 mb-2">Past Sessions</p>
-          {sessions.slice(0, 5).map((s: any) => (
+          {sessions.slice(0, 8).map((s: any) => (
             <div key={s.id} className="flex items-center gap-3 py-2 border-b border-white/[0.03]">
+              <Flame size={10} className="text-amber-400/30" />
               <span className="font-mono text-[9px] text-white/60">{s.duration}min</span>
               <span className="font-mono text-[8px] text-white/30">{timeAgo(s.createdAt)}</span>
             </div>
@@ -1363,38 +1634,72 @@ function CompostView() {
   );
 }
 
+const reflectionPrompts = [
+  "What surprised you about your writing this week?",
+  "Describe a sentence you wrote that felt true. Why did it work?",
+  "What are you avoiding in your writing? What would happen if you went there?",
+  "Name a writer whose voice you envy. What specifically draws you to them?",
+  "What's the difference between your writing voice and your speaking voice?",
+  "What recurring images or themes keep appearing in your work?",
+  "When do you feel most honest in your writing? What conditions enable that?",
+  "What did you read recently that changed how you think about craft?",
+  "Describe a piece you abandoned. What was it trying to do?",
+  "What's a technique you've been wanting to try but haven't yet?",
+  "When does revision feel like discovery vs. obligation?",
+  "What does your writing need more of? Less of?",
+  "Who is the ideal reader for what you're writing now?",
+  "What are you learning about pacing, rhythm, or silence in your work?",
+  "If your current project were a room, what would be in it?",
+];
+
 function ReflectionsView() {
   const { data: entries = [] } = useQuery<any[]>({
     queryKey: ["/api/reflections"],
     queryFn: async () => { const r = await fetch("/api/reflections", { credentials: "include" }); return r.ok ? r.json() : []; },
   });
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [promptIndex, setPromptIndex] = useState(() => Math.floor(Math.random() * reflectionPrompts.length));
+
+  const currentPrompt = reflectionPrompts[promptIndex];
 
   const addMutation = useMutation({
     mutationFn: async () => {
-      const r = await fetch("/api/reflections", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ title, content, category: "craft" }) });
+      const r = await fetch("/api/reflections", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ title: currentPrompt, content, category: "craft" }) });
       if (!r.ok) throw new Error("Failed"); return r.json();
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/reflections"] }); setTitle(""); setContent(""); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reflections"] });
+      setContent("");
+      setPromptIndex((promptIndex + 1) % reflectionPrompts.length);
+    },
   });
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Reflection title..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors" data-testid="input-reflection-title" />
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What are you learning about your craft..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
-        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-reflection">Add Reflection</button>
+    <div className="space-y-5">
+      <div className="border border-pink-500/10 bg-pink-500/[0.02] rounded-xl p-5 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <p className="font-display text-lg font-light italic text-pink-200/60 leading-relaxed">{currentPrompt}</p>
+          <button
+            onClick={() => setPromptIndex((promptIndex + 1) % reflectionPrompts.length)}
+            className="flex-shrink-0 p-1.5 text-white/30 hover:text-white/60 transition-colors"
+            title="New prompt"
+            data-testid="button-next-prompt"
+          >
+            <Sparkles size={14} />
+          </button>
+        </div>
+        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Reflect..." className="w-full bg-white/[0.03] border border-white/[0.10] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/35 focus:outline-none focus:border-white/30 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
+        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-reflection">Save Reflection</button>
       </div>
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.15] rounded-xl p-4">
-          {e.title && <h4 className="font-display text-base font-light italic text-white/70 mb-1">{e.title}</h4>}
+        <div key={e.id} className="border border-white/[0.08] rounded-xl p-4">
+          {e.title && <h4 className="font-display text-sm font-light italic text-white/45 mb-2">{e.title}</h4>}
           <p className="font-serif text-sm text-white/55 leading-relaxed">{e.content}</p>
           <span className="font-mono text-[8px] text-white/30 mt-2 block">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">No reflections yet. Begin exploring your craft.</p>}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-4 text-center">Your reflections will gather here over time.</p>}
     </div>
   );
 }
@@ -1656,6 +1961,7 @@ export default function Garden() {
                   onOpenWriting={openWriting}
                   onCreateNew={() => createMutation.mutate()}
                   onOpenPlanting={openPlanting}
+                  onQuickUpdate={(id, data) => updateMutation.mutate({ id, ...data })}
                   isCreating={createMutation.isPending}
                 />
               ) : activeZone === "reading-room" ? (

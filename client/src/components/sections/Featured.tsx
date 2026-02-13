@@ -1,5 +1,6 @@
 import { Section } from "@/components/ui/section";
 import { content } from "@/data";
+import { ContentRenderer } from "@/components/garden/RichEditor";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
@@ -62,7 +63,7 @@ function ShineCard({ children, className, testId }: { children: React.ReactNode;
 }
 
 export default function Featured() {
-  const { data: gallery = [] } = useQuery<GalleryItem[]>({
+  const { data: gallery = [], isLoading } = useQuery<GalleryItem[]>({
     queryKey: ["/api/gallery"],
     queryFn: async () => {
       const res = await fetch("/api/gallery");
@@ -88,7 +89,24 @@ export default function Featured() {
           </p>
         </div>
 
-        {gallery.length > 0 ? (
+        {isLoading ? (
+          <div className="grid gap-8 animate-pulse">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="border border-white/[0.05] rounded-xl p-8 md:p-12 space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-5 w-16 bg-white/[0.06] rounded-full" />
+                  <div className="h-4 w-24 bg-white/[0.04] rounded" />
+                </div>
+                <div className="h-8 w-72 bg-white/[0.06] rounded-lg" />
+                <div className="space-y-2">
+                  <div className="h-4 w-full bg-white/[0.04] rounded" />
+                  <div className="h-4 w-full bg-white/[0.04] rounded" />
+                  <div className="h-4 w-2/3 bg-white/[0.04] rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : gallery.length > 0 ? (
           <div className="grid gap-8">
             {gallery.map((item, i) => (
               <ShineCard
@@ -118,10 +136,8 @@ export default function Featured() {
                   <h3 className="text-3xl md:text-4xl font-display font-light tracking-tight mb-6 group-hover:text-white transition-colors duration-300">
                     {item.title}
                   </h3>
-                  <div className="font-serif text-lg leading-relaxed text-white/60 max-w-3xl whitespace-pre-wrap group-hover:text-white/80 transition-colors duration-300">
-                    {item.content.length > 500
-                      ? item.content.slice(0, 500) + "..."
-                      : item.content}
+                  <div className="font-serif text-lg leading-relaxed text-white/60 max-w-3xl group-hover:text-white/80 transition-colors duration-300">
+                    <ContentRenderer content={item.content} maxLength={500} />
                   </div>
                 </motion.div>
               </ShineCard>

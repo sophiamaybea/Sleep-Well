@@ -3,6 +3,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine } from "lucide-react";
 
+function ListSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div className="space-y-3 animate-pulse">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="border border-white/[0.06] rounded-xl p-4 space-y-2">
+          <div className="h-4 w-40 bg-white/[0.06] rounded-lg" />
+          <div className="h-3 w-full bg-white/[0.06] rounded-lg" />
+          <div className="flex gap-3">
+            <div className="h-3 w-12 bg-white/[0.06] rounded-lg" />
+            <div className="h-3 w-16 bg-white/[0.06] rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function timeAgo(date: string | Date | null | undefined) {
   if (!date) return "";
   const d = new Date(date);
@@ -153,9 +170,7 @@ function TopicReplies({ topicId }: { topicId: string }) {
 
   return (
     <div className="space-y-3" data-testid={`topic-replies-${topicId}`}>
-      {isLoading && (
-        <p className="font-serif text-sm text-white/55 italic">Loading replies...</p>
-      )}
+      {isLoading && <ListSkeleton count={2} />}
       {replies.length === 0 && !isLoading && (
         <p className="font-serif text-sm text-white/50 italic">No replies yet — start the conversation.</p>
       )}
@@ -338,11 +353,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
         ))}
       </div>
 
-      {isLoading && (
-        <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/55 italic">Loading discussions...</p>
-        </div>
-      )}
+      {isLoading && <ListSkeleton count={4} />}
 
       {!isLoading && filteredTopics.length === 0 && (
         <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
@@ -471,7 +482,7 @@ function ExerciseResponses({ exerciseId }: { exerciseId: string }) {
 
   return (
     <div className="space-y-4" data-testid={`exercise-responses-${exerciseId}`}>
-      {isLoading && <p className="font-serif text-sm text-white/55 italic">Loading responses...</p>}
+      {isLoading && <ListSkeleton count={2} />}
       {responses.length === 0 && !isLoading && (
         <p className="font-serif text-sm text-white/50 italic">No responses yet — be the first to write.</p>
       )}
@@ -674,11 +685,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
         ))}
       </div>
 
-      {isLoading && (
-        <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/55 italic">Loading exercises...</p>
-        </div>
-      )}
+      {isLoading && <ListSkeleton count={4} />}
 
       {!isLoading && filteredExercises.length === 0 && (
         <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
@@ -994,11 +1001,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
         ))}
       </div>
 
-      {isLoading && (
-        <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/55 italic">Loading swaps...</p>
-        </div>
-      )}
+      {isLoading && <ListSkeleton count={4} />}
 
       {!isLoading && filteredSwaps.length === 0 && (
         <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
