@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, ChevronLeft, Feather } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, Feather, BookOpen, Sparkles, PenLine } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StarBackground from "@/components/StarBackground";
 import type { Writing } from "@shared/schema";
@@ -23,6 +23,12 @@ const stageDot: Record<string, string> = {
   seed: "bg-amber-400",
   sprout: "bg-emerald-400",
   bloom: "bg-pink-400",
+};
+
+const stageGradient: Record<string, string> = {
+  seed: "from-amber-500/20 to-amber-500/0",
+  sprout: "from-emerald-500/20 to-emerald-500/0",
+  bloom: "from-pink-500/20 to-pink-500/0",
 };
 
 const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
@@ -88,9 +94,20 @@ function timeAgo(date: string | Date | null | undefined) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  if (hour >= 17 && hour < 21) return "Good evening";
+  return "The night is yours";
+}
+
+type ViewMode = "dashboard" | "writings" | "editor";
+
 export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
@@ -159,6 +176,7 @@ export default function Garden() {
       queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
       setActiveWriting(null);
       setShowDeleteConfirm(false);
+      setViewMode("dashboard");
     },
   });
 
@@ -170,6 +188,7 @@ export default function Garden() {
     setEditStage(w.stage);
     setLastSaved(null);
     setShowDeleteConfirm(false);
+    setViewMode("editor");
   }
 
   const doSave = useCallback(() => {
@@ -201,10 +220,10 @@ export default function Garden() {
   }, []);
 
   useEffect(() => {
-    if (textareaRef.current) {
+    if (textareaRef.current && viewMode === "editor") {
       textareaRef.current.focus();
     }
-  }, [activeWriting]);
+  }, [activeWriting, viewMode]);
 
   if (!authLoading && !isAuthenticated) {
     window.location.href = "/api/login";
@@ -217,17 +236,11 @@ export default function Garden() {
         <StarBackground />
         <Navigation />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center space-y-4"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-4">
             <div className="w-12 h-12 mx-auto border border-white/10 rounded-full flex items-center justify-center">
               <Feather size={20} className="text-white/30 animate-pulse" />
             </div>
-            <p className="font-mono text-xs tracking-widest opacity-40 uppercase">
-              Opening your garden...
-            </p>
+            <p className="font-mono text-xs tracking-widest opacity-40 uppercase">Opening your garden...</p>
           </motion.div>
         </div>
       </div>
@@ -237,6 +250,11 @@ export default function Garden() {
   const seedCount = writings.filter(w => w.stage === "seed").length;
   const sproutCount = writings.filter(w => w.stage === "sprout").length;
   const bloomCount = writings.filter(w => w.stage === "bloom").length;
+  const totalWords = writings.reduce((acc, w) => acc + wordCount(w.content), 0);
+  const recentWritings = [...writings].sort((a, b) =>
+    new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime()
+  ).slice(0, 3);
+  const latestWriting = recentWritings[0] || null;
 
   return (
     <div className="min-h-screen bg-background text-foreground relative">
@@ -245,7 +263,7 @@ export default function Garden() {
 
       <div className="relative z-10 pt-28 pb-24">
         <AnimatePresence mode="wait">
-          {activeWriting ? (
+          {viewMode === "editor" && activeWriting ? (
             <motion.div
               key="editor"
               initial={{ opacity: 0 }}
@@ -255,7 +273,7 @@ export default function Garden() {
             >
               <div className="flex items-center justify-between mb-8">
                 <button
-                  onClick={() => { doSave(); setActiveWriting(null); }}
+                  onClick={() => { doSave(); setViewMode("dashboard"); setActiveWriting(null); }}
                   className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors group"
                   data-testid="button-back"
                 >
@@ -346,9 +364,7 @@ export default function Garden() {
                     data-testid="select-genre"
                   >
                     {genreOptions.map((g) => (
-                      <option key={g} value={g} className="bg-[#0b101a]">
-                        {g}
-                      </option>
+                      <option key={g} value={g} className="bg-[#0b101a]">{g}</option>
                     ))}
                   </select>
                 </div>
@@ -363,143 +379,301 @@ export default function Garden() {
                 />
               </div>
             </motion.div>
-          ) : (
+
+          ) : viewMode === "writings" ? (
             <motion.div
-              key="list"
+              key="writings"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="max-w-5xl mx-auto px-6"
             >
-              <div className="mb-16">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="space-y-6"
+              <div className="mb-12">
+                <button
+                  onClick={() => setViewMode("dashboard")}
+                  className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors group mb-8"
+                  data-testid="button-back-dashboard"
                 >
-                  <div className="flex items-center gap-3 text-white/30">
-                    <Feather size={16} />
-                    <span className="font-mono text-[10px] tracking-[0.3em] uppercase">
-                      Private Writing Space
-                    </span>
-                  </div>
+                  <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                  Dashboard
+                </button>
 
-                  <div className="flex items-end justify-between gap-8 flex-wrap">
-                    <div>
-                      <h1 className="text-4xl md:text-6xl font-display font-light tracking-tight italic text-white/90" data-testid="heading-garden">
-                        {user?.firstName ? `${user.firstName}'s Garden` : "Your Garden"}
-                      </h1>
-                      <p className="mt-3 text-base font-serif text-white/35 max-w-lg leading-relaxed">
-                        Plant seeds, nurture drafts, and let your words bloom in their own time.
-                      </p>
+                <div className="flex items-end justify-between gap-8 flex-wrap">
+                  <div>
+                    <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90" data-testid="heading-all-writings">
+                      All Writings
+                    </h1>
+                    <div className="flex items-center gap-6 mt-4">
+                      {[
+                        { label: "Seeds", count: seedCount, dot: stageDot.seed },
+                        { label: "Sprouts", count: sproutCount, dot: stageDot.sprout },
+                        { label: "Blooms", count: bloomCount, dot: stageDot.bloom },
+                      ].map((stat) => (
+                        <div key={stat.label} className="flex items-center gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full ${stat.dot} opacity-60`} />
+                          <span className="font-mono text-[10px] tracking-widest text-white/25 uppercase">
+                            {stat.count} {stat.label}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                    <button
-                      onClick={() => createMutation.mutate()}
-                      disabled={createMutation.isPending}
-                      className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 border border-white/10 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all group"
-                      data-testid="button-new-writing"
-                    >
-                      <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
-                      New Writing
-                    </button>
+                  </div>
+                  <button
+                    onClick={() => createMutation.mutate()}
+                    disabled={createMutation.isPending}
+                    className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 border border-white/10 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all group"
+                    data-testid="button-new-writing-list"
+                  >
+                    <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
+                    New Writing
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {writings.map((w, i) => (
+                  <motion.button
+                    key={w.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.4 }}
+                    onClick={() => openWriting(w)}
+                    className="w-full text-left group relative"
+                    data-testid={`card-writing-${w.id}`}
+                  >
+                    <div className="relative p-5 md:p-6 rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all duration-300">
+                      <div className="flex items-start gap-4">
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[w.stage]} ${stageAccent[w.stage]}`}>
+                          {stageIcons[w.stage] || stageIcons.seed}
+                        </div>
+                        <div className="flex-grow min-w-0 space-y-1.5">
+                          <div className="flex items-center justify-between gap-4">
+                            <h3 className="text-lg font-display font-light truncate text-white/70 group-hover:text-white/90 transition-colors italic">
+                              {w.title || "Untitled"}
+                            </h3>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">{w.genre}</span>
+                              <span className="font-mono text-[9px] text-white/10">{timeAgo(w.updatedAt)}</span>
+                            </div>
+                          </div>
+                          {w.content && (
+                            <p className="text-sm font-serif text-white/25 line-clamp-1 group-hover:text-white/35 transition-colors">
+                              {w.content.slice(0, 150)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+
+          ) : (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-6xl mx-auto px-6"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                className="mb-16 space-y-2"
+              >
+                <div className="flex items-center gap-3 text-white/25 mb-4">
+                  <Feather size={16} />
+                  <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Your Garden</span>
+                </div>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-light tracking-tight italic text-white/90" data-testid="heading-garden">
+                  {getGreeting()}, {user?.firstName || "writer"}.
+                </h1>
+                <p className="text-lg font-serif text-white/35 max-w-xl leading-relaxed mt-4">
+                  Your quiet space to plant ideas and nurture them into something beautiful.
+                </p>
+              </motion.div>
+
+              <div className="grid md:grid-cols-3 gap-4 mb-12">
+                {[
+                  { label: "Seeds", count: seedCount, icon: <SeedIcon className="w-6 h-6" />, color: "amber", stage: "seed" },
+                  { label: "Sprouts", count: sproutCount, icon: <SproutIcon className="w-6 h-6" />, color: "emerald", stage: "sprout" },
+                  { label: "Blooms", count: bloomCount, icon: <BloomIcon className="w-6 h-6" />, color: "pink", stage: "bloom" },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+                    className={`group relative rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 cursor-default overflow-hidden hover:border-white/15 transition-all duration-500`}
+                    data-testid={`stat-${stat.stage}`}
+                  >
+                    <div className={`absolute inset-0 bg-gradient-to-br ${stageGradient[stat.stage]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                    <div className="relative z-10 flex items-start justify-between">
+                      <div className="space-y-3">
+                        <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase block">{stat.label}</span>
+                        <span className="text-4xl md:text-5xl font-display font-light text-white/80 block">{stat.count}</span>
+                      </div>
+                      <div className={`${stageColors[stat.stage]} opacity-40 group-hover:opacity-70 transition-opacity duration-500`}>
+                        {stat.icon}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 flex items-center gap-6"
+                  data-testid="stat-words"
+                >
+                  <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white/30">
+                    <PenLine size={20} />
+                  </div>
+                  <div>
+                    <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase block mb-1">Total Words</span>
+                    <span className="text-3xl font-display font-light text-white/80">{totalWords.toLocaleString()}</span>
                   </div>
                 </motion.div>
 
-                {writings.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="flex items-center gap-6 mt-8 pt-6 border-t border-white/5"
-                  >
-                    {[
-                      { label: "Seeds", count: seedCount, color: "text-amber-400/60", dot: stageDot.seed },
-                      { label: "Sprouts", count: sproutCount, color: "text-emerald-400/60", dot: stageDot.sprout },
-                      { label: "Blooms", count: bloomCount, color: "text-pink-400/60", dot: stageDot.bloom },
-                    ].map((stat) => (
-                      <div key={stat.label} className="flex items-center gap-2">
-                        <span className={`w-1.5 h-1.5 rounded-full ${stat.dot} opacity-60`} />
-                        <span className="font-mono text-[10px] tracking-widest text-white/25 uppercase">
-                          {stat.count} {stat.label}
-                        </span>
-                      </div>
-                    ))}
-                    <span className="font-mono text-[10px] tracking-widest text-white/15 ml-auto">
-                      {writings.length} total
-                    </span>
-                  </motion.div>
-                )}
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 flex items-center gap-6"
+                  data-testid="stat-writings"
+                >
+                  <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white/30">
+                    <BookOpen size={20} />
+                  </div>
+                  <div>
+                    <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase block mb-1">Total Writings</span>
+                    <span className="text-3xl font-display font-light text-white/80">{writings.length}</span>
+                  </div>
+                </motion.div>
               </div>
 
-              {writings.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                className="flex flex-col sm:flex-row gap-3 mb-16"
+              >
+                <button
+                  onClick={() => createMutation.mutate()}
+                  disabled={createMutation.isPending}
+                  className="flex items-center justify-center gap-3 px-8 py-4 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-xl font-mono text-xs uppercase tracking-widest text-white/70 hover:text-white transition-all group"
+                  data-testid="button-new-writing"
+                >
+                  <Plus size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+                  Plant a New Seed
+                </button>
+
+                {writings.length > 0 && (
+                  <button
+                    onClick={() => setViewMode("writings")}
+                    className="flex items-center justify-center gap-3 px-8 py-4 border border-white/[0.06] hover:border-white/15 rounded-xl font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white/70 transition-all"
+                    data-testid="button-view-all"
+                  >
+                    <BookOpen size={16} />
+                    View All Writings
+                  </button>
+                )}
+              </motion.div>
+
+              {recentWritings.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="font-mono text-[10px] tracking-[0.3em] text-white/30 uppercase">Recent Activity</h2>
+                    {writings.length > 3 && (
+                      <button
+                        onClick={() => setViewMode("writings")}
+                        className="font-mono text-[10px] tracking-widest text-white/20 hover:text-white/50 transition-colors uppercase"
+                        data-testid="link-see-all"
+                      >
+                        See all →
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid gap-3">
+                    {recentWritings.map((w, i) => (
+                      <motion.button
+                        key={w.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9 + i * 0.06, duration: 0.4 }}
+                        onClick={() => openWriting(w)}
+                        className="w-full text-left group relative"
+                        data-testid={`card-recent-${w.id}`}
+                      >
+                        <div className="relative p-5 md:p-6 rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all duration-300">
+                          <div className="flex items-start gap-4">
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[w.stage]} ${stageAccent[w.stage]}`}>
+                              {stageIcons[w.stage] || stageIcons.seed}
+                            </div>
+                            <div className="flex-grow min-w-0 space-y-1.5">
+                              <div className="flex items-center justify-between gap-4">
+                                <h3 className="text-lg font-display font-light truncate text-white/70 group-hover:text-white/90 transition-colors italic">
+                                  {w.title || "Untitled"}
+                                </h3>
+                                <div className="flex items-center gap-3 flex-shrink-0">
+                                  <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">{w.genre}</span>
+                                  <span className="font-mono text-[9px] text-white/10">{timeAgo(w.updatedAt)}</span>
+                                </div>
+                              </div>
+                              {w.content && (
+                                <p className="text-sm font-serif text-white/25 line-clamp-1 group-hover:text-white/35 transition-colors">
+                                  {w.content.slice(0, 150)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {writings.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="border border-dashed border-white/10 rounded-2xl p-20 text-center space-y-8"
+                  transition={{ delay: 0.5 }}
+                  className="border border-dashed border-white/10 rounded-2xl p-16 md:p-20 text-center space-y-8"
                   data-testid="empty-garden"
                 >
-                  <div className="space-y-2">
-                    <SeedIcon className="w-12 h-12 mx-auto text-white/15" />
+                  <div className="flex items-center justify-center gap-6">
+                    <SeedIcon className="w-10 h-10 text-amber-400/20" />
+                    <SproutIcon className="w-12 h-12 text-emerald-400/20" />
+                    <BloomIcon className="w-10 h-10 text-pink-400/20" />
                   </div>
                   <div className="space-y-3">
-                    <h3 className="text-2xl font-display font-light italic text-white/60">Your garden is empty</h3>
-                    <p className="font-serif text-white/30 max-w-md mx-auto leading-relaxed text-sm">
-                      Plant your first seed. A line, a fragment, a whole draft — whatever wants to come out.
+                    <h3 className="text-2xl md:text-3xl font-display font-light italic text-white/60">
+                      Your garden awaits its first seed
+                    </h3>
+                    <p className="font-serif text-white/30 max-w-md mx-auto leading-relaxed text-base">
+                      A line, a fragment, a whole draft — whatever wants to come out. Plant it and watch it grow.
                     </p>
                   </div>
                   <button
                     onClick={() => createMutation.mutate()}
-                    className="inline-flex items-center gap-2 px-6 py-3 border border-white/10 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all"
+                    className="inline-flex items-center gap-3 px-8 py-3.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white transition-all group"
                     data-testid="button-plant-seed"
                   >
-                    <Plus size={14} />
-                    Plant a Seed
+                    <Sparkles size={14} className="group-hover:text-amber-400 transition-colors" />
+                    Plant Your First Seed
                   </button>
                 </motion.div>
-              ) : (
-                <div className="grid gap-3">
-                  {writings.map((w, i) => (
-                    <motion.button
-                      key={w.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.4 }}
-                      onClick={() => openWriting(w)}
-                      className="w-full text-left group relative"
-                      data-testid={`card-writing-${w.id}`}
-                    >
-                      <div className="relative p-5 md:p-6 rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all duration-300">
-                        <div className="flex items-start gap-4">
-                          <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[w.stage]} ${stageAccent[w.stage]}`}>
-                            {stageIcons[w.stage] || stageIcons.seed}
-                          </div>
-                          <div className="flex-grow min-w-0 space-y-1.5">
-                            <div className="flex items-center justify-between gap-4">
-                              <h3 className="text-lg font-display font-light truncate text-white/70 group-hover:text-white/90 transition-colors italic">
-                                {w.title || "Untitled"}
-                              </h3>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">
-                                  {w.genre}
-                                </span>
-                                <span className="font-mono text-[9px] text-white/10">
-                                  {timeAgo(w.updatedAt)}
-                                </span>
-                              </div>
-                            </div>
-                            {w.content && (
-                              <p className="text-sm font-serif text-white/25 line-clamp-1 group-hover:text-white/35 transition-colors">
-                                {w.content.slice(0, 150)}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
               )}
             </motion.div>
           )}
