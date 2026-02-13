@@ -1,0 +1,315 @@
+The editor’s studio can be a dedicated, calm control room that sits on top of the Garden, with a clear flow:
+
+**Garden → Editor Studio → Greenhouse → Issue Builder → Publish to The Page**
+
+Below is a complete breakdown of how it works and what editors can do at each step.
+
+***
+
+## 1. Editor accounts and their Garden
+
+When someone is given editor permissions:
+
+- They get a **standard member account** plus:
+  - An **Editor Studio** section.
+  - Elevated permissions inside the Garden.
+- They automatically have their **own Garden**, like any writer:
+  - They can plant their own work.
+  - They can participate in Circles.
+  - Their writing is discoverable in the members-only Garden like everyone else (no separate “editor class” visually).
+
+Permissions model:
+
+- **Member**: Read and interact with Garden content within visibility rules.
+- **Editor**: All of the above, plus:
+  - Access to the full Garden reading view (for all pieces marked shareable to the entire Garden).
+  - Ability to mark pieces as “shortlisted” (Greenhouse).
+  - Ability to send and manage publishing requests.
+  - Ability to assemble and publish issues to The Page.
+
+***
+
+## 2. The Editor Studio home
+
+The Editor Studio should feel like a dashboard, not a CMS thicket. One page with clear sections:
+
+1. **Today’s Overview**
+   - New Garden pieces since last login.
+   - New pieces marked “available for editorial consideration.”
+   - Pending author responses to publish requests.
+   - Upcoming issue deadlines.
+
+2. **Pipelines**
+   - **Garden Stream** (all eligible work).
+   - **Greenhouse** (shortlisted).
+   - **Requests & Contracts** (in-progress negotiations).
+   - **Issues** (draft, scheduled, published).
+
+3. **Search & Filters**
+   - Global search by title, author, tags, form, theme.
+   - Filters by length, readiness (“ready to show”), date planted, Circle, etc.
+
+Everything important should be reachable from this one page.
+
+***
+
+## 3. Browsing all Garden work (editor view)
+
+Editors need a way to scroll through the whole Garden without breaking the intimacy of the space.
+
+### 3.1 What editors see
+
+Editors see a **Garden reading view** that is:
+
+- Limited to:
+  - Pieces marked “Whole Garden” (visible to all members).
+  - Pieces marked “Available to editors” (editor visibility toggle).
+- Respectful of privacy:
+  - Private and Circle-only pieces are not in the editorial pool unless explicitly shared for editorial consideration.
+
+### 3.2 Garden stream layout
+
+For each piece in the editor’s Garden stream, show:
+
+- Title (or “Untitled” if none)
+- Author name + quick profile hover (bio, pronouns, time zone, any access notes)
+- Tags: form, length, themes
+- Readiness: Raw seed / Growing piece / Ready to show
+- Availability: Editorial consideration on/off
+- Date planted or last updated
+- A short excerpt (first few lines)
+
+Actions on each card:
+
+- **Open in reader** (full piece).
+- **Add to Greenhouse** (shortlist).
+- **View author context** (other pieces, sanctuary journals they like, etc.).
+- **Add internal note** (for other editors).
+
+Infinite scroll or paginated, with powerful filters:
+
+- Form (poem, short story, hybrid, essay, etc.).
+- Length bands (micro, short, long).
+- Thematic tags (trauma, sea, neurodivergence, family, etc.).
+- “New since last visit.”
+- “Quiet pieces” (few or no reactions).
+- “By emerging members” / “By frequent contributors.”
+
+***
+
+## 4. The Greenhouse (shortlist)
+
+The Greenhouse is a private, editor-only shortlist space.
+
+### 4.1 Adding to Greenhouse
+
+From the Garden stream or reader:
+
+- Click **“Add to Greenhouse”**.
+- Choose:
+  - Which **issue(s)** or **theme folders** it might fit (e.g., “Winter 2026,” “Grief,” “Shared Ground”).
+  - Priority (low/medium/high).
+  - Optional internal note.
+
+No notification to the writer yet—this is internal thinking space.
+
+### 4.2 Greenhouse view
+
+The Greenhouse view shows:
+
+- All shortlisted pieces, grouped by:
+  - Issue theme / folder.
+  - Stage (Uncontacted / Request sent / Accepted / Declined).
+- Per piece:
+  - Author, title, tags, length.
+  - Which editor added it; internal notes.
+  - Status pill (e.g., “Potential for Issue 4”).
+
+Actions:
+
+- Open piece in reader.
+- Move between theme folders.
+- Initiate a **publish request**.
+- Remove from Greenhouse (piece drops back to the normal Garden state).
+
+***
+
+## 5. Sending publish requests
+
+This is the core interaction between editors and writers: inviting a Garden piece into The Page.
+
+### 5.1 Starting a request
+
+From a piece in the Greenhouse:
+
+- Click **“Request to publish”**.
+- Fill out:
+  - Target: which **issue** (or “evergreen / online exhibit”).
+  - Proposed **publication date / window**.
+  - **Notes to author**:
+    - Why this piece.
+    - Any initial thoughts on edits or layout ideas.
+  - **Rights & terms**:
+    - Duration of rights.
+    - Payment (amount, timing, method).
+    - Whether the Garden version stays as-is or gets linked to the final.
+
+This generates a **draft request**.
+
+### 5.2 What the writer sees
+
+The writer receives an in-Garden notification and email:
+
+- Message: “We’d like to invite your piece **[title]** into The Page for [issue/theme].”
+- Clear, human language that matches your ethos of invitation and care.
+- UI with:
+  - Full request message.
+  - Rights/payment summary.
+  - Proposed timeline.
+  - Buttons: **Accept**, **Decline**, **Ask a question**.
+
+The writer can:
+
+- Accept: piece moves into **In contract** state.
+- Decline: no hard feelings; the piece remains in their Garden as normal.
+- Ask questions: opens a message thread with editors inside the Studio.
+
+### 5.3 Tracking requests
+
+In the Editor Studio, a **Requests & Contracts** tab shows:
+
+Columns:
+
+- Piece
+- Author
+- Issue / theme
+- Status:
+  - Draft request (not sent)
+  - Sent — awaiting response
+  - Accepted — in production
+  - Declined
+  - Needs contract signature / payment
+- Last update date
+- Assigned editor
+
+Editors can filter by status, author, issue, and responsible editor.
+
+***
+
+## 6. Issue Builder: assembling The Page
+
+Once pieces are accepted, editors move them into issues.
+
+### 6.1 Issue overview
+
+For each issue (e.g., “Winter 2026,” “Shared Ground”):
+
+- Metadata:
+  - Title, subtitle, theme note.
+  - Publication date.
+  - Status: Draft / Locked / Published.
+- Contributions:
+  - List of accepted pieces.
+  - Layout order (drag-and-drop).
+  - Content type (poem, short story, essay, hybrid).
+  - Assigned illustrator / designer.
+
+### 6.2 Editing and production
+
+Per piece, editors can:
+
+- Open the **editorial view**:
+  - Edit text with version control (track changes).
+  - Leave editorial comments for the writer.
+  - See writer’s final approved version.
+- Attach:
+  - Visual concept notes.
+  - Illustration briefs.
+  - Design references.
+
+Workflow states per piece:
+
+- Draft received
+- Edited and approved (text final)
+- Design in progress
+- Design approved
+- Ready to publish
+
+All of this remains internal; the Garden version of the piece remains as the writer first planted it (or minimally updated with a tag like “Exhibited on The Page”).
+
+### 6.3 Publishing to The Page
+
+When an issue is ready:
+
+- Editor hits **“Publish issue”**.
+- System:
+  - Creates or updates public pages on The Page site for:
+    - Issue landing page.
+    - Individual piece pages with their illustrated layouts.
+  - Connects them to navigation, archive, and contributors page.
+- Sends:
+  - Author notifications.
+  - Optional Garden announcement (for members): “New issue is live; X pieces grew from this Garden.”
+
+***
+
+## 7. Linking Garden and Page
+
+The relationship between internal and public views should be explicit and gentle.
+
+### 7.1 In the Garden
+
+On a piece that has been published:
+
+- A small badge: **“Exhibited on The Page (Issue X)”**.
+- Clickable link to the public version.
+- History note: “Invited on [date], accepted on [date], published on [date].”
+
+For other members, in the Garden reader:
+
+- They see the badge and can click through to see how a Garden piece became a finished gallery room.
+
+### 7.2 On The Page (public)
+
+On each public piece:
+
+- A subtle line in the contributor note: “This piece grew in The Garden, our private members-only writing space.”
+- Link back to a landing page that explains membership and the Garden ecosystem (no direct exposure of internal content).
+
+***
+
+## 8. Roles, safety, and boundaries
+
+Because editors can see a lot, the Studio should bake in safety:
+
+- **Visibility rules enforced in code**:
+  - Editors only see pieces where:
+    - Visibility is Whole Garden, or
+    - Explicitly shared to editors.
+  - Private and Circle-only posts stay completely out of the editorial pool unless the writer actively changes visibility.
+- **Audit log**:
+  - Internal log of which editor viewed or changed what, for accountability and internal trust.
+- **Draft vs. final safeguards**:
+  - Clear differentiation between:
+    - Garden draft version.
+    - Edited text.
+    - Final published text.
+  - No silent overwrites.
+
+***
+
+## 9. Editor experience summary
+
+An editor’s day could look like:
+
+1. Open the Editor Studio.
+2. Skim “New to the Garden” and “Newly editor-available” pieces.
+3. Read a handful, add promising ones to the Greenhouse.
+4. For the upcoming issue, open Greenhouse → select 3–4 pieces → send publish requests.
+5. Check the Requests tab, respond to author questions.
+6. Move accepted pieces into Issue Builder, finalise edits and design.
+7. Publish issue when ready.
+
+They get to operate like curators in a private gallery, not gatekeepers in a slush inbox.
+
+If you want next, the flows above can be turned into concrete screens / sections (e.g., exact fields and controls) you can hand to a designer or dev team.

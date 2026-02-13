@@ -9,7 +9,7 @@ import {
   Sprout, Sparkles, Flower2, Droplets, Zap, Leaf,
   Flame, Archive, NotebookPen, CloudSun, Brain,
   CalendarRange, Network, Mic, Moon, Bell,
-  FileCheck, Heart, Bookmark, Compass, MessageCircle,
+  FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X
 } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
@@ -18,12 +18,12 @@ import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow"
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
 import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
-import { TablesRoom, WorkshopRoom, SwapRoom } from "@/components/garden/CommunityRooms";
+import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, ThePressRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
 
 type Zone = "desk" | "reading-room" | "greenhouse";
-type ActiveRoom = "tables" | "workshop" | "swap" | null;
+type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "press" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "inner-weather" | "rituals" | "compost" | "reflections" | "circles" | null;
 
 const stageColors: Record<string, string> = {
@@ -174,10 +174,9 @@ function timeAgo(date: string | Date | null | undefined) {
 const rooms = [
   { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Community discussions", comingSoon: false },
   { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises", comingSoon: false },
-  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Coming soon", comingSoon: true },
+  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Shared writing space", comingSoon: false },
   { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange", comingSoon: false },
-  { id: "retreats", label: "Retreats", icon: <Compass size={13} />, desc: "Coming soon", comingSoon: true },
-  { id: "press", label: "The Press", icon: <FileCheck size={13} />, desc: "Coming soon", comingSoon: true },
+  { id: "press", label: "The Press", icon: <FileCheck size={13} />, desc: "Published gallery & editorial", comingSoon: false },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
@@ -1946,6 +1945,10 @@ export default function Garden() {
                 <WorkshopRoom onBack={() => setActiveRoom(null)} />
               ) : activeRoom === "swap" ? (
                 <SwapRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "the-desk" ? (
+                <TheDeskRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "press" ? (
+                <ThePressRoom onBack={() => setActiveRoom(null)} />
               ) : isEditing && activeWriting ? (
                 <WriteEditor
                   key={activeWriting.id}

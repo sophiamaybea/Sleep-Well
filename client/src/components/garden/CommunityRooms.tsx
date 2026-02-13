@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine } from "lucide-react";
+import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine, FileCheck, Sparkles, Clock, Award, Send } from "lucide-react";
+import { ContentRenderer } from "./RichEditor";
 
 function ListSkeleton({ count = 4 }: { count?: number }) {
   return (
@@ -1176,6 +1177,324 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
           </motion.div>
         ))}
       </div>
+    </div>
+  );
+}
+
+type DeskPrompt = {
+  id: string;
+  text: string;
+  category: string;
+  createdAt: string;
+};
+
+type DeskEntry = {
+  id: string;
+  authorId: string;
+  content: string;
+  promptId?: string;
+  authorName?: string;
+  createdAt: string;
+};
+
+export function TheDeskRoom({ onBack }: { onBack: () => void }) {
+  const queryClient = useQueryClient();
+  const [isWriting, setIsWriting] = useState(false);
+  const [deskText, setDeskText] = useState("");
+  const [activePromptIndex, setActivePromptIndex] = useState(0);
+
+  const { data: prompts = [], isLoading: loadingPrompts } = useQuery<DeskPrompt[]>({
+    queryKey: ["/api/prompts"],
+    queryFn: async () => {
+      const r = await fetch("/api/prompts", { credentials: "include" });
+      return r.ok ? r.json() : [];
+    },
+  });
+
+  const { data: gardenFeed = [], isLoading: loadingFeed } = useQuery<any[]>({
+    queryKey: ["/api/garden-feed", "desk-recent"],
+    queryFn: async () => {
+      const r = await fetch("/api/garden-feed", { credentials: "include" });
+      return r.ok ? r.json() : [];
+    },
+  });
+
+  const recentPieces = gardenFeed.slice(0, 10);
+
+  const currentPrompt = prompts[activePromptIndex];
+
+  return (
+    <div className="space-y-6" data-testid="the-desk-room">
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 transition-colors group"
+          data-testid="button-back-desk"
+        >
+          <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
+        <div className="flex-1" />
+        <PenLine size={16} className="text-white/30" />
+      </div>
+
+      <div className="text-center space-y-3 pb-4 border-b border-white/[0.06]">
+        <h2 className="text-2xl font-display font-light italic text-white/80">The Desk</h2>
+        <p className="font-serif text-sm text-white/45 max-w-md mx-auto leading-relaxed">
+          A shared writing space. Pick a prompt, write freely, or simply read what others have left on the desk today.
+        </p>
+      </div>
+
+      {prompts.length > 0 && (
+        <div className="border border-amber-500/10 bg-amber-500/[0.02] rounded-xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-[9px] uppercase tracking-widest text-amber-400/40">Today's Prompt</p>
+            <button
+              onClick={() => setActivePromptIndex((activePromptIndex + 1) % prompts.length)}
+              className="p-1 text-white/25 hover:text-white/50 transition-colors"
+              title="Next prompt"
+              data-testid="button-next-desk-prompt"
+            >
+              <Sparkles size={13} />
+            </button>
+          </div>
+          {currentPrompt && (
+            <p className="font-display text-xl font-light italic text-amber-200/50 leading-relaxed">
+              {currentPrompt.text}
+            </p>
+          )}
+          {!isWriting ? (
+            <button
+              onClick={() => setIsWriting(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.12] rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/55 hover:text-white/75 transition-all"
+              data-testid="button-start-desk-write"
+            >
+              <Feather size={12} />
+              Write at the desk
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <textarea
+                value={deskText}
+                onChange={(e) => setDeskText(e.target.value)}
+                placeholder="Write freely..."
+                className="w-full bg-white/[0.03] border border-white/[0.10] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/30 focus:outline-none focus:border-white/25 resize-none h-40 transition-colors"
+                autoFocus
+                data-testid="input-desk-text"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setIsWriting(false); setDeskText(""); }}
+                  className="px-3 py-1.5 font-mono text-[8px] uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors"
+                  data-testid="button-cancel-desk-write"
+                >
+                  Cancel
+                </button>
+                <span className="font-mono text-[8px] text-white/20">
+                  {deskText.trim().split(/\s+/).filter(Boolean).length} words
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {loadingPrompts && <ListSkeleton count={1} />}
+
+      <div className="space-y-3">
+        <p className="font-mono text-[9px] uppercase tracking-widest text-white/35">Recently on the desk</p>
+        {loadingFeed ? (
+          <ListSkeleton count={4} />
+        ) : recentPieces.length > 0 ? (
+          recentPieces.map((piece: any) => (
+            <motion.div
+              key={piece.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="border border-white/[0.08] rounded-xl p-5 space-y-3 hover:border-white/[0.15] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="font-serif text-xs text-white/40 italic">{piece.authorName || "Anonymous"}</span>
+                <span className="font-mono text-[8px] text-white/20">{timeAgo(piece.createdAt)}</span>
+                <span className="ml-auto font-mono text-[8px] uppercase tracking-widest text-white/15 px-2 py-0.5 border border-white/[0.06] rounded-full">{piece.genre}</span>
+              </div>
+              <h4 className="font-display text-lg font-light text-white/70">{piece.title}</h4>
+              <div className="font-serif text-sm text-white/50 leading-relaxed line-clamp-3">
+                <ContentRenderer content={piece.content} maxLength={200} />
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <div className="border border-dashed border-white/[0.10] rounded-xl p-12 text-center space-y-3">
+            <PenLine size={24} className="mx-auto text-white/20" />
+            <p className="font-serif text-sm text-white/40 italic">The desk is quiet. Be the first to write something today.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type GalleryPiece = {
+  id: string;
+  title: string;
+  content: string;
+  genre: string;
+  authorId: string;
+  authorName: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+};
+
+export function ThePressRoom({ onBack }: { onBack: () => void }) {
+  const [view, setView] = useState<"published" | "editorial">("published");
+
+  const { data: gallery = [], isLoading: loadingGallery } = useQuery<GalleryPiece[]>({
+    queryKey: ["/api/gallery"],
+    queryFn: async () => {
+      const r = await fetch("/api/gallery", { credentials: "include" });
+      return r.ok ? r.json() : [];
+    },
+  });
+
+  const { data: editorialPieces = [], isLoading: loadingEditorial } = useQuery<any[]>({
+    queryKey: ["/api/editorial/pieces"],
+    queryFn: async () => {
+      const r = await fetch("/api/editorial/pieces", { credentials: "include" });
+      return r.ok ? r.json() : [];
+    },
+  });
+
+  return (
+    <div className="space-y-6" data-testid="the-press-room">
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 transition-colors group"
+          data-testid="button-back-press"
+        >
+          <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
+        <div className="flex-1" />
+        <FileCheck size={16} className="text-white/30" />
+      </div>
+
+      <div className="text-center space-y-3 pb-4 border-b border-white/[0.06]">
+        <h2 className="text-2xl font-display font-light italic text-white/80">The Press</h2>
+        <p className="font-serif text-sm text-white/45 max-w-md mx-auto leading-relaxed">
+          Where writing becomes published. Browse the gallery collection or discover pieces ready for the editorial eye.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2 justify-center">
+        <button
+          onClick={() => setView("published")}
+          className={`px-4 py-2 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${view === "published" ? "border-white/20 bg-white/[0.08] text-white/80" : "border-white/[0.08] text-white/40 hover:text-white/55"}`}
+          data-testid="press-tab-published"
+        >
+          <span className="flex items-center gap-1.5"><Award size={11} /> Published</span>
+        </button>
+        <button
+          onClick={() => setView("editorial")}
+          className={`px-4 py-2 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${view === "editorial" ? "border-white/20 bg-white/[0.08] text-white/80" : "border-white/[0.08] text-white/40 hover:text-white/55"}`}
+          data-testid="press-tab-editorial"
+        >
+          <span className="flex items-center gap-1.5"><Sparkles size={11} /> Editorial Queue</span>
+        </button>
+      </div>
+
+      {view === "published" ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-[9px] uppercase tracking-widest text-white/35">
+              Gallery Collection — {gallery.length} {gallery.length === 1 ? "piece" : "pieces"}
+            </p>
+          </div>
+
+          {loadingGallery ? (
+            <ListSkeleton count={3} />
+          ) : gallery.length > 0 ? (
+            gallery.map((piece, i) => (
+              <motion.div
+                key={piece.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="border border-white/[0.10] rounded-xl p-6 space-y-4 hover:border-white/[0.18] transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[8px] uppercase tracking-widest text-amber-400/30 px-2 py-0.5 border border-amber-400/10 rounded-full">{piece.genre}</span>
+                  {piece.authorName && <span className="font-serif text-xs text-white/35 italic">{piece.authorName}</span>}
+                  {piece.publishedAt && (
+                    <span className="ml-auto font-mono text-[8px] text-white/20">
+                      {new Date(piece.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-xl font-display font-light text-white/75 group-hover:text-white/90 transition-colors">{piece.title}</h3>
+                <div className="font-serif text-sm text-white/45 leading-relaxed">
+                  <ContentRenderer content={piece.content} maxLength={300} />
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <div className="border border-dashed border-white/[0.10] rounded-xl p-12 text-center space-y-3">
+              <Award size={28} className="mx-auto text-white/15" />
+              <h3 className="font-display text-lg font-light italic text-white/50">The gallery awaits its first exhibit</h3>
+              <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
+                When editors discover work that moves them, it will appear here — no submissions needed, just writing that finds its way.
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-white/35">
+            Pieces available for editorial consideration — {editorialPieces.length} in queue
+          </p>
+
+          {loadingEditorial ? (
+            <ListSkeleton count={3} />
+          ) : editorialPieces.length > 0 ? (
+            editorialPieces.map((piece: any, i: number) => (
+              <motion.div
+                key={piece.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="border border-white/[0.08] rounded-xl p-5 space-y-3 hover:border-white/[0.15] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[8px] uppercase tracking-widest text-violet-400/30 px-2 py-0.5 border border-violet-400/10 rounded-full">{piece.genre}</span>
+                  <span className="font-serif text-xs text-white/35 italic">{piece.authorName || "Anonymous"}</span>
+                  <span className="ml-auto flex items-center gap-1 font-mono text-[8px] text-white/20">
+                    <Clock size={9} />
+                    {timeAgo(piece.createdAt)}
+                  </span>
+                </div>
+                <h4 className="font-display text-lg font-light text-white/65">{piece.title}</h4>
+                <div className="font-serif text-sm text-white/40 leading-relaxed">
+                  <ContentRenderer content={piece.content} maxLength={200} />
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="font-mono text-[7px] uppercase tracking-widest text-emerald-400/25 flex items-center gap-1">
+                    <Sparkles size={8} /> Ready for editorial
+                  </span>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <div className="border border-dashed border-white/[0.10] rounded-xl p-12 text-center space-y-3">
+              <Sparkles size={24} className="mx-auto text-white/15" />
+              <h3 className="font-display text-lg font-light italic text-white/50">No pieces in the editorial queue</h3>
+              <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
+                Writers can mark their work as editorially available through the planting flow. Those pieces will appear here for discovery.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
