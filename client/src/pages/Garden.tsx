@@ -21,7 +21,7 @@ import { TablesRoom, WorkshopRoom, SwapRoom } from "@/components/garden/Communit
 
 type Zone = "desk" | "reading-room" | "greenhouse";
 type ActiveRoom = "tables" | "workshop" | "swap" | null;
-type GreenhouseTool = "growth-journal" | "inner-weather" | "rituals" | "compost" | "reflections" | "circles" | null;
+type GreenhouseTool = "freewrite" | "growth-journal" | "inner-weather" | "rituals" | "compost" | "reflections" | "circles" | null;
 
 const stageColors: Record<string, string> = {
   raw_seed: "border-amber-500/30 text-amber-400/80",
@@ -724,6 +724,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
 }
 
 const greenhouseTools = [
+  { id: "freewrite" as const, label: "Freewrite", desc: "A typewriter for your thoughts — just you, the keys, and the sound of writing. No saving, no editing. Pure flow.", icon: <PenLine size={20} />, color: "warmGray" },
   { id: "growth-journal" as const, label: "Growth Journal", desc: "A private space to reflect on your writing journey — celebrate progress, note struggles, track what you're learning", icon: <NotebookPen size={20} />, color: "emerald" },
   { id: "inner-weather" as const, label: "Inner Weather", desc: "Check in with your creative mood and energy before you write — track patterns over time", icon: <CloudSun size={20} />, color: "sky" },
   { id: "rituals" as const, label: "Rituals", desc: "Set a timer and write — timed sessions to build a consistent creative practice", icon: <Flame size={20} />, color: "amber" },
@@ -739,6 +740,7 @@ const toolColorMap: Record<string, { border: string; text: string; bg: string; g
   violet: { border: "border-violet-500/15", text: "text-violet-400/60", bg: "hover:bg-violet-500/[0.04]", glow: "rgba(139,92,246,0.08)" },
   pink: { border: "border-pink-500/15", text: "text-pink-400/60", bg: "hover:bg-pink-500/[0.04]", glow: "rgba(236,72,153,0.08)" },
   indigo: { border: "border-indigo-500/15", text: "text-indigo-400/60", bg: "hover:bg-indigo-500/[0.04]", glow: "rgba(99,102,241,0.08)" },
+  warmGray: { border: "border-stone-400/20", text: "text-stone-300/70", bg: "hover:bg-stone-500/[0.06]", glow: "rgba(168,162,158,0.1)" },
 };
 
 function GreenhouseZone() {
@@ -791,6 +793,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
   const toolInfo = greenhouseTools.find(t => t.id === tool)!;
 
   const toolContent: Record<string, React.ReactNode> = {
+    "freewrite": <FreewriteView />,
     "growth-journal": <GrowthJournalView />,
     "inner-weather": <InnerWeatherView />,
     "rituals": <RitualsView />,
@@ -817,6 +820,196 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
       {toolContent[tool]}
     </div>
   );
+}
+
+function useTypewriterSound() {
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getCtx = useCallback(() => {
+    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    return audioCtxRef.current;
+  }, []);
+
+  const playKey = useCallback(() => {
+    try {
+      const ctx = getCtx();
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(1800 + Math.random() * 600, t);
+      osc.frequency.exponentialRampToValueAtTime(300, t + 0.03);
+      filter.type = "bandpass";
+      filter.frequency.value = 2000;
+      filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0.06, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.06);
+    } catch {}
+  }, [getCtx]);
+
+  const playSpace = useCallback(() => {
+    try {
+      const ctx = getCtx();
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(400, t);
+      osc.frequency.exponentialRampToValueAtTime(150, t + 0.04);
+      gain.gain.setValueAtTime(0.04, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.08);
+    } catch {}
+  }, [getCtx]);
+
+  const playReturn = useCallback(() => {
+    try {
+      const ctx = getCtx();
+      const t = ctx.currentTime;
+      const noise = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      noise.type = "sawtooth";
+      noise.frequency.setValueAtTime(200, t);
+      noise.frequency.linearRampToValueAtTime(80, t + 0.15);
+      filter.type = "lowpass";
+      filter.frequency.value = 600;
+      gain.gain.setValueAtTime(0.05, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      noise.start(t);
+      noise.stop(t + 0.15);
+    } catch {}
+  }, [getCtx]);
+
+  return { playKey, playSpace, playReturn };
+}
+
+function FreewriteView() {
+  const [text, setText] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { playKey, playSpace, playReturn } = useTypewriterSound();
+
+  useEffect(() => {
+    if (textareaRef.current) textareaRef.current.focus();
+  }, [isFullscreen]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!soundEnabled) return;
+    if (e.key === "Enter") playReturn();
+    else if (e.key === " ") playSpace();
+    else if (e.key.length === 1) playKey();
+  }, [soundEnabled, playKey, playSpace, playReturn]);
+
+  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const charCount = text.length;
+
+  const editorContent = (
+    <div className={`relative ${isFullscreen ? "fixed inset-0 z-50 bg-[#1a1612]" : ""}`}>
+      {isFullscreen && (
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-stone-600/30 to-transparent" />
+      )}
+      <div className={`flex items-center justify-between ${isFullscreen ? "px-8 pt-6 pb-2" : "mb-4"}`}>
+        <div className="flex items-center gap-4">
+          <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-stone-500">
+            {wordCount} words
+          </span>
+          <span className="text-stone-700">|</span>
+          <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-stone-500">
+            {charCount} chars
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`font-mono text-[9px] tracking-widest uppercase px-3 py-1 rounded-full border transition-all ${
+              soundEnabled
+                ? "border-stone-500/30 text-stone-400 bg-stone-500/10"
+                : "border-stone-700/30 text-stone-600"
+            }`}
+            data-testid="button-toggle-sound"
+          >
+            {soundEnabled ? "sound on" : "sound off"}
+          </button>
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 rounded-full border border-stone-600/20 text-stone-500 hover:text-stone-300 hover:border-stone-500/30 transition-all"
+            data-testid="button-toggle-fullscreen"
+          >
+            {isFullscreen ? "exit" : "focus mode"}
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`relative ${
+          isFullscreen
+            ? "h-[calc(100vh-80px)] px-8"
+            : "min-h-[400px]"
+        }`}
+        style={{
+          background: isFullscreen
+            ? "radial-gradient(ellipse at 50% 30%, rgba(168,162,158,0.04) 0%, transparent 70%)"
+            : undefined,
+        }}
+      >
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Start typing. Don't think. Don't stop. Just let the words come..."
+          className={`w-full h-full bg-transparent border-none outline-none resize-none leading-[2] tracking-wide ${
+            isFullscreen
+              ? "text-lg text-stone-300/90 placeholder:text-stone-600/50 max-w-2xl mx-auto pt-8"
+              : "text-sm text-stone-300/80 placeholder:text-stone-600/40 p-4 border border-stone-600/15 rounded-xl bg-stone-900/20 min-h-[400px]"
+          }`}
+          style={{ fontFamily: "'Special Elite', 'Courier New', monospace" }}
+          data-testid="textarea-freewrite"
+          spellCheck={false}
+        />
+
+        {text.length === 0 && (
+          <div className={`absolute pointer-events-none ${isFullscreen ? "bottom-16 left-1/2 -translate-x-1/2" : "bottom-6 left-1/2 -translate-x-1/2"}`}>
+            <motion.div
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="font-mono text-[8px] tracking-[0.4em] uppercase text-stone-600"
+            >
+              just begin
+            </motion.div>
+          </div>
+        )}
+      </div>
+
+      {text.length > 0 && (
+        <div className={`flex justify-end ${isFullscreen ? "px-8 pb-4" : "mt-3"}`}>
+          <button
+            onClick={() => { if (confirm("Clear everything? This freewrite is meant to be ephemeral — the words served their purpose.")) setText(""); }}
+            className="font-mono text-[9px] tracking-widest uppercase text-stone-600 hover:text-stone-400 transition-colors"
+            data-testid="button-clear-freewrite"
+          >
+            clear page
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  return editorContent;
 }
 
 function GrowthJournalView() {
