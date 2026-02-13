@@ -4,6 +4,7 @@
 A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
 
 ## Recent Changes
+- 2026-02-13: Planting flow & visibility layers — three-tier visibility (personal/circle/garden), readiness stages (raw_seed/growing/ready_to_show), editorial availability flags, PlantingFlow modal, Garden Gallery feed with filters, ProfileGarden view, garden-feed/profile-garden/circle-feed API endpoints
 - 2026-02-13: Built all 16 Garden features — Gallery, Reading Queue, Explore, Saved, Pollination, Rituals, Compost, Growth Journal, Submissions, Inner Weather, Reflections, Seasonal Review, Root System, Circles, Moonlit Readings, Replant Requests
 - 2026-02-13: Complete Garden redesign — sidebar navigation with 5 section groups, 3-step interactive landing, My Garden with search/filters/expandable cards, dedicated Write editor
 - 2026-02-13: Enhanced landing page interactivity: 3D tilt cards (TwoDoors), word-by-word text reveals (Hero, Manifesto), magnetic cursor buttons, shine sweep cards (Featured), interactive grow cards (GardenIntro), animated timeline (HowItWorks)
@@ -31,6 +32,9 @@ A literary journal platform with an immersive, space-themed design. Writers crea
 
 ### Garden Feature Architecture
 Feature pages are organized in `client/src/components/garden/`:
+- `PlantingFlow.tsx` - 3-step modal for setting visibility/readiness/editorial availability
+- `GardenFeed.tsx` - Garden Gallery feed with readiness/genre filters
+- `ProfileGarden.tsx` - View another member's shared pieces
 - `DiscoverFeatures.tsx` - Gallery, ReadingQueue, Explore, Saved, Pollination
 - `PracticeFeatures.tsx` - Rituals, Compost, GrowthJournal, Submissions
 - `ReflectFeatures.tsx` - InnerWeather, Reflections, SeasonalReview, RootSystem
@@ -46,6 +50,9 @@ Feature pages are organized in `client/src/components/garden/`:
 - `POST /api/writings` - Auth: create a writing
 - `PATCH /api/writings/:id` - Auth: update a writing
 - `DELETE /api/writings/:id` - Auth: delete a writing
+- `GET /api/garden-feed` - Auth: garden-visible pieces (?readiness=, ?genre= filters)
+- `GET /api/garden-profile/:userId` - Auth: a member's garden-visible pieces
+- `GET /api/circle-feed` - Auth: circle-visible pieces from user's circles
 - `GET/POST/DELETE /api/reading-queue` - Auth: manage reading queue
 - `PATCH /api/reading-queue/:id/read` - Auth: mark as read
 - `GET/POST/DELETE /api/saved` - Auth: manage saved pieces
@@ -73,7 +80,7 @@ Feature pages are organized in `client/src/components/garden/`:
 ### Database Tables
 - `users` - Replit Auth user profiles
 - `sessions` - Session storage for auth
-- `writings` - User writings (title, content, stage, genre, isPublished)
+- `writings` - User writings (title, content, genre, isPublished, visibility [personal/circle/garden], readiness [raw_seed/growing/ready_to_show], editorialAvailable)
 - `reading_queue` - User's reading queue items
 - `saved_pieces` - User's bookmarked pieces
 - `pollinations` - Feedback/affirmations between users

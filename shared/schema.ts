@@ -13,6 +13,9 @@ export const writings = pgTable("writings", {
   content: text("content").notNull().default(""),
   stage: text("stage").notNull().default("seed"),
   genre: text("genre").notNull().default("poetry"),
+  visibility: text("visibility").notNull().default("personal"),
+  readiness: text("readiness").notNull().default("raw_seed"),
+  editorialAvailable: boolean("editorial_available").notNull().default(false),
   isPublished: boolean("is_published").notNull().default(false),
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -176,6 +179,10 @@ export const writingsRelations = relations(writings, ({ one, many }) => ({
 // Insert schemas
 export const insertWritingSchema = createInsertSchema(writings).omit({
   id: true, authorId: true, isPublished: true, publishedAt: true, createdAt: true, updatedAt: true,
+}).extend({
+  visibility: z.enum(["personal", "circle", "garden"]).optional(),
+  readiness: z.enum(["raw_seed", "growing", "ready_to_show"]).optional(),
+  editorialAvailable: z.boolean().optional(),
 });
 export const updateWritingSchema = insertWritingSchema.partial();
 

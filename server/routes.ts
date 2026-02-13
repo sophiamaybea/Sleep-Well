@@ -93,6 +93,45 @@ export async function registerRoutes(
     }
   });
 
+  // === GARDEN FEED (members-only) ===
+  app.get("/api/garden-feed", isAuthenticated, async (req: any, res) => {
+    try {
+      const { readiness, genre, editorial } = req.query;
+      const filters: { readiness?: string; genre?: string; editorialOnly?: boolean } = {};
+      if (readiness && readiness !== "all") filters.readiness = readiness as string;
+      if (genre && genre !== "all") filters.genre = genre as string;
+      if (editorial === "true") filters.editorialOnly = true;
+      const feed = await storage.getGardenFeed(filters);
+      res.json(feed);
+    } catch (error) {
+      console.error("Error fetching garden feed:", error);
+      res.status(500).json({ message: "Failed to fetch garden feed" });
+    }
+  });
+
+  // === PROFILE GARDEN ===
+  app.get("/api/garden-profile/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const writings = await storage.getProfileGarden(req.params.userId);
+      res.json(writings);
+    } catch (error) {
+      console.error("Error fetching profile garden:", error);
+      res.status(500).json({ message: "Failed to fetch profile garden" });
+    }
+  });
+
+  // === CIRCLE FEED ===
+  app.get("/api/circle-feed", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const feed = await storage.getCircleFeed(userId);
+      res.json(feed);
+    } catch (error) {
+      console.error("Error fetching circle feed:", error);
+      res.status(500).json({ message: "Failed to fetch circle feed" });
+    }
+  });
+
   // === READING QUEUE ===
   app.get("/api/reading-queue", isAuthenticated, async (req: any, res) => {
     try {

@@ -29,6 +29,9 @@ export interface IStorage {
   publishWriting(id: string): Promise<Writing | undefined>;
   unpublishWriting(id: string): Promise<Writing | undefined>;
   searchPublishedWritings(query: string, genre?: string): Promise<(Writing & { authorName: string | null })[]>;
+  getGardenFeed(filters?: { readiness?: string; genre?: string; editorialOnly?: boolean }): Promise<(Writing & { authorName: string | null })[]>;
+  getProfileGarden(userId: string): Promise<(Writing & { authorName: string | null })[]>;
+  getCircleFeed(userId: string): Promise<(Writing & { authorName: string | null })[]>;
 
   // Reading Queue
   getReadingQueue(userId: string): Promise<(ReadingQueueItem & { writing: Writing; authorName: string | null })[]>;
@@ -136,11 +139,19 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  private writingSelectFields() {
+    return {
+      id: writings.id, authorId: writings.authorId, title: writings.title, content: writings.content,
+      stage: writings.stage, genre: writings.genre, visibility: writings.visibility,
+      readiness: writings.readiness, editorialAvailable: writings.editorialAvailable,
+      isPublished: writings.isPublished, publishedAt: writings.publishedAt,
+      createdAt: writings.createdAt, updatedAt: writings.updatedAt,
+    };
+  }
+
   async getPublishedWritings(): Promise<(Writing & { authorName: string | null })[]> {
     const results = await db.select({
-      id: writings.id, authorId: writings.authorId, title: writings.title, content: writings.content,
-      stage: writings.stage, genre: writings.genre, isPublished: writings.isPublished,
-      publishedAt: writings.publishedAt, createdAt: writings.createdAt, updatedAt: writings.updatedAt,
+      ...this.writingSelectFields(),
       authorName: users.firstName,
     }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
       .where(eq(writings.isPublished, true)).orderBy(desc(writings.publishedAt));
@@ -151,13 +162,56 @@ export class DatabaseStorage implements IStorage {
     const conditions = [eq(writings.isPublished, true)];
     if (genre) conditions.push(eq(writings.genre, genre));
     const results = await db.select({
-      id: writings.id, authorId: writings.authorId, title: writings.title, content: writings.content,
-      stage: writings.stage, genre: writings.genre, isPublished: writings.isPublished,
-      publishedAt: writings.publishedAt, createdAt: writings.createdAt, updatedAt: writings.updatedAt,
+      ...this.writingSelectFields(),
       authorName: users.firstName,
     }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
       .where(and(...conditions, or(ilike(writings.title, `%${query}%`), ilike(writings.content, `%${query}%`))))
       .orderBy(desc(writings.publishedAt));
+    return results;
+  }
+
+  async getGardenFeed(filters?: { readiness?: string; genre?: string; editorialOnly?: boolean }): Promise<(Writing & { authorName: string | null })[]> {
+    const conditions: any[] = [eq(writings.visibility, "garden")];
+    if (filters?.readiness) conditions.push(eq(writings.readiness, filters.readiness));
+    if (filters?.genre) conditions.push(eq(writings.genre, filters.genre));
+    if (filters?.editorialOnly) conditions.push(eq(writings.editorialAvailable, true));
+    const results = await db.select({
+      ...this.writingSelectFields(),
+      authorName: users.firstName,
+    }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(writings.updatedAt));
+    return results;
+  }
+
+  async getProfileGarden(userId: string): Promise<(Writing & { authorName: string | null })[]> {
+    const results = await db.select({
+      ...this.writingSelectFields(),
+      authorName: users.firstName,
+    }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
+      .where(and(
+        eq(writings.authorId, userId),
+        eq(writings.visibility, "garden")
+      ))
+      .orderBy(desc(writings.updatedAt));
+    return results;
+  }
+
+  async getCircleFeed(userId: string): Promise<(Writing & { authorName: string | null })[]> {
+    const memberCircles = db.select({ circleId: circleMembers.circleId })
+      .from(circleMembers).where(eq(circleMembers.userId, userId));
+    const circleUserIds = db.select({ userId: circleMembers.userId })
+      .from(circleMembers).where(sql`${circleMembers.circleId} IN (${memberCircles})`);
+    const results = await db.select({
+      ...this.writingSelectFields(),
+      authorName: users.firstName,
+    }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
+      .where(and(
+        or(eq(writings.visibility, "circle"), eq(writings.visibility, "garden")),
+        sql`${writings.authorId} IN (${circleUserIds})`,
+        sql`${writings.authorId} != ${userId}`
+      ))
+      .orderBy(desc(writings.updatedAt));
     return results;
   }
 

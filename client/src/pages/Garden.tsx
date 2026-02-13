@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
   Plus, Trash2, ChevronLeft, Feather, Sparkles, PenLine,
-  Search, Filter, ChevronDown, ArrowRight, BookOpen, Lock
+  Search, Filter, ChevronDown, ArrowRight, BookOpen, Lock,
+  Globe, Users, Eye, MapPin, User
 } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
 import GardenSidebar from "@/components/GardenSidebar";
@@ -14,23 +15,47 @@ import { GalleryPage, ReadingQueuePage, ExplorePage, SavedPage, PollinationPage 
 import { RitualsPage, CompostPage, GrowthJournalPage, SubmissionsPage } from "@/components/garden/PracticeFeatures";
 import { InnerWeatherPage, ReflectionsPage, SeasonalReviewPage, RootSystemPage } from "@/components/garden/ReflectFeatures";
 import { CirclesPage, MoonlitReadingsPage, ReplantRequestsPage } from "@/components/garden/CommunityFeatures";
+import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
+import GardenFeed from "@/components/garden/GardenFeed";
+import ProfileGarden from "@/components/garden/ProfileGarden";
 
 const stageColors: Record<string, string> = {
   seed: "border-amber-500/30 text-amber-400/80",
   sprout: "border-emerald-500/30 text-emerald-400/80",
   bloom: "border-pink-500/30 text-pink-400/80",
+  raw_seed: "border-amber-500/30 text-amber-400/80",
+  growing: "border-emerald-500/30 text-emerald-400/80",
+  ready_to_show: "border-pink-500/30 text-pink-400/80",
 };
 
 const stageAccent: Record<string, string> = {
   seed: "bg-amber-500/10",
   sprout: "bg-emerald-500/10",
   bloom: "bg-pink-500/10",
+  raw_seed: "bg-amber-500/10",
+  growing: "bg-emerald-500/10",
+  ready_to_show: "bg-pink-500/10",
 };
 
 const stageGlow: Record<string, string> = {
   seed: "rgba(245, 158, 11, 0.2)",
   sprout: "rgba(16, 185, 129, 0.2)",
   bloom: "rgba(236, 72, 153, 0.2)",
+  raw_seed: "rgba(245, 158, 11, 0.2)",
+  growing: "rgba(16, 185, 129, 0.2)",
+  ready_to_show: "rgba(236, 72, 153, 0.2)",
+};
+
+const visibilityColors: Record<string, string> = {
+  personal: "text-amber-400/50",
+  circle: "text-violet-400/50",
+  garden: "text-emerald-400/50",
+};
+
+const visibilityIcons: Record<string, React.ReactNode> = {
+  personal: <Lock size={12} />,
+  circle: <Users size={12} />,
+  garden: <Globe size={12} />,
 };
 
 const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
@@ -75,6 +100,9 @@ const stageIcons: Record<string, React.ReactNode> = {
   seed: <SeedIcon className="w-4 h-4" />,
   sprout: <SproutIcon className="w-4 h-4" />,
   bloom: <BloomIcon className="w-4 h-4" />,
+  raw_seed: <SeedIcon className="w-4 h-4" />,
+  growing: <SproutIcon className="w-4 h-4" />,
+  ready_to_show: <BloomIcon className="w-4 h-4" />,
 };
 
 function wordCount(text: string) {
@@ -277,25 +305,35 @@ function GardenLanding({ onNavigate }: { onNavigate: (view: GardenView) => void 
   );
 }
 
-type StageFilter = "all" | "seed" | "sprout" | "bloom";
+type StageFilter = "all" | "raw_seed" | "growing" | "ready_to_show";
+type VisibilityFilter = "all" | "personal" | "circle" | "garden";
 
-function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
+function MyGarden({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCreating }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
   onCreateNew: () => void;
+  onOpenPlanting: (w: Writing) => void;
   isCreating: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
-  const seedCount = writings.filter(w => w.stage === "seed").length;
-  const sproutCount = writings.filter(w => w.stage === "sprout").length;
-  const bloomCount = writings.filter(w => w.stage === "bloom").length;
+  const readinessKey = (w: Writing) => w.readiness || "raw_seed";
+  const visKey = (w: Writing) => w.visibility || "personal";
+
+  const seedCount = writings.filter(w => readinessKey(w) === "raw_seed").length;
+  const growingCount = writings.filter(w => readinessKey(w) === "growing").length;
+  const readyCount = writings.filter(w => readinessKey(w) === "ready_to_show").length;
+  const personalCount = writings.filter(w => visKey(w) === "personal").length;
+  const circleCount = writings.filter(w => visKey(w) === "circle").length;
+  const gardenCount = writings.filter(w => visKey(w) === "garden").length;
   const totalWords = writings.reduce((acc, w) => acc + wordCount(w.content), 0);
 
   const filteredWritings = writings
-    .filter(w => activeFilter === "all" || w.stage === activeFilter)
+    .filter(w => activeFilter === "all" || readinessKey(w) === activeFilter)
+    .filter(w => visibilityFilter === "all" || visKey(w) === visibilityFilter)
     .filter(w => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -305,9 +343,16 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
 
   const filters: { id: StageFilter; label: string; count: number; color?: string }[] = [
     { id: "all", label: "All", count: writings.length },
-    { id: "seed", label: "Seeds", count: seedCount, color: "amber" },
-    { id: "sprout", label: "Sprouts", count: sproutCount, color: "emerald" },
-    { id: "bloom", label: "Blooms", count: bloomCount, color: "pink" },
+    { id: "raw_seed", label: "Seeds", count: seedCount, color: "amber" },
+    { id: "growing", label: "Growing", count: growingCount, color: "emerald" },
+    { id: "ready_to_show", label: "Ready", count: readyCount, color: "pink" },
+  ];
+
+  const visFilters: { id: VisibilityFilter; label: string; count: number; icon: React.ReactNode }[] = [
+    { id: "all", label: "All", count: writings.length, icon: <BookOpen size={12} /> },
+    { id: "personal", label: "Private", count: personalCount, icon: <Lock size={12} /> },
+    { id: "circle", label: "Circle", count: circleCount, icon: <Users size={12} /> },
+    { id: "garden", label: "Gallery", count: gardenCount, icon: <Globe size={12} /> },
   ];
 
   return (
@@ -344,8 +389,8 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
           {[
             { label: "Total", count: writings.length, icon: <BookOpen size={16} />, color: "white" },
             { label: "Seeds", count: seedCount, icon: <SeedIcon className="w-4 h-4" />, color: "amber" },
-            { label: "Sprouts", count: sproutCount, icon: <SproutIcon className="w-4 h-4" />, color: "emerald" },
-            { label: "Blooms", count: bloomCount, icon: <BloomIcon className="w-4 h-4" />, color: "pink" },
+            { label: "Growing", count: growingCount, icon: <SproutIcon className="w-4 h-4" />, color: "emerald" },
+            { label: "Ready", count: readyCount, icon: <BloomIcon className="w-4 h-4" />, color: "pink" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -404,6 +449,32 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
               </button>
             ))}
           </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35 }}
+          className="flex gap-1 p-1 bg-white/[0.02] rounded-xl border border-white/[0.06] mb-6 w-fit"
+        >
+          {visFilters.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setVisibilityFilter(f.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
+                visibilityFilter === f.id
+                  ? "bg-white/[0.08] text-white/80"
+                  : "text-white/30 hover:text-white/50"
+              }`}
+              data-testid={`vis-filter-${f.id}`}
+            >
+              {f.icon}
+              {f.label}
+              <span className={`text-[9px] ${visibilityFilter === f.id ? "text-white/50" : "text-white/15"}`}>
+                {f.count}
+              </span>
+            </button>
+          ))}
         </motion.div>
       </motion.div>
 
@@ -472,7 +543,7 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
                 whileHover={{ scale: isExpanded ? 1 : 1.008, x: isExpanded ? 0 : 4 }}
                 className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
                   isExpanded
-                    ? `${stageColors[w.stage].split(" ")[0]} bg-white/[0.03]`
+                    ? `${stageColors[readinessKey(w)].split(" ")[0]} bg-white/[0.03]`
                     : "border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03]"
                 }`}
               >
@@ -482,7 +553,7 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     style={{
-                      background: `linear-gradient(135deg, ${stageGlow[w.stage]} 0%, transparent 50%)`,
+                      background: `linear-gradient(135deg, ${stageGlow[readinessKey(w)]} 0%, transparent 50%)`,
                     }}
                   />
                 )}
@@ -493,14 +564,17 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
                   data-testid={`button-expand-${w.id}`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[w.stage]} ${stageAccent[w.stage]}`}>
-                      {stageIcons[w.stage] || stageIcons.seed}
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[readinessKey(w)]} ${stageAccent[readinessKey(w)]}`}>
+                      {stageIcons[readinessKey(w)] || stageIcons.raw_seed}
                     </div>
                     <div className="flex-grow min-w-0 space-y-1">
                       <div className="flex items-center justify-between gap-4">
-                        <h3 className="text-lg font-display font-light truncate text-white/70 italic">
-                          {w.title || "Untitled"}
-                        </h3>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <h3 className="text-lg font-display font-light truncate text-white/70 italic">
+                            {w.title || "Untitled"}
+                          </h3>
+                          <VisibilityBadge visibility={visKey(w)} readiness={readinessKey(w)} editorialAvailable={w.editorialAvailable} compact />
+                        </div>
                         <div className="flex items-center gap-3 flex-shrink-0">
                           <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">{w.genre}</span>
                           <span className="font-mono text-[9px] text-white/10">{timeAgo(w.updatedAt)}</span>
@@ -541,9 +615,7 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
                           <span className="font-mono text-[9px] text-white/20 tracking-widest">
                             {wordCount(w.content)} words
                           </span>
-                          <span className={`font-mono text-[9px] tracking-widest uppercase ${stageColors[w.stage].split(" ")[1]}`}>
-                            {w.stage}
-                          </span>
+                          <VisibilityBadge visibility={visKey(w)} readiness={readinessKey(w)} editorialAvailable={w.editorialAvailable} />
                         </div>
                         <div className="flex gap-2 pt-1">
                           <motion.button
@@ -555,6 +627,16 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
                           >
                             <PenLine size={12} />
                             Open & Edit
+                          </motion.button>
+                          <motion.button
+                            onClick={(e) => { e.stopPropagation(); onOpenPlanting(w); }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/15 rounded-lg font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/70 transition-all"
+                            data-testid={`button-plant-${w.id}`}
+                          >
+                            <MapPin size={12} />
+                            Plant
                           </motion.button>
                         </div>
                       </div>
@@ -570,16 +652,17 @@ function MyGarden({ writings, onOpenWriting, onCreateNew, isCreating }: {
   );
 }
 
-function WriteEditor({ writing, onBack, onSave, onDelete }: {
+function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   writing: Writing;
   onBack: () => void;
-  onSave: (data: { title: string; content: string; genre: string; stage: string }) => void;
+  onSave: (data: { title: string; content: string; genre: string; stage: string; readiness?: string; visibility?: string; editorialAvailable?: boolean }) => void;
   onDelete: () => void;
+  onOpenPlanting: () => void;
 }) {
   const [editTitle, setEditTitle] = useState(writing.title);
   const [editContent, setEditContent] = useState(writing.content);
   const [editGenre, setEditGenre] = useState(writing.genre);
-  const [editStage, setEditStage] = useState(writing.stage);
+  const [editStage, setEditStage] = useState(writing.readiness || writing.stage || "raw_seed");
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -588,7 +671,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete }: {
 
   const doSave = useCallback(() => {
     setSaving(true);
-    onSave({ title: editTitle, content: editContent, genre: editGenre, stage: editStage });
+    onSave({ title: editTitle, content: editContent, genre: editGenre, stage: editStage, readiness: editStage });
     setTimeout(() => {
       setSaving(false);
       setLastSaved(new Date());
@@ -686,21 +769,25 @@ function WriteEditor({ writing, onBack, onSave, onDelete }: {
           data-testid="input-title"
         />
 
-        <div className="flex items-center gap-4 pb-6 border-b border-white/5">
+        <div className="flex items-center gap-4 pb-6 border-b border-white/5 flex-wrap">
           <div className="flex gap-1">
-            {(["seed", "sprout", "bloom"] as const).map((s) => (
+            {([
+              { id: "raw_seed", label: "Seed" },
+              { id: "growing", label: "Growing" },
+              { id: "ready_to_show", label: "Ready" },
+            ] as const).map((s) => (
               <button
-                key={s}
-                onClick={() => { setEditStage(s); setTimeout(doSave, 100); }}
+                key={s.id}
+                onClick={() => { setEditStage(s.id); setTimeout(doSave, 100); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all border ${
-                  editStage === s
-                    ? `${stageColors[s]} ${stageAccent[s]}`
+                  editStage === s.id
+                    ? `${stageColors[s.id]} ${stageAccent[s.id]}`
                     : "border-transparent text-white/25 hover:text-white/50"
                 }`}
-                data-testid={`button-stage-${s}`}
+                data-testid={`button-stage-${s.id}`}
               >
-                {stageIcons[s]}
-                {s}
+                {stageIcons[s.id]}
+                {s.label}
               </button>
             ))}
           </div>
@@ -715,6 +802,17 @@ function WriteEditor({ writing, onBack, onSave, onDelete }: {
               <option key={g} value={g} className="bg-[#0b101a]">{g}</option>
             ))}
           </select>
+          <span className="w-[1px] h-4 bg-white/5" />
+          <motion.button
+            onClick={onOpenPlanting}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest border border-white/[0.06] text-white/30 hover:text-white/60 hover:border-white/15 transition-all"
+            data-testid="button-open-planting"
+          >
+            <MapPin size={12} />
+            {(writing.visibility || "personal") === "personal" ? "Private" : (writing.visibility || "personal") === "circle" ? "Circle" : "Gallery"}
+          </motion.button>
         </div>
 
         <textarea
@@ -762,6 +860,9 @@ export default function Garden() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
+  const [showPlantingFlow, setShowPlantingFlow] = useState(false);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
@@ -779,7 +880,7 @@ export default function Garden() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title: "Untitled", content: "", genre: "poetry", stage: "seed" }),
+        body: JSON.stringify({ title: "Untitled", content: "", genre: "poetry", stage: "raw_seed", readiness: "raw_seed", visibility: "personal" }),
       });
       if (!res.ok) throw new Error("Failed to create");
       return res.json();
@@ -793,7 +894,7 @@ export default function Garden() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; title: string; content: string; genre: string; stage: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string; [key: string]: any }) => {
       const res = await fetch(`/api/writings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -803,8 +904,11 @@ export default function Garden() {
       if (!res.ok) throw new Error("Failed to save");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: Writing) => {
       queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
+      if (activeWriting && data.id === activeWriting.id) {
+        setActiveWriting(data);
+      }
     },
   });
 
@@ -827,11 +931,23 @@ export default function Garden() {
     setCurrentView("write");
   }
 
+  function openPlanting(w: Writing) {
+    setPlantingTarget(w);
+    setShowPlantingFlow(true);
+  }
+
+  function handlePlantingSave(data: { visibility: string; readiness: string; editorialAvailable: boolean }) {
+    if (plantingTarget) {
+      updateMutation.mutate({ id: plantingTarget.id, ...data });
+    }
+  }
+
   function handleNavigate(view: GardenView) {
     setCurrentView(view);
     setIsEditing(false);
     setActiveWriting(null);
     setSidebarOpen(false);
+    setProfileUserId(null);
   }
 
   if (!authLoading && !isAuthenticated) {
@@ -864,6 +980,7 @@ export default function Garden() {
           onBack={() => { setIsEditing(false); setActiveWriting(null); setCurrentView("my-garden"); }}
           onSave={(data) => updateMutation.mutate({ id: activeWriting.id, ...data })}
           onDelete={() => deleteMutation.mutate(activeWriting.id)}
+          onOpenPlanting={() => openPlanting(activeWriting)}
         />
       );
     }
@@ -877,6 +994,7 @@ export default function Garden() {
             writings={writings}
             onOpenWriting={openWriting}
             onCreateNew={() => createMutation.mutate()}
+            onOpenPlanting={openPlanting}
             isCreating={createMutation.isPending}
           />
         );
@@ -910,6 +1028,11 @@ export default function Garden() {
             </div>
           </motion.div>
         );
+      case "garden-feed":
+        if (profileUserId) {
+          return <ProfileGarden userId={profileUserId} onBack={() => setProfileUserId(null)} />;
+        }
+        return <GardenFeed onViewProfile={(id) => setProfileUserId(id)} />;
       case "gallery": return <GalleryPage />;
       case "queue": return <ReadingQueuePage />;
       case "explore": return <ExplorePage />;
@@ -948,6 +1071,16 @@ export default function Garden() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <PlantingFlow
+        isOpen={showPlantingFlow}
+        onClose={() => { setShowPlantingFlow(false); setPlantingTarget(null); }}
+        currentVisibility={(plantingTarget?.visibility as any) || "personal"}
+        currentReadiness={(plantingTarget?.readiness as any) || "raw_seed"}
+        currentEditorialAvailable={plantingTarget?.editorialAvailable || false}
+        onSave={handlePlantingSave}
+        title={plantingTarget?.title}
+      />
     </div>
   );
 }

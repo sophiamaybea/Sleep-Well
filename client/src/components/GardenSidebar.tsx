@@ -5,12 +5,12 @@ import {
   MessageCircle, Flame, Archive, NotebookPen, FileCheck,
   CloudSun, Brain, CalendarRange, Network, Users, Mic,
   Mail, Moon, BarChart3, ChevronDown, Menu, X, Home,
-  Search, Settings, LogOut
+  Search, Settings, LogOut, Globe
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 type GardenView =
-  | "landing" | "my-garden" | "write"
+  | "landing" | "my-garden" | "write" | "garden-feed"
   | "gallery" | "queue" | "explore" | "saved" | "pollination"
   | "rituals" | "compost" | "growth-journal" | "submissions"
   | "inner-weather" | "reflections" | "seasonal-review" | "root-system"
@@ -40,7 +40,8 @@ const navGroups: NavGroup[] = [
   {
     title: "Discover",
     items: [
-      { id: "gallery", label: "Gallery", icon: <BookOpen size={16} />, available: true },
+      { id: "garden-feed", label: "Garden Gallery", icon: <Globe size={16} />, available: true },
+      { id: "gallery", label: "The Page", icon: <BookOpen size={16} />, available: true },
       { id: "queue", label: "Reading Queue", icon: <Bookmark size={16} />, available: true },
       { id: "explore", label: "Explore", icon: <Compass size={16} />, available: true },
       { id: "saved", label: "Saved", icon: <Heart size={16} />, available: true },
