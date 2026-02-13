@@ -1,0 +1,347 @@
+# The Garden: Complete Feature Overview
+## A Members-Only Creative Ecosystem for The Page Gallery
+
+***
+
+The Page Gallery is "a gallery of voices — each page a room you can walk through, haunted by someone else's realness". It centres "emerging, overlooked, and emotionally honest voices… neurodivergent, queer, chronically ill, working-class, or just too strange to fit". The Garden is the private ecosystem that sits behind that public journal — the place where writers grow, connect, and tend their work before it ever reaches the world.[1]
+
+***
+
+## 1. The Garden Environment
+
+### 1.1 Core Architecture
+
+The Garden is a **members-only space**. The public internet sees only The Page (the curated journal archive of "poetry, short fiction, essays, and hybrid work") and a light marketing site. To read, write, or interact with any Garden content, you must be a logged-in member.[2]
+
+Inside the Garden, members navigate three layers:
+
+- **Personal Garden**: A private studio space. Drafts, fragments, notes, mental-health reflections, submission plans — visible only to the writer unless they choose to share.
+- **Circle Gardens**: Shared spaces for small, intimate cohorts (4–8 members). Pieces placed here are visible only to that circle.
+- **The Garden Gallery**: The wider members-only feed. Pieces placed here are discoverable by all members and browsable by editors.
+
+The flow is: **Personal Garden → Circle Garden → Garden Gallery → Editor Greenhouse → The Page (public).**
+
+### 1.2 Planting a Piece
+
+When a writer "plants" something, they choose:
+
+- **Destination**: Just for me / Share with my circle / Share with the Garden
+- **Readiness stage**:
+  - *Raw seed* — messy draft, fragment, idea
+  - *Growing piece* — in progress, open to response
+  - *Ready to show* — polished, editor-ready
+- **Editorial availability toggle**: "Let editors see this as a potential Page piece" (yes/no). This doesn't publish; it flags the piece in the internal Garden index editors browse.
+
+Writers never formally "submit." They tend their Garden. Editors wander it.
+
+### 1.3 Discovery & Interaction (Members-Only)
+
+Within the Garden, members can discover each other's work through:
+
+- **The Garden Feed**: A chronological/curated stream of all pieces marked "Whole Garden." Filterable by tags, form, length, and themes. Includes a "Show me quiet pieces" toggle that surfaces work with few or no responses yet.
+- **Profile Gardens**: Each member has a Garden profile showing their shared pieces, a brief bio, any Circles in common, and (optionally) their current creative season. No public follower counts or acceptance stats.
+
+**Interaction vocabulary:**
+
+Instead of likes, the Garden uses **non-quantified responses** — shown as subtle glows on the piece rather than numeric counts:
+
+- **Resonated** — this landed
+- **Held me** — I sat with this
+- **Opened something** — this shifted my thinking
+
+Additional interaction modes:
+
+- **Comments**: Open-ended written responses.
+- **"Sit with this"**: A micro-response signalling presence without critique — "I'm just here with this. No notes."
+- **Invitations**: From any piece, a member can invite the writer into a Circle, a one-to-one Compassion Correspondence, or a co-working session.
+
+All interaction is contained within membership. Non-members hitting a Garden URL see a "This lives in the Garden" landing page with a membership invite.
+
+***
+
+## 2. Constellations: Ambient Submission Goals
+
+Constellations is a personal, visual workspace where writers track their aspirations for submitting to external journals — not through spreadsheets, but through floating, ambient elements that keep goals alive without creating deadline anxiety.
+
+### 2.1 Dream Magnets
+
+Writers create "magnets" — floating visual cards representing publications they're interested in. Each magnet stores:
+
+- Publication name, aesthetic, pay tier, and submission window dates
+- Response-time intelligence crowdsourced from the community
+- Mood tags (e.g., "experimental-friendly," "slow but kind rejections," "genre-fluid")
+- A piece of work currently seeking a home there (optional link)
+
+Magnets drift gently across the personal workspace when idle, clustering naturally when dragged together.
+
+### 2.2 The Three Zones
+
+Writers organise their sky by dragging magnets into floating zones:
+
+- **The Observatory**: Dream publications — reach venues, bucket-list mags, aspirational stages.
+- **The Launch Pad**: Pieces actively being polished for specific targets.
+- **In Orbit**: Submitted work, floating in holding pattern until response.
+
+Magnets pulse gently when submission windows open, dim when closed, and glow brighter the longer a piece sits unpursued.
+
+### 2.3 Ambient Nudges
+
+- **Gentle drift prompts**: Every 48–72 hours of inactivity, a translucent question fades into view: *"Where might [Piece Title] land?"* or *"Who's reading [Magazine Name] this month?"* These dissolve if ignored; no guilt accumulates.
+- **Submission weather**: A visual overlay showing submission activity levels — clear skies (pieces circulating), light clouds (minimal activity), fog (nothing sent in 2+ weeks, prompting a gentle buddy-match suggestion).
+- **The submission bell**: When a writer drags a piece from Launch Pad to In Orbit (hits send), a soft chime ripples through their circle's workspaces — no details, just collective acknowledgment that submission energy is flowing.
+
+### 2.4 Collective Horizon
+
+A shared ribbon at the top of the Circle or Garden view: *"This circle has 14 pieces exploring the world"* — no names attached, just collective momentum.
+
+***
+
+## 3. Writers Circles: Structured Accountability
+
+Writers Circles are intimate, ongoing cohorts (4–8 members) designed to sustain creative practice through structured accountability that prioritises process over publication.
+
+### 3.1 Formation
+
+- **Affinity matching**: Writers answer onboarding prompts ("I need accountability for," "I struggle with," "I can offer others") and are matched with complementary needs.
+- **Vibe-first discovery**: Browse circles by their "climate" — "Gentle weekly check-ins," "High-volume submission sprint," "Deep revision focus," "Early draft vulnerability."
+- **Invite-only salons**: Existing friend groups or established writers create private circles with shared entry criteria.
+
+### 3.2 Circle Charter
+
+Upon formation, each circle co-writes a living document covering:
+
+- Meeting cadence (weekly/biweekly voice notes, monthly video, async-only)
+- Accountability style (soft prompts vs. hard deadlines)
+- Feedback norms (full critiques vs. gut reactions vs. cheerleading only)
+- Privacy boundaries (workshop pieces stay in-circle vs. can be discussed externally)
+
+### 3.3 Accountability Mechanisms
+
+**The Check-in Thread** — Weekly asynchronous structure:
+1. *What did you actually do?*
+2. *What blocked you?* (optional)
+3. *What do you need this week?* (specific asks)
+
+Members react with emoji clusters: 🔥 deadline urgency, 🌱 gentleness, 🧭 direction.
+
+**Hot Seat Rotation** — Each week, one member takes focused accountability:
+- Pre-seat: Declare a specific deliverable
+- During: Daily micro-updates in circle chat
+- Post-seat: Reflection on what worked
+
+**Accountability Partnerships** — Algorithmically paired weekly for one-to-one check-ins:
+- 5-minute voice notes
+- Draft swaps before the circle sees them
+- Submission buddy research
+
+Partnerships dissolve and reform every 4 weeks.
+
+**The Promise Ledger** — A shared, low-stakes contract system:
+- Writers make "promises" to the circle
+- Promises have "witnesses" (2+ circle members)
+- When fulfilled, the circle celebrates
+- When unfulfilled, the promise simply expires — no punishment
+
+### 3.4 Collective Intelligence
+
+- **Opportunity board**: Crowdsourced open calls with tags (pay rate, response time, aesthetic vibe)
+- **Fit finder**: Post piece descriptions, receive venue suggestions from circle mates
+- **Submission swaps**: Pair up to research venues for each other's work
+- **Cross-pollination sessions**: Monthly live gatherings — problem clinics, reading clubs, prompt lotteries, form experiments
+
+### 3.5 Rituals
+
+- **The First Friday Toast**: End-of-month acknowledgment of milestones (drafts completed, submissions sent, rejections survived, non-writing wins, gratitude).
+- **The Soft Reset**: Every 12 weeks, circles hold a retrospective and optional restructuring — renew, hibernate, or graduate.
+- **The Emergence Party**: When a member has external success, the circle hosts a private celebration for the people who witnessed the invisible work.
+
+### 3.6 Safety
+
+- **Escalation ladder**: Gentle flag → Climate check (anonymous pulse survey) → Rest option.
+- **The Vault**: Work shared in-circle stays in-circle unless explicitly released.
+- **The Grace Button**: One-click "I need grace" signal that pauses all circle expectations — no explanation required.
+
+***
+
+## 4. The Sanctuary: Community-Curated Journal Database
+
+The Sanctuary is a live, members-curated database of literary magazines where writers share experiences based on how journals **treat writers** — not just acceptance rates.
+
+### 4.1 Sanctuary Entries
+
+When a writer has a positive experience with a journal, they "sanctuary" it with structured data:
+
+- **The Vibe**: Tag-based descriptors (Warm, Professional, Playful, Rigorous, Kind, Experimental-friendly)
+- **The Communication**: Response time accuracy, rejection tone (form/personal/encouraging/substantive feedback), payment experience
+- **The Fit**: Why the piece and journal clicked — aesthetic notes, length, genre positioning
+
+### 4.2 Freshness & Trust
+
+- **Freshness indicators**: Intel ages; journals change editors and aesthetics drift
+- **Validation system**: Members "second" experiences or add contradictory notes
+- **Editor turnover alerts**: Community flags staff changes, prompting fresh reviews
+- **Verification**: Automatic via submission platform integrations; anti-gaming detection
+
+### 4.3 The Rejection Reclamation
+
+A dedicated flow for "positive rejections" normalising the submission process:
+- Prompt responses, encouraging language, substantive feedback, literary citizenship (recommending alternate venues)
+
+### 4.4 Integration
+
+- Circle members' Sanctuary data aggregates into shared "Circle Guides"
+- Constellation Magnets pull live Sanctuary data on hover
+- **Distance-From-Me metric**: How many degrees between you and a positive review (direct → 1st degree circle member → 2nd degree → 3rd degree community match)
+
+***
+
+## 5. Mental Health & Mindfulness Features
+
+### 5.1 The Reframe Engine
+
+When a writer logs a difficult moment — rejection, block, comparison spiral — the platform offers **cognitive reframing prompts** drawn from CBT and self-compassion research:[3][4]
+
+- **The Craft Lens**: "What did submitting teach you about your piece?"
+- **The Common Humanity Lens**: "Granta accepts roughly 0.5% of submissions. 99.5% of writers who submitted today share this exact feeling."
+- **The Evidence Lens**: "List three pieces of evidence that your writing has value."
+
+Reframing is offered as floating options, never imposed.
+
+### 5.2 The Creative Window of Tolerance
+
+Adapted from Dan Siegel's "window of tolerance" concept specifically for creative practice:[5][6]
+
+- **Blue zone (hypo-arousal)**: Numbness, avoidance. Platform suggests low-stakes freewriting, reading, sensory prompts.
+- **Green zone (optimal)**: Present, engaged. Platform gets out of the way — minimal interface.
+- **Red zone (hyper-arousal)**: Panic-editing, compulsive submission checking. Platform suggests grounding exercises, timed breaks, voice notes to circle members.
+
+Writers self-report their zone when they open the platform. Over time, the system learns patterns ("You tend to enter red zone on submission-response days") and offers pre-emptive nudges.
+
+**Integration with planting**: The Window state shapes the posting experience:
+- Blue: Soft encouragement, low-stakes sharing suggestions
+- Green: Clean page, just "Plant"
+- Red: Offers to post privately to circle only, or save as a Fallow piece
+
+### 5.3 The Rejection Rewriter
+
+When a writer logs a rejection, the platform invites them to rewrite the narrative in three modes:
+
+- **The Fact Version**: Data for records ("Submitted to X. Rejected. Turnaround: 6 weeks. Form response.")
+- **The Kind Version**: Write the rejection as if a compassionate friend were telling you about it — self-compassion letter technique.[7][8]
+- **The Future Version**: "In six months, when this piece finds its home, what will this rejection have been?"
+
+Writers can share Kind or Future versions with their circle, modelling self-compassion publicly.
+
+### 5.4 The Fallow Field
+
+Most platforms treat inactivity as failure. The Fallow Field **celebrates creative rest as a phase**:
+
+- Returning after absence, the workspace shifts visually — muted tones, quiet landscape.
+- A single prompt: *"You've been away. That's okay. Fields need to lie fallow to grow. When you're ready, what's one sentence?"*
+- No lost streaks, no guilt metrics.
+- Writers can pre-declare a "fallow season" — their circle sees a small icon (a sleeping plant). No explanation required.
+- Editors see the fallow status and know not to nudge for intensive engagement.
+
+### 5.5 The Comparison Dimmer
+
+Structural interface choices that reduce comparison triggers:
+
+- **No public acceptance counts**: Publication history is private unless explicitly shared.
+- **Asymmetric visibility**: You see your own submission data but never another writer's volume or success rate.
+- **Celebration without context**: When a circle member has good news, the platform shows *"Someone in your circle is celebrating"* — the member chooses whether to share details.
+- **The "Enough" toggle**: Hides all social features for the session — just you and the page. The platform whispers: *"You are not behind."*
+
+### 5.6 Compassion Correspondence
+
+A structured, private monthly exchange between two circle members — not craft feedback, but process support:
+
+- Prompted pairs: "What's something you're afraid to write?" / "Where in your body do you feel resistance?" / "What would you write if no one would ever read it?"
+- **Time-locked**: Both writers submit before either can read the other's response — preventing performance, encouraging vulnerability.
+
+### 5.7 Inner Critic Naming Ceremony
+
+Writers name their inner critic as a character — voice, appearance, backstory. This externalisation technique from narrative therapy creates cognitive distance:[9][10]
+
+- The platform occasionally surfaces the character: *"Is that you talking, or is that [Gerald]?"*
+- Writers share critics with their circle — creating dark comedy and solidarity.
+- Over time, the relationship becomes a running joke rather than a private wound.
+
+### 5.8 The Seasonal Review
+
+Quarterly, the platform generates a private, gentle retrospective — not a productivity report, but a **practice review**:
+
+- "You wrote on 34 days this season. You took 12 days of intentional rest."
+- "You submitted to 5 places. You received 3 responses."
+- "You spent the most time in the Green Zone during weeks 4–7."
+- "Words you used most in check-ins: *stuck, excited, uncertain, brave*."
+
+Ends with one question: *"What do you want to carry into next season, and what do you want to leave behind?"*
+
+***
+
+## 6. Editorial Curation: From Garden to Page
+
+The Page Gallery's editorial philosophy: "We don't reject — we invite. We reply to everyone with care". "Every accepted piece becomes its own illustrated gallery room — hand-drawn, emotionally textured, built around your tone and nervous system". The Garden system extends this ethos into a continuous, ambient curation model.[11][12]
+
+### 6.1 Editor's Garden View
+
+Editors access a **Garden Curator** interface — the same Garden Gallery that members see, with additional tools:
+
+- **Filters**: Only pieces where "Available for editorial consideration" is toggled on. Filter by theme, form, length, tags, readiness stage.
+- **Context cards**: Quick access to:
+  - Writer's self-reported window (how they've been feeling lately)
+  - Whether they're in a fallow period
+  - Past invitations and interactions
+  - Sanctuary data the writer has shared (journals they love, aesthetic preferences)
+
+### 6.2 The Greenhouse (Shortlist)
+
+When editors spot promising work:
+
+1. **Pin to Greenhouse**: An internal editorial shortlist space, invisible to members.
+2. **Soft notification**: The writer receives: *"This piece has been noticed by our editorial team."* No commitment yet — just a heads-up that creates warmth without pressure.
+3. **Selection**: If chosen for an issue, the editor sends a full in-app invitation: *"We'd like to move this from the Garden into The Page."*
+   - The invitation explains how it will appear, rights, payment, and timeline.
+   - The writer accepts or declines.
+4. **Exhibition**: The piece is published on The Page — the public journal — as its own illustrated exhibit. The Garden version remains as the writer's original "seed draft," now tagged "Exhibited on The Page."[1]
+
+### 6.3 If Not Selected
+
+If a piece is unpinned from the Greenhouse (not chosen this round):
+
+- The writer is **not notified of rejection** — because there is no rejection. The piece simply continues living in the Garden.
+- If the writer had received the "noticed" notification, a gentle follow-up appears: *"Your piece is still growing in the Garden. We may return to it."*
+- The **Reframe Engine** is offered quietly in case the writer feels disappointed.
+
+This preserves The Page Gallery's core promise: "We don't reject. We respond".[1]
+
+***
+
+## 7. Membership & Access Model
+
+| Layer | Who sees it | What lives there |
+|---|---|---|
+| **Personal Garden** | Writer only | Private drafts, fragments, mental-health logs, Inner Critic, Window of Tolerance, Seasonal Reviews |
+| **Circle Garden** | Circle members (4–8 people) | Shared pieces, accountability threads, Compassion Correspondence, Promise Ledger, reactions and comments |
+| **The Garden Gallery** | All logged-in members | Pieces marked "Whole Garden," Profile Gardens, discovery feed, Sanctuary entries, collective Constellation data |
+| **The Greenhouse** | Editorial team only | Shortlisted pieces, editorial notes, curation workflow |
+| **The Page** | Public internet | Curated journal exhibits, illustrated gallery rooms, contributor profiles[2] |
+
+***
+
+## 8. Design Principles
+
+Every feature across the Garden follows three rules:
+
+1. **Reframe, don't fix**: The platform never tells a writer how to feel. It offers lenses, not solutions.
+2. **Normalise the invisible**: Rest, doubt, rejection, envy — these are treated as natural phases, not symptoms to eliminate.
+3. **Collective over individual**: Wherever possible, pain is met with shared humanity rather than isolated self-improvement.[13][4]
+
+And two structural commitments:
+
+4. **No public metrics**: No follower counts, no acceptance tallies, no leaderboards. The Garden measures effort and generosity, not outcomes.
+5. **Invitation, not rejection**: Aligned with The Page Gallery's founding ethos — "If it matters to you, it matters to us". The Garden extends that care from submission to every interaction inside the membership.[12]
+
+***
+
+*The Garden is the private world. The Page is the public gallery. Between them: a Greenhouse where editors quietly tend what might bloom next.*
