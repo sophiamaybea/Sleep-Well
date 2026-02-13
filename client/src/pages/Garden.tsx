@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, ChevronLeft, Feather, BookOpen, Sparkles, PenLine } from "lucide-react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { Plus, Trash2, ChevronLeft, Feather, BookOpen, Sparkles, PenLine, ArrowRight } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StarBackground from "@/components/StarBackground";
 import type { Writing } from "@shared/schema";
@@ -25,10 +25,10 @@ const stageDot: Record<string, string> = {
   bloom: "bg-pink-400",
 };
 
-const stageGradient: Record<string, string> = {
-  seed: "from-amber-500/20 to-amber-500/0",
-  sprout: "from-emerald-500/20 to-emerald-500/0",
-  bloom: "from-pink-500/20 to-pink-500/0",
+const stageGlow: Record<string, string> = {
+  seed: "rgba(245, 158, 11, 0.25)",
+  sprout: "rgba(16, 185, 129, 0.25)",
+  bloom: "rgba(236, 72, 153, 0.25)",
 };
 
 const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
@@ -100,6 +100,146 @@ function getGreeting(): string {
   if (hour >= 12 && hour < 17) return "Good afternoon";
   if (hour >= 17 && hour < 21) return "Good evening";
   return "The night is yours";
+}
+
+function AnimatedCounter({ target, duration = 1.5, delay = 0 }: { target: number; duration?: number; delay?: number }) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (target === 0) return;
+    const timer = setTimeout(() => {
+      let start = 0;
+      const step = Math.max(1, Math.ceil(target / (duration * 60)));
+      const interval = setInterval(() => {
+        start += step;
+        if (start >= target) {
+          setCount(target);
+          clearInterval(interval);
+        } else {
+          setCount(start);
+        }
+      }, 1000 / 60);
+      return () => clearInterval(interval);
+    }, delay * 1000);
+    return () => clearTimeout(timer);
+  }, [target, duration, delay]);
+  return <>{count}</>;
+}
+
+function TiltCard({ children, className, glowColor, onClick, testId }: {
+  children: React.ReactNode;
+  className?: string;
+  glowColor?: string;
+  onClick?: () => void;
+  testId?: string;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0.5);
+  const mouseY = useMotionValue(0.5);
+
+  const rotateX = useTransform(mouseY, [0, 1], [8, -8]);
+  const rotateY = useTransform(mouseX, [0, 1], [-8, 8]);
+  const springRotateX = useSpring(rotateX, { stiffness: 200, damping: 20 });
+  const springRotateY = useSpring(rotateY, { stiffness: 200, damping: 20 });
+
+  const glowX = useTransform(mouseX, [0, 1], [0, 100]);
+  const glowY = useTransform(mouseY, [0, 1], [0, 100]);
+
+  const [isHovered, setIsHovered] = useState(false);
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width);
+    mouseY.set((e.clientY - rect.top) / rect.height);
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0.5);
+    mouseY.set(0.5);
+    setIsHovered(false);
+  }
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      onClick={onClick}
+      style={{
+        rotateX: springRotateX,
+        rotateY: springRotateY,
+        transformStyle: "preserve-3d",
+        perspective: 800,
+      }}
+      className={`relative ${onClick ? "cursor-pointer" : "cursor-default"} ${className || ""}`}
+      data-testid={testId}
+    >
+      {isHovered && glowColor && (
+        <motion.div
+          className="absolute inset-0 rounded-xl pointer-events-none z-0"
+          style={{
+            background: `radial-gradient(300px circle at ${glowX.get()}% ${glowY.get()}%, ${glowColor}, transparent 70%)`,
+            opacity: 0.6,
+          }}
+        />
+      )}
+      {children}
+    </motion.div>
+  );
+}
+
+function GrowthBar({ seedCount, sproutCount, bloomCount }: { seedCount: number; sproutCount: number; bloomCount: number }) {
+  const total = seedCount + sproutCount + bloomCount;
+  if (total === 0) return null;
+  const seedPct = (seedCount / total) * 100;
+  const sproutPct = (sproutCount / total) * 100;
+  const bloomPct = (bloomCount / total) * 100;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scaleX: 0 }}
+      animate={{ opacity: 1, scaleX: 1 }}
+      transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
+      style={{ transformOrigin: "left" }}
+      className="w-full"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-mono text-[10px] tracking-[0.3em] text-white/30 uppercase">Growth Progress</span>
+      </div>
+      <div className="relative h-2 rounded-full bg-white/[0.04] overflow-hidden">
+        <motion.div
+          className="absolute left-0 top-0 h-full bg-gradient-to-r from-amber-500/60 to-amber-400/60 rounded-l-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${seedPct}%` }}
+          transition={{ delay: 0.8, duration: 1, ease: "easeOut" }}
+        />
+        <motion.div
+          className="absolute top-0 h-full bg-gradient-to-r from-emerald-500/60 to-emerald-400/60"
+          initial={{ width: 0, left: `${seedPct}%` }}
+          animate={{ width: `${sproutPct}%`, left: `${seedPct}%` }}
+          transition={{ delay: 1, duration: 1, ease: "easeOut" }}
+        />
+        <motion.div
+          className="absolute top-0 h-full bg-gradient-to-r from-pink-500/60 to-pink-400/60 rounded-r-full"
+          initial={{ width: 0, left: `${seedPct + sproutPct}%` }}
+          animate={{ width: `${bloomPct}%`, left: `${seedPct + sproutPct}%` }}
+          transition={{ delay: 1.2, duration: 1, ease: "easeOut" }}
+        />
+      </div>
+      <div className="flex justify-between mt-2">
+        {seedCount > 0 && (
+          <span className="font-mono text-[9px] text-amber-400/50">{Math.round(seedPct)}% seeds</span>
+        )}
+        {sproutCount > 0 && (
+          <span className="font-mono text-[9px] text-emerald-400/50">{Math.round(sproutPct)}% sprouts</span>
+        )}
+        {bloomCount > 0 && (
+          <span className="font-mono text-[9px] text-pink-400/50">{Math.round(bloomPct)}% blooms</span>
+        )}
+      </div>
+    </motion.div>
+  );
 }
 
 type ViewMode = "dashboard" | "writings" | "editor";
@@ -254,7 +394,8 @@ export default function Garden() {
   const recentWritings = [...writings].sort((a, b) =>
     new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime()
   ).slice(0, 3);
-  const latestWriting = recentWritings[0] || null;
+
+  const greetingText = `${getGreeting()}, ${user?.firstName || "writer"}.`;
 
   return (
     <div className="min-h-screen bg-background text-foreground relative">
@@ -438,6 +579,7 @@ export default function Garden() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.4 }}
                     onClick={() => openWriting(w)}
+                    whileHover={{ scale: 1.01, y: -2 }}
                     className="w-full text-left group relative"
                     data-testid={`card-writing-${w.id}`}
                   >
@@ -477,130 +619,219 @@ export default function Garden() {
               exit={{ opacity: 0 }}
               className="max-w-6xl mx-auto px-6"
             >
+              {/* Greeting with word-by-word reveal */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7 }}
                 className="mb-16 space-y-2"
               >
-                <div className="flex items-center gap-3 text-white/25 mb-4">
-                  <Feather size={16} />
+                <motion.div
+                  className="flex items-center gap-3 text-white/25 mb-4"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}>
+                    <Feather size={16} />
+                  </motion.div>
                   <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Your Garden</span>
-                </div>
+                </motion.div>
+
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-light tracking-tight italic text-white/90" data-testid="heading-garden">
-                  {getGreeting()}, {user?.firstName || "writer"}.
+                  {greetingText.split(" ").map((word, i) => (
+                    <motion.span
+                      key={i}
+                      initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{ delay: 0.3 + i * 0.12, duration: 0.5 }}
+                      className="inline-block mr-[0.3em]"
+                    >
+                      {word}
+                    </motion.span>
+                  ))}
                 </h1>
-                <p className="text-lg font-serif text-white/35 max-w-xl leading-relaxed mt-4">
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1, duration: 0.8 }}
+                  className="text-lg font-serif text-white/35 max-w-xl leading-relaxed mt-4"
+                >
                   Your quiet space to plant ideas and nurture them into something beautiful.
-                </p>
+                </motion.p>
               </motion.div>
 
-              <div className="grid md:grid-cols-3 gap-4 mb-12">
+              {/* Stats cards with 3D tilt */}
+              <div className="grid md:grid-cols-3 gap-4 mb-8">
                 {[
-                  { label: "Seeds", count: seedCount, icon: <SeedIcon className="w-6 h-6" />, color: "amber", stage: "seed" },
-                  { label: "Sprouts", count: sproutCount, icon: <SproutIcon className="w-6 h-6" />, color: "emerald", stage: "sprout" },
-                  { label: "Blooms", count: bloomCount, icon: <BloomIcon className="w-6 h-6" />, color: "pink", stage: "bloom" },
+                  { label: "Seeds", count: seedCount, icon: <SeedIcon className="w-7 h-7" />, stage: "seed" },
+                  { label: "Sprouts", count: sproutCount, icon: <SproutIcon className="w-7 h-7" />, stage: "sprout" },
+                  { label: "Blooms", count: bloomCount, icon: <BloomIcon className="w-7 h-7" />, stage: "bloom" },
                 ].map((stat, i) => (
                   <motion.div
                     key={stat.label}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
-                    className={`group relative rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 cursor-default overflow-hidden hover:border-white/15 transition-all duration-500`}
-                    data-testid={`stat-${stat.stage}`}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: 0.4 + i * 0.12, duration: 0.5 }}
                   >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${stageGradient[stat.stage]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                    <div className="relative z-10 flex items-start justify-between">
-                      <div className="space-y-3">
-                        <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase block">{stat.label}</span>
-                        <span className="text-4xl md:text-5xl font-display font-light text-white/80 block">{stat.count}</span>
+                    <TiltCard
+                      glowColor={stageGlow[stat.stage]}
+                      className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 overflow-hidden hover:border-white/15 transition-all duration-500"
+                      testId={`stat-${stat.stage}`}
+                    >
+                      <div className="relative z-10 flex items-start justify-between">
+                        <div className="space-y-3">
+                          <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase block">{stat.label}</span>
+                          <span className="text-4xl md:text-5xl font-display font-light text-white/80 block">
+                            <AnimatedCounter target={stat.count} delay={0.5 + i * 0.15} />
+                          </span>
+                        </div>
+                        <motion.div
+                          className={`${stageColors[stat.stage]} opacity-40`}
+                          whileHover={{ scale: 1.3, rotate: 15, opacity: 0.9 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          {stat.icon}
+                        </motion.div>
                       </div>
-                      <div className={`${stageColors[stat.stage]} opacity-40 group-hover:opacity-70 transition-opacity duration-500`}>
-                        {stat.icon}
-                      </div>
-                    </div>
+                    </TiltCard>
                   </motion.div>
                 ))}
               </div>
 
+              {/* Growth progress bar */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="mb-12 rounded-xl border border-white/[0.06] bg-white/[0.02] p-6"
+              >
+                {writings.length > 0 ? (
+                  <GrowthBar seedCount={seedCount} sproutCount={sproutCount} bloomCount={bloomCount} />
+                ) : (
+                  <div className="flex items-center gap-3 text-white/20">
+                    <Sparkles size={14} />
+                    <span className="font-mono text-[10px] tracking-widest uppercase">Plant your first seed to see growth</span>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Stats row with hover effects */}
               <div className="grid md:grid-cols-2 gap-4 mb-12">
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.5 }}
-                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 flex items-center gap-6"
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  whileHover={{ scale: 1.02, y: -3 }}
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 flex items-center gap-6 cursor-default group hover:border-white/15 transition-colors"
                   data-testid="stat-words"
                 >
-                  <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white/30">
+                  <motion.div
+                    className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white/30 group-hover:text-white/60 group-hover:border-white/20 transition-all"
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
                     <PenLine size={20} />
-                  </div>
+                  </motion.div>
                   <div>
                     <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase block mb-1">Total Words</span>
-                    <span className="text-3xl font-display font-light text-white/80">{totalWords.toLocaleString()}</span>
+                    <span className="text-3xl font-display font-light text-white/80">
+                      <AnimatedCounter target={totalWords} duration={2} delay={0.8} />
+                    </span>
                   </div>
                 </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 flex items-center gap-6"
+                  transition={{ delay: 0.7, duration: 0.5 }}
+                  whileHover={{ scale: 1.02, y: -3 }}
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 flex items-center gap-6 cursor-default group hover:border-white/15 transition-colors"
                   data-testid="stat-writings"
                 >
-                  <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white/30">
+                  <motion.div
+                    className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white/30 group-hover:text-white/60 group-hover:border-white/20 transition-all"
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
                     <BookOpen size={20} />
-                  </div>
+                  </motion.div>
                   <div>
                     <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase block mb-1">Total Writings</span>
-                    <span className="text-3xl font-display font-light text-white/80">{writings.length}</span>
+                    <span className="text-3xl font-display font-light text-white/80">
+                      <AnimatedCounter target={writings.length} delay={0.9} />
+                    </span>
                   </div>
                 </motion.div>
               </div>
 
+              {/* Action buttons with magnetic effect and glow */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.5 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
                 className="flex flex-col sm:flex-row gap-3 mb-16"
               >
-                <button
+                <motion.button
                   onClick={() => createMutation.mutate()}
                   disabled={createMutation.isPending}
-                  className="flex items-center justify-center gap-3 px-8 py-4 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-xl font-mono text-xs uppercase tracking-widest text-white/70 hover:text-white transition-all group"
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(245, 158, 11, 0.15)" }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex items-center justify-center gap-3 px-8 py-4 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-amber-500/30 rounded-xl font-mono text-xs uppercase tracking-widest text-white/70 hover:text-white transition-all group"
                   data-testid="button-new-writing"
                 >
-                  <Plus size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+                  <motion.span
+                    animate={{ rotate: [0, 90, 0] }}
+                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 5 }}
+                    className="inline-flex"
+                  >
+                    <Plus size={16} />
+                  </motion.span>
                   Plant a New Seed
-                </button>
+                </motion.button>
 
                 {writings.length > 0 && (
-                  <button
+                  <motion.button
                     onClick={() => setViewMode("writings")}
-                    className="flex items-center justify-center gap-3 px-8 py-4 border border-white/[0.06] hover:border-white/15 rounded-xl font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white/70 transition-all"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center justify-center gap-3 px-8 py-4 border border-white/[0.06] hover:border-white/15 rounded-xl font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white/70 transition-all group"
                     data-testid="button-view-all"
                   >
                     <BookOpen size={16} />
                     View All Writings
-                  </button>
+                    <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </motion.button>
                 )}
               </motion.div>
 
+              {/* Recent activity with interactive cards */}
               {recentWritings.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8, duration: 0.5 }}
+                  transition={{ delay: 0.9, duration: 0.5 }}
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-mono text-[10px] tracking-[0.3em] text-white/30 uppercase">Recent Activity</h2>
+                    <motion.h2
+                      className="font-mono text-[10px] tracking-[0.3em] text-white/30 uppercase"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 1 }}
+                    >
+                      Recent Activity
+                    </motion.h2>
                     {writings.length > 3 && (
-                      <button
+                      <motion.button
                         onClick={() => setViewMode("writings")}
-                        className="font-mono text-[10px] tracking-widest text-white/20 hover:text-white/50 transition-colors uppercase"
+                        whileHover={{ x: 4 }}
+                        className="font-mono text-[10px] tracking-widest text-white/20 hover:text-white/50 transition-colors uppercase flex items-center gap-1"
                         data-testid="link-see-all"
                       >
-                        See all →
-                      </button>
+                        See all
+                        <ArrowRight size={10} />
+                      </motion.button>
                     )}
                   </div>
 
@@ -608,30 +839,42 @@ export default function Garden() {
                     {recentWritings.map((w, i) => (
                       <motion.button
                         key={w.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.9 + i * 0.06, duration: 0.4 }}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 1 + i * 0.08, duration: 0.5 }}
                         onClick={() => openWriting(w)}
+                        whileHover={{ scale: 1.015, x: 6 }}
+                        whileTap={{ scale: 0.99 }}
                         className="w-full text-left group relative"
                         data-testid={`card-recent-${w.id}`}
                       >
-                        <div className="relative p-5 md:p-6 rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all duration-300">
-                          <div className="flex items-start gap-4">
-                            <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[w.stage]} ${stageAccent[w.stage]}`}>
+                        <div className="relative p-5 md:p-6 rounded-xl border border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all duration-300 overflow-hidden">
+                          <motion.div
+                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                            style={{
+                              background: `linear-gradient(90deg, ${stageGlow[w.stage] || stageGlow.seed} 0%, transparent 60%)`,
+                            }}
+                          />
+                          <div className="relative z-10 flex items-start gap-4">
+                            <motion.div
+                              className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center mt-0.5 ${stageColors[w.stage]} ${stageAccent[w.stage]}`}
+                              whileHover={{ scale: 1.2, rotate: 10 }}
+                            >
                               {stageIcons[w.stage] || stageIcons.seed}
-                            </div>
+                            </motion.div>
                             <div className="flex-grow min-w-0 space-y-1.5">
                               <div className="flex items-center justify-between gap-4">
                                 <h3 className="text-lg font-display font-light truncate text-white/70 group-hover:text-white/90 transition-colors italic">
                                   {w.title || "Untitled"}
                                 </h3>
                                 <div className="flex items-center gap-3 flex-shrink-0">
-                                  <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">{w.genre}</span>
-                                  <span className="font-mono text-[9px] text-white/10">{timeAgo(w.updatedAt)}</span>
+                                  <span className="font-mono text-[9px] uppercase tracking-widest text-white/15 group-hover:text-white/30 transition-colors">{w.genre}</span>
+                                  <span className="font-mono text-[9px] text-white/10 group-hover:text-white/25 transition-colors">{timeAgo(w.updatedAt)}</span>
+                                  <ArrowRight size={12} className="text-white/0 group-hover:text-white/30 transition-all group-hover:translate-x-1" />
                                 </div>
                               </div>
                               {w.content && (
-                                <p className="text-sm font-serif text-white/25 line-clamp-1 group-hover:text-white/35 transition-colors">
+                                <p className="text-sm font-serif text-white/25 line-clamp-1 group-hover:text-white/40 transition-colors">
                                   {w.content.slice(0, 150)}
                                 </p>
                               )}
@@ -644,18 +887,34 @@ export default function Garden() {
                 </motion.div>
               )}
 
+              {/* Empty state with animated icons */}
               {writings.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="border border-dashed border-white/10 rounded-2xl p-16 md:p-20 text-center space-y-8"
+                  transition={{ delay: 0.8 }}
+                  className="border border-dashed border-white/10 rounded-2xl p-16 md:p-20 text-center space-y-8 hover:border-white/15 transition-colors"
                   data-testid="empty-garden"
                 >
-                  <div className="flex items-center justify-center gap-6">
-                    <SeedIcon className="w-10 h-10 text-amber-400/20" />
-                    <SproutIcon className="w-12 h-12 text-emerald-400/20" />
-                    <BloomIcon className="w-10 h-10 text-pink-400/20" />
+                  <div className="flex items-center justify-center gap-8">
+                    <motion.div
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                    >
+                      <SeedIcon className="w-10 h-10 text-amber-400/20" />
+                    </motion.div>
+                    <motion.div
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, delay: 0.3 }}
+                    >
+                      <SproutIcon className="w-12 h-12 text-emerald-400/20" />
+                    </motion.div>
+                    <motion.div
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, delay: 0.6 }}
+                    >
+                      <BloomIcon className="w-10 h-10 text-pink-400/20" />
+                    </motion.div>
                   </div>
                   <div className="space-y-3">
                     <h3 className="text-2xl md:text-3xl font-display font-light italic text-white/60">
@@ -665,14 +924,21 @@ export default function Garden() {
                       A line, a fragment, a whole draft — whatever wants to come out. Plant it and watch it grow.
                     </p>
                   </div>
-                  <button
+                  <motion.button
                     onClick={() => createMutation.mutate()}
-                    className="inline-flex items-center gap-3 px-8 py-3.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white transition-all group"
+                    whileHover={{ scale: 1.08, boxShadow: "0 0 40px rgba(245, 158, 11, 0.15)" }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-3 px-8 py-3.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white transition-all group"
                     data-testid="button-plant-seed"
                   >
-                    <Sparkles size={14} className="group-hover:text-amber-400 transition-colors" />
+                    <motion.span
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                    >
+                      <Sparkles size={14} className="group-hover:text-amber-400 transition-colors" />
+                    </motion.span>
                     Plant Your First Seed
-                  </button>
+                  </motion.button>
                 </motion.div>
               )}
             </motion.div>
