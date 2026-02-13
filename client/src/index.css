@@ -101,6 +101,21 @@
   height: 0;
   font-style: italic;
 }
+
+.typewriter-editor.tiptap {
+  font-family: 'Special Elite', 'Courier New', monospace;
+  letter-spacing: 0.03em;
+  caret-color: rgba(251, 191, 36, 0.8);
+  caret-shape: block;
+}
+.typewriter-editor.tiptap::selection,
+.typewriter-editor.tiptap *::selection {
+  background: rgba(251, 191, 36, 0.15);
+}
+@keyframes typewriter-blink {
+  0%, 100% { border-color: rgba(251, 191, 36, 0.7); }
+  50% { border-color: transparent; }
+}
 .prose-editor .tiptap p {
   margin-bottom: 0.75em;
   line-height: 2;
