@@ -4,6 +4,11 @@
 A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
 
 ## Recent Changes
+- 2026-02-13: Skeleton loading states — replaced blank white screens with animated skeleton placeholders in Garden zones, Gallery/Featured, and community rooms (Tables, Workshop, Swap)
+- 2026-02-13: Enhanced Greenhouse tools — Inner Weather mood/energy timeline chart (14-entry visualization with color-coded bars), Rituals streak counter (current/best/weekly/total stats grid), Reflections rotating craft prompts (15 prompts with sparkle-to-cycle)
+- 2026-02-13: Organization system — custom tags (up to 5 per piece, violet pill UI, tag filter bar on desk), pin/unpin pieces (pinned sort first), archive/restore pieces (hidden by default with count toggle)
+- 2026-02-13: Export menu — download writings as .txt, .md, or PDF from piece cards and editor toolbar
+- 2026-02-13: Rich text editor — TipTap with bold/italic/underline/headings/lists/blockquote/horizontal rule, keyboard shortcuts (Cmd+B etc.), stores HTML, ContentRenderer with DOMPurify sanitization
 - 2026-02-13: Community rooms live — Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange) now clickable in Rooms strip, each with full CRUD and matching Garden aesthetic
 - 2026-02-13: Writer profiles — public `/writer/:id` page showing bio, published work, tending connections, and resonance counts
 - 2026-02-13: Editorial publishing flow — editorial pieces endpoint, editor publish action with author notification
