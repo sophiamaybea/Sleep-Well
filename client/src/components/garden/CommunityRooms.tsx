@@ -89,7 +89,7 @@ function BackButton({ onBack }: { onBack: () => void }) {
   return (
     <button
       onClick={onBack}
-      className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors group"
+      className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white/80 transition-colors group"
       data-testid="button-back"
     >
       <ChevronLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
@@ -104,8 +104,8 @@ function CategoryPill({ label, active, onClick, testId }: { label: string; activ
       onClick={onClick}
       className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
         active
-          ? "bg-white/[0.08] border-white/15 text-white/80"
-          : "border-white/[0.08] text-white/40 hover:text-white/45 hover:border-white/10"
+          ? "bg-white/[0.08] border-white/25 text-white/80"
+          : "border-white/[0.15] text-white/60 hover:text-white/60 hover:border-white/20"
       }`}
       data-testid={testId}
     >
@@ -154,39 +154,39 @@ function TopicReplies({ topicId }: { topicId: string }) {
   return (
     <div className="space-y-3" data-testid={`topic-replies-${topicId}`}>
       {isLoading && (
-        <p className="font-serif text-sm text-white/35 italic">Loading replies...</p>
+        <p className="font-serif text-sm text-white/55 italic">Loading replies...</p>
       )}
       {replies.length === 0 && !isLoading && (
-        <p className="font-serif text-sm text-white/30 italic">No replies yet — start the conversation.</p>
+        <p className="font-serif text-sm text-white/50 italic">No replies yet — start the conversation.</p>
       )}
       {replies.map((reply) => (
-        <div key={reply.id} className={`flex items-start gap-3 ${reply.parentId ? "ml-8 border-l border-white/[0.12] pl-4" : ""}`} data-testid={`reply-${reply.id}`}>
-          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/40 font-mono text-[8px] uppercase flex-shrink-0">
+        <div key={reply.id} className={`flex items-start gap-3 ${reply.parentId ? "ml-8 border-l border-white/[0.20] pl-4" : ""}`} data-testid={`reply-${reply.id}`}>
+          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/20 flex items-center justify-center text-white/60 font-mono text-[8px] uppercase flex-shrink-0">
             {reply.authorName?.[0] || "?"}
           </div>
           <div className="flex-grow min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-mono text-[10px] text-white/40 tracking-wide">{reply.authorName}</span>
-              <span className="font-mono text-[9px] text-white/30">{timeAgo(reply.createdAt)}</span>
+              <span className="font-mono text-[10px] text-white/60 tracking-wide">{reply.authorName}</span>
+              <span className="font-mono text-[9px] text-white/50">{timeAgo(reply.createdAt)}</span>
             </div>
-            <p className="font-serif text-sm text-white/50 leading-relaxed">{reply.content}</p>
+            <p className="font-serif text-sm text-white/70 leading-relaxed">{reply.content}</p>
           </div>
         </div>
       ))}
-      <div className="flex gap-2 pt-2 border-t border-white/[0.08]">
+      <div className="flex gap-2 pt-2 border-t border-white/[0.15]">
         <input
           type="text"
           value={replyContent}
           onChange={(e) => setReplyContent(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitReply(); } }}
           placeholder="Write a reply..."
-          className="flex-grow bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
+          className="flex-grow bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
           data-testid={`input-reply-${topicId}`}
         />
         <button
           onClick={handleSubmitReply}
           disabled={!replyContent.trim() || replyMutation.isPending}
-          className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/20 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           data-testid={`button-submit-reply-${topicId}`}
         >
           Reply
@@ -252,14 +252,14 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
       <div className="flex items-center justify-between mb-8">
         <BackButton onBack={onBack} />
         <div className="flex items-center gap-3">
-          <Users size={16} className="text-white/35" />
-          <h2 className="text-xl font-display font-light italic text-white/70">Tables</h2>
+          <Users size={16} className="text-white/55" />
+          <h2 className="text-xl font-display font-light italic text-white/80">Tables</h2>
         </div>
         <motion.button
           onClick={() => setShowNewForm(!showNewForm)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
           data-testid="button-new-topic"
         >
           <Plus size={13} />
@@ -267,7 +267,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
         </motion.button>
       </div>
 
-      <p className="font-serif text-sm text-white/30 leading-relaxed mb-6 max-w-xl">
+      <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
         Pull up a chair and join the conversation. Share thoughts on craft, swap inspiration, ask for feedback, or simply chat with fellow writers.
       </p>
 
@@ -279,13 +279,13 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-6"
           >
-            <div className="border border-white/[0.08] rounded-xl p-5 space-y-4 bg-white/[0.02]" data-testid="new-topic-form">
+            <div className="border border-white/[0.15] rounded-xl p-5 space-y-4 bg-white/[0.05]" data-testid="new-topic-form">
               <input
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Give your topic a name..."
-                className="w-full bg-transparent border-b border-white/[0.12] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/30 focus:outline-none focus:border-white/20 transition-colors"
+                className="w-full bg-transparent border-b border-white/[0.20] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/45 focus:outline-none focus:border-white/20 transition-colors"
                 data-testid="input-topic-title"
               />
               <textarea
@@ -293,15 +293,15 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setNewBody(e.target.value)}
                 placeholder="Share your thoughts, questions, or ideas with the community..."
                 rows={4}
-                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
                 data-testid="input-topic-body"
               />
               <div className="flex items-center justify-between">
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 mr-1">Category</label>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/55 mr-1">Category</label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.12] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                  className="bg-transparent text-white/50 font-mono text-[9px] uppercase tracking-widest border border-white/[0.20] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
                   data-testid="select-topic-category"
                 >
                   {TABLE_CATEGORIES.map((c) => (
@@ -311,7 +311,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowNewForm(false)}
-                    className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                    className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
                     data-testid="button-cancel-topic"
                   >
                     Cancel
@@ -319,7 +319,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                   <button
                     onClick={handleCreateTopic}
                     disabled={!newTitle.trim() || !newBody.trim() || createMutation.isPending}
-                    className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     data-testid="button-submit-topic"
                   >
                     Post
@@ -340,20 +340,20 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
 
       {isLoading && (
         <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/35 italic">Loading discussions...</p>
+          <p className="font-serif text-sm text-white/55 italic">Loading discussions...</p>
         </div>
       )}
 
       {!isLoading && filteredTopics.length === 0 && (
-        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
-          <MessageSquare size={32} className="mx-auto text-white/10" />
-          <h3 className="text-xl font-display font-light italic text-white/40">No discussions yet</h3>
-          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
+        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
+          <MessageSquare size={32} className="mx-auto text-white/30" />
+          <h3 className="text-xl font-display font-light italic text-white/60">No discussions yet</h3>
+          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
             This is where writers gather to talk — about craft, about life, about the strange joy of finding the right word. Start a thread and pull up a chair.
           </p>
           <button
             onClick={() => setShowNewForm(true)}
-            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
             data-testid="button-start-first-topic"
           >
             <Plus size={13} />
@@ -375,8 +375,8 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
             >
               <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
                 isExpanded
-                  ? "border-white/15 bg-white/[0.025]"
-                  : "border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01]"
+                  ? "border-white/25 bg-white/[0.025]"
+                  : "border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04]"
               }`}>
                 <button
                   onClick={() => setExpandedTopic(isExpanded ? null : topic.id)}
@@ -387,22 +387,22 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                     <div className="flex-grow min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         {topic.isPinned && <span className="text-amber-400/50 text-[9px] font-mono uppercase tracking-widest">pinned</span>}
-                        <h3 className="text-base font-display font-light truncate text-white/70 italic">{topic.title}</h3>
+                        <h3 className="text-base font-display font-light truncate text-white/80 italic">{topic.title}</h3>
                       </div>
-                      <div className="flex items-center gap-3 text-white/35">
+                      <div className="flex items-center gap-3 text-white/55">
                         <span className="font-mono text-[10px]">{topic.authorName}</span>
                         <span className="font-mono text-[9px]">{timeAgo(topic.updatedAt || topic.createdAt)}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="px-2 py-0.5 rounded-full border border-white/[0.12] font-mono text-[8px] uppercase tracking-widest text-white/35" data-testid={`badge-category-${topic.id}`}>
+                      <span className="px-2 py-0.5 rounded-full border border-white/[0.20] font-mono text-[8px] uppercase tracking-widest text-white/55" data-testid={`badge-category-${topic.id}`}>
                         {topic.category}
                       </span>
-                      <div className="flex items-center gap-1 text-white/35">
+                      <div className="flex items-center gap-1 text-white/55">
                         <MessageSquare size={11} />
                         <span className="font-mono text-[9px]" data-testid={`text-reply-count-${topic.id}`}>{topic.replyCount}</span>
                       </div>
-                      <ChevronDown size={13} className={`text-white/30 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                      <ChevronDown size={13} className={`text-white/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
                 </button>
@@ -416,8 +416,8 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
                       transition={{ duration: 0.25 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.08]">
-                        <p className="font-serif text-sm text-white/40 leading-relaxed pt-4" data-testid={`text-topic-body-${topic.id}`}>{topic.body}</p>
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.15]">
+                        <p className="font-serif text-sm text-white/60 leading-relaxed pt-4" data-testid={`text-topic-body-${topic.id}`}>{topic.body}</p>
                         <TopicReplies topicId={topic.id} />
                       </div>
                     </motion.div>
@@ -471,38 +471,38 @@ function ExerciseResponses({ exerciseId }: { exerciseId: string }) {
 
   return (
     <div className="space-y-4" data-testid={`exercise-responses-${exerciseId}`}>
-      {isLoading && <p className="font-serif text-sm text-white/35 italic">Loading responses...</p>}
+      {isLoading && <p className="font-serif text-sm text-white/55 italic">Loading responses...</p>}
       {responses.length === 0 && !isLoading && (
-        <p className="font-serif text-sm text-white/30 italic">No responses yet — be the first to write.</p>
+        <p className="font-serif text-sm text-white/50 italic">No responses yet — be the first to write.</p>
       )}
       {responses.map((r) => (
         <div key={r.id} className="flex items-start gap-3" data-testid={`response-${r.id}`}>
-          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/40 font-mono text-[8px] uppercase flex-shrink-0">
+          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/20 flex items-center justify-center text-white/60 font-mono text-[8px] uppercase flex-shrink-0">
             {r.authorName?.[0] || "?"}
           </div>
           <div className="flex-grow min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-[10px] text-white/40 tracking-wide">{r.authorName}</span>
-              <span className="font-mono text-[9px] text-white/30">{timeAgo(r.createdAt)}</span>
+              <span className="font-mono text-[10px] text-white/60 tracking-wide">{r.authorName}</span>
+              <span className="font-mono text-[9px] text-white/50">{timeAgo(r.createdAt)}</span>
             </div>
-            <p className="font-serif text-sm text-white/50 leading-relaxed whitespace-pre-wrap">{r.content}</p>
+            <p className="font-serif text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{r.content}</p>
           </div>
         </div>
       ))}
-      <div className="pt-3 border-t border-white/[0.08] space-y-2">
+      <div className="pt-3 border-t border-white/[0.15] space-y-2">
         <textarea
           value={responseContent}
           onChange={(e) => setResponseContent(e.target.value)}
           placeholder="Write your response to this exercise here..."
           rows={4}
-          className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
+          className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
           data-testid={`input-response-${exerciseId}`}
         />
         <div className="flex justify-end">
           <button
             onClick={handleSubmit}
             disabled={!responseContent.trim() || submitMutation.isPending}
-            className="px-5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="px-5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             data-testid={`button-submit-response-${exerciseId}`}
           >
             Submit
@@ -575,14 +575,14 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
       <div className="flex items-center justify-between mb-8">
         <BackButton onBack={onBack} />
         <div className="flex items-center gap-3">
-          <BookOpen size={16} className="text-white/35" />
-          <h2 className="text-xl font-display font-light italic text-white/70">Workshop</h2>
+          <BookOpen size={16} className="text-white/55" />
+          <h2 className="text-xl font-display font-light italic text-white/80">Workshop</h2>
         </div>
         <motion.button
           onClick={() => setShowNewForm(!showNewForm)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
           data-testid="button-create-exercise"
         >
           <Plus size={13} />
@@ -590,7 +590,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
         </motion.button>
       </div>
 
-      <p className="font-serif text-sm text-white/30 leading-relaxed mb-6 max-w-xl">
+      <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
         A space for creative play. Try a writing exercise, respond to a prompt, or create one for others. No pressure, no grades — just practice.
       </p>
 
@@ -602,13 +602,13 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-6"
           >
-            <div className="border border-white/[0.08] rounded-xl p-5 space-y-4 bg-white/[0.02]" data-testid="new-exercise-form">
+            <div className="border border-white/[0.15] rounded-xl p-5 space-y-4 bg-white/[0.05]" data-testid="new-exercise-form">
               <input
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Name this exercise..."
-                className="w-full bg-transparent border-b border-white/[0.12] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/30 focus:outline-none focus:border-white/20 transition-colors"
+                className="w-full bg-transparent border-b border-white/[0.20] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/45 focus:outline-none focus:border-white/20 transition-colors"
                 data-testid="input-exercise-title"
               />
               <textarea
@@ -616,7 +616,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setNewPrompt(e.target.value)}
                 placeholder="Describe the exercise — what should writers try? Give a starting line, constraint, or form..."
                 rows={4}
-                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
                 data-testid="input-exercise-prompt"
               />
               <div className="flex items-center justify-between flex-wrap gap-3">
@@ -624,7 +624,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.12] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                    className="bg-transparent text-white/50 font-mono text-[9px] uppercase tracking-widest border border-white/[0.20] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
                     data-testid="select-exercise-category"
                   >
                     {WORKSHOP_CATEGORIES.map((c) => (
@@ -638,16 +638,16 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                       onChange={(e) => setNewDuration(e.target.value)}
                       placeholder="Time"
                       min="1"
-                      className="w-16 bg-transparent border border-white/[0.12] rounded-full px-3 py-1.5 font-mono text-[9px] text-white/40 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors text-center"
+                      className="w-16 bg-transparent border border-white/[0.20] rounded-full px-3 py-1.5 font-mono text-[9px] text-white/60 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors text-center"
                       data-testid="input-exercise-duration"
                     />
-                    <span className="font-mono text-[8px] text-white/30 uppercase tracking-widest">min</span>
+                    <span className="font-mono text-[8px] text-white/50 uppercase tracking-widest">min</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowNewForm(false)}
-                    className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                    className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
                     data-testid="button-cancel-exercise"
                   >
                     Cancel
@@ -655,7 +655,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                   <button
                     onClick={handleCreate}
                     disabled={!newTitle.trim() || !newPrompt.trim() || createMutation.isPending}
-                    className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     data-testid="button-submit-exercise"
                   >
                     Create
@@ -676,20 +676,20 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
 
       {isLoading && (
         <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/35 italic">Loading exercises...</p>
+          <p className="font-serif text-sm text-white/55 italic">Loading exercises...</p>
         </div>
       )}
 
       {!isLoading && filteredExercises.length === 0 && (
-        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
-          <Feather size={32} className="mx-auto text-white/10" />
-          <h3 className="text-xl font-display font-light italic text-white/40">No exercises yet</h3>
-          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
+        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
+          <Feather size={32} className="mx-auto text-white/30" />
+          <h3 className="text-xl font-display font-light italic text-white/60">No exercises yet</h3>
+          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
             Create a writing prompt for the community — a constraint, a starting line, a form to try. Others can respond and share what they wrote.
           </p>
           <button
             onClick={() => setShowNewForm(true)}
-            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
             data-testid="button-create-first-exercise"
           >
             <Plus size={13} />
@@ -711,8 +711,8 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
             >
               <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
                 isExpanded
-                  ? "border-white/15 bg-white/[0.025]"
-                  : "border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01]"
+                  ? "border-white/25 bg-white/[0.025]"
+                  : "border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04]"
               }`}>
                 <button
                   onClick={() => setExpandedExercise(isExpanded ? null : exercise.id)}
@@ -720,31 +720,31 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                   data-testid={`button-expand-exercise-${exercise.id}`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-white/40">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.15] flex items-center justify-center text-white/60">
                       <Feather size={14} />
                     </div>
                     <div className="flex-grow min-w-0">
-                      <h3 className="text-base font-display font-light text-white/70 italic mb-1">{exercise.title}</h3>
-                      <p className="font-serif text-sm text-white/30 line-clamp-2 leading-relaxed">{exercise.prompt}</p>
-                      <div className="flex items-center gap-3 mt-2 text-white/35">
+                      <h3 className="text-base font-display font-light text-white/80 italic mb-1">{exercise.title}</h3>
+                      <p className="font-serif text-sm text-white/50 line-clamp-2 leading-relaxed">{exercise.prompt}</p>
+                      <div className="flex items-center gap-3 mt-2 text-white/55">
                         <span className="font-mono text-[10px]">{exercise.authorName}</span>
                         <span className="font-mono text-[9px]">{timeAgo(exercise.createdAt)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                      <span className="px-2 py-0.5 rounded-full border border-white/[0.12] font-mono text-[8px] uppercase tracking-widest text-white/35" data-testid={`badge-exercise-category-${exercise.id}`}>
+                      <span className="px-2 py-0.5 rounded-full border border-white/[0.20] font-mono text-[8px] uppercase tracking-widest text-white/55" data-testid={`badge-exercise-category-${exercise.id}`}>
                         {exercise.category}
                       </span>
                       <div className="flex items-center gap-2">
                         {exercise.durationMinutes && (
-                          <span className="font-mono text-[9px] text-white/35" data-testid={`text-duration-${exercise.id}`}>{exercise.durationMinutes}m</span>
+                          <span className="font-mono text-[9px] text-white/55" data-testid={`text-duration-${exercise.id}`}>{exercise.durationMinutes}m</span>
                         )}
-                        <div className="flex items-center gap-1 text-white/35">
+                        <div className="flex items-center gap-1 text-white/55">
                           <PenLine size={10} />
                           <span className="font-mono text-[9px]" data-testid={`text-response-count-${exercise.id}`}>{exercise.responseCount}</span>
                         </div>
                       </div>
-                      <ChevronDown size={13} className={`text-white/30 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                      <ChevronDown size={13} className={`text-white/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
                 </button>
@@ -758,9 +758,9 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                       transition={{ duration: 0.25 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.08]">
-                        <div className="pt-4 p-4 bg-white/[0.02] rounded-lg border border-white/[0.08]">
-                          <p className="font-serif text-sm text-white/45 leading-relaxed italic" data-testid={`text-exercise-prompt-${exercise.id}`}>{exercise.prompt}</p>
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.15]">
+                        <div className="pt-4 p-4 bg-white/[0.05] rounded-lg border border-white/[0.15]">
+                          <p className="font-serif text-sm text-white/60 leading-relaxed italic" data-testid={`text-exercise-prompt-${exercise.id}`}>{exercise.prompt}</p>
                         </div>
                         <ExerciseResponses exerciseId={exercise.id} />
                       </div>
@@ -907,14 +907,14 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
       <div className="flex items-center justify-between mb-8">
         <BackButton onBack={onBack} />
         <div className="flex items-center gap-3">
-          <ArrowLeftRight size={16} className="text-white/35" />
-          <h2 className="text-xl font-display font-light italic text-white/70">Swap</h2>
+          <ArrowLeftRight size={16} className="text-white/55" />
+          <h2 className="text-xl font-display font-light italic text-white/80">Swap</h2>
         </div>
         <motion.button
           onClick={() => setShowOfferForm(!showOfferForm)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
           data-testid="button-offer-swap"
         >
           <Plus size={13} />
@@ -922,7 +922,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
         </motion.button>
       </div>
 
-      <p className="font-serif text-sm text-white/30 leading-relaxed mb-6 max-w-xl">
+      <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
         Find a reading partner. Offer one of your pieces, get matched with another writer, and exchange thoughtful feedback. Every swap is a gift — someone reading your work with real attention.
       </p>
 
@@ -934,13 +934,13 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-6"
           >
-            <div className="border border-white/[0.08] rounded-xl p-5 space-y-4 bg-white/[0.02]" data-testid="new-swap-form">
+            <div className="border border-white/[0.15] rounded-xl p-5 space-y-4 bg-white/[0.05]" data-testid="new-swap-form">
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-2 block">Select your writing</label>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/60 mb-2 block">Select your writing</label>
                 <select
                   value={selectedWritingId}
                   onChange={(e) => setSelectedWritingId(e.target.value)}
-                  className="w-full bg-transparent text-white/50 font-serif text-sm border border-white/[0.12] rounded-lg px-3 py-2.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+                  className="w-full bg-transparent text-white/70 font-serif text-sm border border-white/[0.20] rounded-lg px-3 py-2.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
                   data-testid="select-swap-writing"
                 >
                   <option value="" className="bg-[#0b101a]">Choose a piece...</option>
@@ -954,7 +954,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                 value={swapGenre}
                 onChange={(e) => setSwapGenre(e.target.value)}
                 placeholder="What genre do you prefer to read? (optional)"
-                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2.5 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
                 data-testid="input-swap-genre"
               />
               <textarea
@@ -962,13 +962,13 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setSwapNote(e.target.value)}
                 placeholder="Tell potential partners what kind of feedback you're looking for (optional)..."
                 rows={2}
-                className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2.5 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2.5 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
                 data-testid="input-swap-note"
               />
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowOfferForm(false)}
-                  className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                  className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
                   data-testid="button-cancel-swap"
                 >
                   Cancel
@@ -976,7 +976,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                 <button
                   onClick={handleCreateSwap}
                   disabled={!selectedWritingId || createMutation.isPending}
-                  className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   data-testid="button-submit-swap"
                 >
                   Offer
@@ -996,20 +996,20 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
 
       {isLoading && (
         <div className="text-center py-16">
-          <p className="font-serif text-sm text-white/35 italic">Loading swaps...</p>
+          <p className="font-serif text-sm text-white/55 italic">Loading swaps...</p>
         </div>
       )}
 
       {!isLoading && filteredSwaps.length === 0 && (
-        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-4">
-          <ArrowLeftRight size={32} className="mx-auto text-white/10" />
-          <h3 className="text-xl font-display font-light italic text-white/40">No swap requests yet</h3>
-          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
+        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
+          <ArrowLeftRight size={32} className="mx-auto text-white/30" />
+          <h3 className="text-xl font-display font-light italic text-white/60">No swap requests yet</h3>
+          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
             Offer one of your pieces for beta reading. Another writer will match with you, and you'll each read and give feedback on the other's work.
           </p>
           <button
             onClick={() => setShowOfferForm(true)}
-            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
             data-testid="button-offer-first-swap"
           >
             <Plus size={13} />
@@ -1027,28 +1027,28 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
             transition={{ delay: i * 0.03, duration: 0.3 }}
             data-testid={`swap-card-${swap.id}`}
           >
-            <div className="rounded-xl border border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01] overflow-hidden transition-all duration-300">
+            <div className="rounded-xl border border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04] overflow-hidden transition-all duration-300">
               <div className="p-4 md:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded-full border font-mono text-[8px] uppercase tracking-widest ${statusColors[swap.status] || "text-white/35 border-white/[0.12]"}`} data-testid={`badge-status-${swap.id}`}>
+                      <span className={`px-2 py-0.5 rounded-full border font-mono text-[8px] uppercase tracking-widest ${statusColors[swap.status] || "text-white/55 border-white/[0.20]"}`} data-testid={`badge-status-${swap.id}`}>
                         {swap.status}
                       </span>
-                      <h3 className="text-base font-display font-light text-white/70 italic truncate" data-testid={`text-swap-title-${swap.id}`}>{swap.writingTitle}</h3>
+                      <h3 className="text-base font-display font-light text-white/80 italic truncate" data-testid={`text-swap-title-${swap.id}`}>{swap.writingTitle}</h3>
                     </div>
-                    <div className="flex items-center gap-3 text-white/35 mb-2">
+                    <div className="flex items-center gap-3 text-white/55 mb-2">
                       <span className="font-mono text-[10px]">{swap.requesterName}</span>
-                      {swap.genre && <span className="font-mono text-[9px] text-white/30">·  {swap.genre}</span>}
+                      {swap.genre && <span className="font-mono text-[9px] text-white/50">·  {swap.genre}</span>}
                       <span className="font-mono text-[9px]">{timeAgo(swap.createdAt)}</span>
                     </div>
                     {swap.note && (
-                      <p className="font-serif text-sm text-white/30 leading-relaxed" data-testid={`text-swap-note-${swap.id}`}>{swap.note}</p>
+                      <p className="font-serif text-sm text-white/50 leading-relaxed" data-testid={`text-swap-note-${swap.id}`}>{swap.note}</p>
                     )}
                     {swap.status === "matched" && swap.matchedName && (
                       <div className="mt-3 p-3 bg-emerald-500/[0.04] border border-emerald-500/10 rounded-lg">
                         <p className="font-mono text-[9px] uppercase tracking-widest text-emerald-400/50 mb-1">Matched with</p>
-                        <p className="font-serif text-sm text-white/50">{swap.matchedName}</p>
+                        <p className="font-serif text-sm text-white/70">{swap.matchedName}</p>
                       </div>
                     )}
                   </div>
@@ -1060,7 +1060,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                             <select
                               value={matchWritingId}
                               onChange={(e) => setMatchWritingId(e.target.value)}
-                              className="bg-transparent text-white/40 font-serif text-xs border border-white/[0.12] rounded-lg px-2 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer w-40"
+                              className="bg-transparent text-white/60 font-serif text-xs border border-white/[0.20] rounded-lg px-2 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer w-40"
                               data-testid={`select-match-writing-${swap.id}`}
                             >
                               <option value="" className="bg-[#0b101a]">Pick your piece...</option>
@@ -1071,7 +1071,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                             <div className="flex gap-1">
                               <button
                                 onClick={() => setMatchingSwapId(null)}
-                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/40 hover:text-white/50 transition-colors"
+                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/60 hover:text-white/70 transition-colors"
                                 data-testid={`button-cancel-match-${swap.id}`}
                               >
                                 Cancel
@@ -1079,7 +1079,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                               <button
                                 onClick={() => handleMatch(swap.id)}
                                 disabled={!matchWritingId || matchMutation.isPending}
-                                className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                 data-testid={`button-confirm-match-${swap.id}`}
                               >
                                 Confirm
@@ -1089,7 +1089,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                         ) : (
                           <button
                             onClick={() => setMatchingSwapId(swap.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white/70 transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white/80 transition-all"
                             data-testid={`button-match-${swap.id}`}
                           >
                             <ArrowLeftRight size={10} />
@@ -1106,37 +1106,37 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                               type="hidden"
                               value={feedbackToUserId}
                             />
-                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 block mb-1">What worked well?</label>
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/55 block mb-1">What worked well?</label>
                             <textarea
                               value={feedbackStrengths}
                               onChange={(e) => setFeedbackStrengths(e.target.value)}
                               placeholder="Strengths..."
                               rows={2}
-                              className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
+                              className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2 text-xs font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
                               data-testid={`input-feedback-strengths-${swap.id}`}
                             />
-                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 block mb-1">Suggestions for improvement</label>
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/55 block mb-1">Suggestions for improvement</label>
                             <textarea
                               value={feedbackSuggestions}
                               onChange={(e) => setFeedbackSuggestions(e.target.value)}
                               placeholder="Suggestions..."
                               rows={2}
-                              className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors resize-none"
+                              className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2 text-xs font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
                               data-testid={`input-feedback-suggestions-${swap.id}`}
                             />
-                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/35 block mb-1">Favorite lines (optional)</label>
+                            <label className="font-mono text-[9px] uppercase tracking-widest text-white/55 block mb-1">Favorite lines (optional)</label>
                             <input
                               type="text"
                               value={feedbackFavoriteLines}
                               onChange={(e) => setFeedbackFavoriteLines(e.target.value)}
                               placeholder="Favorite lines (optional)..."
-                              className="w-full bg-white/[0.02] border border-white/[0.12] rounded-lg px-3 py-2 text-xs font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
+                              className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2 text-xs font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
                               data-testid={`input-feedback-favorites-${swap.id}`}
                             />
                             <div className="flex gap-1">
                               <button
                                 onClick={() => setFeedbackSwapId(null)}
-                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/40 hover:text-white/50 transition-colors"
+                                className="px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/60 hover:text-white/70 transition-colors"
                                 data-testid={`button-cancel-feedback-${swap.id}`}
                               >
                                 Cancel
@@ -1144,7 +1144,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                               <button
                                 onClick={() => handleFeedback(swap.id)}
                                 disabled={!feedbackStrengths.trim() || !feedbackSuggestions.trim() || feedbackMutation.isPending}
-                                className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                 data-testid={`button-submit-feedback-${swap.id}`}
                               >
                                 Send

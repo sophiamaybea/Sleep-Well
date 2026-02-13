@@ -100,12 +100,12 @@ function timeAgo(date: string | Date | null | undefined) {
 }
 
 const rooms = [
-  { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Community discussions" },
-  { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises" },
-  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Coming soon" },
-  { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange" },
-  { id: "retreats", label: "Retreats", icon: <Compass size={13} />, desc: "Coming soon" },
-  { id: "press", label: "The Press", icon: <FileCheck size={13} />, desc: "Coming soon" },
+  { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Community discussions", comingSoon: false },
+  { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises", comingSoon: false },
+  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Coming soon", comingSoon: true },
+  { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange", comingSoon: false },
+  { id: "retreats", label: "Retreats", icon: <Compass size={13} />, desc: "Coming soon", comingSoon: true },
+  { id: "press", label: "The Press", icon: <FileCheck size={13} />, desc: "Coming soon", comingSoon: true },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
@@ -117,13 +117,13 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.12] bg-white/[0.02] backdrop-blur-xl">
+      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.20] bg-white/[0.05] backdrop-blur-xl">
         {zones.map((z) => (
           <button
             key={z.id}
             onClick={() => onChange(z.id)}
             className={`relative px-5 py-2.5 rounded-xl font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
-              active === z.id ? "text-white/90" : "text-white/30 hover:text-white/55"
+              active === z.id ? "text-white/90" : "text-white/50 hover:text-white/55"
             }`}
             data-testid={`zone-tab-${z.id}`}
           >
@@ -145,7 +145,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
           transition={{ duration: 0.15 }}
-          className="font-serif text-[12px] text-white/35 text-center"
+          className="font-serif text-[12px] text-white/55 text-center"
         >
           {zones.find(z => z.id === active)?.desc}
         </motion.p>
@@ -154,40 +154,44 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
   );
 }
 
-const activeRoomIds = ["tables", "workshop", "swap"];
-
 function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSelectRoom: (room: ActiveRoom) => void }) {
   return (
     <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
       {rooms.map((room) => {
         const isActive = activeRoom === room.id;
-        const isClickable = activeRoomIds.includes(room.id);
-        return isClickable ? (
+        return room.comingSoon ? (
+          <div
+            key={room.id}
+            onClick={() => {
+              const el = document.getElementById(`coming-soon-toast-${room.id}`);
+              if (el) { el.classList.remove('opacity-0'); el.classList.add('opacity-100'); setTimeout(() => { el.classList.remove('opacity-100'); el.classList.add('opacity-0'); }, 2000); }
+            }}
+            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.08] text-white/20 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none cursor-pointer hover:text-white/30 transition-all"
+            title={room.desc}
+            data-testid={`room-${room.id}`}
+          >
+            {room.icon}
+            {room.label}
+            <span className="text-[7px] text-white/15 ml-0.5">soon</span>
+            <div id={`coming-soon-toast-${room.id}`} className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full font-mono text-[8px] text-white/60 whitespace-nowrap opacity-0 transition-opacity duration-300 pointer-events-none">
+              Coming soon — we're building this
+            </div>
+          </div>
+        ) : (
           <button
             key={room.id}
             onClick={() => onSelectRoom(isActive ? null : room.id as ActiveRoom)}
             title={room.desc}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
               isActive
-                ? "border-white/20 bg-white/[0.08] text-white/70"
-                : "border-white/[0.12] text-white/40 hover:text-white/45 hover:border-white/12"
+                ? "border-white/20 bg-white/[0.08] text-white/80"
+                : "border-white/[0.20] text-white/60 hover:text-white/60 hover:border-white/12"
             }`}
             data-testid={`room-${room.id}`}
           >
             {room.icon}
             {room.label}
           </button>
-        ) : (
-          <div
-            key={room.id}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.08] text-white/30 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none"
-            title={room.desc}
-            data-testid={`room-${room.id}`}
-          >
-            {room.icon}
-            {room.label}
-            <span className="text-[7px] text-white/10 ml-0.5">soon</span>
-          </div>
         );
       })}
     </div>
@@ -233,7 +237,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
     <div className="max-w-3xl mx-auto">
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
-          <p className="text-sm font-serif text-white/40">
+          <p className="text-sm font-serif text-white/60">
             {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
           </p>
         </div>
@@ -242,7 +246,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
           disabled={isCreating}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-5 py-2.5 border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all group"
+          className="flex items-center gap-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all group"
           data-testid="button-new-piece"
         >
           <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -252,43 +256,43 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-grow">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search your pieces..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.02] border border-white/[0.12] rounded-xl text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.05] border border-white/[0.20] rounded-xl text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
             data-testid="input-search"
           />
         </div>
-        <div className="flex gap-0.5 p-0.5 bg-white/[0.02] rounded-xl border border-white/[0.05]">
+        <div className="flex gap-0.5 p-0.5 bg-white/[0.05] rounded-xl border border-white/[0.05]">
           {filters.map((f) => (
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest transition-all ${
-                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/40 hover:text-white/45"
+                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/60 hover:text-white/60"
               }`}
               data-testid={`filter-${f.id}`}
             >
               {f.label}
-              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/40" : "text-white/25"}`}>{f.count}</span>
+              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/60" : "text-white/45"}`}>{f.count}</span>
             </button>
           ))}
         </div>
       </div>
 
       {writings.length === 0 && (
-        <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 text-center space-y-6">
+        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-6">
           <div className="flex items-center justify-center gap-6">
             <SeedIcon className="w-8 h-8 text-amber-400/15" />
             <SproutIcon className="w-10 h-10 text-emerald-400/15" />
             <BloomIcon className="w-8 h-8 text-pink-400/15" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-2xl font-display font-light italic text-white/50">Your garden awaits its first seed</h3>
-            <p className="font-serif text-sm text-white/40 max-w-md mx-auto leading-relaxed">
+            <h3 className="text-2xl font-display font-light italic text-white/70">Your garden awaits its first seed</h3>
+            <p className="font-serif text-sm text-white/60 max-w-md mx-auto leading-relaxed">
               A line, a fragment, a whole draft — whatever wants to come out.
             </p>
           </div>
@@ -296,7 +300,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
             onClick={onCreateNew}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white transition-all"
             data-testid="button-plant-seed"
           >
             <Sparkles size={13} />
@@ -306,7 +310,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
       )}
 
       {filteredWritings.length === 0 && writings.length > 0 && (
-        <p className="text-center py-12 font-serif text-white/40 text-sm">No pieces match your search.</p>
+        <p className="text-center py-12 font-serif text-white/60 text-sm">No pieces match your search.</p>
       )}
 
       <div className="space-y-2">
@@ -325,8 +329,8 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
               <div
                 className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
                   isExpanded
-                    ? `${stageColors[readiness]?.split(" ")[0] || "border-white/15"} bg-white/[0.025]`
-                    : "border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01]"
+                    ? `${stageColors[readiness]?.split(" ")[0] || "border-white/25"} bg-white/[0.025]`
+                    : "border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04]"
                 }`}
               >
                 {isExpanded && (
@@ -341,12 +345,12 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                   data-testid={`button-expand-${w.id}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex-shrink-0 w-7 h-7 rounded-full border flex items-center justify-center ${stageColors[readiness] || "border-white/10 text-white/30"} ${stageAccent[readiness] || ""}`}>
+                    <div className={`flex-shrink-0 w-7 h-7 rounded-full border flex items-center justify-center ${stageColors[readiness] || "border-white/20 text-white/50"} ${stageAccent[readiness] || ""}`}>
                       {stageIcons[readiness] || stageIcons.raw_seed}
                     </div>
                     <div className="flex-grow min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-display font-light truncate text-white/70 italic">
+                        <h3 className="text-base font-display font-light truncate text-white/80 italic">
                           {w.title || "Untitled"}
                         </h3>
                         {vis !== "personal" && (
@@ -356,14 +360,14 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0 text-white/30">
+                    <div className="flex items-center gap-3 flex-shrink-0 text-white/50">
                       <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">{w.genre}</span>
                       <span className="font-mono text-[9px]">{timeAgo(w.updatedAt)}</span>
                       <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
                   {!isExpanded && w.content && (
-                    <p className="text-sm font-serif text-white/35 line-clamp-1 mt-1 ml-10">
+                    <p className="text-sm font-serif text-white/55 line-clamp-1 mt-1 ml-10">
                       {w.content.slice(0, 120)}
                     </p>
                   )}
@@ -380,18 +384,18 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                     >
                       <div className="px-4 md:px-5 pb-4 md:pb-5 ml-10 space-y-3 relative z-10">
                         {w.content && (
-                          <p className="text-sm font-serif text-white/35 leading-relaxed line-clamp-4">
+                          <p className="text-sm font-serif text-white/55 leading-relaxed line-clamp-4">
                             {w.content.slice(0, 400)}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 text-white/30">
+                        <div className="flex items-center gap-3 text-white/50">
                           <span className="font-mono text-[9px] tracking-widest">{wordCount(w.content)} words</span>
                           <VisibilityBadge visibility={vis} readiness={readiness} editorialAvailable={w.editorialAvailable} compact />
                         </div>
                         <div className="flex gap-2 pt-1">
                           <button
                             onClick={(e) => { e.stopPropagation(); onOpenWriting(w); }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/20 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/70 hover:text-white transition-all"
                             data-testid={`button-edit-${w.id}`}
                           >
                             <PenLine size={11} />
@@ -399,7 +403,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, isCrea
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onOpenPlanting(w); }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.12] hover:border-white/15 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.20] hover:border-white/25 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-all"
                             data-testid={`button-plant-${w.id}`}
                           >
                             <MapPin size={11} />
@@ -430,33 +434,28 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [editContent, setEditContent] = useState(writing.content);
   const [editGenre, setEditGenre] = useState(writing.genre);
   const [editStage, setEditStage] = useState(writing.readiness || "raw_seed");
-  const [saving, setSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasMounted = useRef(false);
 
   const doSave = useCallback(() => {
-    setSaving(true);
     onSave({ title: editTitle, content: editContent, genre: editGenre, readiness: editStage });
-    setTimeout(() => { setSaving(false); setLastSaved(new Date()); }, 500);
   }, [editTitle, editContent, editGenre, editStage, onSave]);
 
-  function handleContentChange(value: string) {
-    setEditContent(value);
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => doSave(), 2000);
-  }
-
-  function handleTitleChange(value: string) {
-    setEditTitle(value);
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => doSave(), 2000);
-  }
+  useEffect(() => {
+    if (!hasMounted.current) { hasMounted.current = true; return; }
+    setSaveStatus("idle");
+    const timer = setTimeout(() => {
+      setSaveStatus("saving");
+      doSave();
+      setTimeout(() => setSaveStatus("saved"), 600);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [editTitle, editContent, editGenre, editStage]);
 
   useEffect(() => {
     if (textareaRef.current) textareaRef.current.focus();
-    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, []);
 
   return (
@@ -464,20 +463,22 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => { doSave(); onBack(); }}
-          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/70 transition-colors group"
+          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white/80 transition-colors group"
           data-testid="button-back"
         >
           <ChevronLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
           Back
         </button>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[9px] tracking-widest text-white/30">
-            {saving ? "saving..." : lastSaved ? `saved ${timeAgo(lastSaved)}` : ""}
+          <span className={`font-mono text-[9px] tracking-widest transition-all duration-300 ${
+            saveStatus === "saving" ? "text-amber-400/70" : saveStatus === "saved" ? "text-emerald-400/70" : "text-white/40"
+          }`}>
+            {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : "Editing..."}
           </span>
-          <span className="font-mono text-[9px] tracking-widest text-white/30">{wordCount(editContent)} words</span>
+          <span className="font-mono text-[9px] tracking-widest text-white/50">{wordCount(editContent)} words</span>
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="p-1.5 text-white/30 hover:text-red-400/70 transition-colors"
+            className="p-1.5 text-white/50 hover:text-red-400/70 transition-colors"
             data-testid="button-delete"
           >
             <Trash2 size={14} />
@@ -496,7 +497,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             <div className="border border-red-500/20 bg-red-500/5 rounded-lg p-4 flex items-center justify-between">
               <p className="font-serif text-sm text-red-300/70">Delete this writing permanently?</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white" data-testid="button-cancel-delete">Cancel</button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white" data-testid="button-cancel-delete">Cancel</button>
                 <button onClick={onDelete} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest bg-red-500/20 text-red-300 rounded-full hover:bg-red-500/30" data-testid="button-confirm-delete">Delete</button>
               </div>
             </div>
@@ -508,13 +509,13 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         <input
           type="text"
           value={editTitle}
-          onChange={(e) => handleTitleChange(e.target.value)}
+          onChange={(e) => setEditTitle(e.target.value)}
           placeholder="Title..."
-          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-tight text-white/90 placeholder:text-white/10 focus:outline-none border-none italic"
+          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-tight text-white/90 placeholder:text-white/25 focus:outline-none border-none italic"
           data-testid="input-title"
         />
 
-        <div className="flex items-center gap-3 pb-5 border-b border-white/[0.08] flex-wrap">
+        <div className="flex items-center gap-3 pb-5 border-b border-white/[0.15] flex-wrap">
           <div className="flex gap-0.5">
             {([
               { id: "raw_seed", label: "Seed" },
@@ -523,11 +524,11 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             ] as const).map((s) => (
               <button
                 key={s.id}
-                onClick={() => { setEditStage(s.id); setTimeout(doSave, 100); }}
+                onClick={() => setEditStage(s.id)}
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                   editStage === s.id
                     ? `${stageColors[s.id]} ${stageAccent[s.id]}`
-                    : "border-transparent text-white/35 hover:text-white/40"
+                    : "border-transparent text-white/55 hover:text-white/60"
                 }`}
                 data-testid={`button-stage-${s.id}`}
               >
@@ -539,8 +540,8 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           <span className="w-px h-4 bg-white/[0.04]" />
           <select
             value={editGenre}
-            onChange={(e) => { setEditGenre(e.target.value); setTimeout(doSave, 100); }}
-            className="bg-transparent text-white/30 font-mono text-[9px] uppercase tracking-widest border border-white/[0.08] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/15 transition-colors cursor-pointer"
+            onChange={(e) => setEditGenre(e.target.value)}
+            className="bg-transparent text-white/50 font-mono text-[9px] uppercase tracking-widest border border-white/[0.15] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
             data-testid="select-genre"
           >
             {genreOptions.map((g) => (
@@ -550,7 +551,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           <span className="w-px h-4 bg-white/[0.04]" />
           <button
             onClick={onOpenPlanting}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/[0.08] text-white/40 hover:text-white/50 hover:border-white/15 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/[0.15] text-white/60 hover:text-white/70 hover:border-white/25 transition-all"
             data-testid="button-open-planting"
           >
             <MapPin size={11} />
@@ -561,9 +562,9 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         <textarea
           ref={textareaRef}
           value={editContent}
-          onChange={(e) => handleContentChange(e.target.value)}
+          onChange={(e) => setEditContent(e.target.value)}
           placeholder="Begin writing..."
-          className="w-full min-h-[60vh] bg-transparent text-lg font-serif leading-[2] text-white/70 placeholder:text-white/8 focus:outline-none resize-none border-none tracking-wide"
+          className="w-full min-h-[60vh] bg-transparent text-lg font-serif leading-[2] text-white/80 placeholder:text-white/20 focus:outline-none resize-none border-none tracking-wide"
           data-testid="textarea-content"
         />
       </div>
@@ -613,10 +614,10 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
   return (
     <div className="max-w-2xl mx-auto">
       {allPieces.length === 0 && (
-        <div className="border border-dashed border-white/[0.12] rounded-2xl p-16 text-center space-y-4">
-          <Feather size={32} className="mx-auto text-white/10" />
-          <h3 className="text-xl font-display font-light italic text-white/40">No letters yet</h3>
-          <p className="font-serif text-sm text-white/35 max-w-sm mx-auto leading-relaxed">
+        <div className="border border-dashed border-white/[0.20] rounded-2xl p-16 text-center space-y-4">
+          <Feather size={32} className="mx-auto text-white/30" />
+          <h3 className="text-xl font-display font-light italic text-white/60">No letters yet</h3>
+          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
             When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
           </p>
         </div>
@@ -635,7 +636,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
               data-testid={`letter-${piece.id}`}
             >
               <div className={`rounded-xl border transition-all duration-300 ${
-                isExpanded ? "border-white/[0.1] bg-white/[0.02]" : "border-transparent hover:border-white/[0.12]"
+                isExpanded ? "border-white/[0.1] bg-white/[0.05]" : "border-transparent hover:border-white/[0.20]"
               }`}>
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : piece.id)}
@@ -645,31 +646,31 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                   <div className="flex items-center gap-2 mb-3">
                     <button
                       onClick={(e) => { e.stopPropagation(); onViewProfile?.(piece.authorId); }}
-                      className="flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors"
+                      className="flex items-center gap-2 text-white/50 hover:text-white/75 transition-colors"
                       data-testid={`link-author-${piece.id}`}
                     >
-                      <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/30 font-mono text-[8px] uppercase">
+                      <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.15] flex items-center justify-center text-white/50 font-mono text-[8px] uppercase">
                         {piece.authorName?.[0] || "?"}
                       </div>
                       <span className="font-serif text-xs">{piece.authorName || "Anonymous"}</span>
                     </button>
-                    <span className="font-mono text-[8px] text-white/10">{timeAgo(piece.updatedAt)}</span>
+                    <span className="font-mono text-[8px] text-white/30">{timeAgo(piece.updatedAt)}</span>
                   </div>
 
-                  <h3 className="text-lg md:text-xl font-display font-light text-white/70 italic mb-2 leading-snug">
+                  <h3 className="text-lg md:text-xl font-display font-light text-white/80 italic mb-2 leading-snug">
                     {piece.title || "Untitled"}
                   </h3>
 
-                  <p className={`font-serif text-white/35 leading-[1.9] ${isExpanded ? "" : "line-clamp-3"}`}>
+                  <p className={`font-serif text-white/55 leading-[1.9] ${isExpanded ? "" : "line-clamp-3"}`}>
                     {isExpanded ? piece.content.slice(0, 2000) : piece.content.slice(0, 250)}
                     {isExpanded && piece.content.length > 2000 && (
-                      <span className="text-white/30 italic"> ...continues</span>
+                      <span className="text-white/50 italic"> ...continues</span>
                     )}
                   </p>
 
                   {!isExpanded && (
                     <div className="flex items-center gap-3 mt-3">
-                      <span className="font-mono text-[8px] uppercase tracking-widest text-white/25">{piece.genre}</span>
+                      <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                       <ResonanceBar writingId={piece.id} compact />
                     </div>
                   )}
@@ -687,8 +688,8 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                       <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <span className="font-mono text-[8px] uppercase tracking-widest text-white/25">{piece.genre}</span>
-                            <span className="font-mono text-[8px] text-white/10">{wordCount(piece.content)} words</span>
+                            <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
+                            <span className="font-mono text-[8px] text-white/30">{wordCount(piece.content)} words</span>
                           </div>
                           <TendButton gardenerId={piece.authorId} size="sm" />
                         </div>
@@ -710,7 +711,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
         <div className="text-center mt-10">
           <button
             onClick={() => setPage(p => p + 1)}
-            className="inline-flex items-center gap-2 px-6 py-3 border border-white/[0.12] hover:border-white/15 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white/50 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-white/[0.20] hover:border-white/25 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white/70 transition-all"
             data-testid="button-more-letters"
           >
             <Feather size={12} />
@@ -749,7 +750,7 @@ function GreenhouseZone() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <p className="font-serif text-sm text-white/40 mb-8">
+      <p className="font-serif text-sm text-white/60 mb-8">
         Your private creative toolkit — a quiet space just for you. No one else can see what's here. Use these tools to tend your practice, track your energy, and nurture your creative life.
       </p>
 
@@ -763,7 +764,7 @@ function GreenhouseZone() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05, duration: 0.3 }}
               onClick={() => setActiveTool(tool.id)}
-              className={`relative text-left p-5 rounded-xl border ${colors.border} bg-white/[0.01] ${colors.bg} transition-all duration-300 group overflow-hidden`}
+              className={`relative text-left p-5 rounded-xl border ${colors.border} bg-white/[0.04] ${colors.bg} transition-all duration-300 group overflow-hidden`}
               data-testid={`tool-${tool.id}`}
             >
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
@@ -776,7 +777,7 @@ function GreenhouseZone() {
                 <h3 className="font-display text-base font-light italic text-white/65 group-hover:text-white/85 transition-colors mb-1">
                   {tool.label}
                 </h3>
-                <p className="font-serif text-xs text-white/35 leading-relaxed">{tool.desc}</p>
+                <p className="font-serif text-xs text-white/55 leading-relaxed">{tool.desc}</p>
               </div>
             </motion.button>
           );
@@ -802,7 +803,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
     <div className="max-w-3xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors group mb-6"
+        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 transition-colors group mb-6"
         data-testid="button-back-greenhouse"
       >
         <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
@@ -812,7 +813,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
         <div className={`${toolColorMap[toolInfo.color].text}`}>{toolInfo.icon}</div>
         <h2 className="text-2xl font-display font-light italic text-white/80">{toolInfo.label}</h2>
       </div>
-      <p className="font-serif text-sm text-white/35 leading-relaxed mt-1 max-w-lg">{toolInfo.desc}</p>
+      <p className="font-serif text-sm text-white/55 leading-relaxed mt-1 max-w-lg">{toolInfo.desc}</p>
       {toolContent[tool]}
     </div>
   );
@@ -841,18 +842,18 @@ function GrowthJournalView() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="What's growing in your practice today..."
-          className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 resize-none h-28 transition-colors"
+          className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 resize-none h-28 transition-colors"
           data-testid="input-journal-entry"
         />
-        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">Add Entry</button>
+        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">Add Entry</button>
       </div>
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.08] rounded-xl p-4">
-          <p className="font-serif text-sm text-white/40 leading-relaxed">{e.content}</p>
-          <span className="font-mono text-[8px] text-white/25 mt-2 block">{timeAgo(e.createdAt)}</span>
+        <div key={e.id} className="border border-white/[0.15] rounded-xl p-4">
+          <p className="font-serif text-sm text-white/60 leading-relaxed">{e.content}</p>
+          <span className="font-mono text-[8px] text-white/45 mt-2 block">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">No entries yet. Start reflecting on your growth.</p>}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">No entries yet. Start reflecting on your growth.</p>}
     </div>
   );
 }
@@ -881,22 +882,22 @@ function InnerWeatherView() {
     <div className="space-y-4">
       <div className="flex gap-1 mb-2">
         {moods.map(m => (
-          <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/35 hover:text-white/40"}`}>{m}</button>
+          <button key={m} onClick={() => setMood(m)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/80" : "border-transparent text-white/55 hover:text-white/60"}`}>{m}</button>
         ))}
       </div>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[9px] text-white/35 uppercase tracking-widest">Energy</span>
+        <span className="font-mono text-[9px] text-white/55 uppercase tracking-widest">Energy</span>
         <input type="range" min="1" max="10" value={energy} onChange={(e) => setEnergy(Number(e.target.value))} className="flex-grow accent-white/40" />
-        <span className="font-mono text-[10px] text-white/30">{energy}</span>
+        <span className="font-mono text-[10px] text-white/50">{energy}</span>
       </div>
-      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief note..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors" data-testid="input-weather-note" />
-      <button onClick={() => addMutation.mutate()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white transition-all" data-testid="button-log-weather">Log Weather</button>
+      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief note..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors" data-testid="input-weather-note" />
+      <button onClick={() => addMutation.mutate()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all" data-testid="button-log-weather">Log Weather</button>
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.08] rounded-xl p-3 flex items-center gap-3">
-          <span className="font-mono text-[9px] uppercase text-white/30">{e.mood}</span>
-          <span className="font-mono text-[9px] text-white/30">energy {e.energy}/10</span>
-          {e.note && <span className="font-serif text-xs text-white/40">{e.note}</span>}
-          <span className="ml-auto font-mono text-[8px] text-white/10">{timeAgo(e.createdAt)}</span>
+        <div key={e.id} className="border border-white/[0.15] rounded-xl p-3 flex items-center gap-3">
+          <span className="font-mono text-[9px] uppercase text-white/50">{e.mood}</span>
+          <span className="font-mono text-[9px] text-white/50">energy {e.energy}/10</span>
+          {e.note && <span className="font-serif text-xs text-white/60">{e.note}</span>}
+          <span className="ml-auto font-mono text-[8px] text-white/30">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
     </div>
@@ -941,7 +942,7 @@ function RitualsView() {
           <>
             <div className="flex items-center justify-center gap-3">
               {[5, 10, 15, 25, 45].map(d => (
-                <button key={d} onClick={() => setDuration(d)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${duration === d ? "border-white/20 bg-white/[0.08] text-white/70" : "border-transparent text-white/35 hover:text-white/40"}`}>{d}m</button>
+                <button key={d} onClick={() => setDuration(d)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${duration === d ? "border-white/20 bg-white/[0.08] text-white/80" : "border-transparent text-white/55 hover:text-white/60"}`}>{d}m</button>
               ))}
             </div>
             <button onClick={startTimer} className="px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-300 transition-all" data-testid="button-start-ritual">Begin Ritual</button>
@@ -949,17 +950,17 @@ function RitualsView() {
         ) : (
           <div className="py-8">
             <p className="text-5xl font-display font-light text-white/80 tabular-nums">{mins}:{secs.toString().padStart(2, "0")}</p>
-            <p className="font-serif text-sm text-white/35 mt-3">Write freely. The timer is tending to the time.</p>
+            <p className="font-serif text-sm text-white/55 mt-3">Write freely. The timer is tending to the time.</p>
           </div>
         )}
       </div>
       {sessions.length > 0 && (
         <div>
-          <p className="font-mono text-[9px] uppercase tracking-widest text-white/30 mb-2">Past Sessions</p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-white/50 mb-2">Past Sessions</p>
           {sessions.slice(0, 5).map((s: any) => (
             <div key={s.id} className="flex items-center gap-3 py-2 border-b border-white/[0.03]">
-              <span className="font-mono text-[9px] text-white/40">{s.duration}min</span>
-              <span className="font-mono text-[8px] text-white/10">{timeAgo(s.createdAt)}</span>
+              <span className="font-mono text-[9px] text-white/60">{s.duration}min</span>
+              <span className="font-mono text-[8px] text-white/30">{timeAgo(s.createdAt)}</span>
             </div>
           ))}
         </div>
@@ -987,19 +988,19 @@ function CompostView() {
   return (
     <div className="space-y-4">
       <div>
-        <textarea value={fragment} onChange={(e) => setFragment(e.target.value)} placeholder="Toss a fragment, a cut line, an abandoned thought..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 resize-none h-24 transition-colors" data-testid="input-compost" />
-        <button onClick={() => addMutation.mutate()} disabled={!fragment.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-compost">Add to Compost</button>
+        <textarea value={fragment} onChange={(e) => setFragment(e.target.value)} placeholder="Toss a fragment, a cut line, an abandoned thought..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 resize-none h-24 transition-colors" data-testid="input-compost" />
+        <button onClick={() => addMutation.mutate()} disabled={!fragment.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-compost">Add to Compost</button>
       </div>
       {entries.map((e: any) => (
-        <div key={e.id} className={`border rounded-xl p-4 ${e.isRecycled ? "border-emerald-500/10 bg-emerald-500/[0.02]" : "border-white/[0.08]"}`}>
-          <p className="font-serif text-sm text-white/35 leading-relaxed italic">{e.content}</p>
+        <div key={e.id} className={`border rounded-xl p-4 ${e.isRecycled ? "border-emerald-500/10 bg-emerald-500/[0.02]" : "border-white/[0.15]"}`}>
+          <p className="font-serif text-sm text-white/55 leading-relaxed italic">{e.content}</p>
           <div className="flex items-center gap-2 mt-2">
-            <span className="font-mono text-[8px] text-white/10">{timeAgo(e.createdAt)}</span>
+            <span className="font-mono text-[8px] text-white/30">{timeAgo(e.createdAt)}</span>
             {e.isRecycled && <span className="font-mono text-[8px] text-emerald-400/40">recycled</span>}
           </div>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">Nothing composting yet. Toss in your fragments.</p>}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">Nothing composting yet. Toss in your fragments.</p>}
     </div>
   );
 }
@@ -1024,18 +1025,18 @@ function ReflectionsView() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Reflection title..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors" data-testid="input-reflection-title" />
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What are you learning about your craft..." className="w-full bg-white/[0.02] border border-white/[0.12] rounded-xl px-4 py-3 text-sm font-serif text-white/60 placeholder:text-white/30 focus:outline-none focus:border-white/25 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
-        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-reflection">Add Reflection</button>
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Reflection title..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors" data-testid="input-reflection-title" />
+        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What are you learning about your craft..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
+        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-reflection">Add Reflection</button>
       </div>
       {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.08] rounded-xl p-4">
-          {e.title && <h4 className="font-display text-base font-light italic text-white/50 mb-1">{e.title}</h4>}
-          <p className="font-serif text-sm text-white/35 leading-relaxed">{e.content}</p>
-          <span className="font-mono text-[8px] text-white/10 mt-2 block">{timeAgo(e.createdAt)}</span>
+        <div key={e.id} className="border border-white/[0.15] rounded-xl p-4">
+          {e.title && <h4 className="font-display text-base font-light italic text-white/70 mb-1">{e.title}</h4>}
+          <p className="font-serif text-sm text-white/55 leading-relaxed">{e.content}</p>
+          <span className="font-mono text-[8px] text-white/30 mt-2 block">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">No reflections yet. Begin exploring your craft.</p>}
+      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">No reflections yet. Begin exploring your craft.</p>}
     </div>
   );
 }
@@ -1049,16 +1050,16 @@ function CirclesView() {
   return (
     <div className="space-y-4">
       {circles.map((c: any) => (
-        <div key={c.id} className="border border-white/[0.12] rounded-xl p-4">
-          <h4 className="font-display text-base font-light italic text-white/60">{c.name}</h4>
-          {c.description && <p className="font-serif text-xs text-white/40 mt-1">{c.description}</p>}
+        <div key={c.id} className="border border-white/[0.20] rounded-xl p-4">
+          <h4 className="font-display text-base font-light italic text-white/75">{c.name}</h4>
+          {c.description && <p className="font-serif text-xs text-white/60 mt-1">{c.description}</p>}
           <div className="flex items-center gap-2 mt-2">
-            <Users size={10} className="text-white/30" />
-            <span className="font-mono text-[8px] text-white/30">{c.memberCount || 0} members</span>
+            <Users size={10} className="text-white/50" />
+            <span className="font-mono text-[8px] text-white/50">{c.memberCount || 0} members</span>
           </div>
         </div>
       ))}
-      {circles.length === 0 && <p className="font-serif text-sm text-white/30 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
+      {circles.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
     </div>
   );
 }
@@ -1148,10 +1149,10 @@ export default function Garden() {
         <StarBackground />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
-            <div className="w-12 h-12 mx-auto border border-white/10 rounded-full flex items-center justify-center">
-              <Feather size={20} className="text-white/30 animate-pulse" />
+            <div className="w-12 h-12 mx-auto border border-white/20 rounded-full flex items-center justify-center">
+              <Feather size={20} className="text-white/50 animate-pulse" />
             </div>
-            <p className="font-mono text-[10px] tracking-widest text-white/40 uppercase">Opening your garden...</p>
+            <p className="font-mono text-[10px] tracking-widest text-white/60 uppercase">Opening your garden...</p>
           </div>
         </div>
       </div>
@@ -1165,7 +1166,7 @@ export default function Garden() {
         <div className="relative z-10 pt-20 pb-24 px-6 max-w-2xl mx-auto">
           <button
             onClick={() => setShowNotifications(false)}
-            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors group mb-6"
+            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 transition-colors group mb-6"
           >
             <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back
@@ -1181,22 +1182,22 @@ export default function Garden() {
       <StarBackground />
 
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/60 border-b border-white/[0.08]">
+        <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/60 border-b border-white/[0.15]">
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
-              <a href="/" className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/35 hover:text-white/40 transition-colors" data-testid="link-home">
+              <a href="/" className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/55 hover:text-white/60 transition-colors" data-testid="link-home">
                 <Home size={15} />
               </a>
 
               {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setProfileUserId(null); }} />}
-              {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">Writing</span>}
+              {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/55">Writing</span>}
 
               <div className="flex items-center gap-1">
                 <NotificationBell onClick={() => setShowNotifications(true)} />
                 <div className="relative">
                   <button
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className="w-7 h-7 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white/30 font-mono text-[9px] uppercase hover:border-white/20 transition-colors"
+                    className="w-7 h-7 rounded-full bg-white/[0.06] border border-white/[0.15] flex items-center justify-center text-white/50 font-mono text-[9px] uppercase hover:border-white/20 transition-colors"
                     data-testid="button-profile-menu"
                   >
                     {user?.firstName?.[0] || "?"}
@@ -1207,16 +1208,51 @@ export default function Garden() {
                         initial={{ opacity: 0, y: 5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-white/[0.08] bg-[#0b101a]/95 backdrop-blur-xl overflow-hidden shadow-xl"
+                        className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-white/[0.15] bg-[#0b101a]/95 backdrop-blur-xl overflow-hidden shadow-xl"
                       >
-                        <div className="p-3 border-b border-white/[0.08]">
-                          <p className="font-serif text-sm text-white/60 truncate">{user?.firstName} {user?.lastName}</p>
-                          <p className="font-mono text-[8px] text-white/30 uppercase tracking-widest">Writer</p>
+                        <div className="p-4 border-b border-white/[0.15]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white/[0.08] border border-white/20 flex items-center justify-center text-white/70 font-display text-lg italic">
+                              {user?.firstName?.[0] || "?"}
+                            </div>
+                            <div>
+                              <p className="font-display text-sm text-white/85 italic">{user?.firstName} {user?.lastName}</p>
+                              <p className="font-mono text-[8px] text-white/50 uppercase tracking-widest">Writer</p>
+                            </div>
+                          </div>
                         </div>
-                        <a href="/api/logout" className="flex items-center gap-2 px-3 py-2.5 text-white/40 hover:text-red-400/60 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
-                          <LogOut size={13} />
-                          Sign Out
-                        </a>
+                        <div className="p-3 border-b border-white/[0.15] space-y-2">
+                          <a
+                            href={`/writer/${user?.id}`}
+                            className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm"
+                            data-testid="nav-my-profile"
+                          >
+                            <Feather size={14} />
+                            My Public Garden
+                          </a>
+                          <button
+                            onClick={() => { setActiveZone("desk"); setShowProfileMenu(false); }}
+                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
+                            data-testid="nav-my-desk"
+                          >
+                            <PenLine size={14} />
+                            My Writings
+                          </button>
+                          <button
+                            onClick={() => { setShowNotifications(true); setShowProfileMenu(false); }}
+                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
+                            data-testid="nav-whispers"
+                          >
+                            <Bell size={14} />
+                            Whispers
+                          </button>
+                        </div>
+                        <div className="p-2">
+                          <a href="/api/logout" className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/50 hover:text-red-400/80 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
+                            <LogOut size={13} />
+                            Sign Out
+                          </a>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>

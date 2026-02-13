@@ -60,7 +60,7 @@ export default function WriterProfile() {
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           data-testid="loading-indicator"
         >
-          <Feather size={32} className="text-white/30" />
+          <Feather size={32} className="text-white/50" />
         </motion.div>
       </div>
     );
@@ -71,16 +71,16 @@ export default function WriterProfile() {
       <div className="min-h-screen bg-[#0b101a] relative flex items-center justify-center">
         <StarBackground />
         <div className="text-center space-y-6 relative z-10" data-testid="writer-not-found">
-          <Feather size={28} className="text-white/10 mx-auto" />
-          <h1 className="text-2xl font-display font-light italic text-white/40">
+          <Feather size={28} className="text-white/30 mx-auto" />
+          <h1 className="text-2xl font-display font-light italic text-white/60">
             Writer not found
           </h1>
-          <p className="font-serif text-sm text-white/35">
+          <p className="font-serif text-sm text-white/55">
             This writer's garden doesn't exist — they may have moved on, or the link might be incorrect.
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+            className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
             data-testid="link-home"
           >
             <Home size={13} />
@@ -105,7 +105,7 @@ export default function WriterProfile() {
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-16 md:py-24">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors mb-12 group"
+          className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 transition-colors mb-12 group"
           data-testid="link-home"
         >
           <Home size={13} className="group-hover:-translate-x-0.5 transition-transform" />
@@ -118,15 +118,15 @@ export default function WriterProfile() {
               <img
                 src={user.profileImageUrl}
                 alt={fullName}
-                className="w-16 h-16 rounded-full border border-white/10 object-cover flex-shrink-0"
+                className="w-16 h-16 rounded-full border border-white/20 object-cover flex-shrink-0"
                 data-testid="img-avatar"
               />
             ) : (
               <div
-                className="w-16 h-16 rounded-full border border-white/[0.12] bg-white/[0.03] flex items-center justify-center flex-shrink-0"
+                className="w-16 h-16 rounded-full border border-white/[0.20] bg-white/[0.03] flex items-center justify-center flex-shrink-0"
                 data-testid="img-avatar"
               >
-                <span className="font-display text-2xl text-white/35 italic">
+                <span className="font-display text-2xl text-white/55 italic">
                   {fullName[0]}
                 </span>
               </div>
@@ -140,13 +140,13 @@ export default function WriterProfile() {
               </h1>
               {user.bio ? (
                 <p
-                  className="font-serif text-sm text-white/35 leading-relaxed mt-3 max-w-xl"
+                  className="font-serif text-sm text-white/55 leading-relaxed mt-3 max-w-xl"
                   data-testid="text-bio"
                 >
                   {user.bio}
                 </p>
               ) : (
-                <p className="font-serif text-sm text-white/30 italic mt-3">
+                <p className="font-serif text-sm text-white/50 italic mt-3">
                   This writer hasn't added a bio yet.
                 </p>
               )}
@@ -155,7 +155,7 @@ export default function WriterProfile() {
 
           <div className="flex flex-wrap items-center gap-4 mb-5">
             <p
-              className="font-mono text-[10px] tracking-widest text-white/40 uppercase"
+              className="font-mono text-[10px] tracking-widest text-white/60 uppercase"
               data-testid="text-stats"
             >
               {tenderCount} tender{tenderCount !== 1 ? "s" : ""} ·{" "}
@@ -164,7 +164,7 @@ export default function WriterProfile() {
             </p>
             <span className="w-px h-3 bg-white/[0.06]" />
             <p
-              className="font-mono text-[10px] tracking-widest text-white/30 uppercase"
+              className="font-mono text-[10px] tracking-widest text-white/50 uppercase"
               data-testid="text-member-since"
             >
               Since {memberSince}
@@ -174,38 +174,38 @@ export default function WriterProfile() {
           <TendButton gardenerId={user.id} gardenerName={fullName} />
         </header>
 
-        <div className="border-t border-white/[0.08] pt-8 mb-8">
-          <p className="font-serif text-xs text-white/30 leading-relaxed max-w-lg">
+        <div className="border-t border-white/[0.15] pt-8 mb-8">
+          <p className="font-serif text-xs text-white/50 leading-relaxed max-w-lg">
             This is {fullName.split(' ')[0]}'s public garden — a space where their published writings live. Tend their garden to follow along as they share new work.
           </p>
         </div>
 
         <section>
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/35">
+            <h2 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/55">
               Published Work
             </h2>
             <div className="flex-grow h-px bg-white/[0.04]" />
-            <span className="font-mono text-[9px] text-white/30">
+            <span className="font-mono text-[9px] text-white/50">
               {writings.length} piece{writings.length !== 1 ? "s" : ""}
             </span>
           </div>
           {writings.length > 0 && (
-            <p className="font-serif text-xs text-white/30 mb-4">
+            <p className="font-serif text-xs text-white/50 mb-4">
               Click any piece to read a preview. Resonances show how readers have responded.
             </p>
           )}
 
           {writings.length === 0 && (
             <div
-              className="border border-dashed border-white/[0.12] rounded-2xl p-12 text-center space-y-3"
+              className="border border-dashed border-white/[0.20] rounded-2xl p-12 text-center space-y-3"
               data-testid="empty-writings"
             >
-              <Sparkles size={20} className="text-white/10 mx-auto mb-3" />
-              <h3 className="font-display text-lg font-light italic text-white/30">
+              <Sparkles size={20} className="text-white/30 mx-auto mb-3" />
+              <h3 className="font-display text-lg font-light italic text-white/50">
                 No published writings yet
               </h3>
-              <p className="font-serif text-sm text-white/30 max-w-sm mx-auto leading-relaxed">
+              <p className="font-serif text-sm text-white/50 max-w-sm mx-auto leading-relaxed">
                 This writer's garden is still growing. When they share their work with the community, it will appear here.
               </p>
             </div>
@@ -226,8 +226,8 @@ export default function WriterProfile() {
                   <div
                     className={`rounded-xl border overflow-hidden transition-all duration-300 ${
                       isExpanded
-                        ? "border-white/10 bg-white/[0.025]"
-                        : "border-white/[0.08] hover:border-white/[0.08] bg-white/[0.01]"
+                        ? "border-white/20 bg-white/[0.025]"
+                        : "border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04]"
                     }`}
                   >
                     <button
@@ -237,11 +237,11 @@ export default function WriterProfile() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex-grow min-w-0">
-                          <h3 className="text-base font-display font-light italic text-white/70 truncate">
+                          <h3 className="text-base font-display font-light italic text-white/80 truncate">
                             {w.title || "Untitled"}
                           </h3>
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0 text-white/30">
+                        <div className="flex items-center gap-3 flex-shrink-0 text-white/50">
                           <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">
                             {w.genre}
                           </span>
@@ -261,7 +261,7 @@ export default function WriterProfile() {
                         </div>
                       </div>
                       {!isExpanded && w.content && (
-                        <p className="text-sm font-serif text-white/35 line-clamp-1 mt-1">
+                        <p className="text-sm font-serif text-white/55 line-clamp-1 mt-1">
                           {w.content.slice(0, 120)}
                         </p>
                       )}
@@ -279,16 +279,16 @@ export default function WriterProfile() {
                           <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-3">
                             {w.content && (
                               <p
-                                className="text-sm font-serif text-white/35 leading-relaxed whitespace-pre-line"
+                                className="text-sm font-serif text-white/55 leading-relaxed whitespace-pre-line"
                                 data-testid={`text-preview-${w.id}`}
                               >
                                 {w.content.slice(0, 600)}
                                 {w.content.length > 600 && (
-                                  <span className="text-white/30"> …</span>
+                                  <span className="text-white/50"> …</span>
                                 )}
                               </p>
                             )}
-                            <div className="flex items-center gap-3 text-white/30">
+                            <div className="flex items-center gap-3 text-white/50">
                               <span className="font-mono text-[9px] tracking-widest">
                                 {words} words
                               </span>

@@ -52,7 +52,7 @@ export function NotificationBell({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.92 }}
-      className="relative p-2 text-white/40 hover:text-white/70 transition-colors"
+      className="relative p-2 text-white/60 hover:text-white/80 transition-colors"
       data-testid="button-notifications"
     >
       <Bell size={20} />
@@ -138,7 +138,7 @@ export default function NotificationPanel() {
               onClick={() => markAllReadMutation.mutate()}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-4 py-2 border border-white/10 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
+              className="flex items-center gap-2 px-4 py-2 border border-white/20 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 hover:border-white/20 transition-all"
               data-testid="button-mark-all-read"
             >
               <CheckCheck size={12} />
@@ -150,8 +150,8 @@ export default function NotificationPanel() {
 
       {isLoading && (
         <div className="text-center py-20">
-          <Bell size={24} className="mx-auto text-white/35 animate-pulse mb-4" />
-          <p className="font-mono text-xs text-white/40 tracking-widest uppercase">Loading whispers...</p>
+          <Bell size={24} className="mx-auto text-white/55 animate-pulse mb-4" />
+          <p className="font-mono text-xs text-white/60 tracking-widest uppercase">Loading whispers...</p>
         </div>
       )}
 
@@ -159,14 +159,14 @@ export default function NotificationPanel() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="border border-dashed border-white/10 rounded-2xl p-16 text-center space-y-6"
+          className="border border-dashed border-white/20 rounded-2xl p-16 text-center space-y-6"
         >
-          <Moon size={40} className="mx-auto text-white/10" />
+          <Moon size={40} className="mx-auto text-white/30" />
           <div className="space-y-2">
-            <h3 className="text-2xl font-display font-light italic text-white/50">
+            <h3 className="text-2xl font-display font-light italic text-white/70">
               All quiet in the garden
             </h3>
-            <p className="font-serif text-white/40 max-w-md mx-auto leading-relaxed">
+            <p className="font-serif text-white/60 max-w-md mx-auto leading-relaxed">
               No whispers yet. When others interact with your work, you'll hear about it here.
             </p>
           </div>
@@ -190,8 +190,8 @@ export default function NotificationPanel() {
                 }}
                 className={`w-full text-left rounded-xl p-4 transition-all duration-300 group relative ${
                   notification.isRead
-                    ? "bg-transparent hover:bg-white/[0.02]"
-                    : "bg-white/[0.02] hover:bg-white/[0.04]"
+                    ? "bg-transparent hover:bg-white/[0.05]"
+                    : "bg-white/[0.05] hover:bg-white/[0.04]"
                 }`}
                 data-testid={`notification-item-${notification.id}`}
               >
@@ -201,7 +201,7 @@ export default function NotificationPanel() {
                 <div className="flex items-start gap-3">
                   <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${
                     notification.isRead
-                      ? "border-white/[0.12] text-white/35"
+                      ? "border-white/[0.20] text-white/55"
                       : "border-amber-500/20 text-amber-400/60"
                   }`}>
                     <Icon size={14} />
@@ -209,21 +209,21 @@ export default function NotificationPanel() {
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       {notification.actorName && (
-                        <span className={`font-serif text-sm font-semibold ${notification.isRead ? "text-white/40" : "text-white/70"}`}>
+                        <span className={`font-serif text-sm font-semibold ${notification.isRead ? "text-white/60" : "text-white/80"}`}>
                           {notification.actorName}
                         </span>
                       )}
-                      <span className={`font-serif text-sm ${notification.isRead ? "text-white/40" : "text-white/45"}`}>
+                      <span className={`font-serif text-sm ${notification.isRead ? "text-white/60" : "text-white/60"}`}>
                         {notification.message}
                       </span>
                     </div>
-                    <span className="font-mono text-[9px] text-white/30 mt-1 block">
+                    <span className="font-mono text-[9px] text-white/50 mt-1 block">
                       {timeAgo(notification.createdAt)}
                     </span>
                   </div>
                   {!notification.isRead && (
                     <div className="flex-shrink-0 mt-1">
-                      <Check size={12} className="text-white/30 group-hover:text-white/30 transition-colors" />
+                      <Check size={12} className="text-white/50 group-hover:text-white/50 transition-colors" />
                     </div>
                   )}
                 </div>

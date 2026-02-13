@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Section } from "@/components/ui/section";
 import { content } from "@/data";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import StarTitle from "@/components/StarTitle";
@@ -91,22 +90,19 @@ export default function Hero() {
     <>
       <StarTitle />
 
-      <Section
-        id="hero-content"
-        className="bg-transparent text-primary relative z-10 min-h-[50vh] pt-0"
-      >
+      <section id="hero-content" className="relative z-10 min-h-[60vh] py-24 px-6 md:px-12 lg:px-24">
         <div
-          className="absolute inset-0 z-10"
+          className="max-w-7xl mx-auto"
           onMouseMove={handleMouseMove}
         >
-          <div className="grid lg:grid-cols-12 gap-12 items-center relative h-full px-6 md:px-12 lg:px-24">
-            <div className="lg:col-span-8 space-y-8 pointer-events-none">
+          <div className="grid lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-8 space-y-8">
               <motion.div
                 style={{ x: textX, y: textY }}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                viewport={{ margin: "-100px" }}
+                viewport={{ once: true, margin: "-50px" }}
               >
                 <motion.div
                   className="flex items-center gap-4 mb-6"
@@ -147,7 +143,7 @@ export default function Hero() {
                 whileInView={{ opacity: 1 }}
                 transition={{ delay: 1.2, duration: 1 }}
                 viewport={{ once: true }}
-                className="flex gap-6 pt-4 pointer-events-auto"
+                className="flex gap-6 pt-4"
               >
                 {content.hero.links.map((link, i) => (
                   <MagneticLink
@@ -162,7 +158,7 @@ export default function Hero() {
             </div>
           </div>
         </div>
-      </Section>
+      </section>
     </>
   );
 }
