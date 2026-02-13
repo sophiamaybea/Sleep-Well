@@ -29,7 +29,9 @@ The platform features a distinctive space-themed immersive design, characterized
     - **Greenhouse:** A private suite of creative tools including Growth Journal, Inner Weather, Rituals, Compost, and Reflections.
 - **Social Features:** Includes Tending (follow system), Resonance (five reaction types: glow, pressed_flower, dewdrop, firefly, roots), Marginalia (annotation-style comments), and Notifications ("Whispers").
 - **Editorial Studio:** A dedicated `/editor-studio` page with five tabs (Overview, Garden Stream, Greenhouse, Requests & Contracts, Issue Builder) for a comprehensive editorial workflow, including role-based permissions, publish request management, and issue assembly.
-- **Community Rooms:** Features Rooms such as Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange), The Desk (communal writing), and The Press (editorial/gallery views).
+- **Community Rooms:** Features Rooms such as Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange), The Desk (communal writing), The Press (editorial/gallery views), Rejection Wall (share and normalize rejection experiences), Opportunity Board (community publishing leads with notes), and Idea Drops (share unused ideas for adoption).
+- **Collaborative Circle Tools:** Circles enhanced with 4-tab interface (Messages, Intentions for weekly goals, Celebrations for milestones, Prompt Potluck with random draw).
+- **Accessibility Features:** Optional toggles (Reduce Motion, High Contrast, Larger Text, Dyslexia Font via Atkinson Hyperlegible, Wider Spacing, Focus Mode) accessible from profile menu, persisted via localStorage, applied globally via CSS classes on html root with pre-hydration inline script.
 - **Writer Profiles:** Public `/writer/:id` pages displaying bios, published works, tending connections, and resonance counts.
 - **Content Management:** Implements rich text editing via TipTap, piece organization with custom tags, pinning/unpinning, and archiving.
 - **Export Functionality:** Allows downloading writings in `.txt`, `.md`, or PDF formats.

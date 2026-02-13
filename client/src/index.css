@@ -275,3 +275,107 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin: 1.5em 0;
 }
+
+/* ─── Accessibility: Reduced Motion ─── */
+.a11y-reduced-motion *,
+.a11y-reduced-motion *::before,
+.a11y-reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ─── Accessibility: High Contrast ─── */
+.a11y-high-contrast {
+  --color-foreground: hsl(0 0% 100%);
+}
+.a11y-high-contrast body {
+  color: hsl(0 0% 100%);
+}
+.a11y-high-contrast .text-white\/30,
+.a11y-high-contrast .text-white\/35,
+.a11y-high-contrast .text-white\/40,
+.a11y-high-contrast .text-white\/45 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+.a11y-high-contrast .text-white\/50,
+.a11y-high-contrast .text-white\/55,
+.a11y-high-contrast .text-white\/60 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.a11y-high-contrast .text-white\/65,
+.a11y-high-contrast .text-white\/70,
+.a11y-high-contrast .text-white\/75,
+.a11y-high-contrast .text-white\/80 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+.a11y-high-contrast .border-white\/\[0\.06\],
+.a11y-high-contrast .border-white\/\[0\.08\],
+.a11y-high-contrast .border-white\/\[0\.10\] {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* ─── Accessibility: Larger Text ─── */
+.a11y-larger-text {
+  font-size: 118%;
+}
+.a11y-larger-text .font-mono.text-\[9px\],
+.a11y-larger-text .font-mono.text-\[8px\],
+.a11y-larger-text .font-mono.text-\[10px\],
+.a11y-larger-text .font-mono.text-\[7px\] {
+  font-size: 0.75rem !important;
+}
+
+/* ─── Accessibility: Dyslexia-Friendly Font ─── */
+.a11y-dyslexia-font body,
+.a11y-dyslexia-font .font-serif,
+.a11y-dyslexia-font .font-sans,
+.a11y-dyslexia-font p,
+.a11y-dyslexia-font span,
+.a11y-dyslexia-font div,
+.a11y-dyslexia-font textarea,
+.a11y-dyslexia-font input {
+  font-family: 'Atkinson Hyperlegible', 'Verdana', sans-serif !important;
+  letter-spacing: 0.02em;
+}
+.a11y-dyslexia-font .font-display,
+.a11y-dyslexia-font h1,
+.a11y-dyslexia-font h2,
+.a11y-dyslexia-font h3 {
+  font-family: 'Atkinson Hyperlegible', 'Verdana', sans-serif !important;
+  font-style: normal !important;
+}
+
+/* ─── Accessibility: Wider Spacing ─── */
+.a11y-wider-spacing p,
+.a11y-wider-spacing .font-serif,
+.a11y-wider-spacing .leading-relaxed {
+  line-height: 2 !important;
+  letter-spacing: 0.03em;
+  word-spacing: 0.12em;
+}
+.a11y-wider-spacing .space-y-2 > * + * {
+  margin-top: 0.75rem !important;
+}
+.a11y-wider-spacing .space-y-3 > * + * {
+  margin-top: 1rem !important;
+}
+.a11y-wider-spacing .space-y-4 > * + * {
+  margin-top: 1.25rem !important;
+}
+
+/* ─── Accessibility: Focus Mode ─── */
+.a11y-focus-mode .firefly,
+.a11y-focus-mode .night-garden-atmosphere,
+.a11y-focus-mode .moonlight-glow,
+.a11y-focus-mode [class*="animate-sway"],
+.a11y-focus-mode [class*="animate-firefly"],
+.a11y-focus-mode [class*="animate-moonpulse"] {
+  display: none !important;
+}
+.a11y-focus-mode .backdrop-blur-xl,
+.a11y-focus-mode .backdrop-blur-sm {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}

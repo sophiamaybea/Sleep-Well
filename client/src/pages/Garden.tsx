@@ -14,6 +14,7 @@ import {
   TreePine, Glasses, ShieldOff, Lightbulb
 } from "lucide-react";
 import type { Writing } from "@shared/schema";
+import { useAccessibility } from "@/hooks/use-accessibility";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
@@ -1902,8 +1903,10 @@ export default function Garden() {
   const [showPlantingFlow, setShowPlantingFlow] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showA11yPanel, setShowA11yPanel] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
+  const { settings: a11y, toggle: toggleA11y } = useAccessibility();
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
@@ -2081,6 +2084,63 @@ export default function Garden() {
                             <Bell size={14} />
                             Whispers
                           </button>
+                        </div>
+                        <div className="p-3 border-b border-emerald-900/20">
+                          <button
+                            onClick={() => setShowA11yPanel(!showA11yPanel)}
+                            className="w-full flex items-center justify-between px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
+                            data-testid="toggle-a11y-panel"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Glasses size={14} />
+                              Accessibility
+                            </span>
+                            <ChevronDown size={12} className={`transition-transform ${showA11yPanel ? "rotate-180" : ""}`} />
+                          </button>
+                          <AnimatePresence>
+                            {showA11yPanel && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="pt-2 space-y-1">
+                                  {([
+                                    { key: "reducedMotion" as const, label: "Reduce Motion", desc: "Pause animations" },
+                                    { key: "highContrast" as const, label: "High Contrast", desc: "Brighter text" },
+                                    { key: "largerText" as const, label: "Larger Text", desc: "Increase font size" },
+                                    { key: "dyslexiaFont" as const, label: "Dyslexia Font", desc: "Easier to read" },
+                                    { key: "widerSpacing" as const, label: "Wider Spacing", desc: "More breathing room" },
+                                    { key: "focusMode" as const, label: "Focus Mode", desc: "Remove decorations" },
+                                  ]).map((opt) => (
+                                    <button
+                                      key={opt.key}
+                                      onClick={() => toggleA11y(opt.key)}
+                                      className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all group"
+                                      data-testid={`toggle-a11y-${opt.key}`}
+                                    >
+                                      <div className="text-left">
+                                        <p className="font-serif text-xs text-white/65 group-hover:text-white/80 transition-colors">{opt.label}</p>
+                                        <p className="font-mono text-[7px] text-white/25 uppercase tracking-widest">{opt.desc}</p>
+                                      </div>
+                                      <div className={`w-7 h-4 rounded-full border transition-all flex items-center ${
+                                        a11y[opt.key]
+                                          ? "bg-emerald-500/30 border-emerald-500/50"
+                                          : "bg-white/[0.04] border-white/[0.12]"
+                                      }`}>
+                                        <div className={`w-2.5 h-2.5 rounded-full transition-all ${
+                                          a11y[opt.key]
+                                            ? "bg-emerald-400 translate-x-3.5"
+                                            : "bg-white/30 translate-x-0.5"
+                                        }`} />
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                         <div className="p-2">
                           <a href="/api/logout" className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/50 hover:text-red-400/80 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
