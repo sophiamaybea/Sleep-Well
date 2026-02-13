@@ -190,89 +190,100 @@ export default function Gallery() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 bg-[#0b101a]/90 backdrop-blur-md overflow-y-auto"
-            onClick={() => setSelectedPiece(null)}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-50 bg-black overflow-y-auto"
           >
-            <div className="min-h-screen flex items-start justify-center py-12 px-4 md:px-8">
-              <motion.div
-                initial={{ opacity: 0, y: 30, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.97 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="relative w-full max-w-4xl"
-                onClick={(e) => e.stopPropagation()}
-              >
+            <div className="min-h-screen flex flex-col">
+              <div className="flex items-center justify-between px-6 md:px-12 py-6">
                 <button
                   onClick={() => setSelectedPiece(null)}
-                  className="absolute -top-2 right-0 md:-right-12 z-10 p-2 text-white/40 hover:text-white transition-colors"
+                  className="flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors font-mono text-xs uppercase tracking-widest group"
                   data-testid="button-close-piece"
                 >
-                  <X size={24} />
+                  <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                  Back to Gallery
                 </button>
-
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-60" />
-                  <div className="relative museum-frame-outer">
-                    <div
-                      className="relative"
-                      style={{
-                        borderImage: `url("${frameImg}") 120 fill / 50px / 0 stretch`,
-                        borderWidth: "50px",
-                        borderStyle: "solid",
-                      }}
-                    >
-                      <div className="relative bg-[#0a0e17] p-8 md:p-14">
-                        <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.5)" }} />
-                        <div className="relative z-10">
-                          <div className="flex items-center gap-4 mb-8">
-                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/30 px-3 py-1.5 border border-amber-200/10 bg-amber-200/[0.02]">
-                              {selectedPiece.genre}
-                            </span>
-                            {selectedPiece.authorName && (
-                              <Link
-                                href={selectedPiece.authorId ? `/writer/${selectedPiece.authorId}` : "#"}
-                                className="font-serif text-[12px] italic text-white/30 hover:text-white/50 transition-colors"
-                                data-testid="link-piece-author"
-                              >
-                                {selectedPiece.authorName}
-                              </Link>
-                            )}
-                            {selectedPiece.publishedAt && (
-                              <span className="font-mono text-[8px] text-white/15 ml-auto uppercase tracking-widest">
-                                {new Date(selectedPiece.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                              </span>
-                            )}
-                          </div>
-
-                          <h2 className="text-3xl md:text-5xl font-display font-light tracking-tight mb-10 text-white/90 italic">
-                            {selectedPiece.title}
-                          </h2>
-
-                          <div className="font-serif text-[17px] leading-[2.2] text-white/65 max-w-3xl">
-                            <ContentRenderer content={selectedPiece.content} />
-                          </div>
-
-                          <div className="mt-12 pt-6 border-t border-white/[0.06] flex items-center justify-between">
-                            <p className="font-serif text-xs italic text-white/25">
-                              This piece grew in The Garden.
-                            </p>
-                            {selectedPiece.authorId && (
-                              <Link
-                                href={`/writer/${selectedPiece.authorId}`}
-                                className="font-mono text-[9px] uppercase tracking-widest text-amber-200/30 hover:text-amber-200/60 transition-colors"
-                                data-testid="link-piece-writer-profile"
-                              >
-                                Visit Writer
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-4">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/15">
+                    {selectedPiece.genre}
+                  </span>
+                  {selectedPiece.publishedAt && (
+                    <span className="font-mono text-[8px] text-white/10 uppercase tracking-widest hidden sm:inline">
+                      {new Date(selectedPiece.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                    </span>
+                  )}
                 </div>
-              </motion.div>
+              </div>
+
+              <div className="flex-1 flex items-start justify-center px-6 md:px-12 pb-24">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+                  className="w-full max-w-2xl"
+                >
+                  <div className="mb-16 space-y-6">
+                    <motion.h1
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3, duration: 0.7 }}
+                      className="text-4xl md:text-6xl font-display font-light tracking-tight text-white/90 italic leading-tight"
+                    >
+                      {selectedPiece.title}
+                    </motion.h1>
+                    {selectedPiece.authorName && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.5 }}
+                      >
+                        <Link
+                          href={selectedPiece.authorId ? `/writer/${selectedPiece.authorId}` : "#"}
+                          className="font-serif text-sm italic text-white/25 hover:text-white/45 transition-colors"
+                          data-testid="link-piece-author"
+                        >
+                          by {selectedPiece.authorName}
+                        </Link>
+                      </motion.div>
+                    )}
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 0.6, duration: 0.8 }}
+                      className="h-px w-24 bg-gradient-to-r from-white/15 to-transparent origin-left"
+                    />
+                  </div>
+
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7, duration: 0.8 }}
+                    className="font-serif text-[18px] md:text-[20px] leading-[2.4] text-white/60"
+                  >
+                    <ContentRenderer content={selectedPiece.content} />
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1, duration: 0.6 }}
+                    className="mt-20 pt-8 border-t border-white/[0.04] flex items-center justify-between"
+                  >
+                    <p className="font-serif text-[11px] italic text-white/15">
+                      This piece grew in The Garden.
+                    </p>
+                    {selectedPiece.authorId && (
+                      <Link
+                        href={`/writer/${selectedPiece.authorId}`}
+                        className="font-mono text-[9px] uppercase tracking-widest text-white/15 hover:text-white/40 transition-colors"
+                        data-testid="link-piece-writer-profile"
+                      >
+                        Visit Writer
+                      </Link>
+                    )}
+                  </motion.div>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
         )}
