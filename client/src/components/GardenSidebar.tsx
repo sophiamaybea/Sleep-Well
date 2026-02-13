@@ -100,13 +100,25 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
 
   return (
     <>
-      <button
-        onClick={onToggle}
-        className="fixed top-6 left-6 z-[60] p-2.5 rounded-lg border border-white/10 bg-white/[0.03] backdrop-blur-sm text-white/50 hover:text-white hover:bg-white/[0.08] transition-all"
-        data-testid="button-toggle-sidebar"
-      >
-        {isOpen ? <X size={18} /> : <Menu size={18} />}
-      </button>
+      <div className="fixed top-6 left-6 z-[60] flex items-center gap-2">
+        <button
+          onClick={onToggle}
+          className="p-2.5 rounded-lg border border-white/10 bg-white/[0.03] backdrop-blur-sm text-white/50 hover:text-white hover:bg-white/[0.08] transition-all"
+          data-testid="button-toggle-sidebar"
+        >
+          {isOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
+        {!isOpen && (
+          <a
+            href="/"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/10 bg-white/[0.03] backdrop-blur-sm text-white/40 hover:text-white hover:bg-white/[0.08] transition-all font-mono text-[10px] tracking-widest uppercase"
+            data-testid="button-back-home"
+          >
+            <Home size={14} />
+            <span className="hidden sm:inline">Home</span>
+          </a>
+        )}
+      </div>
 
       <AnimatePresence>
         {isOpen && (
