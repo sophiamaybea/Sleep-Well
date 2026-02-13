@@ -1029,8 +1029,29 @@ function FreewriteView() {
   const [text, setText] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [planted, setPlanted] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const queryClient = useQueryClient();
   const { playKey, playSpace, playReturn } = useTypewriterSound();
+
+  const plantMutation = useMutation({
+    mutationFn: async () => {
+      const firstLine = text.trim().split("\n")[0].slice(0, 60);
+      const title = firstLine || "Freewrite";
+      const res = await fetch("/api/writings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title, content: text, genre: "fragment", stage: "raw_seed", readiness: "raw_seed", visibility: "personal" }),
+      });
+      if (!res.ok) throw new Error("Failed to plant");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
+      setPlanted(true);
+    },
+  });
 
   useEffect(() => {
     if (textareaRef.current) textareaRef.current.focus();
@@ -1125,14 +1146,29 @@ function FreewriteView() {
       </div>
 
       {text.length > 0 && (
-        <div className={`flex justify-end ${isFullscreen ? "px-8 pb-4" : "mt-3"}`}>
+        <div className={`flex items-center justify-between ${isFullscreen ? "px-8 pb-4" : "mt-3"}`}>
           <button
-            onClick={() => { if (confirm("Clear everything? This freewrite is meant to be ephemeral — the words served their purpose.")) setText(""); }}
+            onClick={() => { if (confirm("Clear everything? This freewrite is meant to be ephemeral — the words served their purpose.")) { setText(""); setPlanted(false); } }}
             className="font-mono text-[9px] tracking-widest uppercase text-stone-600 hover:text-stone-400 transition-colors"
             data-testid="button-clear-freewrite"
           >
             clear page
           </button>
+          {planted ? (
+            <span className="font-mono text-[9px] tracking-widest uppercase text-emerald-400/70">
+              Planted in your desk
+            </span>
+          ) : (
+            <button
+              onClick={() => plantMutation.mutate()}
+              disabled={plantMutation.isPending || text.trim().length < 10}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.06] font-mono text-[9px] tracking-widest uppercase text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/[0.1] hover:border-emerald-500/40 disabled:opacity-30 transition-all"
+              data-testid="button-plant-freewrite"
+            >
+              <Sprout size={13} />
+              {plantMutation.isPending ? "Planting..." : "Plant this"}
+            </button>
+          )}
         </div>
       )}
     </div>
