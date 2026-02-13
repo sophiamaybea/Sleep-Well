@@ -3,6 +3,34 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
+const STARS_KEY = "page-gallery-stars-visible";
+
+export function useStarsVisible() {
+  const [visible, setVisible] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STARS_KEY);
+      return stored === null ? true : stored === "true";
+    } catch { return true; }
+  });
+
+  const toggle = useCallback(() => {
+    setVisible(prev => {
+      const next = !prev;
+      try { localStorage.setItem(STARS_KEY, String(next)); } catch {}
+      window.dispatchEvent(new CustomEvent("stars-toggle", { detail: next }));
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => setVisible((e as CustomEvent).detail);
+    window.addEventListener("stars-toggle", handler);
+    return () => window.removeEventListener("stars-toggle", handler);
+  }, []);
+
+  return { starsVisible: visible, toggleStars: toggle };
+}
+
 class WebGLErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
@@ -98,6 +126,7 @@ function hasWebGL(): boolean {
 }
 
 export default function StarBackground() {
+  const { starsVisible } = useStarsVisible();
   const webgl = useMemo(() => hasWebGL(), []);
   const [contextLost, setContextLost] = useState(false);
   const [canvasKey, setCanvasKey] = useState(0);
@@ -125,6 +154,10 @@ export default function StarBackground() {
       return () => clearTimeout(timer);
     }
   }, [contextLost]);
+
+  if (!starsVisible) {
+    return <div className="fixed inset-0 z-0 pointer-events-none bg-background" />;
+  }
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none bg-background">

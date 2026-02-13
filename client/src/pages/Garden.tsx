@@ -10,9 +10,10 @@ import {
   Flame, Archive, NotebookPen, CloudSun, Brain,
   CalendarRange, Network, Mic, Moon, Bell,
   FileCheck, Heart, Bookmark, MessageCircle,
-  Pin, PinOff, ArchiveRestore, Tag, X
+  Pin, PinOff, ArchiveRestore, Tag, X,
+  TreePine, Glasses
 } from "lucide-react";
-import StarBackground from "@/components/StarBackground";
+import StarBackground, { useStarsVisible } from "@/components/StarBackground";
 import type { Writing } from "@shared/schema";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
@@ -180,32 +181,35 @@ const rooms = [
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
-  const zones: { id: Zone; label: string; desc: string }[] = [
-    { id: "desk", label: "Your Desk", desc: "Your private writing space — drafts, fragments, and works in progress" },
-    { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond" },
-    { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice" },
+  const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
+    { id: "desk", label: "Your Desk", desc: "Your private writing space — drafts, fragments, and works in progress", icon: <PenLine size={14} />, activeColor: "border-amber-500/30 bg-amber-500/[0.08] text-amber-200/90" },
+    { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond", icon: <Glasses size={14} />, activeColor: "border-emerald-500/30 bg-emerald-500/[0.08] text-emerald-200/90" },
+    { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice", icon: <TreePine size={14} />, activeColor: "border-teal-500/30 bg-teal-500/[0.08] text-teal-200/90" },
   ];
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.20] bg-white/[0.05] backdrop-blur-xl">
+      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.12] bg-white/[0.03] backdrop-blur-xl">
         {zones.map((z) => (
           <button
             key={z.id}
             onClick={() => onChange(z.id)}
-            className={`relative px-5 py-2.5 rounded-xl font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
-              active === z.id ? "text-white/90" : "text-white/50 hover:text-white/55"
+            className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
+              active === z.id ? "text-white/90" : "text-white/45 hover:text-white/60"
             }`}
             data-testid={`zone-tab-${z.id}`}
           >
             {active === z.id && (
               <motion.div
                 layoutId="activeZone"
-                className="absolute inset-0 rounded-xl bg-white/[0.08] border border-white/[0.1]"
+                className={`absolute inset-0 rounded-xl ${z.activeColor}`}
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
             )}
-            <span className="relative z-10">{z.label}</span>
+            <span className="relative z-10 flex items-center gap-2">
+              {z.icon}
+              <span className="hidden sm:inline">{z.label}</span>
+            </span>
           </button>
         ))}
       </div>
@@ -216,7 +220,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
           transition={{ duration: 0.15 }}
-          className="font-serif text-[12px] text-white/55 text-center"
+          className="font-serif text-[12px] text-white/45 text-center italic"
         >
           {zones.find(z => z.id === active)?.desc}
         </motion.p>
@@ -390,7 +394,11 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
-          <p className="text-sm font-serif text-white/60">
+          <div className="flex items-center gap-2 mb-1">
+            <Feather size={16} className="text-amber-400/50" />
+            <h2 className="font-display text-xl font-light italic text-white/70">Your Desk</h2>
+          </div>
+          <p className="text-xs font-serif text-white/40 ml-6">
             {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
           </p>
         </div>
@@ -399,7 +407,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           disabled={isCreating}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all group"
+          className="flex items-center gap-2 px-5 py-2.5 border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-200/60 hover:text-amber-200/90 bg-amber-500/[0.04] hover:bg-amber-500/[0.08] transition-all group"
           data-testid="button-new-piece"
         >
           <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -872,11 +880,19 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
 
   return (
     <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 mb-2">
+          <BookOpen size={16} className="text-emerald-400/50" />
+          <h2 className="font-display text-xl font-light italic text-white/70">Reading Room</h2>
+        </div>
+        <p className="font-serif text-xs text-white/35 italic">Letters from gardens you tend, and new voices growing nearby</p>
+      </div>
+
       {allPieces.length === 0 && (
-        <div className="border border-dashed border-white/[0.20] rounded-2xl p-16 text-center space-y-4">
-          <Feather size={32} className="mx-auto text-white/30" />
-          <h3 className="text-xl font-display font-light italic text-white/60">No letters yet</h3>
-          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
+        <div className="border border-dashed border-white/[0.12] rounded-2xl p-16 text-center space-y-4">
+          <Feather size={32} className="mx-auto text-emerald-500/20" />
+          <h3 className="text-xl font-display font-light italic text-white/50">No letters yet</h3>
+          <p className="font-serif text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
             When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
           </p>
         </div>
@@ -992,13 +1008,13 @@ const greenhouseTools = [
 ];
 
 const toolColorMap: Record<string, { border: string; text: string; bg: string; glow: string }> = {
-  emerald: { border: "border-emerald-500/15", text: "text-emerald-400/60", bg: "hover:bg-emerald-500/[0.04]", glow: "rgba(16,185,129,0.08)" },
-  sky: { border: "border-sky-500/15", text: "text-sky-400/60", bg: "hover:bg-sky-500/[0.04]", glow: "rgba(14,165,233,0.08)" },
-  amber: { border: "border-amber-500/15", text: "text-amber-400/60", bg: "hover:bg-amber-500/[0.04]", glow: "rgba(245,158,11,0.08)" },
-  violet: { border: "border-violet-500/15", text: "text-violet-400/60", bg: "hover:bg-violet-500/[0.04]", glow: "rgba(139,92,246,0.08)" },
-  pink: { border: "border-pink-500/15", text: "text-pink-400/60", bg: "hover:bg-pink-500/[0.04]", glow: "rgba(236,72,153,0.08)" },
-  indigo: { border: "border-indigo-500/15", text: "text-indigo-400/60", bg: "hover:bg-indigo-500/[0.04]", glow: "rgba(99,102,241,0.08)" },
-  warmGray: { border: "border-stone-400/20", text: "text-stone-300/70", bg: "hover:bg-stone-500/[0.06]", glow: "rgba(168,162,158,0.1)" },
+  emerald: { border: "border-emerald-400/25", text: "text-emerald-400/80", bg: "hover:bg-emerald-500/[0.08]", glow: "rgba(16,185,129,0.15)" },
+  sky: { border: "border-sky-400/25", text: "text-sky-400/80", bg: "hover:bg-sky-500/[0.08]", glow: "rgba(14,165,233,0.15)" },
+  amber: { border: "border-amber-400/25", text: "text-amber-400/80", bg: "hover:bg-amber-500/[0.08]", glow: "rgba(245,158,11,0.15)" },
+  violet: { border: "border-violet-400/25", text: "text-violet-400/80", bg: "hover:bg-violet-500/[0.08]", glow: "rgba(139,92,246,0.15)" },
+  pink: { border: "border-pink-400/25", text: "text-pink-400/80", bg: "hover:bg-pink-500/[0.08]", glow: "rgba(236,72,153,0.15)" },
+  indigo: { border: "border-indigo-400/25", text: "text-indigo-400/80", bg: "hover:bg-indigo-500/[0.08]", glow: "rgba(99,102,241,0.15)" },
+  warmGray: { border: "border-stone-400/25", text: "text-stone-300/80", bg: "hover:bg-stone-500/[0.08]", glow: "rgba(168,162,158,0.15)" },
 };
 
 function GreenhouseZone() {
@@ -1010,34 +1026,43 @@ function GreenhouseZone() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <p className="font-serif text-sm text-white/60 mb-8">
-        Your private creative toolkit — a quiet space just for you. No one else can see what's here. Use these tools to tend your practice, track your energy, and nurture your creative life.
-      </p>
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center gap-2 mb-3">
+          <TreePine size={18} className="text-teal-400/60" />
+          <h2 className="font-display text-2xl font-light italic text-white/70">Your Greenhouse</h2>
+        </div>
+        <p className="font-serif text-sm text-white/45 max-w-md mx-auto leading-relaxed">
+          A private space just for you. Tend your practice, track your energy, and nurture your creative life. No one else can see what's here.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {greenhouseTools.map((tool, i) => {
           const colors = toolColorMap[tool.color];
           return (
             <motion.button
               key={tool.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.3 }}
+              transition={{ delay: i * 0.06, duration: 0.35 }}
               onClick={() => setActiveTool(tool.id)}
-              className={`relative text-left p-5 rounded-xl border ${colors.border} bg-white/[0.04] ${colors.bg} transition-all duration-300 group overflow-hidden`}
+              className={`relative text-left p-6 rounded-2xl border ${colors.border} bg-white/[0.03] ${colors.bg} transition-all duration-300 group overflow-hidden`}
               data-testid={`tool-${tool.id}`}
             >
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
-                background: `radial-gradient(ellipse at 30% 20%, ${colors.glow} 0%, transparent 70%)`,
+                background: `radial-gradient(ellipse at 30% 20%, ${colors.glow} 0%, transparent 60%)`,
+              }} />
+              <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{
+                background: `radial-gradient(circle, ${colors.glow.replace('0.15', '1')} 0%, transparent 70%)`,
               }} />
               <div className="relative z-10">
-                <div className={`${colors.text} mb-3 group-hover:scale-110 transition-transform origin-left`}>
+                <div className={`${colors.text} mb-3 w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center group-hover:scale-110 group-hover:bg-white/[0.08] transition-all`}>
                   {tool.icon}
                 </div>
-                <h3 className="font-display text-base font-light italic text-white/65 group-hover:text-white/85 transition-colors mb-1">
+                <h3 className="font-display text-lg font-light italic text-white/75 group-hover:text-white/90 transition-colors mb-1.5">
                   {tool.label}
                 </h3>
-                <p className="font-serif text-xs text-white/55 leading-relaxed">{tool.desc}</p>
+                <p className="font-serif text-xs text-white/45 leading-relaxed group-hover:text-white/55 transition-colors">{tool.desc}</p>
               </div>
             </motion.button>
           );
@@ -1811,6 +1836,7 @@ export default function Garden() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
+  const { starsVisible, toggleStars } = useStarsVisible();
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
@@ -1916,11 +1942,11 @@ export default function Garden() {
       <StarBackground />
 
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/60 border-b border-white/[0.15]">
+        <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0b101a]/80 border-b border-emerald-900/20">
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
-              <a href="/" className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/55 hover:text-white/60 transition-colors" data-testid="link-home">
-                <Home size={15} />
+              <a href="/" className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/45 hover:text-white/60 transition-colors group" data-testid="link-home">
+                <Leaf size={14} className="text-emerald-500/40 group-hover:text-emerald-400/60 transition-colors" />
               </a>
 
               {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setProfileUserId(null); }} />}
@@ -1989,6 +2015,19 @@ export default function Garden() {
                           >
                             <Bell size={14} />
                             Whispers
+                          </button>
+                          <button
+                            onClick={toggleStars}
+                            className="w-full flex items-center justify-between px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
+                            data-testid="toggle-stars"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Sparkles size={14} />
+                              Stars
+                            </span>
+                            <span className={`text-[9px] font-mono uppercase tracking-wider ${starsVisible ? "text-amber-400/70" : "text-white/30"}`}>
+                              {starsVisible ? "on" : "off"}
+                            </span>
                           </button>
                         </div>
                         <div className="p-2">

@@ -85,6 +85,17 @@
   .animate-noise {
     animation: noise 2s steps(10) infinite;
   }
+
+  @keyframes firefly-drift {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    20% { opacity: 0.6; }
+    50% { transform: translate(30px, -20px) scale(1.2); opacity: 0.8; }
+    80% { opacity: 0.3; }
+    100% { transform: translate(-10px, -40px) scale(0.8); opacity: 0; }
+  }
+  .animate-firefly {
+    animation: firefly-drift 6s ease-in-out infinite;
+  }
 }
 
 .prose-editor .tiptap {
