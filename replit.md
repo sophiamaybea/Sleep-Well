@@ -4,6 +4,8 @@
 A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
 
 ## Recent Changes
+- 2026-02-13: Editor Studio — full editorial workflow: /editor-studio page with 5 tabs (Overview dashboard, Garden Stream browser, Greenhouse shortlist, Requests & Contracts, Issue Builder), editor role permissions, publish request flow with message threads, issue assembly with piece ordering and workflow states, publish-to-gallery action
+- 2026-02-13: Writer-side publish requests — PublishInvitations component in Garden Desk showing incoming editorial invitations with Accept/Decline, "Exhibited on The Page" badge on published pieces, contributor note on public gallery
 - 2026-02-13: Authentic typewriter experience — Web Audio API synthesized mechanical key clicks (regular/space/enter with carriage return ding/backspace), toggle mute button, localStorage persistence, "Special Elite" font + amber cursor in editor
 - 2026-02-13: Museum-style gallery frames — CSS border-image with ornate gold-frame.png asset, MuseumFrame component with hover effects and shadows, redesigned Featured section with gallery wall aesthetic
 - 2026-02-13: The Desk room — communal writing space with rotating daily prompts from /api/prompts, displays recent garden feed pieces, write-at-desk interface
@@ -60,6 +62,7 @@ Supporting components in `client/src/components/garden/`:
 - `/` - Landing page with hero, star title, garden intro (crayon doodles), two doors, featured, how it works, manifesto
 - `/garden` - Authenticated Garden with 3-zone architecture (Desk / Reading Room / Greenhouse), floating nav, Rooms strip
 - `/writer/:id` - Public writer profile (bio, published work, tending connections, resonance counts)
+- `/editor-studio` - Editor-only dashboard with 5 tabs: Overview, Garden Stream, Greenhouse, Requests & Contracts, Issue Builder
 
 ### API Routes
 - `GET /api/gallery` - Public: list published writings (supports ?q= search and ?genre= filter)
@@ -118,6 +121,18 @@ Supporting components in `client/src/components/garden/`:
 - `PATCH /api/profile/bio` - Auth: update bio
 - `GET /api/editorial/pieces` - Auth: editorial-available writings
 - `POST /api/editorial/publish/:writingId` - Auth: publish a writing (editor action)
+- `GET /api/editor/check` - Auth: check if current user is editor
+- `GET /api/editor/overview` - Editor: dashboard stats (new pieces, pending, etc.)
+- `GET /api/editor/garden-stream` - Editor: browse all eligible pieces (?genre=, ?readiness=, ?search=, ?quiet=)
+- `GET/POST/PATCH/DELETE /api/editor/greenhouse` - Editor: manage shortlist entries
+- `GET/POST /api/editor/requests` - Editor: manage publish requests
+- `GET/PATCH /api/author/requests` - Auth: writer view/respond to publish requests
+- `GET/POST /api/editor/requests/:id/messages` - Auth: message thread on requests
+- `GET/POST/PATCH /api/editor/issues` - Editor: manage issues
+- `GET/POST/PATCH/DELETE /api/editor/issues/:id/pieces` - Editor: manage issue pieces
+- `POST /api/editor/issues/:id/publish` - Editor: publish an issue to gallery
+- `GET/POST/DELETE /api/editor/notes` - Editor: internal notes on writings
+- `POST /api/editor/promote` - Editor: promote user to editor role
 - Auth routes: `/api/login`, `/api/logout`, `/api/callback`, `/api/auth/user`
 
 ### Database Tables
@@ -150,6 +165,12 @@ Supporting components in `client/src/components/garden/`:
 - `workshop_responses` - Responses to writing exercises
 - `swap_requests` - Beta-reading swap requests (status: open/matched/completed)
 - `swap_feedback` - Feedback entries for completed swaps
+- `greenhouse_entries` - Editor shortlist (writingId, editorId, issueId, themeFolder, priority, stage)
+- `publish_requests` - Editorial invitations to writers (status: draft/sent/accepted/declined/in_production)
+- `request_messages` - Message threads on publish requests
+- `issues` - Journal issues for publishing (status: draft/locked/published)
+- `issue_pieces` - Pieces within issues (sortOrder, workflowState)
+- `editor_notes` - Internal editor notes on writings
 
 ## User Preferences
 - "Super immersive" star background with warp-speed effect

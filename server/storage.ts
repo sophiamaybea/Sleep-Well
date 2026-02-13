@@ -20,6 +20,11 @@ import {
   type TableTopic, tableTopics, type TableReply, tableReplies,
   type WorkshopExercise, workshopExercises, type WorkshopResponse, workshopResponses,
   type SwapRequest, swapRequests, type SwapFeedbackEntry, swapFeedback,
+  type GreenhouseEntry, greenhouseEntries,
+  type PublishRequest, publishRequests,
+  type RequestMessage, requestMessages,
+  type Issue, issues, type IssuePiece, issuePieces,
+  type EditorNote, editorNotes,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -172,6 +177,34 @@ export interface IStorage {
   // Publishing (editorial)
   getEditorialPieces(): Promise<(Writing & { authorName: string | null })[]>;
   publishWritingByEditor(writingId: string, editorNote?: string): Promise<Writing | undefined>;
+
+  // Editor Studio
+  isEditor(userId: string): Promise<boolean>;
+  setEditorRole(userId: string, role: string): Promise<void>;
+  getEditorOverview(editorId: string): Promise<{ newPieces: number; editorialAvailable: number; pendingRequests: number; draftIssues: number }>;
+  getEditorGardenStream(filters?: { genre?: string; readiness?: string; form?: string; search?: string; newSinceDate?: Date; quiet?: boolean }): Promise<(Writing & { authorName: string | null; authorImage: string | null; resonanceCount: number })[]>;
+  getGreenhouseEntries(editorId: string): Promise<(GreenhouseEntry & { writingTitle: string; authorName: string | null; authorId: string })[]>;
+  addToGreenhouse(editorId: string, data: { writingId: string; issueId?: string; themeFolder?: string; priority?: string; internalNote?: string }): Promise<GreenhouseEntry>;
+  updateGreenhouseEntry(editorId: string, id: string, data: { issueId?: string; themeFolder?: string; priority?: string; internalNote?: string; stage?: string }): Promise<GreenhouseEntry | undefined>;
+  removeFromGreenhouse(editorId: string, id: string): Promise<boolean>;
+  getPublishRequests(filters?: { editorId?: string; status?: string }): Promise<(PublishRequest & { writingTitle: string; authorName: string | null; editorName: string | null })[]>;
+  getAuthorPublishRequests(authorId: string): Promise<(PublishRequest & { writingTitle: string; editorName: string | null })[]>;
+  createPublishRequest(editorId: string, data: { writingId: string; authorId: string; issueId?: string; editorNote?: string; proposedDate?: string; rightsDuration?: string; payment?: string }): Promise<PublishRequest>;
+  respondToPublishRequest(authorId: string, id: string, status: "accepted" | "declined"): Promise<PublishRequest | undefined>;
+  getRequestMessages(requestId: string): Promise<(RequestMessage & { senderName: string | null })[]>;
+  createRequestMessage(senderId: string, data: { requestId: string; content: string }): Promise<RequestMessage>;
+  getIssues(): Promise<(Issue & { pieceCount: number; creatorName: string | null })[]>;
+  getIssue(id: string): Promise<(Issue & { creatorName: string | null }) | undefined>;
+  createIssue(userId: string, data: { title: string; subtitle?: string; themeNote?: string; publishDate?: Date }): Promise<Issue>;
+  updateIssue(id: string, data: { title?: string; subtitle?: string; themeNote?: string; publishDate?: Date; status?: string }): Promise<Issue | undefined>;
+  getIssuePieces(issueId: string): Promise<(IssuePiece & { writingTitle: string; authorName: string | null; writingContent: string })[]>;
+  addPieceToIssue(data: { issueId: string; writingId: string; sortOrder?: number }): Promise<IssuePiece>;
+  updateIssuePiece(id: string, data: { sortOrder?: number; workflowState?: string; editorialNotes?: string }): Promise<IssuePiece | undefined>;
+  removePieceFromIssue(id: string): Promise<boolean>;
+  publishIssue(id: string): Promise<Issue | undefined>;
+  getEditorNotes(writingId: string): Promise<(EditorNote & { editorName: string | null })[]>;
+  createEditorNote(editorId: string, data: { writingId: string; content: string }): Promise<EditorNote>;
+  deleteEditorNote(editorId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -993,6 +1026,322 @@ export class DatabaseStorage implements IStorage {
     });
 
     return updated;
+  }
+
+  // === EDITOR STUDIO ===
+  async isEditor(userId: string): Promise<boolean> {
+    const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId));
+    return user?.role === "editor";
+  }
+
+  async setEditorRole(userId: string, role: string): Promise<void> {
+    await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId));
+  }
+
+  async getEditorOverview(editorId: string): Promise<{ newPieces: number; editorialAvailable: number; pendingRequests: number; draftIssues: number }> {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const newPiecesResult = await db.select({ cnt: count() }).from(writings)
+      .where(and(eq(writings.visibility, "garden"), sql`${writings.createdAt} >= ${sevenDaysAgo}`));
+    const editorialResult = await db.select({ cnt: count() }).from(writings)
+      .where(eq(writings.editorialAvailable, true));
+    const pendingResult = await db.select({ cnt: count() }).from(publishRequests)
+      .where(and(eq(publishRequests.editorId, editorId), eq(publishRequests.status, "draft")));
+    const draftIssuesResult = await db.select({ cnt: count() }).from(issues)
+      .where(eq(issues.status, "draft"));
+    return {
+      newPieces: newPiecesResult[0]?.cnt ?? 0,
+      editorialAvailable: editorialResult[0]?.cnt ?? 0,
+      pendingRequests: pendingResult[0]?.cnt ?? 0,
+      draftIssues: draftIssuesResult[0]?.cnt ?? 0,
+    };
+  }
+
+  async getEditorGardenStream(filters?: { genre?: string; readiness?: string; form?: string; search?: string; newSinceDate?: Date; quiet?: boolean }): Promise<(Writing & { authorName: string | null; authorImage: string | null; resonanceCount: number })[]> {
+    const conditions: any[] = [or(eq(writings.visibility, "garden"), eq(writings.editorialAvailable, true))];
+    if (filters?.genre) conditions.push(eq(writings.genre, filters.genre));
+    if (filters?.readiness) conditions.push(eq(writings.readiness, filters.readiness));
+    if (filters?.search) conditions.push(or(ilike(writings.title, `%${filters.search}%`), ilike(writings.content, `%${filters.search}%`)));
+    if (filters?.newSinceDate) conditions.push(sql`${writings.createdAt} >= ${filters.newSinceDate}`);
+
+    const results = await db.select({
+      id: writings.id, authorId: writings.authorId, title: writings.title, content: writings.content,
+      stage: writings.stage, genre: writings.genre, visibility: writings.visibility,
+      readiness: writings.readiness, editorialAvailable: writings.editorialAvailable,
+      isPublished: writings.isPublished, isPinned: writings.isPinned, isArchived: writings.isArchived,
+      tags: writings.tags, publishedAt: writings.publishedAt,
+      createdAt: writings.createdAt, updatedAt: writings.updatedAt,
+      authorName: users.firstName,
+      authorImage: users.profileImageUrl,
+    }).from(writings)
+      .leftJoin(users, eq(writings.authorId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(writings.updatedAt));
+
+    const enriched: (Writing & { authorName: string | null; authorImage: string | null; resonanceCount: number })[] = [];
+    for (const r of results) {
+      const [res] = await db.select({ cnt: count() }).from(resonances).where(eq(resonances.writingId, r.id));
+      const resonanceCount = res?.cnt ?? 0;
+      if (filters?.quiet && resonanceCount > 0) continue;
+      enriched.push({ ...r, resonanceCount });
+    }
+    return enriched;
+  }
+
+  async getGreenhouseEntries(editorId: string): Promise<(GreenhouseEntry & { writingTitle: string; authorName: string | null; authorId: string })[]> {
+    return await db.select({
+      id: greenhouseEntries.id, writingId: greenhouseEntries.writingId, editorId: greenhouseEntries.editorId,
+      issueId: greenhouseEntries.issueId, themeFolder: greenhouseEntries.themeFolder,
+      priority: greenhouseEntries.priority, internalNote: greenhouseEntries.internalNote,
+      stage: greenhouseEntries.stage, createdAt: greenhouseEntries.createdAt,
+      writingTitle: writings.title, authorName: users.firstName, authorId: writings.authorId,
+    }).from(greenhouseEntries)
+      .innerJoin(writings, eq(greenhouseEntries.writingId, writings.id))
+      .leftJoin(users, eq(writings.authorId, users.id))
+      .where(eq(greenhouseEntries.editorId, editorId))
+      .orderBy(desc(greenhouseEntries.createdAt));
+  }
+
+  async addToGreenhouse(editorId: string, data: { writingId: string; issueId?: string; themeFolder?: string; priority?: string; internalNote?: string }): Promise<GreenhouseEntry> {
+    const [entry] = await db.insert(greenhouseEntries).values({ editorId, ...data }).returning();
+    return entry;
+  }
+
+  async updateGreenhouseEntry(editorId: string, id: string, data: { issueId?: string; themeFolder?: string; priority?: string; internalNote?: string; stage?: string }): Promise<GreenhouseEntry | undefined> {
+    const [updated] = await db.update(greenhouseEntries).set(data)
+      .where(and(eq(greenhouseEntries.id, id), eq(greenhouseEntries.editorId, editorId))).returning();
+    return updated || undefined;
+  }
+
+  async removeFromGreenhouse(editorId: string, id: string): Promise<boolean> {
+    const result = await db.delete(greenhouseEntries)
+      .where(and(eq(greenhouseEntries.id, id), eq(greenhouseEntries.editorId, editorId))).returning();
+    return result.length > 0;
+  }
+
+  async getPublishRequests(filters?: { editorId?: string; status?: string }): Promise<(PublishRequest & { writingTitle: string; authorName: string | null; editorName: string | null })[]> {
+    const conditions: any[] = [];
+    if (filters?.editorId) conditions.push(eq(publishRequests.editorId, filters.editorId));
+    if (filters?.status) conditions.push(eq(publishRequests.status, filters.status));
+
+    const authorAlias = users;
+    const results = await db.select({
+      id: publishRequests.id, writingId: publishRequests.writingId,
+      authorId: publishRequests.authorId, editorId: publishRequests.editorId,
+      issueId: publishRequests.issueId, status: publishRequests.status,
+      editorNote: publishRequests.editorNote, proposedDate: publishRequests.proposedDate,
+      rightsDuration: publishRequests.rightsDuration, payment: publishRequests.payment,
+      createdAt: publishRequests.createdAt, respondedAt: publishRequests.respondedAt,
+      writingTitle: writings.title, authorName: authorAlias.firstName,
+    }).from(publishRequests)
+      .innerJoin(writings, eq(publishRequests.writingId, writings.id))
+      .leftJoin(authorAlias, eq(publishRequests.authorId, authorAlias.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(publishRequests.createdAt));
+
+    const enriched: (PublishRequest & { writingTitle: string; authorName: string | null; editorName: string | null })[] = [];
+    for (const r of results) {
+      let editorName: string | null = null;
+      const [editor] = await db.select({ firstName: users.firstName }).from(users).where(eq(users.id, r.editorId));
+      editorName = editor?.firstName ?? null;
+      enriched.push({ ...r, editorName });
+    }
+    return enriched;
+  }
+
+  async getAuthorPublishRequests(authorId: string): Promise<(PublishRequest & { writingTitle: string; editorName: string | null })[]> {
+    const results = await db.select({
+      id: publishRequests.id, writingId: publishRequests.writingId,
+      authorId: publishRequests.authorId, editorId: publishRequests.editorId,
+      issueId: publishRequests.issueId, status: publishRequests.status,
+      editorNote: publishRequests.editorNote, proposedDate: publishRequests.proposedDate,
+      rightsDuration: publishRequests.rightsDuration, payment: publishRequests.payment,
+      createdAt: publishRequests.createdAt, respondedAt: publishRequests.respondedAt,
+      writingTitle: writings.title,
+    }).from(publishRequests)
+      .innerJoin(writings, eq(publishRequests.writingId, writings.id))
+      .where(eq(publishRequests.authorId, authorId))
+      .orderBy(desc(publishRequests.createdAt));
+
+    const enriched: (PublishRequest & { writingTitle: string; editorName: string | null })[] = [];
+    for (const r of results) {
+      const [editor] = await db.select({ firstName: users.firstName }).from(users).where(eq(users.id, r.editorId));
+      enriched.push({ ...r, editorName: editor?.firstName ?? null });
+    }
+    return enriched;
+  }
+
+  async createPublishRequest(editorId: string, data: { writingId: string; authorId: string; issueId?: string; editorNote?: string; proposedDate?: string; rightsDuration?: string; payment?: string }): Promise<PublishRequest> {
+    const [request] = await db.insert(publishRequests).values({ editorId, ...data }).returning();
+    const writing = await this.getWriting(data.writingId);
+    await this.createNotification(data.authorId, {
+      type: "publish_request",
+      actorId: editorId,
+      writingId: data.writingId,
+      message: `An editor would like to publish "${writing?.title || "your writing"}"`,
+    });
+    return request;
+  }
+
+  async respondToPublishRequest(authorId: string, id: string, status: "accepted" | "declined"): Promise<PublishRequest | undefined> {
+    const [updated] = await db.update(publishRequests).set({ status, respondedAt: new Date() })
+      .where(and(eq(publishRequests.id, id), eq(publishRequests.authorId, authorId))).returning();
+    if (!updated) return undefined;
+
+    await this.createNotification(updated.editorId, {
+      type: "publish_response",
+      actorId: authorId,
+      writingId: updated.writingId,
+      message: `Author ${status} your publish request`,
+    });
+
+    if (status === "accepted") {
+      await db.update(greenhouseEntries).set({ stage: "accepted" })
+        .where(and(eq(greenhouseEntries.writingId, updated.writingId), eq(greenhouseEntries.editorId, updated.editorId)));
+    }
+    return updated;
+  }
+
+  async getRequestMessages(requestId: string): Promise<(RequestMessage & { senderName: string | null })[]> {
+    return await db.select({
+      id: requestMessages.id, requestId: requestMessages.requestId,
+      senderId: requestMessages.senderId, content: requestMessages.content,
+      createdAt: requestMessages.createdAt, senderName: users.firstName,
+    }).from(requestMessages)
+      .leftJoin(users, eq(requestMessages.senderId, users.id))
+      .where(eq(requestMessages.requestId, requestId))
+      .orderBy(requestMessages.createdAt);
+  }
+
+  async createRequestMessage(senderId: string, data: { requestId: string; content: string }): Promise<RequestMessage> {
+    const [msg] = await db.insert(requestMessages).values({ senderId, ...data }).returning();
+    const [request] = await db.select().from(publishRequests).where(eq(publishRequests.id, data.requestId));
+    if (request) {
+      const recipientId = senderId === request.editorId ? request.authorId : request.editorId;
+      await this.createNotification(recipientId, {
+        type: "request_message",
+        actorId: senderId,
+        writingId: request.writingId,
+        message: "sent you a message about a publish request",
+      });
+    }
+    return msg;
+  }
+
+  async getIssues(): Promise<(Issue & { pieceCount: number; creatorName: string | null })[]> {
+    const allIssues = await db.select({
+      id: issues.id, title: issues.title, subtitle: issues.subtitle,
+      themeNote: issues.themeNote, publishDate: issues.publishDate,
+      status: issues.status, createdById: issues.createdById,
+      createdAt: issues.createdAt, updatedAt: issues.updatedAt,
+      creatorName: users.firstName,
+    }).from(issues)
+      .leftJoin(users, eq(issues.createdById, users.id))
+      .orderBy(desc(issues.createdAt));
+
+    const result: (Issue & { pieceCount: number; creatorName: string | null })[] = [];
+    for (const issue of allIssues) {
+      const [cnt] = await db.select({ cnt: count() }).from(issuePieces).where(eq(issuePieces.issueId, issue.id));
+      result.push({ ...issue, pieceCount: cnt?.cnt ?? 0 });
+    }
+    return result;
+  }
+
+  async getIssue(id: string): Promise<(Issue & { creatorName: string | null }) | undefined> {
+    const [issue] = await db.select({
+      id: issues.id, title: issues.title, subtitle: issues.subtitle,
+      themeNote: issues.themeNote, publishDate: issues.publishDate,
+      status: issues.status, createdById: issues.createdById,
+      createdAt: issues.createdAt, updatedAt: issues.updatedAt,
+      creatorName: users.firstName,
+    }).from(issues)
+      .leftJoin(users, eq(issues.createdById, users.id))
+      .where(eq(issues.id, id));
+    return issue || undefined;
+  }
+
+  async createIssue(userId: string, data: { title: string; subtitle?: string; themeNote?: string; publishDate?: Date }): Promise<Issue> {
+    const [issue] = await db.insert(issues).values({ createdById: userId, ...data }).returning();
+    return issue;
+  }
+
+  async updateIssue(id: string, data: { title?: string; subtitle?: string; themeNote?: string; publishDate?: Date; status?: string }): Promise<Issue | undefined> {
+    const [updated] = await db.update(issues).set({ ...data, updatedAt: new Date() })
+      .where(eq(issues.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async getIssuePieces(issueId: string): Promise<(IssuePiece & { writingTitle: string; authorName: string | null; writingContent: string })[]> {
+    return await db.select({
+      id: issuePieces.id, issueId: issuePieces.issueId, writingId: issuePieces.writingId,
+      sortOrder: issuePieces.sortOrder, workflowState: issuePieces.workflowState,
+      editorialNotes: issuePieces.editorialNotes, createdAt: issuePieces.createdAt,
+      writingTitle: writings.title, authorName: users.firstName, writingContent: writings.content,
+    }).from(issuePieces)
+      .innerJoin(writings, eq(issuePieces.writingId, writings.id))
+      .leftJoin(users, eq(writings.authorId, users.id))
+      .where(eq(issuePieces.issueId, issueId))
+      .orderBy(issuePieces.sortOrder);
+  }
+
+  async addPieceToIssue(data: { issueId: string; writingId: string; sortOrder?: number }): Promise<IssuePiece> {
+    const [piece] = await db.insert(issuePieces).values(data).returning();
+    return piece;
+  }
+
+  async updateIssuePiece(id: string, data: { sortOrder?: number; workflowState?: string; editorialNotes?: string }): Promise<IssuePiece | undefined> {
+    const [updated] = await db.update(issuePieces).set(data).where(eq(issuePieces.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async removePieceFromIssue(id: string): Promise<boolean> {
+    const result = await db.delete(issuePieces).where(eq(issuePieces.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async publishIssue(id: string): Promise<Issue | undefined> {
+    const [updated] = await db.update(issues).set({ status: "published", updatedAt: new Date() })
+      .where(eq(issues.id, id)).returning();
+    if (!updated) return undefined;
+
+    const pieces = await db.select({
+      writingId: issuePieces.writingId,
+      authorId: writings.authorId,
+      writingTitle: writings.title,
+    }).from(issuePieces)
+      .innerJoin(writings, eq(issuePieces.writingId, writings.id))
+      .where(eq(issuePieces.issueId, id));
+
+    for (const piece of pieces) {
+      await this.publishWriting(piece.writingId);
+      await this.createNotification(piece.authorId, {
+        type: "issue_published",
+        writingId: piece.writingId,
+        message: `Your writing "${piece.writingTitle}" has been published in "${updated.title}"`,
+      });
+    }
+    return updated;
+  }
+
+  async getEditorNotes(writingId: string): Promise<(EditorNote & { editorName: string | null })[]> {
+    return await db.select({
+      id: editorNotes.id, writingId: editorNotes.writingId, editorId: editorNotes.editorId,
+      content: editorNotes.content, createdAt: editorNotes.createdAt,
+      editorName: users.firstName,
+    }).from(editorNotes)
+      .leftJoin(users, eq(editorNotes.editorId, users.id))
+      .where(eq(editorNotes.writingId, writingId))
+      .orderBy(desc(editorNotes.createdAt));
+  }
+
+  async createEditorNote(editorId: string, data: { writingId: string; content: string }): Promise<EditorNote> {
+    const [note] = await db.insert(editorNotes).values({ editorId, ...data }).returning();
+    return note;
+  }
+
+  async deleteEditorNote(editorId: string, id: string): Promise<boolean> {
+    const result = await db.delete(editorNotes)
+      .where(and(eq(editorNotes.id, id), eq(editorNotes.editorId, editorId))).returning();
+    return result.length > 0;
   }
 }
 

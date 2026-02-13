@@ -12,12 +12,30 @@ import {
   insertTableTopicSchema, insertTableReplySchema,
   insertWorkshopExerciseSchema, insertWorkshopResponseSchema,
   insertSwapRequestSchema, insertSwapFeedbackSchema,
+  insertGreenhouseEntrySchema, insertPublishRequestSchema,
+  insertRequestMessageSchema, insertIssueSchema, insertIssuePieceSchema,
+  insertEditorNoteSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
 const joinMoonlitReadingSchema = z.object({
   writingId: z.string().optional(),
 });
+
+const publishRequestResponseSchema = z.object({
+  status: z.enum(["accepted", "declined"]),
+});
+
+async function isEditor(req: any, res: any, next: any) {
+  if (!req.user?.claims?.sub) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  const editor = await storage.isEditor(req.user.claims.sub);
+  if (!editor) {
+    return res.status(403).json({ message: "Editor access required" });
+  }
+  next();
+}
 
 const replantResponseSchema = z.object({
   status: z.enum(["accepted", "declined"]),
@@ -990,6 +1008,287 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error publishing writing:", error);
       res.status(500).json({ message: "Failed to publish writing" });
+    }
+  });
+
+  // === EDITOR STUDIO ===
+
+  app.get("/api/editor/check", isAuthenticated, async (req: any, res) => {
+    try {
+      const editorStatus = await storage.isEditor(req.user.claims.sub);
+      res.json({ isEditor: editorStatus });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check editor status" });
+    }
+  });
+
+  app.get("/api/editor/overview", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const overview = await storage.getEditorOverview(req.user.claims.sub);
+      res.json(overview);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch editor overview" });
+    }
+  });
+
+  app.get("/api/editor/garden-stream", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const { genre, readiness, search, quiet } = req.query;
+      const filters: any = {};
+      if (genre && genre !== "all") filters.genre = genre;
+      if (readiness && readiness !== "all") filters.readiness = readiness;
+      if (search) filters.search = search;
+      if (quiet === "true") filters.quiet = true;
+      const stream = await storage.getEditorGardenStream(filters);
+      res.json(stream);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch garden stream" });
+    }
+  });
+
+  app.get("/api/editor/greenhouse", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const entries = await storage.getGreenhouseEntries(req.user.claims.sub);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch greenhouse entries" });
+    }
+  });
+
+  app.post("/api/editor/greenhouse", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const parsed = insertGreenhouseEntrySchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const entry = await storage.addToGreenhouse(req.user.claims.sub, parsed.data);
+      res.status(201).json(entry);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add to greenhouse" });
+    }
+  });
+
+  app.patch("/api/editor/greenhouse/:id", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const entry = await storage.updateGreenhouseEntry(req.user.claims.sub, req.params.id, req.body);
+      if (!entry) return res.status(404).json({ message: "Not found" });
+      res.json(entry);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update greenhouse entry" });
+    }
+  });
+
+  app.delete("/api/editor/greenhouse/:id", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const removed = await storage.removeFromGreenhouse(req.user.claims.sub, req.params.id);
+      if (!removed) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Removed from greenhouse" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove from greenhouse" });
+    }
+  });
+
+  app.get("/api/editor/requests", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const { status } = req.query;
+      const filters: any = { editorId: req.user.claims.sub };
+      if (status) filters.status = status;
+      const requests = await storage.getPublishRequests(filters);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch publish requests" });
+    }
+  });
+
+  app.get("/api/author/requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const requests = await storage.getAuthorPublishRequests(req.user.claims.sub);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch author requests" });
+    }
+  });
+
+  app.post("/api/editor/requests", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const parsed = insertPublishRequestSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const request = await storage.createPublishRequest(req.user.claims.sub, parsed.data);
+      res.status(201).json(request);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create publish request" });
+    }
+  });
+
+  app.patch("/api/author/requests/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = publishRequestResponseSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const request = await storage.respondToPublishRequest(req.user.claims.sub, req.params.id, parsed.data.status);
+      if (!request) return res.status(404).json({ message: "Not found" });
+      res.json(request);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to respond to publish request" });
+    }
+  });
+
+  app.get("/api/editor/requests/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const messages = await storage.getRequestMessages(req.params.id);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/editor/requests/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertRequestMessageSchema.safeParse({ ...req.body, requestId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const message = await storage.createRequestMessage(req.user.claims.sub, { requestId: req.params.id, content: parsed.data.content });
+      res.status(201).json(message);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  app.get("/api/editor/issues", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const allIssues = await storage.getIssues();
+      res.json(allIssues);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch issues" });
+    }
+  });
+
+  app.get("/api/editor/issues/:id", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const issue = await storage.getIssue(req.params.id);
+      if (!issue) return res.status(404).json({ message: "Issue not found" });
+      res.json(issue);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch issue" });
+    }
+  });
+
+  app.post("/api/editor/issues", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const parsed = insertIssueSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const issue = await storage.createIssue(req.user.claims.sub, {
+        title: parsed.data.title,
+        subtitle: parsed.data.subtitle ?? undefined,
+        themeNote: parsed.data.themeNote ?? undefined,
+        publishDate: parsed.data.publishDate ? new Date(parsed.data.publishDate) : undefined,
+      });
+      res.status(201).json(issue);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create issue" });
+    }
+  });
+
+  app.patch("/api/editor/issues/:id", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const data: any = { ...req.body };
+      if (data.publishDate) data.publishDate = new Date(data.publishDate);
+      const issue = await storage.updateIssue(req.params.id, data);
+      if (!issue) return res.status(404).json({ message: "Issue not found" });
+      res.json(issue);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update issue" });
+    }
+  });
+
+  app.get("/api/editor/issues/:id/pieces", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const pieces = await storage.getIssuePieces(req.params.id);
+      res.json(pieces);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch issue pieces" });
+    }
+  });
+
+  app.post("/api/editor/issues/:id/pieces", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const parsed = insertIssuePieceSchema.safeParse({ ...req.body, issueId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const piece = await storage.addPieceToIssue({
+        issueId: req.params.id,
+        writingId: parsed.data.writingId,
+        sortOrder: parsed.data.sortOrder ?? undefined,
+      });
+      res.status(201).json(piece);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add piece to issue" });
+    }
+  });
+
+  app.patch("/api/editor/issues/:id/pieces/:pieceId", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const piece = await storage.updateIssuePiece(req.params.pieceId, req.body);
+      if (!piece) return res.status(404).json({ message: "Piece not found" });
+      res.json(piece);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update piece" });
+    }
+  });
+
+  app.delete("/api/editor/issues/:id/pieces/:pieceId", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const removed = await storage.removePieceFromIssue(req.params.pieceId);
+      if (!removed) return res.status(404).json({ message: "Piece not found" });
+      res.json({ message: "Removed from issue" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove piece" });
+    }
+  });
+
+  app.post("/api/editor/issues/:id/publish", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const issue = await storage.publishIssue(req.params.id);
+      if (!issue) return res.status(404).json({ message: "Issue not found" });
+      res.json(issue);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to publish issue" });
+    }
+  });
+
+  app.get("/api/editor/notes/:writingId", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const notes = await storage.getEditorNotes(req.params.writingId);
+      res.json(notes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch editor notes" });
+    }
+  });
+
+  app.post("/api/editor/notes", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const parsed = insertEditorNoteSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const note = await storage.createEditorNote(req.user.claims.sub, parsed.data);
+      res.status(201).json(note);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create editor note" });
+    }
+  });
+
+  app.delete("/api/editor/notes/:id", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteEditorNote(req.user.claims.sub, req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete editor note" });
+    }
+  });
+
+  app.post("/api/editor/promote", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) return res.status(400).json({ message: "userId is required" });
+      await storage.setEditorRole(userId, "editor");
+      res.json({ message: "User promoted to editor" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to promote user" });
     }
   });
 

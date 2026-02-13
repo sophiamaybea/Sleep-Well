@@ -225,6 +225,73 @@ export const swapFeedback = pgTable("swap_feedback", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === EDITOR STUDIO ===
+
+export const greenhouseEntries = pgTable("greenhouse_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  editorId: varchar("editor_id").notNull().references(() => users.id),
+  issueId: varchar("issue_id"),
+  themeFolder: text("theme_folder"),
+  priority: text("priority").notNull().default("medium"),
+  internalNote: text("internal_note"),
+  stage: text("stage").notNull().default("uncontacted"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const publishRequests = pgTable("publish_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  editorId: varchar("editor_id").notNull().references(() => users.id),
+  issueId: varchar("issue_id"),
+  status: text("status").notNull().default("draft"),
+  editorNote: text("editor_note"),
+  proposedDate: text("proposed_date"),
+  rightsDuration: text("rights_duration"),
+  payment: text("payment"),
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
+export const requestMessages = pgTable("request_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  requestId: varchar("request_id").notNull().references(() => publishRequests.id),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const issues = pgTable("issues", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  themeNote: text("theme_note"),
+  publishDate: timestamp("publish_date"),
+  status: text("status").notNull().default("draft"),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const issuePieces = pgTable("issue_pieces", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  issueId: varchar("issue_id").notNull().references(() => issues.id),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  sortOrder: integer("sort_order").notNull().default(0),
+  workflowState: text("workflow_state").notNull().default("draft_received"),
+  editorialNotes: text("editorial_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const editorNotes = pgTable("editor_notes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  editorId: varchar("editor_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SOCIAL FEATURES ===
 
 export const tending = pgTable("tending", {
@@ -312,6 +379,12 @@ export const insertWorkshopExerciseSchema = createInsertSchema(workshopExercises
 export const insertWorkshopResponseSchema = createInsertSchema(workshopResponses).omit({ id: true, authorId: true, createdAt: true });
 export const insertSwapRequestSchema = createInsertSchema(swapRequests).omit({ id: true, requesterId: true, status: true, matchedWithId: true, matchedWritingId: true, createdAt: true });
 export const insertSwapFeedbackSchema = createInsertSchema(swapFeedback).omit({ id: true, fromUserId: true, createdAt: true });
+export const insertGreenhouseEntrySchema = createInsertSchema(greenhouseEntries).omit({ id: true, editorId: true, stage: true, createdAt: true });
+export const insertPublishRequestSchema = createInsertSchema(publishRequests).omit({ id: true, editorId: true, authorId: true, status: true, createdAt: true, respondedAt: true });
+export const insertRequestMessageSchema = createInsertSchema(requestMessages).omit({ id: true, senderId: true, createdAt: true });
+export const insertIssueSchema = createInsertSchema(issues).omit({ id: true, createdById: true, status: true, createdAt: true, updatedAt: true });
+export const insertIssuePieceSchema = createInsertSchema(issuePieces).omit({ id: true, createdAt: true });
+export const insertEditorNoteSchema = createInsertSchema(editorNotes).omit({ id: true, editorId: true, createdAt: true });
 
 // Types
 export type InsertWriting = z.infer<typeof insertWritingSchema>;
@@ -343,3 +416,9 @@ export type WorkshopExercise = typeof workshopExercises.$inferSelect;
 export type WorkshopResponse = typeof workshopResponses.$inferSelect;
 export type SwapRequest = typeof swapRequests.$inferSelect;
 export type SwapFeedbackEntry = typeof swapFeedback.$inferSelect;
+export type GreenhouseEntry = typeof greenhouseEntries.$inferSelect;
+export type PublishRequest = typeof publishRequests.$inferSelect;
+export type RequestMessage = typeof requestMessages.$inferSelect;
+export type Issue = typeof issues.$inferSelect;
+export type IssuePiece = typeof issuePieces.$inferSelect;
+export type EditorNote = typeof editorNotes.$inferSelect;

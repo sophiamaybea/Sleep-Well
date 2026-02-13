@@ -271,6 +271,70 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
 
 type StageFilter = "all" | "raw_seed" | "growing" | "ready_to_show";
 
+function PublishInvitations() {
+  const queryClient = useQueryClient();
+  const { data: requests = [] } = useQuery<any[]>({
+    queryKey: ["/api/author/requests"],
+    queryFn: async () => {
+      const res = await fetch("/api/author/requests", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const respondMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await fetch(`/api/author/requests/${id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        credentials: "include", body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/author/requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
+    },
+  });
+
+  const pending = requests.filter((r: any) => r.status === "sent");
+  if (pending.length === 0) return null;
+
+  return (
+    <div className="mb-6 space-y-3">
+      <h3 className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/60 flex items-center gap-2">
+        <Sparkles size={12} />
+        Publishing Invitations
+      </h3>
+      {pending.map((r: any) => (
+        <div key={r.id} className="rounded-xl border border-amber-400/20 bg-amber-400/[0.03] p-4" data-testid={`invite-${r.id}`}>
+          <p className="font-serif text-sm text-white/80 mb-1">
+            We'd like to invite your piece <span className="font-display italic text-amber-200/90">"{r.writingTitle}"</span> into The Page.
+          </p>
+          {r.editorNote && <p className="font-serif text-xs text-white/50 italic mb-2">"{r.editorNote}"</p>}
+          {r.proposedDate && <p className="font-mono text-[8px] text-white/40 mb-2">Proposed: {r.proposedDate}</p>}
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => respondMutation.mutate({ id: r.id, status: "accepted" })}
+              className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400/80 font-mono text-[10px] uppercase tracking-wider hover:bg-emerald-500/30 transition-colors"
+              data-testid={`btn-accept-${r.id}`}
+            >
+              Accept
+            </button>
+            <button
+              onClick={() => respondMutation.mutate({ id: r.id, status: "declined" })}
+              className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400/60 font-mono text-[10px] uppercase tracking-wider hover:bg-rose-500/20 transition-colors"
+              data-testid={`btn-decline-${r.id}`}
+            >
+              Decline
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
@@ -322,6 +386,8 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
   return (
     <div className="max-w-3xl mx-auto">
+      <PublishInvitations />
+
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
           <p className="text-sm font-serif text-white/60">
@@ -483,6 +549,12 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                         <h3 className="text-base font-display font-light truncate text-white/80 italic">
                           {w.title || "Untitled"}
                         </h3>
+                        {(w as any).isPublished && (
+                          <span className="flex items-center gap-1 text-[8px] font-mono uppercase tracking-widest text-amber-400/60 bg-amber-400/[0.08] px-1.5 py-0.5 rounded-full flex-shrink-0" data-testid={`badge-exhibited-${w.id}`}>
+                            <Sparkles size={8} />
+                            Exhibited
+                          </span>
+                        )}
                         {vis !== "personal" && (
                           <span className={`text-[9px] ${vis === "circle" ? "text-violet-400/40" : "text-emerald-400/40"}`}>
                             {vis === "circle" ? <Users size={10} /> : <Globe size={10} />}
@@ -1879,7 +1951,7 @@ export default function Garden() {
                             </div>
                             <div>
                               <p className="font-display text-sm text-white/85 italic">{user?.firstName} {user?.lastName}</p>
-                              <p className="font-mono text-[8px] text-white/50 uppercase tracking-widest">Writer</p>
+                              <p className="font-mono text-[8px] text-white/50 uppercase tracking-widest">{user?.role === "editor" ? "Editor" : "Writer"}</p>
                             </div>
                           </div>
                         </div>
@@ -1892,6 +1964,16 @@ export default function Garden() {
                             <Feather size={14} />
                             My Public Garden
                           </a>
+                          {user?.role === "editor" && (
+                            <a
+                              href="/editor-studio"
+                              className="flex items-center gap-2 px-2 py-2 rounded-lg text-amber-400/70 hover:text-amber-400 hover:bg-amber-400/[0.05] transition-all font-serif text-sm"
+                              data-testid="nav-editor-studio"
+                            >
+                              <FileCheck size={14} />
+                              Editor Studio
+                            </a>
+                          )}
                           <button
                             onClick={() => { setActiveZone("desk"); setShowProfileMenu(false); }}
                             className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"

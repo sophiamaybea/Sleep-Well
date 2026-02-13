@@ -148,6 +148,11 @@ export default function Featured() {
                   <div className="font-serif text-lg leading-[2] text-white/55 max-w-3xl group-hover:text-white/70 transition-colors duration-500">
                     <ContentRenderer content={item.content} maxLength={600} />
                   </div>
+                  <div className="mt-8 pt-4 border-t border-white/[0.06]">
+                    <p className="font-serif text-xs italic text-white/25">
+                      This piece grew in The Garden, our private members-only writing space.
+                    </p>
+                  </div>
                 </div>
               </MuseumFrame>
             ))}
