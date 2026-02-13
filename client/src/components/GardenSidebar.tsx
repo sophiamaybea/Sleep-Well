@@ -40,37 +40,37 @@ const navGroups: NavGroup[] = [
   {
     title: "Discover",
     items: [
-      { id: "gallery", label: "Gallery", icon: <BookOpen size={16} />, available: false },
-      { id: "queue", label: "Reading Queue", icon: <Bookmark size={16} />, available: false },
-      { id: "explore", label: "Explore", icon: <Compass size={16} />, available: false },
-      { id: "saved", label: "Saved", icon: <Heart size={16} />, available: false },
-      { id: "pollination", label: "Pollination", icon: <MessageCircle size={16} />, available: false },
+      { id: "gallery", label: "Gallery", icon: <BookOpen size={16} />, available: true },
+      { id: "queue", label: "Reading Queue", icon: <Bookmark size={16} />, available: true },
+      { id: "explore", label: "Explore", icon: <Compass size={16} />, available: true },
+      { id: "saved", label: "Saved", icon: <Heart size={16} />, available: true },
+      { id: "pollination", label: "Pollination", icon: <MessageCircle size={16} />, available: true },
     ],
   },
   {
     title: "Practice",
     items: [
-      { id: "rituals", label: "Rituals", icon: <Flame size={16} />, available: false },
-      { id: "compost", label: "Compost", icon: <Archive size={16} />, available: false },
-      { id: "growth-journal", label: "Growth Journal", icon: <NotebookPen size={16} />, available: false },
-      { id: "submissions", label: "Submissions", icon: <FileCheck size={16} />, available: false },
+      { id: "rituals", label: "Rituals", icon: <Flame size={16} />, available: true },
+      { id: "compost", label: "Compost", icon: <Archive size={16} />, available: true },
+      { id: "growth-journal", label: "Growth Journal", icon: <NotebookPen size={16} />, available: true },
+      { id: "submissions", label: "Submissions", icon: <FileCheck size={16} />, available: true },
     ],
   },
   {
     title: "Reflect",
     items: [
-      { id: "inner-weather", label: "Inner Weather", icon: <CloudSun size={16} />, available: false },
-      { id: "reflections", label: "Reflections", icon: <Brain size={16} />, available: false },
-      { id: "seasonal-review", label: "Seasonal Review", icon: <CalendarRange size={16} />, available: false },
-      { id: "root-system", label: "Root System", icon: <Network size={16} />, available: false },
+      { id: "inner-weather", label: "Inner Weather", icon: <CloudSun size={16} />, available: true },
+      { id: "reflections", label: "Reflections", icon: <Brain size={16} />, available: true },
+      { id: "seasonal-review", label: "Seasonal Review", icon: <CalendarRange size={16} />, available: true },
+      { id: "root-system", label: "Root System", icon: <Network size={16} />, available: true },
     ],
   },
   {
     title: "Community",
     items: [
-      { id: "circles", label: "Circles", icon: <Users size={16} />, available: false },
-      { id: "moonlit-readings", label: "Moonlit Readings", icon: <Mic size={16} />, available: false },
-      { id: "replant-requests", label: "Replant Requests", icon: <Mail size={16} />, available: false },
+      { id: "circles", label: "Circles", icon: <Users size={16} />, available: true },
+      { id: "moonlit-readings", label: "Moonlit Readings", icon: <Mic size={16} />, available: true },
+      { id: "replant-requests", label: "Replant Requests", icon: <Mail size={16} />, available: true },
     ],
   },
 ];

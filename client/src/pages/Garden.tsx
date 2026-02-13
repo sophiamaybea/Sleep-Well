@@ -10,6 +10,10 @@ import StarBackground from "@/components/StarBackground";
 import GardenSidebar from "@/components/GardenSidebar";
 import type { GardenView } from "@/components/GardenSidebar";
 import type { Writing } from "@shared/schema";
+import { GalleryPage, ReadingQueuePage, ExplorePage, SavedPage, PollinationPage } from "@/components/garden/DiscoverFeatures";
+import { RitualsPage, CompostPage, GrowthJournalPage, SubmissionsPage } from "@/components/garden/PracticeFeatures";
+import { InnerWeatherPage, ReflectionsPage, SeasonalReviewPage, RootSystemPage } from "@/components/garden/ReflectFeatures";
+import { CirclesPage, MoonlitReadingsPage, ReplantRequestsPage } from "@/components/garden/CommunityFeatures";
 
 const stageColors: Record<string, string> = {
   seed: "border-amber-500/30 text-amber-400/80",
@@ -750,24 +754,6 @@ function ComingSoonPage({ title, description }: { title: string; description: st
   );
 }
 
-const comingSoonPages: Record<string, { title: string; description: string }> = {
-  gallery: { title: "Gallery", description: "A public collection of featured pieces that have bloomed — curated by editors, celebrated by the community." },
-  queue: { title: "Reading Queue", description: "Your personal reading list. Save pieces to read later, mark them as read, and keep your literary journey organized." },
-  explore: { title: "Explore", description: "Discover new voices, curated shelves, and hidden seeds. Browse by mood, form, or theme." },
-  saved: { title: "Saved", description: "Your bookmarked favorites — pieces that resonated, lines that stayed with you." },
-  pollination: { title: "Pollination", description: "A gentle feedback space. Highlight lines you love, leave short affirmations, and share resonance." },
-  rituals: { title: "Writing Rituals", description: "Guided prompts and timed sessions to nurture your writing habit. Outputs go straight to your Garden." },
-  compost: { title: "Compost", description: "An archive for fragments that aren't working yet. Nothing is wasted — everything can be recycled." },
-  "growth-journal": { title: "Growth Journal", description: "A private space to reflect on your writing process, linked to specific pieces over time." },
-  submissions: { title: "Submissions", description: "Track your editorial journey — pieces under review, accepted works, and your publishing history." },
-  "inner-weather": { title: "Inner Weather", description: "Check in with your creative mood. Track patterns between your emotional weather and your writing." },
-  reflections: { title: "Reflections", description: "Structured reflections on craft, voice, and process. See how your creative practice evolves." },
-  "seasonal-review": { title: "Seasonal Review", description: "A quarterly summary of your practice — pieces started, finished, replanted. See your growth season by season." },
-  "root-system": { title: "Root System", description: "Map your influences and connections. Favorite writers, sources, and themes that feed your roots." },
-  circles: { title: "Circles", description: "Small group spaces for accountability and private sharing, wrapped in the gentle Garden aesthetic." },
-  "moonlit-readings": { title: "Moonlit Readings", description: "Live or asynchronous readings under the stars. Gather, listen, and share your words aloud." },
-  "replant-requests": { title: "Replant Requests", description: "Your inbox for editorial invitations. Accept, revise, or decline — your work, your terms." },
-};
 
 export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
@@ -924,11 +910,24 @@ export default function Garden() {
             </div>
           </motion.div>
         );
-      default: {
-        const page = comingSoonPages[currentView];
-        if (page) return <ComingSoonPage title={page.title} description={page.description} />;
+      case "gallery": return <GalleryPage />;
+      case "queue": return <ReadingQueuePage />;
+      case "explore": return <ExplorePage />;
+      case "saved": return <SavedPage />;
+      case "pollination": return <PollinationPage />;
+      case "rituals": return <RitualsPage />;
+      case "compost": return <CompostPage />;
+      case "growth-journal": return <GrowthJournalPage />;
+      case "submissions": return <SubmissionsPage />;
+      case "inner-weather": return <InnerWeatherPage />;
+      case "reflections": return <ReflectionsPage />;
+      case "seasonal-review": return <SeasonalReviewPage />;
+      case "root-system": return <RootSystemPage />;
+      case "circles": return <CirclesPage />;
+      case "moonlit-readings": return <MoonlitReadingsPage />;
+      case "replant-requests": return <ReplantRequestsPage />;
+      default:
         return <ComingSoonPage title="Coming Soon" description="This feature is being cultivated." />;
-      }
     }
   }
 
