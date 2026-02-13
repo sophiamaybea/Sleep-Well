@@ -7,11 +7,10 @@ import {
   Search, ChevronDown, BookOpen, Lock,
   Globe, Users, MapPin, Home, LogOut,
   Sprout, Sparkles, Flower2, Droplets, Zap, Leaf,
-  Flame, Archive, NotebookPen, CloudSun, Brain,
-  CalendarRange, Network, Mic, Moon, Bell,
-  FileCheck, Heart, Bookmark, MessageCircle,
+  Flame, Archive, NotebookPen,
+  Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
-  TreePine, Glasses, ShieldOff, Lightbulb, Compass
+  TreePine, Glasses, Compass
 } from "lucide-react";
 import type { Writing } from "@shared/schema";
 import { useAccessibility } from "@/hooks/use-accessibility";
@@ -19,13 +18,13 @@ import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow"
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
 import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
-import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, ThePressRoom, RejectionWallRoom, OpportunityBoardRoom, IdeaDropsRoom } from "@/components/garden/CommunityRooms";
+import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
 
 type Zone = "desk" | "reading-room" | "greenhouse";
-type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "press" | "rejection-wall" | "opportunities" | "idea-drops" | null;
-type GreenhouseTool = "freewrite" | "growth-journal" | "inner-weather" | "circles" | null;
+type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | null;
+type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | null;
 
 const stageColors: Record<string, string> = {
   raw_seed: "border-amber-500/30 text-amber-400/80",
@@ -241,10 +240,6 @@ const rooms = [
   { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises", comingSoon: false },
   { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Shared writing space", comingSoon: false },
   { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange", comingSoon: false },
-  { id: "press", label: "The Press", icon: <FileCheck size={13} />, desc: "Published gallery & editorial", comingSoon: false },
-  { id: "rejection-wall", label: "Rejection Wall", icon: <ShieldOff size={13} />, desc: "Every 'no' is proof you tried", comingSoon: false },
-  { id: "opportunities", label: "Opportunities", icon: <Globe size={13} />, desc: "Publishing leads from the community", comingSoon: false },
-  { id: "idea-drops", label: "Idea Drops", icon: <Lightbulb size={13} />, desc: "Can't use it? Drop it here", comingSoon: false },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
@@ -1105,7 +1100,6 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
 const greenhouseTools = [
   { id: "freewrite" as const, label: "Freewrite", desc: "A typewriter with optional timer — pure flow writing with timed sessions to build your practice.", icon: <PenLine size={20} />, color: "warmGray" },
   { id: "growth-journal" as const, label: "Growth Journal", desc: "A private space to reflect on your writing journey — celebrate progress, note struggles, track what you're learning", icon: <NotebookPen size={20} />, color: "emerald" },
-  { id: "inner-weather" as const, label: "Inner Weather", desc: "Check in with your creative mood and energy before you write — track patterns over time", icon: <CloudSun size={20} />, color: "sky" },
   { id: "circles" as const, label: "Circles", desc: "Create or join small writing groups for ongoing conversation and mutual support", icon: <Users size={20} />, color: "indigo" },
 ];
 
@@ -1180,7 +1174,6 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
   const toolContent: Record<string, React.ReactNode> = {
     "freewrite": <FreewriteView />,
     "growth-journal": <GrowthJournalView />,
-    "inner-weather": <InnerWeatherView />,
     "circles": <CirclesView />,
   };
 
@@ -1684,80 +1677,6 @@ function GrowthJournalView() {
   );
 }
 
-const moodEmoji: Record<string, string> = { stormy: "⛈", cloudy: "☁", misty: "🌫", clear: "☀", radiant: "✨" };
-const moodColor: Record<string, string> = { stormy: "#6366f1", cloudy: "#94a3b8", misty: "#a78bfa", clear: "#fbbf24", radiant: "#f472b6" };
-
-function InnerWeatherView() {
-  const { data: entries = [] } = useQuery<any[]>({
-    queryKey: ["/api/inner-weather"],
-    queryFn: async () => { const r = await fetch("/api/inner-weather", { credentials: "include" }); return r.ok ? r.json() : []; },
-  });
-  const queryClient = useQueryClient();
-  const [mood, setMood] = useState("clear");
-  const [energy, setEnergy] = useState(5);
-  const [note, setNote] = useState("");
-
-  const moods = ["stormy", "cloudy", "misty", "clear", "radiant"];
-
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const r = await fetch("/api/inner-weather", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ mood, energy, note }) });
-      if (!r.ok) throw new Error("Failed"); return r.json();
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/inner-weather"] }); setNote(""); },
-  });
-
-  const recentWeek = entries.slice(0, 14);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex gap-1 mb-2">
-        {moods.map(m => (
-          <button key={m} onClick={() => setMood(m)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${mood === m ? "border-white/20 bg-white/[0.08] text-white/80" : "border-transparent text-white/55 hover:text-white/60"}`} data-testid={`mood-${m}`}>
-            <span className="text-sm">{moodEmoji[m]}</span>
-            {m}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="font-mono text-[9px] text-white/55 uppercase tracking-widest">Energy</span>
-        <input type="range" min="1" max="10" value={energy} onChange={(e) => setEnergy(Number(e.target.value))} className="flex-grow accent-white/40" />
-        <span className="font-mono text-[10px] text-white/50">{energy}/10</span>
-      </div>
-      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief note..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors" data-testid="input-weather-note" />
-      <button onClick={() => addMutation.mutate()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white transition-all" data-testid="button-log-weather">Log Weather</button>
-
-      {recentWeek.length >= 2 && (
-        <div className="border border-white/[0.08] rounded-xl p-4 space-y-2">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-3">Mood & Energy — Recent</p>
-          <div className="flex items-end gap-1 h-24">
-            {[...recentWeek].reverse().map((e: any, i: number) => (
-              <div key={e.id} className="flex-1 flex flex-col items-center gap-1 group" title={`${e.mood} · energy ${e.energy}/10${e.note ? ` · ${e.note}` : ""}`}>
-                <div className="w-full rounded-t" style={{ height: `${(e.energy / 10) * 80}px`, backgroundColor: moodColor[e.mood] || "#666", opacity: 0.5 + (i / recentWeek.length) * 0.5, transition: "height 0.3s" }} />
-                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">{moodEmoji[e.mood] || "·"}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between font-mono text-[7px] text-white/25 uppercase tracking-widest mt-1">
-            <span>oldest</span>
-            <span>today</span>
-          </div>
-        </div>
-      )}
-
-      {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.08] rounded-xl p-3 flex items-center gap-3">
-          <span className="text-sm">{moodEmoji[e.mood] || "·"}</span>
-          <span className="font-mono text-[9px] uppercase text-white/50">{e.mood}</span>
-          <span className="font-mono text-[9px] text-white/50">energy {e.energy}/10</span>
-          {e.note && <span className="font-serif text-xs text-white/60 truncate">{e.note}</span>}
-          <span className="ml-auto font-mono text-[8px] text-white/30 flex-shrink-0">{timeAgo(e.createdAt)}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 const reflectionPrompts = [
   "What surprised you about your writing this week?",
   "Describe a sentence you wrote that felt true. Why did it work?",
@@ -2087,14 +2006,6 @@ export default function Garden() {
                 <SwapRoom onBack={() => setActiveRoom(null)} />
               ) : activeRoom === "the-desk" ? (
                 <TheDeskRoom onBack={() => setActiveRoom(null)} />
-              ) : activeRoom === "press" ? (
-                <ThePressRoom onBack={() => setActiveRoom(null)} />
-              ) : activeRoom === "rejection-wall" ? (
-                <RejectionWallRoom onBack={() => setActiveRoom(null)} />
-              ) : activeRoom === "opportunities" ? (
-                <OpportunityBoardRoom onBack={() => setActiveRoom(null)} />
-              ) : activeRoom === "idea-drops" ? (
-                <IdeaDropsRoom onBack={() => setActiveRoom(null)} />
               ) : isEditing && activeWriting ? (
                 <WriteEditor
                   key={activeWriting.id}
