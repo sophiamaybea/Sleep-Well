@@ -47,6 +47,70 @@ const stageGlow: Record<string, string> = {
 
 const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
 
+function NightGardenAtmosphere() {
+  return (
+    <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
+      <div className="absolute top-[-5%] right-[15%] w-[500px] h-[500px] rounded-full animate-moonpulse"
+        style={{ background: "radial-gradient(circle, rgba(200, 220, 255, 0.08) 0%, rgba(200, 220, 255, 0.03) 40%, transparent 70%)" }} />
+
+      <div className="absolute top-[12%] left-[8%] w-2 h-2 rounded-full bg-amber-300/70 animate-firefly-1 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
+      <div className="absolute top-[25%] right-[12%] w-1.5 h-1.5 rounded-full bg-amber-200/60 animate-firefly-2 shadow-[0_0_6px_rgba(251,191,36,0.3)]" />
+      <div className="absolute top-[45%] left-[20%] w-1 h-1 rounded-full bg-yellow-300/50 animate-firefly-3 shadow-[0_0_5px_rgba(253,224,71,0.3)]" />
+      <div className="absolute top-[60%] right-[25%] w-2 h-2 rounded-full bg-amber-300/50 animate-firefly-4 shadow-[0_0_8px_rgba(251,191,36,0.3)]" />
+      <div className="absolute top-[35%] left-[75%] w-1.5 h-1.5 rounded-full bg-yellow-200/40 animate-firefly-5 shadow-[0_0_6px_rgba(253,224,71,0.25)]" />
+      <div className="absolute top-[70%] left-[40%] w-1 h-1 rounded-full bg-amber-200/50 animate-firefly-6 shadow-[0_0_5px_rgba(251,191,36,0.3)]" />
+
+      <svg className="absolute bottom-0 left-0 w-full h-48 opacity-[0.04]" viewBox="0 0 1200 200" preserveAspectRatio="none" fill="currentColor">
+        <path d="M0 200 L0 140 Q50 100 80 130 Q100 80 130 120 Q160 60 200 110 Q240 70 280 100 Q310 50 350 90 Q380 40 420 80 Q460 30 500 70 Q530 20 570 60 Q600 10 650 50 Q700 30 750 70 Q800 20 850 60 Q900 40 950 80 Q1000 30 1050 70 Q1100 50 1150 90 Q1180 60 1200 100 L1200 200Z" className="text-emerald-600" />
+      </svg>
+
+      <div className="absolute bottom-0 left-[5%] animate-sway">
+        <svg width="30" height="80" viewBox="0 0 30 80" className="opacity-[0.06] text-emerald-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M15 80 Q15 60 15 40" />
+          <path d="M15 55 Q5 45 3 35 Q2 28 8 30 Q12 32 15 45" />
+          <path d="M15 40 Q25 30 27 20 Q28 13 22 15 Q18 17 15 30" />
+          <path d="M15 30 Q10 20 8 10 Q7 4 12 8 Q14 12 15 22" />
+        </svg>
+      </div>
+      <div className="absolute bottom-0 right-[8%] animate-sway-slow">
+        <svg width="40" height="100" viewBox="0 0 40 100" className="opacity-[0.05] text-emerald-500" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M20 100 Q20 75 20 45" />
+          <path d="M20 70 Q8 58 5 45 Q3 36 10 40 Q15 43 20 58" />
+          <path d="M20 55 Q32 42 35 30 Q37 22 30 25 Q25 28 20 42" />
+          <path d="M20 42 Q12 30 10 18 Q9 10 15 15 Q18 20 20 32" />
+          <ellipse cx="20" cy="40" rx="6" ry="3" className="text-emerald-300" fill="currentColor" opacity="0.15" />
+        </svg>
+      </div>
+      <div className="absolute bottom-0 left-[35%] animate-sway-fast">
+        <svg width="20" height="60" viewBox="0 0 20 60" className="opacity-[0.05] text-emerald-400" fill="none" stroke="currentColor" strokeWidth="1.2">
+          <path d="M10 60 Q10 45 10 25" />
+          <path d="M10 40 Q4 32 3 24 Q2 18 7 22 Q9 25 10 35" />
+          <path d="M10 30 Q16 22 17 14 Q18 8 13 12 Q11 15 10 25" />
+        </svg>
+      </div>
+      <div className="absolute bottom-0 right-[30%] animate-sway">
+        <svg width="25" height="70" viewBox="0 0 25 70" className="opacity-[0.04] text-emerald-500" fill="none" stroke="currentColor" strokeWidth="1.3">
+          <path d="M12 70 Q12 55 12 30" />
+          <path d="M12 50 Q5 40 4 30 Q3 22 9 27 Q11 30 12 42" />
+          <path d="M12 38 Q19 28 20 18 Q21 11 16 15 Q14 18 12 30" />
+        </svg>
+      </div>
+
+      <div className="absolute bottom-0 left-[60%] animate-sway-slow">
+        <svg width="18" height="50" viewBox="0 0 18 50" className="opacity-[0.05] text-teal-400" fill="none" stroke="currentColor" strokeWidth="1">
+          <path d="M9 50 Q9 35 9 15" />
+          <circle cx="9" cy="12" r="5" fill="currentColor" opacity="0.12" />
+          <circle cx="9" cy="12" r="3" fill="currentColor" opacity="0.08" />
+        </svg>
+      </div>
+
+      <div className="absolute bottom-0 left-0 w-full h-20">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6, 78, 59, 0.06) 0%, transparent 100%)" }} />
+      </div>
+    </div>
+  );
+}
+
 function SeedIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -182,27 +246,27 @@ const rooms = [
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
   const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
-    { id: "desk", label: "Your Desk", desc: "Your private writing space — drafts, fragments, and works in progress", icon: <PenLine size={14} />, activeColor: "border-amber-500/30 bg-amber-500/[0.08] text-amber-200/90" },
-    { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond", icon: <Glasses size={14} />, activeColor: "border-emerald-500/30 bg-emerald-500/[0.08] text-emerald-200/90" },
-    { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice", icon: <TreePine size={14} />, activeColor: "border-teal-500/30 bg-teal-500/[0.08] text-teal-200/90" },
+    { id: "desk", label: "Your Desk", desc: "Your private writing space — drafts, fragments, and works in progress", icon: <PenLine size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+    { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
+    { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
   ];
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="inline-flex gap-1 p-1 rounded-2xl border border-white/[0.12] bg-white/[0.03] backdrop-blur-xl">
+      <div className="inline-flex gap-1 p-1.5 rounded-full border border-emerald-800/20 bg-emerald-950/20 backdrop-blur-xl">
         {zones.map((z) => (
           <button
             key={z.id}
             onClick={() => onChange(z.id)}
-            className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
-              active === z.id ? "text-white/90" : "text-white/45 hover:text-white/60"
+            className={`relative flex items-center gap-2 px-4 py-2.5 rounded-full font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
+              active === z.id ? "text-white/90" : "text-white/40 hover:text-white/60"
             }`}
             data-testid={`zone-tab-${z.id}`}
           >
             {active === z.id && (
               <motion.div
                 layoutId="activeZone"
-                className={`absolute inset-0 rounded-xl ${z.activeColor}`}
+                className={`absolute inset-0 rounded-full ${z.activeColor}`}
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
             )}
@@ -259,8 +323,8 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
             title={room.desc}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
               isActive
-                ? "border-white/20 bg-white/[0.08] text-white/80"
-                : "border-white/[0.20] text-white/60 hover:text-white/60 hover:border-white/12"
+                ? "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80"
+                : "border-emerald-800/12 text-white/40 hover:text-white/60 hover:border-emerald-700/20"
             }`}
             data-testid={`room-${room.id}`}
           >
@@ -407,7 +471,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           disabled={isCreating}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-5 py-2.5 border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-200/60 hover:text-amber-200/90 bg-amber-500/[0.04] hover:bg-amber-500/[0.08] transition-all group"
+          className="flex items-center gap-2 px-5 py-2.5 border border-emerald-600/20 hover:border-emerald-500/35 rounded-full font-mono text-[10px] uppercase tracking-widest text-emerald-200/60 hover:text-emerald-100/80 bg-emerald-900/15 hover:bg-emerald-900/25 transition-all group"
           data-testid="button-new-piece"
         >
           <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -423,11 +487,11 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search your pieces..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.05] border border-white/[0.20] rounded-xl text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-emerald-950/15 border border-emerald-800/15 rounded-2xl text-sm font-serif text-white/75 placeholder:text-white/35 focus:outline-none focus:border-emerald-700/25 transition-colors"
             data-testid="input-search"
           />
         </div>
-        <div className="flex gap-0.5 p-0.5 bg-white/[0.05] rounded-xl border border-white/[0.05]">
+        <div className="flex gap-0.5 p-0.5 bg-emerald-950/15 rounded-2xl border border-emerald-800/10">
           {filters.map((f) => (
             <button
               key={f.id}
@@ -487,15 +551,16 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
       </div>
 
       {writings.length === 0 && (
-        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-6">
-          <div className="flex items-center justify-center gap-6">
-            <SeedIcon className="w-8 h-8 text-amber-400/15" />
-            <SproutIcon className="w-10 h-10 text-emerald-400/15" />
-            <BloomIcon className="w-8 h-8 text-pink-400/15" />
+        <div className="relative border border-dashed border-emerald-700/20 rounded-3xl p-16 text-center space-y-6 overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(6,78,59,0.08) 0%, transparent 60%)" }} />
+          <div className="relative flex items-center justify-center gap-6">
+            <SeedIcon className="w-8 h-8 text-amber-400/20" />
+            <SproutIcon className="w-10 h-10 text-emerald-400/20" />
+            <BloomIcon className="w-8 h-8 text-pink-400/20" />
           </div>
-          <div className="space-y-2">
+          <div className="relative space-y-2">
             <h3 className="text-2xl font-display font-light italic text-white/70">Your garden awaits its first seed</h3>
-            <p className="font-serif text-sm text-white/60 max-w-md mx-auto leading-relaxed">
+            <p className="font-serif text-sm text-white/50 max-w-md mx-auto leading-relaxed">
               A line, a fragment, a whole draft — whatever wants to come out.
             </p>
           </div>
@@ -503,7 +568,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             onClick={onCreateNew}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white transition-all"
+            className="relative inline-flex items-center gap-2 px-6 py-3 bg-emerald-950/30 hover:bg-emerald-900/30 border border-emerald-700/20 hover:border-emerald-600/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-emerald-200/60 hover:text-emerald-100/80 transition-all"
             data-testid="button-plant-seed"
           >
             <Sparkles size={13} />
@@ -530,10 +595,10 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
               data-testid={`card-piece-${w.id}`}
             >
               <div
-                className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
+                className={`relative rounded-2xl border overflow-hidden transition-all duration-300 ${
                   isExpanded
-                    ? `${stageColors[readiness]?.split(" ")[0] || "border-white/25"} bg-white/[0.025]`
-                    : "border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04]"
+                    ? `${stageColors[readiness]?.split(" ")[0] || "border-white/25"} bg-emerald-950/20`
+                    : "border-emerald-800/15 hover:border-emerald-700/25 bg-emerald-950/10"
                 }`}
               >
                 {isExpanded && (
@@ -889,10 +954,11 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
       </div>
 
       {allPieces.length === 0 && (
-        <div className="border border-dashed border-white/[0.12] rounded-2xl p-16 text-center space-y-4">
-          <Feather size={32} className="mx-auto text-emerald-500/20" />
-          <h3 className="text-xl font-display font-light italic text-white/50">No letters yet</h3>
-          <p className="font-serif text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
+        <div className="relative border border-dashed border-emerald-700/15 rounded-3xl p-16 text-center space-y-4 overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(6,78,59,0.06) 0%, transparent 60%)" }} />
+          <Feather size={32} className="relative mx-auto text-emerald-500/25" />
+          <h3 className="relative text-xl font-display font-light italic text-white/50">No letters yet</h3>
+          <p className="relative font-serif text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
             When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
           </p>
         </div>
@@ -910,8 +976,8 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
               className="group"
               data-testid={`letter-${piece.id}`}
             >
-              <div className={`rounded-xl border transition-all duration-300 ${
-                isExpanded ? "border-white/[0.1] bg-white/[0.05]" : "border-transparent hover:border-white/[0.20]"
+              <div className={`rounded-2xl border transition-all duration-300 ${
+                isExpanded ? "border-emerald-700/20 bg-emerald-950/20" : "border-transparent hover:border-emerald-800/15"
               }`}>
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : piece.id)}
@@ -1046,14 +1112,14 @@ function GreenhouseZone() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06, duration: 0.35 }}
               onClick={() => setActiveTool(tool.id)}
-              className={`relative text-left p-6 rounded-2xl border ${colors.border} bg-white/[0.03] ${colors.bg} transition-all duration-300 group overflow-hidden`}
+              className={`relative text-left p-6 rounded-3xl border ${colors.border} bg-emerald-950/15 transition-all duration-300 group overflow-hidden`}
               data-testid={`tool-${tool.id}`}
             >
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
-                background: `radial-gradient(ellipse at 30% 20%, ${colors.glow} 0%, transparent 60%)`,
+                background: `radial-gradient(ellipse at 30% 80%, ${colors.glow} 0%, rgba(6,78,59,0.05) 50%, transparent 80%)`,
               }} />
-              <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{
-                background: `radial-gradient(circle, ${colors.glow.replace('0.15', '1')} 0%, transparent 70%)`,
+              <div className="absolute bottom-0 right-0 w-32 h-20 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{
+                background: `radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.3) 0%, transparent 70%)`,
               }} />
               <div className="relative z-10">
                 <div className={`${colors.text} mb-3 w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center group-hover:scale-110 group-hover:bg-white/[0.08] transition-all`}>
@@ -1938,11 +2004,12 @@ export default function Garden() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative">
+    <div className="min-h-screen bg-background text-foreground relative" style={{ background: "linear-gradient(180deg, #0b101a 0%, #0a1210 30%, #0b1318 60%, #0b101a 100%)" }}>
       <StarBackground />
+      <NightGardenAtmosphere />
 
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0b101a]/80 border-b border-emerald-900/20">
+        <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-emerald-900/25" style={{ background: "linear-gradient(135deg, rgba(11,16,26,0.92) 0%, rgba(10,18,16,0.92) 100%)" }}>
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
               <a href="/" className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/45 hover:text-white/60 transition-colors group" data-testid="link-home">
@@ -1968,9 +2035,9 @@ export default function Garden() {
                         initial={{ opacity: 0, y: 5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-white/[0.15] bg-[#0b101a]/95 backdrop-blur-xl overflow-hidden shadow-xl"
+                        className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-emerald-800/20 overflow-hidden shadow-xl" style={{ background: "linear-gradient(180deg, rgba(10,18,16,0.97) 0%, rgba(11,16,26,0.97) 100%)" }}
                       >
-                        <div className="p-4 border-b border-white/[0.15]">
+                        <div className="p-4 border-b border-emerald-900/20">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-white/[0.08] border border-white/20 flex items-center justify-center text-white/70 font-display text-lg italic">
                               {user?.firstName?.[0] || "?"}
@@ -1981,7 +2048,7 @@ export default function Garden() {
                             </div>
                           </div>
                         </div>
-                        <div className="p-3 border-b border-white/[0.15] space-y-2">
+                        <div className="p-3 border-b border-emerald-900/20 space-y-2">
                           <a
                             href={`/writer/${user?.id}`}
                             className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm"

@@ -96,6 +96,47 @@
   .animate-firefly {
     animation: firefly-drift 6s ease-in-out infinite;
   }
+
+  @keyframes firefly-float {
+    0%, 100% { transform: translate(0, 0); opacity: 0; }
+    10% { opacity: 0.7; }
+    30% { transform: translate(15px, -25px); opacity: 0.9; }
+    50% { transform: translate(-10px, -35px); opacity: 0.5; }
+    70% { transform: translate(20px, -15px); opacity: 0.8; }
+    90% { opacity: 0.2; }
+  }
+  .animate-firefly-1 { animation: firefly-float 8s ease-in-out infinite; }
+  .animate-firefly-2 { animation: firefly-float 11s ease-in-out 2s infinite; }
+  .animate-firefly-3 { animation: firefly-float 9s ease-in-out 4s infinite; }
+  .animate-firefly-4 { animation: firefly-float 13s ease-in-out 1s infinite; }
+  .animate-firefly-5 { animation: firefly-float 10s ease-in-out 3s infinite; }
+  .animate-firefly-6 { animation: firefly-float 7s ease-in-out 5s infinite; }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(1.5deg); }
+    75% { transform: rotate(-1.5deg); }
+  }
+  .animate-sway {
+    animation: sway 6s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+  .animate-sway-slow {
+    animation: sway 9s ease-in-out 1s infinite;
+    transform-origin: bottom center;
+  }
+  .animate-sway-fast {
+    animation: sway 4s ease-in-out 2s infinite;
+    transform-origin: bottom center;
+  }
+
+  @keyframes moonpulse {
+    0%, 100% { opacity: 0.12; transform: scale(1); }
+    50% { opacity: 0.18; transform: scale(1.05); }
+  }
+  .animate-moonpulse {
+    animation: moonpulse 8s ease-in-out infinite;
+  }
 }
 
 .prose-editor .tiptap {
