@@ -8,6 +8,7 @@ import {
   insertRitualSessionSchema, insertCompostSchema, insertGrowthJournalSchema,
   insertInnerWeatherSchema, insertReflectionSchema, insertCircleSchema,
   insertCircleMessageSchema, insertMoonlitReadingSchema, insertRootInfluenceSchema,
+  insertResonanceSchema, insertMarginaliaSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -574,6 +575,202 @@ export async function registerRoutes(
       res.json(request);
     } catch (error) {
       res.status(500).json({ message: "Failed to respond" });
+    }
+  });
+
+  // === TENDING (FOLLOWS) ===
+  app.post("/api/tending/:gardenerId", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenderId = req.user.claims.sub;
+      const { gardenerId } = req.params;
+      if (tenderId === gardenerId) return res.status(400).json({ message: "Cannot tend your own garden" });
+      const result = await storage.tendGarden(tenderId, gardenerId);
+      await storage.createNotification(gardenerId, {
+        type: "new_tender",
+        actorId: tenderId,
+        message: "started tending your garden",
+      });
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to tend garden" });
+    }
+  });
+
+  app.delete("/api/tending/:gardenerId", isAuthenticated, async (req: any, res) => {
+    try {
+      const result = await storage.untendGarden(req.user.claims.sub, req.params.gardenerId);
+      if (!result) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Untended garden" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to untend" });
+    }
+  });
+
+  app.get("/api/tending", isAuthenticated, async (req: any, res) => {
+    try {
+      const gardens = await storage.getTending(req.user.claims.sub);
+      res.json(gardens);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tending" });
+    }
+  });
+
+  app.get("/api/tenders", isAuthenticated, async (req: any, res) => {
+    try {
+      const tenders = await storage.getTenders(req.user.claims.sub);
+      res.json(tenders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tenders" });
+    }
+  });
+
+  app.get("/api/tending/check/:gardenerId", isAuthenticated, async (req: any, res) => {
+    try {
+      const isTending = await storage.isTending(req.user.claims.sub, req.params.gardenerId);
+      res.json({ isTending });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check tending" });
+    }
+  });
+
+  app.get("/api/tending-feed", isAuthenticated, async (req: any, res) => {
+    try {
+      const feed = await storage.getTendingFeed(req.user.claims.sub);
+      res.json(feed);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tending feed" });
+    }
+  });
+
+  app.get("/api/tending-count/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const count = await storage.getTendingCount(req.params.userId);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch count" });
+    }
+  });
+
+  // === RESONANCES (REACTIONS) ===
+  app.post("/api/resonances", isAuthenticated, async (req: any, res) => {
+    try {
+      const { writingId, type } = req.body;
+      if (!writingId || !type) return res.status(400).json({ message: "writingId and type are required" });
+      const validTypes = ["glow", "pressed_flower", "dewdrop", "firefly", "roots"];
+      if (!validTypes.includes(type)) return res.status(400).json({ message: "Invalid resonance type" });
+      const writing = await storage.getWriting(writingId);
+      if (!writing) return res.status(404).json({ message: "Writing not found" });
+      if (writing.authorId === req.user.claims.sub) return res.status(400).json({ message: "Cannot resonate with your own work" });
+      const result = await storage.addResonance(req.user.claims.sub, writingId, type);
+      const authorId = writing.authorId;
+      await storage.createNotification(authorId, {
+        type: "resonance",
+        actorId: req.user.claims.sub,
+        writingId,
+        message: `left a ${type.replace("_", " ")} on "${writing.title || "Untitled"}"`,
+      });
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add resonance" });
+    }
+  });
+
+  app.delete("/api/resonances", isAuthenticated, async (req: any, res) => {
+    try {
+      const { writingId, type } = req.body;
+      if (!writingId || !type) return res.status(400).json({ message: "writingId and type are required" });
+      const result = await storage.removeResonance(req.user.claims.sub, writingId, type);
+      res.json({ removed: result });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove resonance" });
+    }
+  });
+
+  app.get("/api/resonances/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const resonances = await storage.getResonancesForWriting(req.params.writingId);
+      const userResonances = await storage.getUserResonances(req.user.claims.sub, req.params.writingId);
+      res.json({ resonances, userResonances });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch resonances" });
+    }
+  });
+
+  // === MARGINALIA (COMMENTS) ===
+  app.get("/api/marginalia/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getMarginaliaForWriting(req.params.writingId);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch marginalia" });
+    }
+  });
+
+  app.post("/api/marginalia", isAuthenticated, async (req: any, res) => {
+    try {
+      const { writingId, content, parentId, highlightText } = req.body;
+      if (!writingId || !content) return res.status(400).json({ message: "writingId and content are required" });
+      const result = await storage.createMarginalia(req.user.claims.sub, { writingId, content, parentId, highlightText });
+      const writing = await storage.getWriting(writingId);
+      if (writing && writing.authorId !== req.user.claims.sub) {
+        await storage.createNotification(writing.authorId, {
+          type: "marginalia",
+          actorId: req.user.claims.sub,
+          writingId,
+          message: `left a note on "${writing.title || "Untitled"}"`,
+        });
+      }
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create marginalia" });
+    }
+  });
+
+  app.delete("/api/marginalia/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const result = await storage.deleteMarginalia(req.user.claims.sub, req.params.id);
+      if (!result) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete" });
+    }
+  });
+
+  // === NOTIFICATIONS ===
+  app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
+    try {
+      const unreadOnly = req.query.unread === "true";
+      const items = await storage.getNotifications(req.user.claims.sub, unreadOnly);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", isAuthenticated, async (req: any, res) => {
+    try {
+      const count = await storage.getUnreadNotificationCount(req.user.claims.sub);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch count" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", isAuthenticated, async (req: any, res) => {
+    try {
+      const result = await storage.markNotificationRead(req.user.claims.sub, req.params.id);
+      res.json({ success: result });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark read" });
+    }
+  });
+
+  app.patch("/api/notifications/read-all", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.markAllNotificationsRead(req.user.claims.sub);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark all read" });
     }
   });
 

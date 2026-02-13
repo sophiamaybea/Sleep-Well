@@ -4,6 +4,7 @@
 A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
 
 ## Recent Changes
+- 2026-02-13: Social features — Tending (follow system), Resonance (5 reaction types: glow/pressed_flower/dewdrop/firefly/roots), Marginalia (annotation-style comments), Notifications ("Whispers"), TendingFeed page, enhanced ProfileGarden with tending counts
 - 2026-02-13: Planting flow & visibility layers — three-tier visibility (personal/circle/garden), readiness stages (raw_seed/growing/ready_to_show), editorial availability flags, PlantingFlow modal, Garden Gallery feed with filters, ProfileGarden view, garden-feed/profile-garden/circle-feed API endpoints
 - 2026-02-13: Built all 16 Garden features — Gallery, Reading Queue, Explore, Saved, Pollination, Rituals, Compost, Growth Journal, Submissions, Inner Weather, Reflections, Seasonal Review, Root System, Circles, Moonlit Readings, Replant Requests
 - 2026-02-13: Complete Garden redesign — sidebar navigation with 5 section groups, 3-step interactive landing, My Garden with search/filters/expandable cards, dedicated Write editor
@@ -33,8 +34,11 @@ A literary journal platform with an immersive, space-themed design. Writers crea
 ### Garden Feature Architecture
 Feature pages are organized in `client/src/components/garden/`:
 - `PlantingFlow.tsx` - 3-step modal for setting visibility/readiness/editorial availability
-- `GardenFeed.tsx` - Garden Gallery feed with readiness/genre filters
-- `ProfileGarden.tsx` - View another member's shared pieces
+- `GardenFeed.tsx` - Garden Gallery feed with readiness/genre filters, integrated social features
+- `ProfileGarden.tsx` - View another member's shared pieces with tending counts
+- `SocialFeatures.tsx` - ResonanceBar (5 reaction types), MarginaliaSection (comments), TendButton (follow)
+- `TendingFeed.tsx` - "Gardens I Tend" feed from followed writers
+- `NotificationPanel.tsx` - Notification center ("Whispers") with bell indicator
 - `DiscoverFeatures.tsx` - Gallery, ReadingQueue, Explore, Saved, Pollination
 - `PracticeFeatures.tsx` - Rituals, Compost, GrowthJournal, Submissions
 - `ReflectFeatures.tsx` - InnerWeather, Reflections, SeasonalReview, RootSystem
@@ -53,6 +57,20 @@ Feature pages are organized in `client/src/components/garden/`:
 - `GET /api/garden-feed` - Auth: garden-visible pieces (?readiness=, ?genre= filters)
 - `GET /api/garden-profile/:userId` - Auth: a member's garden-visible pieces
 - `GET /api/circle-feed` - Auth: circle-visible pieces from user's circles
+- `POST/DELETE /api/tending/:gardenerId` - Auth: tend/untend a garden
+- `GET /api/tending` - Auth: list gardens user is tending
+- `GET /api/tenders` - Auth: list who is tending user's garden
+- `GET /api/tending/check/:gardenerId` - Auth: check if tending
+- `GET /api/tending-feed` - Auth: feed from tended gardens
+- `GET /api/tending-count/:userId` - Auth: tender count
+- `POST/DELETE /api/resonances` - Auth: add/remove reaction (glow/pressed_flower/dewdrop/firefly/roots)
+- `GET /api/resonances/:writingId` - Auth: get resonances for piece
+- `GET/POST/DELETE /api/marginalia` - Auth: manage margin notes
+- `GET /api/marginalia/:writingId` - Auth: get notes for piece
+- `GET /api/notifications` - Auth: list notifications (?unread=true)
+- `GET /api/notifications/unread-count` - Auth: unread count
+- `PATCH /api/notifications/:id/read` - Auth: mark notification read
+- `PATCH /api/notifications/read-all` - Auth: mark all read
 - `GET/POST/DELETE /api/reading-queue` - Auth: manage reading queue
 - `PATCH /api/reading-queue/:id/read` - Auth: mark as read
 - `GET/POST/DELETE /api/saved` - Auth: manage saved pieces
@@ -97,6 +115,10 @@ Feature pages are organized in `client/src/components/garden/`:
 - `reading_participants` - Reading event RSVPs
 - `replant_requests` - Editorial invitations
 - `root_influences` - Mapped influences and connections
+- `tending` - Follow relationships (tenderId → gardenerId)
+- `resonances` - Reactions on writings (glow, pressed_flower, dewdrop, firefly, roots)
+- `marginalia` - Annotation-style comments on writings (threaded via parentId)
+- `notifications` - User notifications (type, actor, message, read status)
 
 ## User Preferences
 - "Super immersive" star background with warp-speed effect

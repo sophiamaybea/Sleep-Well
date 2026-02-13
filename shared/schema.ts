@@ -158,6 +158,44 @@ export const rootInfluences = pgTable("root_influences", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === SOCIAL FEATURES ===
+
+export const tending = pgTable("tending", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => users.id),
+  gardenerId: varchar("gardener_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const resonances = pgTable("resonances", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  type: text("type").notNull().default("glow"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const marginalia = pgTable("marginalia", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  parentId: varchar("parent_id"),
+  content: text("content").notNull(),
+  highlightText: text("highlight_text"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(),
+  actorId: varchar("actor_id").references(() => users.id),
+  writingId: varchar("writing_id").references(() => writings.id),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   writings: many(writings),
@@ -199,6 +237,8 @@ export const insertCircleMessageSchema = createInsertSchema(circleMessages).omit
 export const insertMoonlitReadingSchema = createInsertSchema(moonlitReadings).omit({ id: true, hostId: true, createdAt: true });
 export const insertReplantRequestSchema = createInsertSchema(replantRequests).omit({ id: true, authorId: true, createdAt: true, respondedAt: true });
 export const insertRootInfluenceSchema = createInsertSchema(rootInfluences).omit({ id: true, userId: true, createdAt: true });
+export const insertResonanceSchema = createInsertSchema(resonances).omit({ id: true, userId: true, createdAt: true });
+export const insertMarginaliaSchema = createInsertSchema(marginalia).omit({ id: true, userId: true, createdAt: true });
 
 // Types
 export type InsertWriting = z.infer<typeof insertWritingSchema>;
@@ -220,3 +260,7 @@ export type MoonlitReading = typeof moonlitReadings.$inferSelect;
 export type ReadingParticipant = typeof readingParticipants.$inferSelect;
 export type ReplantRequest = typeof replantRequests.$inferSelect;
 export type RootInfluence = typeof rootInfluences.$inferSelect;
+export type Tending = typeof tending.$inferSelect;
+export type Resonance = typeof resonances.$inferSelect;
+export type Marginalia = typeof marginalia.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;

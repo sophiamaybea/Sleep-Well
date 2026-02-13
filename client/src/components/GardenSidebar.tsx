@@ -4,13 +4,13 @@ import {
   Sprout, PenLine, BookOpen, Compass, Heart, Bookmark,
   MessageCircle, Flame, Archive, NotebookPen, FileCheck,
   CloudSun, Brain, CalendarRange, Network, Users, Mic,
-  Mail, Moon, BarChart3, ChevronDown, Menu, X, Home,
+  Mail, BarChart3, ChevronDown, Menu, X, Home, Moon,
   Search, Settings, LogOut, Globe
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 type GardenView =
-  | "landing" | "my-garden" | "write" | "garden-feed"
+  | "landing" | "my-garden" | "write" | "garden-feed" | "tending-feed" | "notifications"
   | "gallery" | "queue" | "explore" | "saved" | "pollination"
   | "rituals" | "compost" | "growth-journal" | "submissions"
   | "inner-weather" | "reflections" | "seasonal-review" | "root-system"
@@ -41,6 +41,7 @@ const navGroups: NavGroup[] = [
     title: "Discover",
     items: [
       { id: "garden-feed", label: "Garden Gallery", icon: <Globe size={16} />, available: true },
+      { id: "tending-feed", label: "Gardens I Tend", icon: <Sprout size={16} />, available: true },
       { id: "gallery", label: "The Page", icon: <BookOpen size={16} />, available: true },
       { id: "queue", label: "Reading Queue", icon: <Bookmark size={16} />, available: true },
       { id: "explore", label: "Explore", icon: <Compass size={16} />, available: true },
@@ -214,6 +215,18 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
               </div>
 
               <div className="px-3 py-3 border-t border-white/[0.06] space-y-1">
+                <button
+                  onClick={() => onNavigate("notifications" as GardenView)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                    currentView === "notifications"
+                      ? "bg-white/[0.08] text-white/90"
+                      : "text-white/30 hover:text-white/60 hover:bg-white/[0.03]"
+                  }`}
+                  data-testid="nav-notifications"
+                >
+                  <Moon size={16} />
+                  <span className="text-[13px] font-serif">Whispers</span>
+                </button>
                 <a
                   href="/"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.03] transition-all"

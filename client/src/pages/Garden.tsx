@@ -18,6 +18,8 @@ import { CirclesPage, MoonlitReadingsPage, ReplantRequestsPage } from "@/compone
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import GardenFeed from "@/components/garden/GardenFeed";
 import ProfileGarden from "@/components/garden/ProfileGarden";
+import TendingFeed from "@/components/garden/TendingFeed";
+import NotificationPanel, { NotificationBell } from "@/components/garden/NotificationPanel";
 
 const stageColors: Record<string, string> = {
   seed: "border-amber-500/30 text-amber-400/80",
@@ -1033,6 +1035,9 @@ export default function Garden() {
           return <ProfileGarden userId={profileUserId} onBack={() => setProfileUserId(null)} />;
         }
         return <GardenFeed onViewProfile={(id) => setProfileUserId(id)} />;
+      case "tending-feed":
+        return <TendingFeed onViewProfile={(id) => { setProfileUserId(id); setCurrentView("garden-feed"); }} />;
+      case "notifications": return <NotificationPanel />;
       case "gallery": return <GalleryPage />;
       case "queue": return <ReadingQueuePage />;
       case "explore": return <ExplorePage />;

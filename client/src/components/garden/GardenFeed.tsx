@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Globe, Filter, ChevronDown, User, Eye, Sparkles, BookOpen, Feather } from "lucide-react";
 import type { Writing } from "@shared/schema";
 import { VisibilityBadge } from "./PlantingFlow";
+import { ResonanceBar, MarginaliaSection, TendButton } from "./SocialFeatures";
 
 function timeAgo(date: string | Date | null | undefined) {
   if (!date) return "";
@@ -262,12 +263,17 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
                             )}
                           </p>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="font-mono text-[9px] text-white/20 tracking-widest">
-                            {wordCount(piece.content)} words
-                          </span>
-                          <VisibilityBadge visibility="garden" readiness={readiness} editorialAvailable={piece.editorialAvailable} />
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <span className="font-mono text-[9px] text-white/20 tracking-widest">
+                              {wordCount(piece.content)} words
+                            </span>
+                            <VisibilityBadge visibility="garden" readiness={readiness} editorialAvailable={piece.editorialAvailable} />
+                          </div>
+                          <TendButton gardenerId={piece.authorId} size="sm" />
                         </div>
+                        <ResonanceBar writingId={piece.id} />
+                        <MarginaliaSection writingId={piece.id} authorId={piece.authorId} />
                       </div>
                     </motion.div>
                   )}

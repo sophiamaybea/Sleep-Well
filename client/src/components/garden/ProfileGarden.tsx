@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, ChevronDown, ChevronLeft, Feather } from "lucide-react";
 import type { Writing } from "@shared/schema";
 import { VisibilityBadge } from "./PlantingFlow";
+import { ResonanceBar, MarginaliaSection, TendButton } from "./SocialFeatures";
 
 function timeAgo(date: string | Date | null | undefined) {
   if (!date) return "";
@@ -38,8 +39,18 @@ export default function ProfileGarden({ userId, onBack }: { userId: string; onBa
     },
   });
 
+  const { data: tendingData } = useQuery<{ count: number }>({
+    queryKey: ["/api/tending-count", userId],
+    queryFn: async () => {
+      const res = await fetch(`/api/tending-count/${userId}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch count");
+      return res.json();
+    },
+  });
+
   const authorName = writings[0]?.authorName || "A Writer";
   const totalWords = writings.reduce((acc, w) => acc + wordCount(w.content), 0);
+  const tenderCount = tendingData?.count || 0;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -62,14 +73,16 @@ export default function ProfileGarden({ userId, onBack }: { userId: string; onBa
           <div className="w-16 h-16 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/30">
             <User size={28} />
           </div>
-          <div>
+          <div className="flex-grow">
             <h1 className="text-3xl md:text-4xl font-display font-light tracking-tight italic text-white/85" data-testid="heading-profile-name">
               {authorName}'s Garden
             </h1>
             <p className="font-serif text-white/30 mt-1">
               {writings.length} shared {writings.length === 1 ? "piece" : "pieces"} · {totalWords.toLocaleString()} words
+              {tenderCount > 0 && <span> · {tenderCount} {tenderCount === 1 ? "tender" : "tenders"}</span>}
             </p>
           </div>
+          <TendButton gardenerId={userId} gardenerName={authorName} />
         </div>
       </motion.div>
 
@@ -166,6 +179,8 @@ export default function ProfileGarden({ userId, onBack }: { userId: string; onBa
                           </span>
                           <VisibilityBadge visibility={piece.visibility || "garden"} readiness={readiness} editorialAvailable={piece.editorialAvailable} />
                         </div>
+                        <ResonanceBar writingId={piece.id} />
+                        <MarginaliaSection writingId={piece.id} authorId={piece.authorId} />
                       </div>
                     </motion.div>
                   )}

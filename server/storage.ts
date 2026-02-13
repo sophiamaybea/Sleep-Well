@@ -13,6 +13,10 @@ import {
   type MoonlitReading, moonlitReadings, type ReadingParticipant, readingParticipants,
   type ReplantRequest, replantRequests,
   type RootInfluence, rootInfluences,
+  type Tending, tending,
+  type Resonance, resonances,
+  type Marginalia, marginalia,
+  type Notification, notifications,
 } from "@shared/schema";
 import { users } from "@shared/models/auth";
 import { db } from "./db";
@@ -98,6 +102,33 @@ export interface IStorage {
   getRootInfluences(userId: string): Promise<RootInfluence[]>;
   createRootInfluence(userId: string, data: { name: string; category?: string; note?: string }): Promise<RootInfluence>;
   deleteRootInfluence(userId: string, id: string): Promise<boolean>;
+
+  // Tending (follows)
+  tendGarden(tenderId: string, gardenerId: string): Promise<Tending>;
+  untendGarden(tenderId: string, gardenerId: string): Promise<boolean>;
+  getTending(tenderId: string): Promise<{ gardenerId: string; gardenerName: string | null; gardenerImage: string | null; createdAt: Date | null }[]>;
+  getTenders(gardenerId: string): Promise<{ tenderId: string; tenderName: string | null; tenderImage: string | null; createdAt: Date | null }[]>;
+  isTending(tenderId: string, gardenerId: string): Promise<boolean>;
+  getTendingFeed(userId: string): Promise<(Writing & { authorName: string | null; authorImage: string | null })[]>;
+  getTendingCount(gardenerId: string): Promise<number>;
+
+  // Resonances (reactions)
+  addResonance(userId: string, writingId: string, type: string): Promise<Resonance>;
+  removeResonance(userId: string, writingId: string, type: string): Promise<boolean>;
+  getResonancesForWriting(writingId: string): Promise<{ type: string; count: number; users: { id: string; name: string | null }[] }[]>;
+  getUserResonances(userId: string, writingId: string): Promise<string[]>;
+
+  // Marginalia (comments)
+  getMarginaliaForWriting(writingId: string): Promise<(Marginalia & { userName: string | null; userImage: string | null })[]>;
+  createMarginalia(userId: string, data: { writingId: string; content: string; parentId?: string; highlightText?: string }): Promise<Marginalia>;
+  deleteMarginalia(userId: string, id: string): Promise<boolean>;
+
+  // Notifications
+  getNotifications(userId: string, unreadOnly?: boolean): Promise<(Notification & { actorName: string | null })[]>;
+  createNotification(userId: string, data: { type: string; actorId?: string; writingId?: string; message: string }): Promise<Notification>;
+  markNotificationRead(userId: string, id: string): Promise<boolean>;
+  markAllNotificationsRead(userId: string): Promise<boolean>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
 
   // Seasonal Review
   getSeasonalStats(userId: string): Promise<{
@@ -522,6 +553,178 @@ export class DatabaseStorage implements IStorage {
   async deleteRootInfluence(userId: string, id: string): Promise<boolean> {
     const result = await db.delete(rootInfluences).where(and(eq(rootInfluences.id, id), eq(rootInfluences.userId, userId))).returning();
     return result.length > 0;
+  }
+
+  // === TENDING (FOLLOWS) ===
+  async tendGarden(tenderId: string, gardenerId: string): Promise<Tending> {
+    const existing = await db.select().from(tending)
+      .where(and(eq(tending.tenderId, tenderId), eq(tending.gardenerId, gardenerId)));
+    if (existing.length > 0) return existing[0];
+    const [result] = await db.insert(tending).values({ tenderId, gardenerId }).returning();
+    return result;
+  }
+
+  async untendGarden(tenderId: string, gardenerId: string): Promise<boolean> {
+    const result = await db.delete(tending)
+      .where(and(eq(tending.tenderId, tenderId), eq(tending.gardenerId, gardenerId))).returning();
+    return result.length > 0;
+  }
+
+  async getTending(tenderId: string): Promise<{ gardenerId: string; gardenerName: string | null; gardenerImage: string | null; createdAt: Date | null }[]> {
+    return await db.select({
+      gardenerId: tending.gardenerId,
+      gardenerName: users.firstName,
+      gardenerImage: users.profileImageUrl,
+      createdAt: tending.createdAt,
+    }).from(tending).innerJoin(users, eq(tending.gardenerId, users.id))
+      .where(eq(tending.tenderId, tenderId)).orderBy(desc(tending.createdAt));
+  }
+
+  async getTenders(gardenerId: string): Promise<{ tenderId: string; tenderName: string | null; tenderImage: string | null; createdAt: Date | null }[]> {
+    return await db.select({
+      tenderId: tending.tenderId,
+      tenderName: users.firstName,
+      tenderImage: users.profileImageUrl,
+      createdAt: tending.createdAt,
+    }).from(tending).innerJoin(users, eq(tending.tenderId, users.id))
+      .where(eq(tending.gardenerId, gardenerId)).orderBy(desc(tending.createdAt));
+  }
+
+  async isTending(tenderId: string, gardenerId: string): Promise<boolean> {
+    const result = await db.select().from(tending)
+      .where(and(eq(tending.tenderId, tenderId), eq(tending.gardenerId, gardenerId)));
+    return result.length > 0;
+  }
+
+  async getTendingFeed(userId: string): Promise<(Writing & { authorName: string | null; authorImage: string | null })[]> {
+    const tendedGardeners = db.select({ gardenerId: tending.gardenerId })
+      .from(tending).where(eq(tending.tenderId, userId));
+    return await db.select({
+      ...this.writingSelectFields(),
+      authorName: users.firstName,
+      authorImage: users.profileImageUrl,
+    }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
+      .where(and(
+        sql`${writings.authorId} IN (${tendedGardeners})`,
+        or(eq(writings.visibility, "garden"), eq(writings.visibility, "circle"))
+      ))
+      .orderBy(desc(writings.updatedAt));
+  }
+
+  async getTendingCount(gardenerId: string): Promise<number> {
+    const result = await db.select().from(tending).where(eq(tending.gardenerId, gardenerId));
+    return result.length;
+  }
+
+  // === RESONANCES (REACTIONS) ===
+  async addResonance(userId: string, writingId: string, type: string): Promise<Resonance> {
+    const existing = await db.select().from(resonances)
+      .where(and(eq(resonances.userId, userId), eq(resonances.writingId, writingId), eq(resonances.type, type)));
+    if (existing.length > 0) return existing[0];
+    const [result] = await db.insert(resonances).values({ userId, writingId, type }).returning();
+    return result;
+  }
+
+  async removeResonance(userId: string, writingId: string, type: string): Promise<boolean> {
+    const result = await db.delete(resonances)
+      .where(and(eq(resonances.userId, userId), eq(resonances.writingId, writingId), eq(resonances.type, type))).returning();
+    return result.length > 0;
+  }
+
+  async getResonancesForWriting(writingId: string): Promise<{ type: string; count: number; users: { id: string; name: string | null }[] }[]> {
+    const all = await db.select({
+      type: resonances.type,
+      userId: resonances.userId,
+      userName: users.firstName,
+    }).from(resonances).leftJoin(users, eq(resonances.userId, users.id))
+      .where(eq(resonances.writingId, writingId));
+
+    const grouped: Record<string, { count: number; users: { id: string; name: string | null }[] }> = {};
+    for (const r of all) {
+      if (!grouped[r.type]) grouped[r.type] = { count: 0, users: [] };
+      grouped[r.type].count++;
+      grouped[r.type].users.push({ id: r.userId, name: r.userName });
+    }
+    return Object.entries(grouped).map(([type, data]) => ({ type, ...data }));
+  }
+
+  async getUserResonances(userId: string, writingId: string): Promise<string[]> {
+    const result = await db.select({ type: resonances.type }).from(resonances)
+      .where(and(eq(resonances.userId, userId), eq(resonances.writingId, writingId)));
+    return result.map(r => r.type);
+  }
+
+  // === MARGINALIA (COMMENTS) ===
+  async getMarginaliaForWriting(writingId: string): Promise<(Marginalia & { userName: string | null; userImage: string | null })[]> {
+    return await db.select({
+      id: marginalia.id,
+      userId: marginalia.userId,
+      writingId: marginalia.writingId,
+      parentId: marginalia.parentId,
+      content: marginalia.content,
+      highlightText: marginalia.highlightText,
+      createdAt: marginalia.createdAt,
+      userName: users.firstName,
+      userImage: users.profileImageUrl,
+    }).from(marginalia).leftJoin(users, eq(marginalia.userId, users.id))
+      .where(eq(marginalia.writingId, writingId))
+      .orderBy(marginalia.createdAt);
+  }
+
+  async createMarginalia(userId: string, data: { writingId: string; content: string; parentId?: string; highlightText?: string }): Promise<Marginalia> {
+    const [result] = await db.insert(marginalia).values({ userId, ...data }).returning();
+    return result;
+  }
+
+  async deleteMarginalia(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(marginalia)
+      .where(and(eq(marginalia.id, id), eq(marginalia.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  // === NOTIFICATIONS ===
+  async getNotifications(userId: string, unreadOnly?: boolean): Promise<(Notification & { actorName: string | null })[]> {
+    const conditions = [eq(notifications.userId, userId)];
+    if (unreadOnly) conditions.push(eq(notifications.isRead, false));
+    const actorAlias = users;
+    return await db.select({
+      id: notifications.id,
+      userId: notifications.userId,
+      type: notifications.type,
+      actorId: notifications.actorId,
+      writingId: notifications.writingId,
+      message: notifications.message,
+      isRead: notifications.isRead,
+      createdAt: notifications.createdAt,
+      actorName: actorAlias.firstName,
+    }).from(notifications).leftJoin(actorAlias, eq(notifications.actorId, actorAlias.id))
+      .where(and(...conditions))
+      .orderBy(desc(notifications.createdAt))
+      .limit(50);
+  }
+
+  async createNotification(userId: string, data: { type: string; actorId?: string; writingId?: string; message: string }): Promise<Notification> {
+    if (data.actorId === userId) return {} as Notification;
+    const [result] = await db.insert(notifications).values({ userId, ...data }).returning();
+    return result;
+  }
+
+  async markNotificationRead(userId: string, id: string): Promise<boolean> {
+    const result = await db.update(notifications).set({ isRead: true })
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<boolean> {
+    await db.update(notifications).set({ isRead: true })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return true;
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const result = await db.select().from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return result.length;
   }
 
   // === SEASONAL REVIEW ===
