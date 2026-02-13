@@ -348,6 +348,79 @@ export const writingsRelations = relations(writings, ({ one, many }) => ({
   pollinations: many(pollinations),
 }));
 
+// Collaborative accountability features
+
+export const circleIntentions = pgTable("circle_intentions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  circleId: varchar("circle_id").notNull().references(() => circles.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  weekOf: text("week_of").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const circleCelebrations = pgTable("circle_celebrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  circleId: varchar("circle_id").notNull().references(() => circles.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(),
+  message: text("message").notNull().default(""),
+  value: integer("value"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const rejectionWallEntries = pgTable("rejection_wall_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  outlet: text("outlet").notNull(),
+  pieceTitle: text("piece_title").notNull().default(""),
+  result: text("result").notNull(),
+  context: text("context").notNull().default(""),
+  silver_lining: text("silver_lining").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const opportunities = pgTable("opportunities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  link: text("link").notNull().default(""),
+  outlet: text("outlet").notNull().default(""),
+  deadline: text("deadline").notNull().default(""),
+  payRate: text("pay_rate").notNull().default(""),
+  responseTime: text("response_time").notNull().default(""),
+  vibe: text("vibe").notNull().default(""),
+  genres: text("genres").array().default(sql`'{}'::text[]`),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const opportunityNotes = pgTable("opportunity_notes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  opportunityId: varchar("opportunity_id").notNull().references(() => opportunities.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  note: text("note").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const promptPotluckItems = pgTable("prompt_potluck_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  circleId: varchar("circle_id").notNull().references(() => circles.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const ideaDrops = pgTable("idea_drops", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  status: text("status").notNull().default("open"),
+  adoptedById: varchar("adopted_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertWritingSchema = createInsertSchema(writings).omit({
   id: true, authorId: true, isPublished: true, publishedAt: true, createdAt: true, updatedAt: true,
@@ -385,6 +458,13 @@ export const insertRequestMessageSchema = createInsertSchema(requestMessages).om
 export const insertIssueSchema = createInsertSchema(issues).omit({ id: true, createdById: true, status: true, createdAt: true, updatedAt: true });
 export const insertIssuePieceSchema = createInsertSchema(issuePieces).omit({ id: true, createdAt: true });
 export const insertEditorNoteSchema = createInsertSchema(editorNotes).omit({ id: true, editorId: true, createdAt: true });
+export const insertCircleIntentionSchema = createInsertSchema(circleIntentions).omit({ id: true, userId: true, createdAt: true });
+export const insertCircleCelebrationSchema = createInsertSchema(circleCelebrations).omit({ id: true, userId: true, createdAt: true });
+export const insertRejectionWallSchema = createInsertSchema(rejectionWallEntries).omit({ id: true, userId: true, createdAt: true });
+export const insertOpportunitySchema = createInsertSchema(opportunities).omit({ id: true, userId: true, createdAt: true });
+export const insertOpportunityNoteSchema = createInsertSchema(opportunityNotes).omit({ id: true, userId: true, createdAt: true });
+export const insertPromptPotluckSchema = createInsertSchema(promptPotluckItems).omit({ id: true, userId: true, createdAt: true });
+export const insertIdeaDropSchema = createInsertSchema(ideaDrops).omit({ id: true, userId: true, status: true, adoptedById: true, createdAt: true });
 
 // Types
 export type InsertWriting = z.infer<typeof insertWritingSchema>;
@@ -422,3 +502,10 @@ export type RequestMessage = typeof requestMessages.$inferSelect;
 export type Issue = typeof issues.$inferSelect;
 export type IssuePiece = typeof issuePieces.$inferSelect;
 export type EditorNote = typeof editorNotes.$inferSelect;
+export type CircleIntention = typeof circleIntentions.$inferSelect;
+export type CircleCelebration = typeof circleCelebrations.$inferSelect;
+export type RejectionWallEntry = typeof rejectionWallEntries.$inferSelect;
+export type Opportunity = typeof opportunities.$inferSelect;
+export type OpportunityNote = typeof opportunityNotes.$inferSelect;
+export type PromptPotluckItem = typeof promptPotluckItems.$inferSelect;
+export type IdeaDrop = typeof ideaDrops.$inferSelect;
