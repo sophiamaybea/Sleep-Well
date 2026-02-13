@@ -191,10 +191,11 @@ export default function Gallery() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-50 bg-black overflow-y-auto"
+            className="fixed inset-0 z-50 bg-black"
+            style={{ overflowY: "auto", WebkitOverflowScrolling: "touch" }}
           >
-            <div className="min-h-screen flex flex-col">
-              <div className="flex items-center justify-between px-6 md:px-12 py-6">
+            <div className="relative">
+              <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm flex items-center justify-between px-6 md:px-12 py-6">
                 <button
                   onClick={() => setSelectedPiece(null)}
                   className="flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors font-mono text-xs uppercase tracking-widest group"
@@ -215,7 +216,7 @@ export default function Gallery() {
                 </div>
               </div>
 
-              <div className="flex-1 flex items-start justify-center px-6 md:px-12 pb-24">
+              <div className="flex justify-center px-6 md:px-12 pb-24 pt-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
