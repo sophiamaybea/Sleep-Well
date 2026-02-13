@@ -1,178 +1,48 @@
 # The Page Gallery Journal
 
 ## Overview
-A literary journal platform with an immersive, space-themed design. Writers create accounts to write in private "Gardens," editors discover and select work organically (no submissions), and selected pieces are published to the "Gallery."
-
-## Recent Changes
-- 2026-02-13: Editor Studio — full editorial workflow: /editor-studio page with 5 tabs (Overview dashboard, Garden Stream browser, Greenhouse shortlist, Requests & Contracts, Issue Builder), editor role permissions, publish request flow with message threads, issue assembly with piece ordering and workflow states, publish-to-gallery action
-- 2026-02-13: Writer-side publish requests — PublishInvitations component in Garden Desk showing incoming editorial invitations with Accept/Decline, "Exhibited on The Page" badge on published pieces, contributor note on public gallery
-- 2026-02-13: Authentic typewriter experience — Web Audio API synthesized mechanical key clicks (regular/space/enter with carriage return ding/backspace), toggle mute button, localStorage persistence, "Special Elite" font + amber cursor in editor
-- 2026-02-13: Museum-style gallery frames — CSS border-image with ornate gold-frame.png asset, MuseumFrame component with hover effects and shadows, redesigned Featured section with gallery wall aesthetic
-- 2026-02-13: The Desk room — communal writing space with rotating daily prompts from /api/prompts, displays recent garden feed pieces, write-at-desk interface
-- 2026-02-13: The Press room — editorial/publishing space with Published gallery collection and Editorial queue views, removed Retreats room
-- 2026-02-13: Skeleton loading states — replaced blank white screens with animated skeleton placeholders in Garden zones, Gallery/Featured, and community rooms (Tables, Workshop, Swap)
-- 2026-02-13: Enhanced Greenhouse tools — Inner Weather mood/energy timeline chart (14-entry visualization with color-coded bars), Rituals streak counter (current/best/weekly/total stats grid), Reflections rotating craft prompts (15 prompts with sparkle-to-cycle)
-- 2026-02-13: Organization system — custom tags (up to 5 per piece, violet pill UI, tag filter bar on desk), pin/unpin pieces (pinned sort first), archive/restore pieces (hidden by default with count toggle)
-- 2026-02-13: Export menu — download writings as .txt, .md, or PDF from piece cards and editor toolbar
-- 2026-02-13: Rich text editor — TipTap with bold/italic/underline/headings/lists/blockquote/horizontal rule, keyboard shortcuts (Cmd+B etc.), stores HTML, ContentRenderer with DOMPurify sanitization
-- 2026-02-13: Community rooms live — Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange), The Desk (communal writing), The Press (editorial/gallery) now active in Rooms strip
-- 2026-02-13: Writer profiles — public `/writer/:id` page showing bio, published work, tending connections, and resonance counts
-- 2026-02-13: Editorial publishing flow — editorial pieces endpoint, editor publish action with author notification
-- 2026-02-13: Complete Garden redesign — replaced sidebar+16-page structure with 3-zone architecture (Your Desk / Reading Room / Greenhouse), floating pill nav, Rooms strip for future spaces (Tables, Workshop, Desk, Swap, Retreats, Press), calm reading-room aesthetic
-- 2026-02-13: Social features — Tending (follow system), Resonance (5 reaction types: glow/pressed_flower/dewdrop/firefly/roots), Marginalia (annotation-style comments), Notifications ("Whispers")
-- 2026-02-13: Planting flow & visibility layers — three-tier visibility (personal/circle/garden), readiness stages (raw_seed/growing/ready_to_show), editorial availability flags, PlantingFlow modal
-- 2026-02-13: Built greenhouse tools — Rituals, Compost, Growth Journal, Inner Weather, Reflections, Circles
-- 2026-02-13: Enhanced landing page interactivity: 3D tilt cards (TwoDoors), word-by-word text reveals (Hero, Manifesto), magnetic cursor buttons, shine sweep cards (Featured), interactive grow cards (GardenIntro), animated timeline (HowItWorks)
-- 2026-02-12: Added GardenIntro section with crayon flower doodles (CrayonFlower, CrayonDaisy, CrayonTulip, SmallSprout SVGs)
-- 2026-02-12: Changed star title font to "Special Elite" (messy typewriter)
-- 2026-02-12: Set up Replit Auth integration (OAuth with Google, GitHub, email)
-- 2026-02-12: Built Garden page (writing interface for authenticated users)
-- 2026-02-12: Connected Featured section to real gallery API
-
-## Project Architecture
-
-### Stack
-- Frontend: React + Vite + TailwindCSS + Framer Motion
-- Backend: Express.js + TypeScript
-- Database: PostgreSQL with Drizzle ORM
-- Auth: Replit Auth (OpenID Connect)
-- 3D: Three.js / React Three Fiber for star background
-
-### Key Design Decisions
-- Space-themed immersive design with 3D star background
-- Typography: Cormorant Garamond (display), Lora (body), Space Mono (mono)
-- Color palette: deep blue/cream (#0b101a background)
-- Opening book animation with scroll-triggered reveal
-- Garden metaphor: writings go through stages (seed → sprout → bloom)
-
-### Garden Architecture (3-Zone Design)
-The Garden (`/garden`) uses a 3-zone architecture with floating pill navigation:
-- **Your Desk** — Personal writing space: piece cards by stage, inline expand, distraction-free editor with autosave
-- **Reading Room** — Curated social feed merging tended gardens + garden feed, letter-like layout, ambient resonances, inline marginalia, "more letters" pagination
-- **Greenhouse** — Private creative tools as card grid: Growth Journal, Inner Weather, Rituals, Compost, Reflections, Circles
-
-Navigation: Sticky header with zone pill tabs + Rooms strip (Tables, Workshop, Desk, Swap, Retreats, Press — placeholders for future rooms). Whispers bell + profile menu in header.
-
-Supporting components in `client/src/components/garden/`:
-- `PlantingFlow.tsx` - 3-step modal for visibility/readiness/editorial
-- `SocialFeatures.tsx` - ResonanceBar, MarginaliaSection, TendButton
-- `NotificationPanel.tsx` - Notification center ("Whispers")
-
-### Pages
-- `/` - Landing page with hero, star title, garden intro (crayon doodles), two doors, featured, how it works, manifesto
-- `/garden` - Authenticated Garden with 3-zone architecture (Desk / Reading Room / Greenhouse), floating nav, Rooms strip
-- `/writer/:id` - Public writer profile (bio, published work, tending connections, resonance counts)
-- `/editor-studio` - Editor-only dashboard with 5 tabs: Overview, Garden Stream, Greenhouse, Requests & Contracts, Issue Builder
-
-### API Routes
-- `GET /api/gallery` - Public: list published writings (supports ?q= search and ?genre= filter)
-- `GET /api/writings` - Auth: list user's writings
-- `POST /api/writings` - Auth: create a writing
-- `PATCH /api/writings/:id` - Auth: update a writing
-- `DELETE /api/writings/:id` - Auth: delete a writing
-- `GET /api/garden-feed` - Auth: garden-visible pieces (?readiness=, ?genre= filters)
-- `GET /api/garden-profile/:userId` - Auth: a member's garden-visible pieces
-- `GET /api/circle-feed` - Auth: circle-visible pieces from user's circles
-- `POST/DELETE /api/tending/:gardenerId` - Auth: tend/untend a garden
-- `GET /api/tending` - Auth: list gardens user is tending
-- `GET /api/tenders` - Auth: list who is tending user's garden
-- `GET /api/tending/check/:gardenerId` - Auth: check if tending
-- `GET /api/tending-feed` - Auth: feed from tended gardens
-- `GET /api/tending-count/:userId` - Auth: tender count
-- `POST/DELETE /api/resonances` - Auth: add/remove reaction (glow/pressed_flower/dewdrop/firefly/roots)
-- `GET /api/resonances/:writingId` - Auth: get resonances for piece
-- `GET/POST/DELETE /api/marginalia` - Auth: manage margin notes
-- `GET /api/marginalia/:writingId` - Auth: get notes for piece
-- `GET /api/notifications` - Auth: list notifications (?unread=true)
-- `GET /api/notifications/unread-count` - Auth: unread count
-- `PATCH /api/notifications/:id/read` - Auth: mark notification read
-- `PATCH /api/notifications/read-all` - Auth: mark all read
-- `GET/POST/DELETE /api/reading-queue` - Auth: manage reading queue
-- `PATCH /api/reading-queue/:id/read` - Auth: mark as read
-- `GET/POST/DELETE /api/saved` - Auth: manage saved pieces
-- `GET/POST /api/pollinations` - Auth: give/receive pollination feedback
-- `GET /api/prompts` - Public: list writing prompts
-- `GET /api/prompts/random` - Public: get random prompt
-- `GET/POST /api/rituals` - Auth: manage writing ritual sessions
-- `GET/POST/DELETE /api/compost` - Auth: manage compost entries
-- `PATCH /api/compost/:id/recycle` - Auth: recycle a compost entry
-- `GET/POST/DELETE /api/growth-journal` - Auth: manage growth journal
-- `GET /api/submissions` - Auth: view submission status
-- `GET/POST /api/inner-weather` - Auth: track creative mood
-- `GET/POST/DELETE /api/reflections` - Auth: manage reflections
-- `GET /api/seasonal-review` - Auth: seasonal stats summary
-- `GET/POST/DELETE /api/root-influences` - Auth: manage influences
-- `GET/POST /api/circles` - Auth: manage writing circles
-- `POST/DELETE /api/circles/:id/join|leave` - Auth: join/leave circles
-- `GET/POST /api/circles/:id/messages` - Auth: circle messaging
-- `GET/POST /api/moonlit-readings` - Auth: manage readings events
-- `POST/DELETE /api/moonlit-readings/:id/join|leave` - Auth: RSVP
-- `GET /api/replant-requests` - Auth: view editorial invitations
-- `PATCH /api/replant-requests/:id` - Auth: accept/decline
-- `GET/POST /api/tables` - Auth: community discussion topics (optional ?category= filter)
-- `GET /api/tables/:id` - Auth: single topic with author info
-- `GET/POST /api/tables/:id/replies` - Auth: manage topic replies (threaded via parentId)
-- `GET/POST /api/workshop` - Auth: writing exercises (optional ?category= filter)
-- `GET/POST /api/workshop/:id/responses` - Auth: exercise responses
-- `GET/POST /api/swaps` - Auth: beta-reading swap requests (optional ?status= filter)
-- `POST /api/swaps/:id/match` - Auth: match a swap with your writing
-- `GET/POST /api/swaps/:id/feedback` - Auth: swap feedback
-- `GET /api/writer/:id` - Public: writer profile (user, writings, tending stats)
-- `PATCH /api/profile/bio` - Auth: update bio
-- `GET /api/editorial/pieces` - Auth: editorial-available writings
-- `POST /api/editorial/publish/:writingId` - Auth: publish a writing (editor action)
-- `GET /api/editor/check` - Auth: check if current user is editor
-- `GET /api/editor/overview` - Editor: dashboard stats (new pieces, pending, etc.)
-- `GET /api/editor/garden-stream` - Editor: browse all eligible pieces (?genre=, ?readiness=, ?search=, ?quiet=)
-- `GET/POST/PATCH/DELETE /api/editor/greenhouse` - Editor: manage shortlist entries
-- `GET/POST /api/editor/requests` - Editor: manage publish requests
-- `GET/PATCH /api/author/requests` - Auth: writer view/respond to publish requests
-- `GET/POST /api/editor/requests/:id/messages` - Auth: message thread on requests
-- `GET/POST/PATCH /api/editor/issues` - Editor: manage issues
-- `GET/POST/PATCH/DELETE /api/editor/issues/:id/pieces` - Editor: manage issue pieces
-- `POST /api/editor/issues/:id/publish` - Editor: publish an issue to gallery
-- `GET/POST/DELETE /api/editor/notes` - Editor: internal notes on writings
-- `POST /api/editor/promote` - Editor: promote user to editor role
-- Auth routes: `/api/login`, `/api/logout`, `/api/callback`, `/api/auth/user`
-
-### Database Tables
-- `users` - Replit Auth user profiles
-- `sessions` - Session storage for auth
-- `writings` - User writings (title, content, genre, isPublished, visibility [personal/circle/garden], readiness [raw_seed/growing/ready_to_show], editorialAvailable)
-- `reading_queue` - User's reading queue items
-- `saved_pieces` - User's bookmarked pieces
-- `pollinations` - Feedback/affirmations between users
-- `prompts` - Writing prompts by category
-- `ritual_sessions` - Timed writing session records
-- `compost_entries` - Archived fragments
-- `growth_journal_entries` - Private reflections linked to writings
-- `inner_weather` - Mood/energy tracking entries
-- `reflections` - Structured craft reflections
-- `circles` - Writing circle groups
-- `circle_members` - Circle membership
-- `circle_messages` - Messages within circles
-- `moonlit_readings` - Reading events
-- `reading_participants` - Reading event RSVPs
-- `replant_requests` - Editorial invitations
-- `root_influences` - Mapped influences and connections
-- `tending` - Follow relationships (tenderId → gardenerId)
-- `resonances` - Reactions on writings (glow, pressed_flower, dewdrop, firefly, roots)
-- `marginalia` - Annotation-style comments on writings (threaded via parentId)
-- `notifications` - User notifications (type, actor, message, read status)
-- `table_topics` - Community discussion topics
-- `table_replies` - Replies to discussion topics (threaded via parentId)
-- `workshop_exercises` - Writing exercises with prompts
-- `workshop_responses` - Responses to writing exercises
-- `swap_requests` - Beta-reading swap requests (status: open/matched/completed)
-- `swap_feedback` - Feedback entries for completed swaps
-- `greenhouse_entries` - Editor shortlist (writingId, editorId, issueId, themeFolder, priority, stage)
-- `publish_requests` - Editorial invitations to writers (status: draft/sent/accepted/declined/in_production)
-- `request_messages` - Message threads on publish requests
-- `issues` - Journal issues for publishing (status: draft/locked/published)
-- `issue_pieces` - Pieces within issues (sortOrder, workflowState)
-- `editor_notes` - Internal editor notes on writings
+The Page Gallery Journal is a literary journal platform designed to be an immersive, space-themed digital experience. It allows writers to cultivate their work in private "Gardens," provides editors with an organic method to discover and select literary pieces without traditional submissions, and ultimately publishes selected works to a public "Gallery." The project aims to blend creative writing with a unique digital aesthetic, fostering a community around literary expression and discovery.
 
 ## User Preferences
 - "Super immersive" star background with warp-speed effect
 - Inky scribble of closed book that opens on scroll
 - Elegant literary typography and design
+
+## System Architecture
+
+### Stack
+- **Frontend:** React + Vite + TailwindCSS + Framer Motion
+- **Backend:** Express.js + TypeScript
+- **Database:** PostgreSQL with Drizzle ORM
+- **Auth:** Replit Auth (OpenID Connect)
+- **3D Graphics:** Three.js / React Three Fiber for the star background
+
+### Key Design Decisions
+The platform features a distinctive space-themed immersive design, characterized by a 3D star background and a consistent aesthetic. Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and `Space Mono` for monospaced elements. The color palette centers on a deep blue/cream (`#0b101a` for background). Interactive elements include an opening book animation triggered by scroll, and a central "Garden" metaphor where writings progress through stages (seed → sprout → bloom).
+
+**UI/UX and Features:**
+- **Authentic Typewriter Experience:** Integrates Web Audio API for mechanical key clicks and a "Special Elite" font with an amber cursor for an immersive writing environment.
+- **Museum-style Gallery:** Uses CSS `border-image` with an ornate gold-frame asset and `MuseumFrame` component for published works, creating a gallery wall aesthetic.
+- **Garden Architecture (3-Zone Design):** The `/garden` area is structured into three zones with floating pill navigation:
+    - **Your Desk:** Personal writing space with piece cards, inline expansion, and a distraction-free editor with autosave.
+    - **Reading Room:** A curated social feed combining tended gardens and general garden activity, presented in a letter-like layout with ambient resonances and inline marginalia.
+    - **Greenhouse:** A private suite of creative tools including Growth Journal, Inner Weather, Rituals, Compost, and Reflections.
+- **Social Features:** Includes Tending (follow system), Resonance (five reaction types: glow, pressed_flower, dewdrop, firefly, roots), Marginalia (annotation-style comments), and Notifications ("Whispers").
+- **Editorial Studio:** A dedicated `/editor-studio` page with five tabs (Overview, Garden Stream, Greenhouse, Requests & Contracts, Issue Builder) for a comprehensive editorial workflow, including role-based permissions, publish request management, and issue assembly.
+- **Community Rooms:** Features Rooms such as Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange), The Desk (communal writing), and The Press (editorial/gallery views).
+- **Writer Profiles:** Public `/writer/:id` pages displaying bios, published works, tending connections, and resonance counts.
+- **Content Management:** Implements rich text editing via TipTap, piece organization with custom tags, pinning/unpinning, and archiving.
+- **Export Functionality:** Allows downloading writings in `.txt`, `.md`, or PDF formats.
+- **Loading States:** Uses animated skeleton placeholders for enhanced user experience during content loading.
+- **Landing Page Interactivity:** Features 3D tilt cards, word-by-word text reveals, magnetic cursor buttons, and animated sections.
+
+### Pages
+- `/`: Landing page.
+- `/garden`: Authenticated user garden with 3-zone architecture.
+- `/writer/:id`: Public writer profile.
+- `/editor-studio`: Editor-only dashboard.
+
+## External Dependencies
+- **Replit Auth:** Used for user authentication (OpenID Connect).
+- **Three.js / React Three Fiber:** Integrated for 3D rendering of the star background.
+- **Vite, TailwindCSS, Framer Motion, Express.js, TypeScript, PostgreSQL, Drizzle ORM, TipTap, Web Audio API, DOMPurify:** Core technologies and libraries used in the development stack.

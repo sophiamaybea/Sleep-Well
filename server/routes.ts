@@ -15,6 +15,9 @@ import {
   insertGreenhouseEntrySchema, insertPublishRequestSchema,
   insertRequestMessageSchema, insertIssueSchema, insertIssuePieceSchema,
   insertEditorNoteSchema,
+  insertCircleIntentionSchema, insertCircleCelebrationSchema,
+  insertRejectionWallSchema, insertOpportunitySchema, insertOpportunityNoteSchema,
+  insertPromptPotluckSchema, insertIdeaDropSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1289,6 +1292,222 @@ export async function registerRoutes(
       res.json({ message: "User promoted to editor" });
     } catch (error) {
       res.status(500).json({ message: "Failed to promote user" });
+    }
+  });
+
+  // === CIRCLE INTENTIONS ===
+  app.get("/api/circles/:circleId/intentions", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getCircleIntentions(req.params.circleId);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get intentions" });
+    }
+  });
+
+  app.post("/api/circles/:circleId/intentions", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertCircleIntentionSchema.safeParse({ ...req.body, circleId: req.params.circleId });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createCircleIntention(req.user.claims.sub, parsed.data);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create intention" });
+    }
+  });
+
+  app.delete("/api/circle-intentions/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteCircleIntention(req.user.claims.sub, req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete intention" });
+    }
+  });
+
+  // === CIRCLE CELEBRATIONS ===
+  app.get("/api/circles/:circleId/celebrations", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getCircleCelebrations(req.params.circleId);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get celebrations" });
+    }
+  });
+
+  app.post("/api/circles/:circleId/celebrations", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertCircleCelebrationSchema.safeParse({ ...req.body, circleId: req.params.circleId });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createCircleCelebration(req.user.claims.sub, parsed.data);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create celebration" });
+    }
+  });
+
+  // === REJECTION WALL ===
+  app.get("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getRejectionWallEntries();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get rejection wall entries" });
+    }
+  });
+
+  app.post("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertRejectionWallSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createRejectionWallEntry(req.user.claims.sub, parsed.data);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create rejection wall entry" });
+    }
+  });
+
+  app.delete("/api/rejection-wall/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteRejectionWallEntry(req.user.claims.sub, req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete rejection wall entry" });
+    }
+  });
+
+  // === OPPORTUNITIES ===
+  app.get("/api/opportunities", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getOpportunities();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get opportunities" });
+    }
+  });
+
+  app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertOpportunitySchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createOpportunity(req.user.claims.sub, parsed.data);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create opportunity" });
+    }
+  });
+
+  app.delete("/api/opportunities/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteOpportunity(req.user.claims.sub, req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete opportunity" });
+    }
+  });
+
+  app.get("/api/opportunities/:id/notes", isAuthenticated, async (req: any, res) => {
+    try {
+      const notes = await storage.getOpportunityNotes(req.params.id);
+      res.json(notes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get notes" });
+    }
+  });
+
+  app.post("/api/opportunities/:id/notes", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertOpportunityNoteSchema.safeParse({ ...req.body, opportunityId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const note = await storage.createOpportunityNote(req.user.claims.sub, parsed.data);
+      res.status(201).json(note);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create note" });
+    }
+  });
+
+  // === PROMPT POTLUCK ===
+  app.get("/api/circles/:circleId/potluck", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getPromptPotluckItems(req.params.circleId);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get potluck items" });
+    }
+  });
+
+  app.post("/api/circles/:circleId/potluck", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertPromptPotluckSchema.safeParse({ ...req.body, circleId: req.params.circleId });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createPromptPotluckItem(req.user.claims.sub, parsed.data);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create potluck item" });
+    }
+  });
+
+  app.delete("/api/potluck/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deletePromptPotluckItem(req.user.claims.sub, req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete potluck item" });
+    }
+  });
+
+  app.get("/api/circles/:circleId/potluck/random", isAuthenticated, async (req: any, res) => {
+    try {
+      const item = await storage.getRandomPotluckItem(req.params.circleId);
+      if (!item) return res.status(404).json({ message: "No items in potluck" });
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get random potluck item" });
+    }
+  });
+
+  // === IDEA DROPS ===
+  app.get("/api/idea-drops", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getIdeaDrops();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get idea drops" });
+    }
+  });
+
+  app.post("/api/idea-drops", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertIdeaDropSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createIdeaDrop(req.user.claims.sub, parsed.data);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create idea drop" });
+    }
+  });
+
+  app.post("/api/idea-drops/:id/adopt", isAuthenticated, async (req: any, res) => {
+    try {
+      const item = await storage.adoptIdeaDrop(req.user.claims.sub, req.params.id);
+      if (!item) return res.status(404).json({ message: "Not found or already adopted" });
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to adopt idea drop" });
+    }
+  });
+
+  app.delete("/api/idea-drops/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteIdeaDrop(req.user.claims.sub, req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete idea drop" });
     }
   });
 

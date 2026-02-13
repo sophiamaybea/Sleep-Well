@@ -11,7 +11,7 @@ import {
   CalendarRange, Network, Mic, Moon, Bell,
   FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
-  TreePine, Glasses
+  TreePine, Glasses, ShieldOff, Lightbulb
 } from "lucide-react";
 import StarBackground, { useStarsVisible } from "@/components/StarBackground";
 import type { Writing } from "@shared/schema";
@@ -19,12 +19,12 @@ import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow"
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
 import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
-import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, ThePressRoom } from "@/components/garden/CommunityRooms";
+import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, ThePressRoom, RejectionWallRoom, OpportunityBoardRoom, IdeaDropsRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
 
 type Zone = "desk" | "reading-room" | "greenhouse";
-type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "press" | null;
+type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "press" | "rejection-wall" | "opportunities" | "idea-drops" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "inner-weather" | "rituals" | "compost" | "reflections" | "circles" | null;
 
 const stageColors: Record<string, string> = {
@@ -242,6 +242,9 @@ const rooms = [
   { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Shared writing space", comingSoon: false },
   { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange", comingSoon: false },
   { id: "press", label: "The Press", icon: <FileCheck size={13} />, desc: "Published gallery & editorial", comingSoon: false },
+  { id: "rejection-wall", label: "Rejection Wall", icon: <ShieldOff size={13} />, desc: "Every 'no' is proof you tried", comingSoon: false },
+  { id: "opportunities", label: "Opportunities", icon: <Globe size={13} />, desc: "Publishing leads from the community", comingSoon: false },
+  { id: "idea-drops", label: "Idea Drops", icon: <Lightbulb size={13} />, desc: "Can't use it? Drop it here", comingSoon: false },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
@@ -2137,6 +2140,12 @@ export default function Garden() {
                 <TheDeskRoom onBack={() => setActiveRoom(null)} />
               ) : activeRoom === "press" ? (
                 <ThePressRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "rejection-wall" ? (
+                <RejectionWallRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "opportunities" ? (
+                <OpportunityBoardRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "idea-drops" ? (
+                <IdeaDropsRoom onBack={() => setActiveRoom(null)} />
               ) : isEditing && activeWriting ? (
                 <WriteEditor
                   key={activeWriting.id}

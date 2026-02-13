@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine, FileCheck, Sparkles, Clock, Award, Send } from "lucide-react";
+import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine, FileCheck, Sparkles, Clock, Award, Send, ShieldOff, Globe, Lightbulb, ExternalLink, MapPin, Trash2, X, Heart } from "lucide-react";
 import { ContentRenderer } from "./RichEditor";
 
 function ListSkeleton({ count = 4 }: { count?: number }) {
@@ -1495,6 +1495,930 @@ export function ThePressRoom({ onBack }: { onBack: () => void }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+type RejectionEntry = {
+  id: string;
+  userId: string;
+  outlet: string;
+  pieceTitle: string | null;
+  result: string;
+  context: string | null;
+  silver_lining: string | null;
+  userName: string;
+  createdAt: string;
+};
+
+const RESULT_BADGES: Record<string, { label: string; color: string }> = {
+  rejected: { label: "Rejected", color: "text-red-400/70 border-red-400/20 bg-red-400/[0.04]" },
+  no_response: { label: "No Response", color: "text-amber-400/70 border-amber-400/20 bg-amber-400/[0.04]" },
+  close_call: { label: "Close Call", color: "text-violet-400/70 border-violet-400/20 bg-violet-400/[0.04]" },
+  personal_rejection: { label: "Personal Rejection", color: "text-blue-400/70 border-blue-400/20 bg-blue-400/[0.04]" },
+};
+
+export function RejectionWallRoom({ onBack }: { onBack: () => void }) {
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [outlet, setOutlet] = useState("");
+  const [pieceTitle, setPieceTitle] = useState("");
+  const [result, setResult] = useState("rejected");
+  const [context, setContext] = useState("");
+  const [silverLining, setSilverLining] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: entries = [], isLoading } = useQuery<RejectionEntry[]>({
+    queryKey: ["/api/rejection-wall"],
+    queryFn: async () => {
+      const res = await fetch("/api/rejection-wall", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch rejection wall");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { outlet: string; pieceTitle?: string; result: string; context?: string; silver_lining?: string }) => {
+      const res = await fetch("/api/rejection-wall", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to post rejection");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/rejection-wall"] });
+      setShowNewForm(false);
+      setOutlet("");
+      setPieceTitle("");
+      setResult("rejected");
+      setContext("");
+      setSilverLining("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/rejection-wall/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete rejection");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/rejection-wall"] });
+    },
+  });
+
+  const handleCreate = () => {
+    if (!outlet.trim()) return;
+    createMutation.mutate({
+      outlet: outlet.trim(),
+      pieceTitle: pieceTitle.trim() || undefined,
+      result,
+      context: context.trim() || undefined,
+      silver_lining: silverLining.trim() || undefined,
+    });
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto" data-testid="rejection-wall-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <ShieldOff size={16} className="text-white/55" />
+          <h2 className="text-xl font-display font-light italic text-white/80">The Rejection Wall</h2>
+        </div>
+        <motion.button
+          onClick={() => setShowNewForm(!showNewForm)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          data-testid="button-new-rejection"
+        >
+          <Plus size={13} />
+          Pin Yours
+        </motion.button>
+      </div>
+
+      <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
+        Every &lsquo;no&rsquo; is proof you&rsquo;re trying. Pin yours here.
+      </p>
+
+      <AnimatePresence>
+        {showNewForm && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className="border border-white/[0.15] rounded-xl p-5 space-y-4 bg-white/[0.05]" data-testid="new-rejection-form">
+              <input
+                type="text"
+                value={outlet}
+                onChange={(e) => setOutlet(e.target.value)}
+                placeholder="Outlet / publication name..."
+                className="w-full bg-transparent border-b border-white/[0.20] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/45 focus:outline-none focus:border-white/20 transition-colors"
+                data-testid="input-rejection-outlet"
+              />
+              <input
+                type="text"
+                value={pieceTitle}
+                onChange={(e) => setPieceTitle(e.target.value)}
+                placeholder="Piece title (optional)..."
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                data-testid="input-rejection-piece-title"
+              />
+              <div className="flex items-center gap-3">
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/55">Result</label>
+                <select
+                  value={result}
+                  onChange={(e) => setResult(e.target.value)}
+                  className="bg-transparent text-white/50 font-mono text-[9px] uppercase tracking-widest border border-white/[0.20] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
+                  data-testid="select-rejection-result"
+                >
+                  <option value="rejected" className="bg-[#0b101a]">Rejected</option>
+                  <option value="no_response" className="bg-[#0b101a]">No Response</option>
+                  <option value="close_call" className="bg-[#0b101a]">Close Call</option>
+                  <option value="personal_rejection" className="bg-[#0b101a]">Personal Rejection</option>
+                </select>
+              </div>
+              <textarea
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder="What did you learn? (optional)"
+                rows={3}
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                data-testid="input-rejection-context"
+              />
+              <textarea
+                value={silverLining}
+                onChange={(e) => setSilverLining(e.target.value)}
+                placeholder="Silver lining? (optional)"
+                rows={2}
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                data-testid="input-rejection-silver-lining"
+              />
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setShowNewForm(false)}
+                  className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
+                  data-testid="button-cancel-rejection"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreate}
+                  disabled={!outlet.trim() || createMutation.isPending}
+                  className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  data-testid="button-submit-rejection"
+                >
+                  Pin It
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isLoading && <ListSkeleton count={4} />}
+
+      {!isLoading && entries.length === 0 && (
+        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
+          <ShieldOff size={32} className="mx-auto text-white/30" />
+          <h3 className="text-xl font-display font-light italic text-white/60">The wall is empty</h3>
+          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
+            Every writer collects rejections. Pin yours here and turn them into badges of courage.
+          </p>
+          <button
+            onClick={() => setShowNewForm(true)}
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            data-testid="button-first-rejection"
+          >
+            <Plus size={13} />
+            Pin the First Rejection
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {entries.map((entry, i) => {
+          const badge = RESULT_BADGES[entry.result] || RESULT_BADGES.rejected;
+          return (
+            <motion.div
+              key={entry.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03, duration: 0.3 }}
+              data-testid={`rejection-card-${entry.id}`}
+            >
+              <div className="rounded-xl border border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04] p-4 md:p-5 space-y-3 transition-all duration-300">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-base font-display font-light text-white/80 italic truncate" data-testid={`text-rejection-outlet-${entry.id}`}>{entry.outlet}</h3>
+                      <span className={`px-2 py-0.5 rounded-full border font-mono text-[8px] uppercase tracking-widest ${badge.color}`} data-testid={`badge-result-${entry.id}`}>
+                        {badge.label}
+                      </span>
+                    </div>
+                    {entry.pieceTitle && (
+                      <p className="font-serif text-sm text-white/55 italic mb-1" data-testid={`text-rejection-piece-${entry.id}`}>&ldquo;{entry.pieceTitle}&rdquo;</p>
+                    )}
+                    <div className="flex items-center gap-3 text-white/55">
+                      <span className="font-mono text-[10px]">{entry.userName}</span>
+                      <span className="font-mono text-[9px]">{timeAgo(entry.createdAt)}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteMutation.mutate(entry.id)}
+                    className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors flex-shrink-0"
+                    data-testid={`button-delete-rejection-${entry.id}`}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+                {entry.context && (
+                  <p className="font-serif text-sm text-white/50 leading-relaxed" data-testid={`text-rejection-context-${entry.id}`}>{entry.context}</p>
+                )}
+                {entry.silver_lining && (
+                  <div className="p-3 bg-amber-500/[0.04] border border-amber-500/10 rounded-lg" data-testid={`text-rejection-silver-${entry.id}`}>
+                    <p className="font-mono text-[9px] uppercase tracking-widest text-amber-400/40 mb-1">Silver Lining</p>
+                    <p className="font-serif text-sm text-amber-200/50 leading-relaxed">{entry.silver_lining}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+type Opportunity = {
+  id: string;
+  userId: string;
+  title: string;
+  outlet: string | null;
+  link: string | null;
+  deadline: string | null;
+  payRate: string | null;
+  responseTime: string | null;
+  vibe: string | null;
+  genres: string[];
+  notes: string | null;
+  userName: string;
+  noteCount: number;
+  createdAt: string;
+};
+
+type OpportunityNote = {
+  id: string;
+  opportunityId: string;
+  authorId: string;
+  content: string;
+  authorName: string;
+  createdAt: string;
+};
+
+function OpportunityNotes({ opportunityId }: { opportunityId: string }) {
+  const [noteContent, setNoteContent] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: notes = [], isLoading } = useQuery<OpportunityNote[]>({
+    queryKey: ["/api/opportunities", opportunityId, "notes"],
+    queryFn: async () => {
+      const res = await fetch(`/api/opportunities/${opportunityId}/notes`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch notes");
+      return res.json();
+    },
+  });
+
+  const noteMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(`/api/opportunities/${opportunityId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error("Failed to post note");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities", opportunityId, "notes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
+      setNoteContent("");
+    },
+  });
+
+  const handleSubmitNote = () => {
+    const trimmed = noteContent.trim();
+    if (!trimmed) return;
+    noteMutation.mutate(trimmed);
+  };
+
+  return (
+    <div className="space-y-3" data-testid={`opportunity-notes-${opportunityId}`}>
+      {isLoading && <ListSkeleton count={2} />}
+      {notes.length === 0 && !isLoading && (
+        <p className="font-serif text-sm text-white/50 italic">No notes yet — share your experience.</p>
+      )}
+      {notes.map((note) => (
+        <div key={note.id} className="flex items-start gap-3" data-testid={`note-${note.id}`}>
+          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/20 flex items-center justify-center text-white/60 font-mono text-[8px] uppercase flex-shrink-0">
+            {note.authorName?.[0] || "?"}
+          </div>
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="font-mono text-[10px] text-white/60 tracking-wide">{note.authorName}</span>
+              <span className="font-mono text-[9px] text-white/50">{timeAgo(note.createdAt)}</span>
+            </div>
+            <p className="font-serif text-sm text-white/70 leading-relaxed">{note.content}</p>
+          </div>
+        </div>
+      ))}
+      <div className="flex gap-2 pt-2 border-t border-white/[0.15]">
+        <input
+          type="text"
+          value={noteContent}
+          onChange={(e) => setNoteContent(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitNote(); } }}
+          placeholder="Add a note..."
+          className="flex-grow bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+          data-testid={`input-note-${opportunityId}`}
+        />
+        <button
+          onClick={handleSubmitNote}
+          disabled={!noteContent.trim() || noteMutation.isPending}
+          className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/20 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          data-testid={`button-submit-note-${opportunityId}`}
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function OpportunityBoardRoom({ onBack }: { onBack: () => void }) {
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [expandedOpp, setExpandedOpp] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [oppOutlet, setOppOutlet] = useState("");
+  const [link, setLink] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [payRate, setPayRate] = useState("");
+  const [responseTime, setResponseTime] = useState("");
+  const [vibe, setVibe] = useState("");
+  const [genres, setGenres] = useState("");
+  const [oppNotes, setOppNotes] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: opportunities = [], isLoading } = useQuery<Opportunity[]>({
+    queryKey: ["/api/opportunities"],
+    queryFn: async () => {
+      const res = await fetch("/api/opportunities", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch opportunities");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: Record<string, any>) => {
+      const res = await fetch("/api/opportunities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to create opportunity");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
+      setShowNewForm(false);
+      setTitle("");
+      setOppOutlet("");
+      setLink("");
+      setDeadline("");
+      setPayRate("");
+      setResponseTime("");
+      setVibe("");
+      setGenres("");
+      setOppNotes("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/opportunities/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete opportunity");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
+    },
+  });
+
+  const handleCreate = () => {
+    if (!title.trim()) return;
+    createMutation.mutate({
+      title: title.trim(),
+      outlet: oppOutlet.trim() || undefined,
+      link: link.trim() || undefined,
+      deadline: deadline.trim() || undefined,
+      payRate: payRate.trim() || undefined,
+      responseTime: responseTime.trim() || undefined,
+      vibe: vibe.trim() || undefined,
+      genres: genres.trim() ? genres.split(",").map((g) => g.trim()).filter(Boolean) : [],
+      notes: oppNotes.trim() || undefined,
+    });
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto" data-testid="opportunity-board-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <Globe size={16} className="text-white/55" />
+          <h2 className="text-xl font-display font-light italic text-white/80">Opportunity Board</h2>
+        </div>
+        <motion.button
+          onClick={() => setShowNewForm(!showNewForm)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          data-testid="button-new-opportunity"
+        >
+          <Plus size={13} />
+          Share Lead
+        </motion.button>
+      </div>
+
+      <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
+        What we find, we share. Publishing leads from the community.
+      </p>
+
+      <AnimatePresence>
+        {showNewForm && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className="border border-white/[0.15] rounded-xl p-5 space-y-4 bg-white/[0.05]" data-testid="new-opportunity-form">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Opportunity title (required)..."
+                className="w-full bg-transparent border-b border-white/[0.20] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/45 focus:outline-none focus:border-white/20 transition-colors"
+                data-testid="input-opportunity-title"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={oppOutlet}
+                  onChange={(e) => setOppOutlet(e.target.value)}
+                  placeholder="Outlet / publication..."
+                  className="bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                  data-testid="input-opportunity-outlet"
+                />
+                <input
+                  type="text"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="Link (URL)..."
+                  className="bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                  data-testid="input-opportunity-link"
+                />
+                <input
+                  type="text"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  placeholder="Deadline..."
+                  className="bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                  data-testid="input-opportunity-deadline"
+                />
+                <input
+                  type="text"
+                  value={payRate}
+                  onChange={(e) => setPayRate(e.target.value)}
+                  placeholder="Pay rate..."
+                  className="bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                  data-testid="input-opportunity-pay-rate"
+                />
+                <input
+                  type="text"
+                  value={responseTime}
+                  onChange={(e) => setResponseTime(e.target.value)}
+                  placeholder="Response time..."
+                  className="bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                  data-testid="input-opportunity-response-time"
+                />
+                <input
+                  type="text"
+                  value={vibe}
+                  onChange={(e) => setVibe(e.target.value)}
+                  placeholder="Vibe — what's the journal like?"
+                  className="bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                  data-testid="input-opportunity-vibe"
+                />
+              </div>
+              <input
+                type="text"
+                value={genres}
+                onChange={(e) => setGenres(e.target.value)}
+                placeholder="Genres (comma-separated: fiction, poetry, nonfiction)..."
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-2 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors"
+                data-testid="input-opportunity-genres"
+              />
+              <textarea
+                value={oppNotes}
+                onChange={(e) => setOppNotes(e.target.value)}
+                placeholder="Additional notes..."
+                rows={3}
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                data-testid="input-opportunity-notes"
+              />
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setShowNewForm(false)}
+                  className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
+                  data-testid="button-cancel-opportunity"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreate}
+                  disabled={!title.trim() || createMutation.isPending}
+                  className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  data-testid="button-submit-opportunity"
+                >
+                  Share
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isLoading && <ListSkeleton count={4} />}
+
+      {!isLoading && opportunities.length === 0 && (
+        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
+          <Globe size={32} className="mx-auto text-white/30" />
+          <h3 className="text-xl font-display font-light italic text-white/60">No opportunities yet</h3>
+          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
+            Found a journal accepting submissions? A contest worth entering? Share it with the community.
+          </p>
+          <button
+            onClick={() => setShowNewForm(true)}
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            data-testid="button-first-opportunity"
+          >
+            <Plus size={13} />
+            Share the First Lead
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {opportunities.map((opp, i) => {
+          const isExpanded = expandedOpp === opp.id;
+          return (
+            <motion.div
+              key={opp.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03, duration: 0.3 }}
+              data-testid={`opportunity-card-${opp.id}`}
+            >
+              <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
+                isExpanded
+                  ? "border-white/25 bg-white/[0.025]"
+                  : "border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04]"
+              }`}>
+                <button
+                  onClick={() => setExpandedOpp(isExpanded ? null : opp.id)}
+                  className="w-full text-left p-4 md:p-5"
+                  data-testid={`button-expand-opportunity-${opp.id}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="text-base font-display font-light text-white/80 italic truncate" data-testid={`text-opp-title-${opp.id}`}>{opp.title}</h3>
+                        {opp.outlet && <span className="font-serif text-xs text-white/45 italic">at {opp.outlet}</span>}
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap mb-2">
+                        {opp.link && (
+                          <a
+                            href={opp.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 font-mono text-[9px] text-blue-400/60 hover:text-blue-400/90 transition-colors"
+                            data-testid={`link-opp-${opp.id}`}
+                          >
+                            <ExternalLink size={10} />
+                            Link
+                          </a>
+                        )}
+                        {opp.deadline && (
+                          <span className="px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/[0.04] font-mono text-[8px] uppercase tracking-widest text-amber-400/60" data-testid={`badge-deadline-${opp.id}`}>
+                            <Clock size={9} className="inline mr-1" />{opp.deadline}
+                          </span>
+                        )}
+                        {opp.payRate && (
+                          <span className="font-mono text-[9px] text-emerald-400/50" data-testid={`text-pay-${opp.id}`}>{opp.payRate}</span>
+                        )}
+                      </div>
+                      {opp.vibe && (
+                        <p className="font-serif text-sm text-white/40 italic leading-relaxed mb-2" data-testid={`text-vibe-${opp.id}`}>&ldquo;{opp.vibe}&rdquo;</p>
+                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {opp.genres && opp.genres.map((genre, gi) => (
+                          <span key={gi} className="px-2 py-0.5 rounded-full border border-white/[0.12] font-mono text-[8px] uppercase tracking-widest text-white/45" data-testid={`pill-genre-${opp.id}-${gi}`}>
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="flex items-center gap-1 text-white/55">
+                        <MessageSquare size={11} />
+                        <span className="font-mono text-[9px]" data-testid={`text-note-count-${opp.id}`}>{opp.noteCount || 0}</span>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(opp.id); }}
+                        className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"
+                        data-testid={`button-delete-opportunity-${opp.id}`}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                      <ChevronDown size={13} className={`text-white/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-white/55 mt-2">
+                    <span className="font-mono text-[10px]">{opp.userName}</span>
+                    <span className="font-mono text-[9px]">{timeAgo(opp.createdAt)}</span>
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.15]">
+                        {opp.notes && (
+                          <p className="font-serif text-sm text-white/50 leading-relaxed pt-4" data-testid={`text-opp-notes-${opp.id}`}>{opp.notes}</p>
+                        )}
+                        {opp.responseTime && (
+                          <p className="font-mono text-[9px] text-white/40 uppercase tracking-widest pt-2">Response time: {opp.responseTime}</p>
+                        )}
+                        <div className="pt-2">
+                          <p className="font-mono text-[9px] uppercase tracking-widest text-white/35 mb-3">Community Notes</p>
+                          <OpportunityNotes opportunityId={opp.id} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+type IdeaDrop = {
+  id: string;
+  userId: string;
+  content: string;
+  status: string;
+  userName: string;
+  adopterName: string | null;
+  createdAt: string;
+};
+
+export function IdeaDropsRoom({ onBack }: { onBack: () => void }) {
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [content, setContent] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: drops = [], isLoading } = useQuery<IdeaDrop[]>({
+    queryKey: ["/api/idea-drops"],
+    queryFn: async () => {
+      const res = await fetch("/api/idea-drops", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch idea drops");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { content: string }) => {
+      const res = await fetch("/api/idea-drops", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to drop idea");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/idea-drops"] });
+      setShowNewForm(false);
+      setContent("");
+    },
+  });
+
+  const adoptMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/idea-drops/${id}/adopt`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to adopt idea");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/idea-drops"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/idea-drops/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete idea");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/idea-drops"] });
+    },
+  });
+
+  const handleCreate = () => {
+    if (!content.trim()) return;
+    createMutation.mutate({ content: content.trim() });
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto" data-testid="idea-drops-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <Lightbulb size={16} className="text-white/55" />
+          <h2 className="text-xl font-display font-light italic text-white/80">Idea Drops</h2>
+        </div>
+        <motion.button
+          onClick={() => setShowNewForm(!showNewForm)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+          data-testid="button-new-idea-drop"
+        >
+          <Plus size={13} />
+          Drop Idea
+        </motion.button>
+      </div>
+
+      <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
+        Can&rsquo;t use it? Drop it here. Someone else might need it.
+      </p>
+
+      <AnimatePresence>
+        {showNewForm && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className="border border-white/[0.15] rounded-xl p-5 space-y-4 bg-white/[0.05]" data-testid="new-idea-drop-form">
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Drop your idea, fragment, or concept here..."
+                rows={5}
+                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
+                data-testid="input-idea-drop-content"
+              />
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setShowNewForm(false)}
+                  className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
+                  data-testid="button-cancel-idea-drop"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreate}
+                  disabled={!content.trim() || createMutation.isPending}
+                  className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  data-testid="button-submit-idea-drop"
+                >
+                  Drop It
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isLoading && <ListSkeleton count={4} />}
+
+      {!isLoading && drops.length === 0 && (
+        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
+          <Lightbulb size={32} className="mx-auto text-white/30" />
+          <h3 className="text-xl font-display font-light italic text-white/60">No ideas dropped yet</h3>
+          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
+            Got an idea you can&rsquo;t use? A fragment that doesn&rsquo;t fit? Drop it here — someone else might turn it into something beautiful.
+          </p>
+          <button
+            onClick={() => setShowNewForm(true)}
+            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            data-testid="button-first-idea-drop"
+          >
+            <Plus size={13} />
+            Drop the First Idea
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {drops.map((drop, i) => (
+          <motion.div
+            key={drop.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.03, duration: 0.3 }}
+            data-testid={`idea-drop-card-${drop.id}`}
+          >
+            <div className="rounded-xl border border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04] p-4 md:p-5 space-y-3 transition-all duration-300">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-grow min-w-0">
+                  <p className="font-serif text-sm text-white/70 leading-relaxed whitespace-pre-wrap mb-3" data-testid={`text-idea-content-${drop.id}`}>{drop.content}</p>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className={`px-2 py-0.5 rounded-full border font-mono text-[8px] uppercase tracking-widest ${
+                      drop.status === "open"
+                        ? "text-emerald-400/70 border-emerald-400/20 bg-emerald-400/[0.04]"
+                        : "text-amber-400/70 border-amber-400/20 bg-amber-400/[0.04]"
+                    }`} data-testid={`badge-status-${drop.id}`}>
+                      {drop.status}
+                    </span>
+                    <span className="font-mono text-[10px] text-white/55">{drop.userName}</span>
+                    {drop.adopterName && (
+                      <span className="font-mono text-[9px] text-amber-400/50">
+                        <Heart size={9} className="inline mr-1" />adopted by {drop.adopterName}
+                      </span>
+                    )}
+                    <span className="font-mono text-[9px] text-white/50">{timeAgo(drop.createdAt)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {drop.status === "open" && (
+                    <button
+                      onClick={() => adoptMutation.mutate(drop.id)}
+                      disabled={adoptMutation.isPending}
+                      className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-500/15 hover:border-emerald-500/30 rounded-full font-mono text-[9px] uppercase tracking-widest text-emerald-400/50 hover:text-emerald-400/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      data-testid={`button-adopt-${drop.id}`}
+                    >
+                      <Heart size={10} />
+                      Adopt This
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deleteMutation.mutate(drop.id)}
+                    className="p-1.5 text-white/20 hover:text-red-400/60 transition-colors"
+                    data-testid={`button-delete-idea-${drop.id}`}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }

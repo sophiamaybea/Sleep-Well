@@ -25,6 +25,13 @@ import {
   type RequestMessage, requestMessages,
   type Issue, issues, type IssuePiece, issuePieces,
   type EditorNote, editorNotes,
+  type CircleIntention, circleIntentions,
+  type CircleCelebration, circleCelebrations,
+  type RejectionWallEntry, rejectionWallEntries,
+  type Opportunity, opportunities,
+  type OpportunityNote, opportunityNotes,
+  type PromptPotluckItem, promptPotluckItems,
+  type IdeaDrop, ideaDrops,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -205,6 +212,40 @@ export interface IStorage {
   getEditorNotes(writingId: string): Promise<(EditorNote & { editorName: string | null })[]>;
   createEditorNote(editorId: string, data: { writingId: string; content: string }): Promise<EditorNote>;
   deleteEditorNote(editorId: string, id: string): Promise<boolean>;
+
+  // Circle Intentions
+  getCircleIntentions(circleId: string): Promise<(CircleIntention & { userName: string | null })[]>;
+  createCircleIntention(userId: string, data: { circleId: string; content: string; weekOf: string }): Promise<CircleIntention>;
+  deleteCircleIntention(userId: string, id: string): Promise<boolean>;
+
+  // Circle Celebrations
+  getCircleCelebrations(circleId: string): Promise<(CircleCelebration & { userName: string | null })[]>;
+  createCircleCelebration(userId: string, data: { circleId: string; type: string; message?: string; value?: number }): Promise<CircleCelebration>;
+
+  // Rejection Wall
+  getRejectionWallEntries(): Promise<(RejectionWallEntry & { userName: string | null })[]>;
+  createRejectionWallEntry(userId: string, data: { outlet: string; pieceTitle?: string; result: string; context?: string; silver_lining?: string }): Promise<RejectionWallEntry>;
+  deleteRejectionWallEntry(userId: string, id: string): Promise<boolean>;
+
+  // Opportunities
+  getOpportunities(): Promise<(Opportunity & { userName: string | null; noteCount: number })[]>;
+  getOpportunity(id: string): Promise<(Opportunity & { userName: string | null }) | undefined>;
+  createOpportunity(userId: string, data: { title: string; link?: string; outlet?: string; deadline?: string; payRate?: string; responseTime?: string; vibe?: string; genres?: string[]; notes?: string }): Promise<Opportunity>;
+  deleteOpportunity(userId: string, id: string): Promise<boolean>;
+  getOpportunityNotes(opportunityId: string): Promise<(OpportunityNote & { userName: string | null })[]>;
+  createOpportunityNote(userId: string, data: { opportunityId: string; note: string }): Promise<OpportunityNote>;
+
+  // Prompt Potluck
+  getPromptPotluckItems(circleId: string): Promise<(PromptPotluckItem & { userName: string | null })[]>;
+  createPromptPotluckItem(userId: string, data: { circleId: string; type: string; content: string }): Promise<PromptPotluckItem>;
+  deletePromptPotluckItem(userId: string, id: string): Promise<boolean>;
+  getRandomPotluckItem(circleId: string): Promise<(PromptPotluckItem & { userName: string | null }) | undefined>;
+
+  // Idea Drops
+  getIdeaDrops(): Promise<(IdeaDrop & { userName: string | null; adopterName: string | null })[]>;
+  createIdeaDrop(userId: string, data: { content: string }): Promise<IdeaDrop>;
+  adoptIdeaDrop(userId: string, id: string): Promise<IdeaDrop | undefined>;
+  deleteIdeaDrop(userId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1341,6 +1382,195 @@ export class DatabaseStorage implements IStorage {
   async deleteEditorNote(editorId: string, id: string): Promise<boolean> {
     const result = await db.delete(editorNotes)
       .where(and(eq(editorNotes.id, id), eq(editorNotes.editorId, editorId))).returning();
+    return result.length > 0;
+  }
+
+  // === CIRCLE INTENTIONS ===
+  async getCircleIntentions(circleId: string): Promise<(CircleIntention & { userName: string | null })[]> {
+    return await db.select({
+      id: circleIntentions.id, circleId: circleIntentions.circleId, userId: circleIntentions.userId,
+      content: circleIntentions.content, weekOf: circleIntentions.weekOf, createdAt: circleIntentions.createdAt,
+      userName: users.firstName,
+    }).from(circleIntentions)
+      .leftJoin(users, eq(circleIntentions.userId, users.id))
+      .where(eq(circleIntentions.circleId, circleId))
+      .orderBy(desc(circleIntentions.createdAt));
+  }
+
+  async createCircleIntention(userId: string, data: { circleId: string; content: string; weekOf: string }): Promise<CircleIntention> {
+    const [item] = await db.insert(circleIntentions).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  async deleteCircleIntention(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(circleIntentions)
+      .where(and(eq(circleIntentions.id, id), eq(circleIntentions.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  // === CIRCLE CELEBRATIONS ===
+  async getCircleCelebrations(circleId: string): Promise<(CircleCelebration & { userName: string | null })[]> {
+    return await db.select({
+      id: circleCelebrations.id, circleId: circleCelebrations.circleId, userId: circleCelebrations.userId,
+      type: circleCelebrations.type, message: circleCelebrations.message, value: circleCelebrations.value,
+      createdAt: circleCelebrations.createdAt, userName: users.firstName,
+    }).from(circleCelebrations)
+      .leftJoin(users, eq(circleCelebrations.userId, users.id))
+      .where(eq(circleCelebrations.circleId, circleId))
+      .orderBy(desc(circleCelebrations.createdAt));
+  }
+
+  async createCircleCelebration(userId: string, data: { circleId: string; type: string; message?: string; value?: number }): Promise<CircleCelebration> {
+    const [item] = await db.insert(circleCelebrations).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  // === REJECTION WALL ===
+  async getRejectionWallEntries(): Promise<(RejectionWallEntry & { userName: string | null })[]> {
+    return await db.select({
+      id: rejectionWallEntries.id, userId: rejectionWallEntries.userId,
+      outlet: rejectionWallEntries.outlet, pieceTitle: rejectionWallEntries.pieceTitle,
+      result: rejectionWallEntries.result, context: rejectionWallEntries.context,
+      silver_lining: rejectionWallEntries.silver_lining, createdAt: rejectionWallEntries.createdAt,
+      userName: users.firstName,
+    }).from(rejectionWallEntries)
+      .leftJoin(users, eq(rejectionWallEntries.userId, users.id))
+      .orderBy(desc(rejectionWallEntries.createdAt));
+  }
+
+  async createRejectionWallEntry(userId: string, data: { outlet: string; pieceTitle?: string; result: string; context?: string; silver_lining?: string }): Promise<RejectionWallEntry> {
+    const [item] = await db.insert(rejectionWallEntries).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  async deleteRejectionWallEntry(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(rejectionWallEntries)
+      .where(and(eq(rejectionWallEntries.id, id), eq(rejectionWallEntries.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  // === OPPORTUNITIES ===
+  async getOpportunities(): Promise<(Opportunity & { userName: string | null; noteCount: number })[]> {
+    const results = await db.select({
+      id: opportunities.id, userId: opportunities.userId, title: opportunities.title,
+      link: opportunities.link, outlet: opportunities.outlet, deadline: opportunities.deadline,
+      payRate: opportunities.payRate, responseTime: opportunities.responseTime,
+      vibe: opportunities.vibe, genres: opportunities.genres, notes: opportunities.notes,
+      createdAt: opportunities.createdAt, userName: users.firstName,
+      noteCount: sql<number>`(SELECT count(*) FROM opportunity_notes WHERE opportunity_id = ${opportunities.id})::int`,
+    }).from(opportunities)
+      .leftJoin(users, eq(opportunities.userId, users.id))
+      .orderBy(desc(opportunities.createdAt));
+    return results;
+  }
+
+  async getOpportunity(id: string): Promise<(Opportunity & { userName: string | null }) | undefined> {
+    const [item] = await db.select({
+      id: opportunities.id, userId: opportunities.userId, title: opportunities.title,
+      link: opportunities.link, outlet: opportunities.outlet, deadline: opportunities.deadline,
+      payRate: opportunities.payRate, responseTime: opportunities.responseTime,
+      vibe: opportunities.vibe, genres: opportunities.genres, notes: opportunities.notes,
+      createdAt: opportunities.createdAt, userName: users.firstName,
+    }).from(opportunities)
+      .leftJoin(users, eq(opportunities.userId, users.id))
+      .where(eq(opportunities.id, id));
+    return item || undefined;
+  }
+
+  async createOpportunity(userId: string, data: { title: string; link?: string; outlet?: string; deadline?: string; payRate?: string; responseTime?: string; vibe?: string; genres?: string[]; notes?: string }): Promise<Opportunity> {
+    const [item] = await db.insert(opportunities).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  async deleteOpportunity(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(opportunities)
+      .where(and(eq(opportunities.id, id), eq(opportunities.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  async getOpportunityNotes(opportunityId: string): Promise<(OpportunityNote & { userName: string | null })[]> {
+    return await db.select({
+      id: opportunityNotes.id, opportunityId: opportunityNotes.opportunityId,
+      userId: opportunityNotes.userId, note: opportunityNotes.note,
+      createdAt: opportunityNotes.createdAt, userName: users.firstName,
+    }).from(opportunityNotes)
+      .leftJoin(users, eq(opportunityNotes.userId, users.id))
+      .where(eq(opportunityNotes.opportunityId, opportunityId))
+      .orderBy(desc(opportunityNotes.createdAt));
+  }
+
+  async createOpportunityNote(userId: string, data: { opportunityId: string; note: string }): Promise<OpportunityNote> {
+    const [item] = await db.insert(opportunityNotes).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  // === PROMPT POTLUCK ===
+  async getPromptPotluckItems(circleId: string): Promise<(PromptPotluckItem & { userName: string | null })[]> {
+    return await db.select({
+      id: promptPotluckItems.id, circleId: promptPotluckItems.circleId,
+      userId: promptPotluckItems.userId, type: promptPotluckItems.type,
+      content: promptPotluckItems.content, createdAt: promptPotluckItems.createdAt,
+      userName: users.firstName,
+    }).from(promptPotluckItems)
+      .leftJoin(users, eq(promptPotluckItems.userId, users.id))
+      .where(eq(promptPotluckItems.circleId, circleId))
+      .orderBy(desc(promptPotluckItems.createdAt));
+  }
+
+  async createPromptPotluckItem(userId: string, data: { circleId: string; type: string; content: string }): Promise<PromptPotluckItem> {
+    const [item] = await db.insert(promptPotluckItems).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  async deletePromptPotluckItem(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(promptPotluckItems)
+      .where(and(eq(promptPotluckItems.id, id), eq(promptPotluckItems.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  async getRandomPotluckItem(circleId: string): Promise<(PromptPotluckItem & { userName: string | null }) | undefined> {
+    const items = await db.select({
+      id: promptPotluckItems.id, circleId: promptPotluckItems.circleId,
+      userId: promptPotluckItems.userId, type: promptPotluckItems.type,
+      content: promptPotluckItems.content, createdAt: promptPotluckItems.createdAt,
+      userName: users.firstName,
+    }).from(promptPotluckItems)
+      .leftJoin(users, eq(promptPotluckItems.userId, users.id))
+      .where(eq(promptPotluckItems.circleId, circleId))
+      .orderBy(sql`RANDOM()`)
+      .limit(1);
+    return items[0] || undefined;
+  }
+
+  // === IDEA DROPS ===
+  async getIdeaDrops(): Promise<(IdeaDrop & { userName: string | null; adopterName: string | null })[]> {
+    const adopters = db.select({ id: users.id, firstName: users.firstName }).from(users).as("adopters");
+    return await db.select({
+      id: ideaDrops.id, userId: ideaDrops.userId, content: ideaDrops.content,
+      status: ideaDrops.status, adoptedById: ideaDrops.adoptedById,
+      createdAt: ideaDrops.createdAt, userName: users.firstName,
+      adopterName: adopters.firstName,
+    }).from(ideaDrops)
+      .leftJoin(users, eq(ideaDrops.userId, users.id))
+      .leftJoin(adopters, eq(ideaDrops.adoptedById, adopters.id))
+      .orderBy(desc(ideaDrops.createdAt));
+  }
+
+  async createIdeaDrop(userId: string, data: { content: string }): Promise<IdeaDrop> {
+    const [item] = await db.insert(ideaDrops).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  async adoptIdeaDrop(userId: string, id: string): Promise<IdeaDrop | undefined> {
+    const [item] = await db.update(ideaDrops)
+      .set({ adoptedById: userId, status: "adopted" })
+      .where(and(eq(ideaDrops.id, id), eq(ideaDrops.status, "open"))).returning();
+    return item || undefined;
+  }
+
+  async deleteIdeaDrop(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(ideaDrops)
+      .where(and(eq(ideaDrops.id, id), eq(ideaDrops.userId, userId))).returning();
     return result.length > 0;
   }
 }
