@@ -5,7 +5,7 @@ import {
   ArrowLeft, Search, Plus, Send, BookOpen,
   Inbox, FileText, Layers, Eye, Leaf, MessageCircle,
   ChevronDown, ChevronRight, Trash2, Edit3, Clock,
-  CheckCircle, XCircle, GripVertical, X
+  CheckCircle, XCircle, GripVertical, X, Sparkles
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -52,6 +52,7 @@ const readinessColors: Record<string, string> = {
   raw_seed: "bg-amber-500/15 text-amber-300 border-amber-500/20",
   growing: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
   ready_to_show: "bg-pink-500/15 text-pink-300 border-pink-500/20",
+  dormant: "bg-violet-500/15 text-violet-300 border-violet-500/20",
 };
 
 const stageLabels: Record<string, string> = {
@@ -76,6 +77,152 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "requests", label: "Requests", icon: <Inbox size={15} /> },
   { id: "issues", label: "Issues", icon: <FileText size={15} /> },
 ];
+
+function CuratedOpportunitiesSection() {
+  const queryClient = useQueryClient();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState({ title: "", outlet: "", link: "", deadline: "", payRate: "", genres: "", notes: "" });
+
+  const { data: curatedOpps = [] } = useQuery<any[]>({
+    queryKey: ["/api/curated-opportunities"],
+  });
+
+  const createOpp = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/editor/opportunities", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/curated-opportunities"] });
+      setShowAddModal(false);
+      setForm({ title: "", outlet: "", link: "", deadline: "", payRate: "", genres: "", notes: "" });
+    },
+  });
+
+  const deleteOpp = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/editor/opportunities/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/curated-opportunities"] });
+    },
+  });
+
+  const handleSubmit = () => {
+    const genres = form.genres ? form.genres.split(",").map(g => g.trim()).filter(Boolean) : undefined;
+    createOpp.mutate({
+      title: form.title,
+      outlet: form.outlet || undefined,
+      link: form.link || undefined,
+      deadline: form.deadline || undefined,
+      payRate: form.payRate || undefined,
+      genres,
+      notes: form.notes || undefined,
+    });
+  };
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400/60 flex items-center gap-2">
+          <Sparkles size={14} className="text-amber-400/50" />
+          Curated Opportunities
+        </h3>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all"
+          data-testid="btn-add-curated-opportunity"
+        >
+          <Plus size={12} /> Add
+        </button>
+      </div>
+
+      {curatedOpps.length === 0 ? (
+        <p className="font-serif text-sm text-white/30 italic py-4">No curated opportunities yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {curatedOpps.map((opp: any) => (
+            <div key={opp.id} data-testid={`curated-opp-${opp.id}`} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h4 className="font-display text-sm font-light italic text-amber-200/90">{opp.title}</h4>
+                  {opp.outlet && (
+                    <span className="px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest border border-white/10 text-white/40">{opp.outlet}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 text-xs font-serif text-white/40">
+                  {opp.deadline && <span className="flex items-center gap-1"><Clock size={10} /> {opp.deadline}</span>}
+                  {opp.payRate && <span>{opp.payRate}</span>}
+                  {opp.link && <a href={opp.link} target="_blank" rel="noopener noreferrer" className="text-amber-300/50 hover:text-amber-300 underline underline-offset-2">link</a>}
+                </div>
+                {opp.notes && <p className="text-xs font-serif text-white/30 mt-1">{opp.notes}</p>}
+              </div>
+              <button
+                onClick={() => deleteOpp.mutate(opp.id)}
+                className="p-1.5 rounded-lg border border-white/10 text-white/30 hover:text-rose-300 hover:border-rose-500/20 transition-all flex-shrink-0"
+                data-testid={`btn-delete-opp-${opp.id}`}
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#0f1520] border border-white/10 rounded-2xl p-6 w-full max-w-md mx-4"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="font-display text-lg text-amber-200 italic mb-4">Add Curated Opportunity</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1">Title *</label>
+                  <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g., Poetry submission call" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" data-testid="input-opp-title" />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1">Outlet / Source</label>
+                  <input value={form.outlet} onChange={e => setForm({ ...form, outlet: e.target.value })} placeholder="e.g., The Paris Review" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" data-testid="input-opp-outlet" />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1">Link</label>
+                  <input value={form.link} onChange={e => setForm({ ...form, link: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" data-testid="input-opp-link" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1">Deadline</label>
+                    <input value={form.deadline} onChange={e => setForm({ ...form, deadline: e.target.value })} placeholder="e.g., March 15, 2026" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" data-testid="input-opp-deadline" />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1">Pay Rate</label>
+                    <input value={form.payRate} onChange={e => setForm({ ...form, payRate: e.target.value })} placeholder="e.g., $100/poem" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" data-testid="input-opp-payrate" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1">Genres (comma-separated)</label>
+                  <input value={form.genres} onChange={e => setForm({ ...form, genres: e.target.value })} placeholder="e.g., poetry, fiction, essay" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" data-testid="input-opp-genres" />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1">Notes</label>
+                  <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any additional details..." rows={2} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30 resize-none" data-testid="input-opp-notes" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setShowAddModal(false)} className="flex-1 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all">Cancel</button>
+                  <button onClick={handleSubmit} disabled={!form.title.trim() || createOpp.isPending} className="flex-1 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all disabled:opacity-50" data-testid="btn-submit-opp">{createOpp.isPending ? "Adding..." : "Add Opportunity"}</button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function OverviewTab() {
   const { data: overview, isLoading } = useQuery<any>({
@@ -106,21 +253,23 @@ function OverviewTab() {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
     >
-      {cards.map((card) => (
-        <div
-          key={card.key}
-          data-testid={card.testId}
-          className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <span className="font-serif text-sm text-amber-100/60">{card.label}</span>
-            {card.icon}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map((card) => (
+          <div
+            key={card.key}
+            data-testid={card.testId}
+            className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-serif text-sm text-amber-100/60">{card.label}</span>
+              {card.icon}
+            </div>
+            <p className="font-display text-3xl font-light text-amber-200 italic">{card.value}</p>
           </div>
-          <p className="font-display text-3xl font-light text-amber-200 italic">{card.value}</p>
-        </div>
-      ))}
+        ))}
+      </div>
+      <CuratedOpportunitiesSection />
     </motion.div>
   );
 }
@@ -167,7 +316,7 @@ function GardenStreamTab() {
   });
 
   const genres = ["any", "poetry", "fiction", "essay", "hybrid"];
-  const readinesses = ["all", "raw_seed", "growing", "ready_to_show"];
+  const readinesses = ["all", "raw_seed", "growing", "ready_to_show", "dormant"];
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -228,11 +377,11 @@ function GardenStreamTab() {
             </div>
           ))}
         </div>
-      ) : stream.length === 0 ? (
+      ) : stream.filter((p: any) => readiness !== "all" || p.readiness !== "dormant").length === 0 ? (
         <p className="text-center py-12 font-serif text-white/40 text-sm">No pieces found matching your filters.</p>
       ) : (
         <div className="space-y-3">
-          {stream.map((piece: any) => (
+          {stream.filter((p: any) => readiness !== "all" || p.readiness !== "dormant").map((piece: any) => (
             <div key={piece.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all">
               <button
                 onClick={() => setExpandedId(expandedId === piece.id ? null : piece.id)}

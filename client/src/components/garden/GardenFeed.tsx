@@ -39,6 +39,7 @@ const readinessColors: Record<string, string> = {
   raw_seed: "text-amber-400/70",
   growing: "text-emerald-400/70",
   ready_to_show: "text-pink-400/70",
+  dormant: "text-violet-400/70",
 };
 
 export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId: string) => void }) {
@@ -157,7 +158,7 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
         </div>
       )}
 
-      {!isLoading && feed.length === 0 && (
+      {!isLoading && feed.filter(p => p.readiness !== "dormant").length === 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -176,7 +177,7 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
       )}
 
       <div className="space-y-4">
-        {feed.map((piece, i) => {
+        {feed.filter(p => p.readiness !== "dormant").map((piece, i) => {
           const isExpanded = expandedId === piece.id;
           const readiness = piece.readiness || "raw_seed";
           return (

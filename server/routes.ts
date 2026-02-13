@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, BorderStyle } from "docx";
 import { storage } from "./storage";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import {
@@ -17,7 +18,7 @@ import {
   insertEditorNoteSchema,
   insertCircleIntentionSchema, insertCircleCelebrationSchema,
   insertRejectionWallSchema, insertOpportunitySchema, insertOpportunityNoteSchema,
-  insertPromptPotluckSchema, insertIdeaDropSchema,
+  insertPromptPotluckSchema, insertCircleShareSchema, insertIdeaDropSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -81,12 +82,41 @@ export async function registerRoutes(
       const userId = req.user.claims.sub;
       const parsed = updateWritingSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "Invalid update data", errors: parsed.error.flatten() });
+
+      if (parsed.data.readiness) {
+        const current = await storage.getWriting(req.params.id);
+        if (current && current.authorId === userId && current.readiness !== parsed.data.readiness) {
+          const plainText = current.content.replace(/<[^>]*>/g, "");
+          const wc = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+          await storage.createSnapshot({
+            writingId: current.id,
+            title: current.title,
+            content: current.content,
+            readiness: current.readiness,
+            wordCount: wc,
+          });
+        }
+      }
+
       const writing = await storage.updateWriting(req.params.id, userId, parsed.data);
       if (!writing) return res.status(404).json({ message: "Writing not found" });
       res.json(writing);
     } catch (error) {
       console.error("Error updating writing:", error);
       res.status(500).json({ message: "Failed to update writing" });
+    }
+  });
+
+  app.get("/api/writings/:id/snapshots", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const writing = await storage.getWriting(req.params.id);
+      if (!writing || writing.authorId !== userId) return res.status(404).json({ message: "Writing not found" });
+      const snapshots = await storage.getSnapshots(req.params.id);
+      res.json(snapshots);
+    } catch (error) {
+      console.error("Error fetching snapshots:", error);
+      res.status(500).json({ message: "Failed to fetch snapshots" });
     }
   });
 
@@ -499,6 +529,12 @@ export async function registerRoutes(
 
   app.post("/api/circles/:id/join", isAuthenticated, async (req: any, res) => {
     try {
+      const circle = await storage.getCircle(req.params.id);
+      if (!circle) return res.status(404).json({ message: "Circle not found" });
+      const memberCount = await storage.getCircleMemberCount(req.params.id);
+      if (memberCount >= circle.maxMembers) {
+        return res.status(400).json({ message: "This circle is full" });
+      }
       const member = await storage.joinCircle(req.user.claims.sub, req.params.id);
       res.status(201).json(member);
     } catch (error) {
@@ -533,6 +569,45 @@ export async function registerRoutes(
       res.status(201).json(msg);
     } catch (error) {
       res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // === CIRCLE SHARES ===
+  app.get("/api/circles/:id/shares", isAuthenticated, async (req: any, res) => {
+    try {
+      const shares = await storage.getCircleShares(req.params.id);
+      res.json(shares);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch shares" });
+    }
+  });
+
+  app.post("/api/circles/:id/shares", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertCircleShareSchema.safeParse({ ...req.body, circleId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const share = await storage.createCircleShare(req.user.claims.sub, { circleId: parsed.data.circleId, writingId: parsed.data.writingId ?? undefined, weekOf: parsed.data.weekOf });
+      res.status(201).json(share);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create share" });
+    }
+  });
+
+  app.get("/api/circles/:id/current-sharer", isAuthenticated, async (req: any, res) => {
+    try {
+      const sharer = await storage.getCurrentSharer(req.params.id);
+      res.json(sharer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get current sharer" });
+    }
+  });
+
+  app.get("/api/circles/:id/members", isAuthenticated, async (req: any, res) => {
+    try {
+      const members = await storage.getCircleMembers(req.params.id);
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch members" });
     }
   });
 
@@ -858,6 +933,27 @@ export async function registerRoutes(
   });
 
   // === WORKSHOP (EXERCISES & RESPONSES) ===
+  app.get("/api/workshop/prompt-of-day", async (req, res) => {
+    try {
+      const prompt = await storage.getPromptOfDay();
+      if (!prompt) return res.status(404).json({ message: "No exercises available" });
+      res.json(prompt);
+    } catch (error) {
+      console.error("Error fetching prompt of the day:", error);
+      res.status(500).json({ message: "Failed to fetch prompt of the day" });
+    }
+  });
+
+  app.get("/api/workshop/exercises/:id/responses", async (req, res) => {
+    try {
+      const responses = await storage.getWorkshopResponses(req.params.id);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching exercise responses:", error);
+      res.status(500).json({ message: "Failed to fetch exercise responses" });
+    }
+  });
+
   app.get("/api/workshop", async (req, res) => {
     try {
       const { category } = req.query;
@@ -1295,6 +1391,39 @@ export async function registerRoutes(
     }
   });
 
+  // === CURATED OPPORTUNITIES ===
+  app.get("/api/curated-opportunities", async (req, res) => {
+    try {
+      const items = await storage.getCuratedOpportunities();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get curated opportunities" });
+    }
+  });
+
+  app.post("/api/editor/opportunities", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const { title, link, outlet, deadline, payRate, genres, notes } = req.body;
+      if (!title) return res.status(400).json({ message: "Title is required" });
+      const item = await storage.createCuratedOpportunity(req.user.claims.sub, {
+        title, link, outlet, deadline, payRate, genres, notes,
+      });
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create curated opportunity" });
+    }
+  });
+
+  app.delete("/api/editor/opportunities/:id", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteCuratedOpportunity(req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Not found" });
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete curated opportunity" });
+    }
+  });
+
   // === CIRCLE INTENTIONS ===
   app.get("/api/circles/:circleId/intentions", isAuthenticated, async (req: any, res) => {
     try {
@@ -1470,6 +1599,36 @@ export async function registerRoutes(
     }
   });
 
+  // === QUIET READS ===
+  app.get("/api/quiet-read/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const hasRead = await storage.hasQuietRead(userId, req.params.writingId);
+      res.json({ hasRead });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check quiet read" });
+    }
+  });
+
+  app.post("/api/quiet-read/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const result = await storage.addQuietRead(userId, req.params.writingId);
+      res.status(201).json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add quiet read" });
+    }
+  });
+
+  app.get("/api/quietly-read/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const hasBeenRead = await storage.hasBeenQuietlyRead(req.params.writingId);
+      res.json({ hasBeenRead });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check quiet read status" });
+    }
+  });
+
   // === IDEA DROPS ===
   app.get("/api/idea-drops", isAuthenticated, async (req: any, res) => {
     try {
@@ -1508,6 +1667,78 @@ export async function registerRoutes(
       res.json({ message: "Deleted" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete idea drop" });
+    }
+  });
+
+  app.get("/api/writings/:id/export-docx", isAuthenticated, async (req: any, res) => {
+    try {
+      const writing = await storage.getWriting(req.params.id);
+      if (!writing) return res.status(404).json({ message: "Writing not found" });
+      if (writing.authorId !== req.user.claims.sub) return res.status(403).json({ message: "Forbidden" });
+
+      const user = await storage.getUser(req.user.claims.sub);
+      const authorName = user?.username || user?.firstName || "Author";
+      const plainContent = (writing.content || "")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+        .trim();
+      const words = plainContent.split(/\s+/).filter(Boolean);
+      const wordCount = words.length;
+      const roundedCount = Math.round(wordCount / 100) * 100 || wordCount;
+      const paragraphs = plainContent.split(/\n{2,}/).filter(Boolean);
+
+      const headerParagraphs: Paragraph[] = [
+        new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 },
+          children: [new TextRun({ text: authorName, font: "Courier New", size: 24 })],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 0 },
+          children: [new TextRun({ text: `Approx. ${roundedCount} words`, font: "Courier New", size: 24 })],
+        }),
+        ...Array(4).fill(null).map(() => new Paragraph({ spacing: { after: 0 }, children: [] })),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+          children: [new TextRun({ text: writing.title || "Untitled", font: "Courier New", size: 24, bold: false })],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+          children: [new TextRun({ text: `by ${authorName}`, font: "Courier New", size: 24 })],
+        }),
+        new Paragraph({ spacing: { after: 0 }, children: [] }),
+      ];
+
+      const bodyParagraphs = paragraphs.map((p, i) => new Paragraph({
+        alignment: AlignmentType.LEFT,
+        spacing: { line: 480, after: 0 },
+        indent: i > 0 ? { firstLine: 720 } : undefined,
+        children: [new TextRun({ text: p.replace(/\n/g, " ").trim(), font: "Courier New", size: 24 })],
+      }));
+
+      const doc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+            },
+          },
+          children: [...headerParagraphs, ...bodyParagraphs],
+        }],
+      });
+
+      const buffer = await Packer.toBuffer(doc);
+      const filename = (writing.title || "untitled").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 60);
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}.docx"`);
+      res.send(buffer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export" });
     }
   });
 

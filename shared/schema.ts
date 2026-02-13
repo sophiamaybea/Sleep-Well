@@ -25,6 +25,16 @@ export const writings = pgTable("writings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const writingSnapshots = pgTable("writing_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  readiness: text("readiness").notNull(),
+  wordCount: integer("word_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const readingQueue = pgTable("reading_queue", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
@@ -104,6 +114,7 @@ export const circles = pgTable("circles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
+  maxMembers: integer("max_members").notNull().default(5),
   createdById: varchar("created_by_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -319,6 +330,13 @@ export const marginalia = pgTable("marginalia", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const quietReads = pgTable("quiet_reads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  readerId: varchar("reader_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const notifications = pgTable("notifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
@@ -392,6 +410,7 @@ export const opportunities = pgTable("opportunities", {
   vibe: text("vibe").notNull().default(""),
   genres: text("genres").array().default(sql`'{}'::text[]`),
   notes: text("notes").notNull().default(""),
+  isCurated: boolean("is_curated").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -400,6 +419,15 @@ export const opportunityNotes = pgTable("opportunity_notes", {
   opportunityId: varchar("opportunity_id").notNull().references(() => opportunities.id),
   userId: varchar("user_id").notNull().references(() => users.id),
   note: text("note").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const circleShares = pgTable("circle_shares", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  circleId: varchar("circle_id").notNull().references(() => circles.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").references(() => writings.id),
+  weekOf: text("week_of").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -426,7 +454,7 @@ export const insertWritingSchema = createInsertSchema(writings).omit({
   id: true, authorId: true, isPublished: true, publishedAt: true, createdAt: true, updatedAt: true,
 }).extend({
   visibility: z.enum(["personal", "circle", "garden"]).optional(),
-  readiness: z.enum(["raw_seed", "growing", "ready_to_show"]).optional(),
+  readiness: z.enum(["raw_seed", "growing", "ready_to_show", "dormant"]).optional(),
   editorialAvailable: z.boolean().optional(),
 });
 export const updateWritingSchema = insertWritingSchema.partial();
@@ -464,7 +492,10 @@ export const insertRejectionWallSchema = createInsertSchema(rejectionWallEntries
 export const insertOpportunitySchema = createInsertSchema(opportunities).omit({ id: true, userId: true, createdAt: true });
 export const insertOpportunityNoteSchema = createInsertSchema(opportunityNotes).omit({ id: true, userId: true, createdAt: true });
 export const insertPromptPotluckSchema = createInsertSchema(promptPotluckItems).omit({ id: true, userId: true, createdAt: true });
+export const insertCircleShareSchema = createInsertSchema(circleShares).omit({ id: true, userId: true, createdAt: true });
 export const insertIdeaDropSchema = createInsertSchema(ideaDrops).omit({ id: true, userId: true, status: true, adoptedById: true, createdAt: true });
+export const insertQuietReadSchema = createInsertSchema(quietReads).omit({ id: true, readerId: true, createdAt: true });
+export const insertWritingSnapshotSchema = createInsertSchema(writingSnapshots).omit({ id: true, createdAt: true });
 
 // Types
 export type InsertWriting = z.infer<typeof insertWritingSchema>;
@@ -507,5 +538,8 @@ export type CircleCelebration = typeof circleCelebrations.$inferSelect;
 export type RejectionWallEntry = typeof rejectionWallEntries.$inferSelect;
 export type Opportunity = typeof opportunities.$inferSelect;
 export type OpportunityNote = typeof opportunityNotes.$inferSelect;
+export type CircleShare = typeof circleShares.$inferSelect;
 export type PromptPotluckItem = typeof promptPotluckItems.$inferSelect;
 export type IdeaDrop = typeof ideaDrops.$inferSelect;
+export type QuietRead = typeof quietReads.$inferSelect;
+export type WritingSnapshot = typeof writingSnapshots.$inferSelect;

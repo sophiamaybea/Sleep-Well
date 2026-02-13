@@ -24,17 +24,17 @@ The platform features a distinctive space-themed immersive design, characterized
 - **Authentic Typewriter Experience:** Integrates Web Audio API for mechanical key clicks and a "Special Elite" font with an amber cursor for an immersive writing environment.
 - **Museum-style Gallery:** Uses CSS `border-image` with an ornate gold-frame asset and `MuseumFrame` component for published works, creating a gallery wall aesthetic.
 - **Garden Architecture (3-Zone Design):** The `/garden` area is structured into three zones with floating pill navigation:
-    - **Your Desk:** Personal writing space with piece cards, inline expansion, and a distraction-free editor with autosave.
-    - **Reading Room:** A curated social feed combining tended gardens and general garden activity, presented in a letter-like layout with ambient resonances and inline marginalia.
+    - **Your Desk:** Personal writing space with piece cards, inline expansion, a distraction-free editor with autosave, version snapshots (auto-saved on stage changes with timeline view), and 4-stage readiness (seed → growing → ready → dormant).
+    - **Reading Room:** A curated social feed combining tended gardens and general garden activity, presented in a letter-like layout with ambient resonances, inline marginalia, sort/filter controls (Recent/Quiet/Tended + genre filters), quiet read signals, and editor-curated opportunities banner.
     - **Greenhouse:** A streamlined suite of creative tools: Freewrite (with built-in timer), Growth Journal (with Reflections prompts tab), and Circles.
 - **Social Features:** Includes Tending (follow system), Resonance (five reaction types: glow, pressed_flower, dewdrop, firefly, roots), Marginalia (annotation-style comments), and Notifications ("Whispers").
 - **Editorial Studio:** A dedicated `/editor-studio` page with five tabs (Overview, Garden Stream, Greenhouse, Requests & Contracts, Issue Builder) for a comprehensive editorial workflow, including role-based permissions, publish request management, and issue assembly.
-- **Community Rooms:** Accessible via a "Discover" dropdown. Includes Tables (discussion threads), Workshop (writing exercises), Swap (beta-reading exchange), and The Desk (communal writing).
-- **Collaborative Circle Tools:** Circles enhanced with 4-tab interface (Messages, Intentions for weekly goals, Celebrations for milestones, Prompt Potluck with random draw).
+- **Community Rooms:** Accessible via a "Discover" dropdown. Includes Tables (discussion threads), Workshop (writing exercises with rotating daily "Prompt of the Day" and community responses), Swap (beta-reading exchange with 1:1 matching), and The Desk (communal writing).
+- **Collaborative Circle Tools:** Circles enhanced with 4-tab interface (Messages, Intentions for weekly goals, Celebrations for milestones, Prompt Potluck with random draw), 3-5 member cap, and rotating weekly share rhythm with turn indicators.
 - **Accessibility Features:** Optional toggles (Reduce Motion, High Contrast, Larger Text, Dyslexia Font via Atkinson Hyperlegible, Wider Spacing, Focus Mode) accessible from profile menu, persisted via localStorage, applied globally via CSS classes on html root with pre-hydration inline script.
 - **Writer Profiles:** Public `/writer/:id` pages displaying bios, published works, tending connections, and resonance counts.
 - **Content Management:** Implements rich text editing via TipTap, piece organization with custom tags, pinning/unpinning, and archiving.
-- **Export Functionality:** Allows downloading writings in `.txt`, `.md`, or PDF formats.
+- **Export Functionality:** Allows downloading writings in `.txt`, `.md`, PDF, or `.docx` (Shunn manuscript format with Courier New, double-spaced, proper headers) formats.
 - **Loading States:** Uses animated skeleton placeholders for enhanced user experience during content loading.
 - **Landing Page Interactivity:** Features 3D tilt cards, word-by-word text reveals, magnetic cursor buttons, and animated sections.
 
@@ -49,4 +49,4 @@ The platform features a distinctive space-themed immersive design, characterized
 ## External Dependencies
 - **Replit Auth:** Used for user authentication (OpenID Connect).
 - **Three.js / React Three Fiber:** Integrated for 3D rendering of the star background.
-- **Vite, TailwindCSS, Framer Motion, Express.js, TypeScript, PostgreSQL, Drizzle ORM, TipTap, Web Audio API, DOMPurify:** Core technologies and libraries used in the development stack.
+- **Vite, TailwindCSS, Framer Motion, Express.js, TypeScript, PostgreSQL, Drizzle ORM, TipTap, Web Audio API, DOMPurify, docx:** Core technologies and libraries used in the development stack.

@@ -27,11 +27,14 @@ import {
   type EditorNote, editorNotes,
   type CircleIntention, circleIntentions,
   type CircleCelebration, circleCelebrations,
+  type CircleShare, circleShares,
   type RejectionWallEntry, rejectionWallEntries,
   type Opportunity, opportunities,
   type OpportunityNote, opportunityNotes,
   type PromptPotluckItem, promptPotluckItems,
   type IdeaDrop, ideaDrops,
+  type QuietRead, quietReads,
+  type WritingSnapshot, writingSnapshots,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -169,6 +172,7 @@ export interface IStorage {
   createWorkshopExercise(userId: string, data: { title: string; prompt: string; category?: string; durationMinutes?: number }): Promise<WorkshopExercise>;
   getWorkshopResponses(exerciseId: string): Promise<(WorkshopResponse & { authorName: string | null })[]>;
   createWorkshopResponse(userId: string, data: { exerciseId: string; content: string }): Promise<WorkshopResponse>;
+  getPromptOfDay(): Promise<(WorkshopExercise & { authorName: string | null; responseCount: number }) | undefined>;
 
   // Swap (beta reading exchange)
   getSwapRequests(status?: string): Promise<(SwapRequest & { requesterName: string | null; writingTitle: string; matchedName: string | null })[]>;
@@ -222,6 +226,13 @@ export interface IStorage {
   getCircleCelebrations(circleId: string): Promise<(CircleCelebration & { userName: string | null })[]>;
   createCircleCelebration(userId: string, data: { circleId: string; type: string; message?: string; value?: number }): Promise<CircleCelebration>;
 
+  // Circle Shares
+  getCircleShares(circleId: string): Promise<(CircleShare & { userName: string | null; writingTitle: string | null })[]>;
+  createCircleShare(userId: string, data: { circleId: string; writingId?: string; weekOf: string }): Promise<CircleShare>;
+  getCircleMembers(circleId: string): Promise<(CircleMember & { userName: string | null })[]>;
+  getCircleMemberCount(circleId: string): Promise<number>;
+  getCurrentSharer(circleId: string): Promise<{ userId: string; userName: string | null } | null>;
+
   // Rejection Wall
   getRejectionWallEntries(): Promise<(RejectionWallEntry & { userName: string | null })[]>;
   createRejectionWallEntry(userId: string, data: { outlet: string; pieceTitle?: string; result: string; context?: string; silver_lining?: string }): Promise<RejectionWallEntry>;
@@ -235,6 +246,11 @@ export interface IStorage {
   getOpportunityNotes(opportunityId: string): Promise<(OpportunityNote & { userName: string | null })[]>;
   createOpportunityNote(userId: string, data: { opportunityId: string; note: string }): Promise<OpportunityNote>;
 
+  // Curated Opportunities
+  getCuratedOpportunities(): Promise<Opportunity[]>;
+  createCuratedOpportunity(editorId: string, data: { title: string; link?: string; outlet?: string; deadline?: string; payRate?: string; genres?: string[]; notes?: string }): Promise<Opportunity>;
+  deleteCuratedOpportunity(id: string): Promise<boolean>;
+
   // Prompt Potluck
   getPromptPotluckItems(circleId: string): Promise<(PromptPotluckItem & { userName: string | null })[]>;
   createPromptPotluckItem(userId: string, data: { circleId: string; type: string; content: string }): Promise<PromptPotluckItem>;
@@ -246,6 +262,15 @@ export interface IStorage {
   createIdeaDrop(userId: string, data: { content: string }): Promise<IdeaDrop>;
   adoptIdeaDrop(userId: string, id: string): Promise<IdeaDrop | undefined>;
   deleteIdeaDrop(userId: string, id: string): Promise<boolean>;
+
+  // Quiet Reads
+  hasQuietRead(readerId: string, writingId: string): Promise<boolean>;
+  addQuietRead(readerId: string, writingId: string): Promise<QuietRead>;
+  hasBeenQuietlyRead(writingId: string): Promise<boolean>;
+
+  // Version Snapshots
+  getSnapshots(writingId: string): Promise<WritingSnapshot[]>;
+  createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number }): Promise<WritingSnapshot>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -955,6 +980,29 @@ export class DatabaseStorage implements IStorage {
     return response;
   }
 
+  async getPromptOfDay(): Promise<(WorkshopExercise & { authorName: string | null; responseCount: number }) | undefined> {
+    const allExercises = await db.select({
+      id: workshopExercises.id, createdById: workshopExercises.createdById, title: workshopExercises.title,
+      prompt: workshopExercises.prompt, category: workshopExercises.category,
+      durationMinutes: workshopExercises.durationMinutes, isPublic: workshopExercises.isPublic,
+      createdAt: workshopExercises.createdAt, authorName: users.firstName,
+    }).from(workshopExercises)
+      .leftJoin(users, eq(workshopExercises.createdById, users.id))
+      .orderBy(workshopExercises.createdAt);
+
+    if (allExercises.length === 0) return undefined;
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now.getTime() - start.getTime();
+    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const index = dayOfYear % allExercises.length;
+    const exercise = allExercises[index];
+
+    const responses = await db.select({ cnt: count() }).from(workshopResponses).where(eq(workshopResponses.exerciseId, exercise.id));
+    return { ...exercise, responseCount: responses[0]?.cnt ?? 0 };
+  }
+
   // === SWAP (BETA READING EXCHANGE) ===
   async getSwapRequests(status?: string): Promise<(SwapRequest & { requesterName: string | null; writingTitle: string; matchedName: string | null })[]> {
     const conditions: any[] = [];
@@ -1425,6 +1473,51 @@ export class DatabaseStorage implements IStorage {
     return item;
   }
 
+  // === CIRCLE SHARES ===
+  async getCircleShares(circleId: string): Promise<(CircleShare & { userName: string | null; writingTitle: string | null })[]> {
+    return await db.select({
+      id: circleShares.id, circleId: circleShares.circleId, userId: circleShares.userId,
+      writingId: circleShares.writingId, weekOf: circleShares.weekOf, createdAt: circleShares.createdAt,
+      userName: users.firstName, writingTitle: writings.title,
+    }).from(circleShares)
+      .leftJoin(users, eq(circleShares.userId, users.id))
+      .leftJoin(writings, eq(circleShares.writingId, writings.id))
+      .where(eq(circleShares.circleId, circleId))
+      .orderBy(desc(circleShares.createdAt));
+  }
+
+  async createCircleShare(userId: string, data: { circleId: string; writingId?: string; weekOf: string }): Promise<CircleShare> {
+    const [item] = await db.insert(circleShares).values({ userId, ...data }).returning();
+    return item;
+  }
+
+  async getCircleMembers(circleId: string): Promise<(CircleMember & { userName: string | null })[]> {
+    return await db.select({
+      id: circleMembers.id, circleId: circleMembers.circleId, userId: circleMembers.userId,
+      joinedAt: circleMembers.joinedAt, userName: users.firstName,
+    }).from(circleMembers)
+      .leftJoin(users, eq(circleMembers.userId, users.id))
+      .where(eq(circleMembers.circleId, circleId))
+      .orderBy(circleMembers.joinedAt);
+  }
+
+  async getCircleMemberCount(circleId: string): Promise<number> {
+    const [result] = await db.select({ cnt: count() }).from(circleMembers).where(eq(circleMembers.circleId, circleId));
+    return result?.cnt ?? 0;
+  }
+
+  async getCurrentSharer(circleId: string): Promise<{ userId: string; userName: string | null } | null> {
+    const members = await this.getCircleMembers(circleId);
+    if (members.length === 0) return null;
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (86400000));
+    const weekNumber = Math.floor(dayOfYear / 7);
+    const index = weekNumber % members.length;
+    const current = members[index];
+    return { userId: current.userId, userName: current.userName };
+  }
+
   // === REJECTION WALL ===
   async getRejectionWallEntries(): Promise<(RejectionWallEntry & { userName: string | null })[]> {
     return await db.select({
@@ -1456,6 +1549,7 @@ export class DatabaseStorage implements IStorage {
       link: opportunities.link, outlet: opportunities.outlet, deadline: opportunities.deadline,
       payRate: opportunities.payRate, responseTime: opportunities.responseTime,
       vibe: opportunities.vibe, genres: opportunities.genres, notes: opportunities.notes,
+      isCurated: opportunities.isCurated,
       createdAt: opportunities.createdAt, userName: users.firstName,
       noteCount: sql<number>`(SELECT count(*) FROM opportunity_notes WHERE opportunity_id = ${opportunities.id})::int`,
     }).from(opportunities)
@@ -1470,6 +1564,7 @@ export class DatabaseStorage implements IStorage {
       link: opportunities.link, outlet: opportunities.outlet, deadline: opportunities.deadline,
       payRate: opportunities.payRate, responseTime: opportunities.responseTime,
       vibe: opportunities.vibe, genres: opportunities.genres, notes: opportunities.notes,
+      isCurated: opportunities.isCurated,
       createdAt: opportunities.createdAt, userName: users.firstName,
     }).from(opportunities)
       .leftJoin(users, eq(opportunities.userId, users.id))
@@ -1502,6 +1597,24 @@ export class DatabaseStorage implements IStorage {
   async createOpportunityNote(userId: string, data: { opportunityId: string; note: string }): Promise<OpportunityNote> {
     const [item] = await db.insert(opportunityNotes).values({ userId, ...data }).returning();
     return item;
+  }
+
+  // === CURATED OPPORTUNITIES ===
+  async getCuratedOpportunities(): Promise<Opportunity[]> {
+    return await db.select().from(opportunities)
+      .where(eq(opportunities.isCurated, true))
+      .orderBy(opportunities.deadline);
+  }
+
+  async createCuratedOpportunity(editorId: string, data: { title: string; link?: string; outlet?: string; deadline?: string; payRate?: string; genres?: string[]; notes?: string }): Promise<Opportunity> {
+    const [item] = await db.insert(opportunities).values({ userId: editorId, isCurated: true, ...data }).returning();
+    return item;
+  }
+
+  async deleteCuratedOpportunity(id: string): Promise<boolean> {
+    const result = await db.delete(opportunities)
+      .where(and(eq(opportunities.id, id), eq(opportunities.isCurated, true))).returning();
+    return result.length > 0;
   }
 
   // === PROMPT POTLUCK ===
@@ -1572,6 +1685,42 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(ideaDrops)
       .where(and(eq(ideaDrops.id, id), eq(ideaDrops.userId, userId))).returning();
     return result.length > 0;
+  }
+
+  // === QUIET READS ===
+  async hasQuietRead(readerId: string, writingId: string): Promise<boolean> {
+    const [existing] = await db.select({ id: quietReads.id }).from(quietReads)
+      .where(and(eq(quietReads.readerId, readerId), eq(quietReads.writingId, writingId)));
+    return !!existing;
+  }
+
+  async addQuietRead(readerId: string, writingId: string): Promise<QuietRead> {
+    const existing = await this.hasQuietRead(readerId, writingId);
+    if (existing) {
+      const [found] = await db.select().from(quietReads)
+        .where(and(eq(quietReads.readerId, readerId), eq(quietReads.writingId, writingId)));
+      return found;
+    }
+    const [created] = await db.insert(quietReads).values({ readerId, writingId }).returning();
+    return created;
+  }
+
+  async hasBeenQuietlyRead(writingId: string): Promise<boolean> {
+    const [existing] = await db.select({ id: quietReads.id }).from(quietReads)
+      .where(eq(quietReads.writingId, writingId)).limit(1);
+    return !!existing;
+  }
+
+  // === VERSION SNAPSHOTS ===
+  async getSnapshots(writingId: string): Promise<WritingSnapshot[]> {
+    return await db.select().from(writingSnapshots)
+      .where(eq(writingSnapshots.writingId, writingId))
+      .orderBy(desc(writingSnapshots.createdAt));
+  }
+
+  async createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number }): Promise<WritingSnapshot> {
+    const [snapshot] = await db.insert(writingSnapshots).values(data).returning();
+    return snapshot;
   }
 }
 

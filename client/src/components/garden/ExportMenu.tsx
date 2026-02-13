@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Download, FileText, FileCode, File } from "lucide-react";
+import { Download, FileText, FileCode, File, FileType } from "lucide-react";
 import { stripHtml } from "./RichEditor";
 
 interface ExportMenuProps {
   title: string;
   content: string;
   compact?: boolean;
+  writingId?: string;
 }
 
 function htmlToMarkdown(html: string): string {
@@ -53,7 +54,7 @@ function sanitizeFilename(title: string): string {
     .slice(0, 60);
 }
 
-export default function ExportMenu({ title, content, compact = false }: ExportMenuProps) {
+export default function ExportMenu({ title, content, compact = false, writingId }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -76,6 +77,17 @@ export default function ExportMenu({ title, content, compact = false }: ExportMe
   function exportMd() {
     const md = content.includes("<") ? htmlToMarkdown(content) : content;
     downloadFile(`${filename}.md`, `# ${title}\n\n${md}`, "text/markdown");
+    setOpen(false);
+  }
+
+  function exportDocx() {
+    if (!writingId) return;
+    const a = document.createElement("a");
+    a.href = `/api/writings/${writingId}/export-docx`;
+    a.download = `${filename}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     setOpen(false);
   }
 
@@ -123,7 +135,7 @@ ${bodyContent}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-44 bg-[#0f1520] border border-white/[0.15] rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 w-52 bg-[#0f1520] border border-white/[0.15] rounded-lg shadow-xl z-50 py-1 overflow-hidden">
           <button onClick={exportTxt} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all" data-testid="export-txt">
             <FileText size={13} className="text-white/40" />
             Plain Text (.txt)
@@ -132,6 +144,12 @@ ${bodyContent}
             <FileCode size={13} className="text-white/40" />
             Markdown (.md)
           </button>
+          {writingId && (
+            <button onClick={exportDocx} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all" data-testid="export-docx">
+              <FileType size={13} className="text-white/40" />
+              Manuscript (.docx)
+            </button>
+          )}
           <button onClick={exportPdf} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all" data-testid="export-pdf">
             <File size={13} className="text-white/40" />
             Print / PDF

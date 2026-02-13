@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Eye, EyeOff, Users, Globe, Lock, Sparkles, ChevronRight } from "lucide-react";
+import { X, Eye, EyeOff, Users, Globe, Lock, Sparkles, ChevronRight, Moon } from "lucide-react";
 
 type Visibility = "personal" | "circle" | "garden";
-type Readiness = "raw_seed" | "growing" | "ready_to_show";
+type Readiness = "raw_seed" | "growing" | "ready_to_show" | "dormant";
 
 interface PlantingFlowProps {
   isOpen: boolean;
@@ -95,6 +95,13 @@ const readinessOptions: { id: Readiness; label: string; description: string; ico
     description: "You feel complete with this piece. It's ready for eyes.",
     icon: <ReadyIcon className="w-6 h-6" />,
     color: "pink",
+  },
+  {
+    id: "dormant",
+    label: "Sleeping",
+    description: "Not abandoned, just waiting. This piece needs time.",
+    icon: <Moon className="w-6 h-6" />,
+    color: "violet",
   },
 ];
 
@@ -473,6 +480,7 @@ export function VisibilityBadge({ visibility, readiness, editorialAvailable, com
     raw_seed: { label: "Raw Seed", color: "amber" },
     growing: { label: "Growing", color: "emerald" },
     ready_to_show: { label: "Ready", color: "pink" },
+    dormant: { label: "Sleeping", color: "violet" },
   };
 
   const vis = visConfig[visibility] || visConfig.personal;

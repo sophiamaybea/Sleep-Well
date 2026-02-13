@@ -525,6 +525,138 @@ function ExerciseResponses({ exerciseId }: { exerciseId: string }) {
   );
 }
 
+function PromptOfDayResponses({ exerciseId }: { exerciseId: string }) {
+  const [responseContent, setResponseContent] = useState("");
+  const [showWriteArea, setShowWriteArea] = useState(false);
+  const [showNames, setShowNames] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: responses = [], isLoading } = useQuery<ExerciseResponse[]>({
+    queryKey: ["/api/workshop/exercises", exerciseId, "responses"],
+    queryFn: async () => {
+      const res = await fetch(`/api/workshop/exercises/${exerciseId}/responses`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch responses");
+      return res.json();
+    },
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(`/api/workshop/${exerciseId}/responses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error("Failed to submit response");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/workshop/exercises", exerciseId, "responses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workshop"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workshop/prompt-of-day"] });
+      setResponseContent("");
+      setShowWriteArea(false);
+    },
+  });
+
+  const handleSubmit = () => {
+    const trimmed = responseContent.trim();
+    if (!trimmed) return;
+    submitMutation.mutate(trimmed);
+  };
+
+  const wordCount = (text: string) => text.trim() ? text.trim().split(/\s+/).length : 0;
+
+  return (
+    <div className="space-y-4" data-testid="prompt-of-day-responses">
+      {!showWriteArea ? (
+        <button
+          onClick={() => setShowWriteArea(true)}
+          className="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-amber-500/20 hover:border-amber-500/40 rounded-xl font-mono text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-400 bg-amber-500/[0.03] hover:bg-amber-500/[0.06] transition-all"
+          data-testid="button-write-response"
+        >
+          <PenLine size={13} />
+          Write a Response
+        </button>
+      ) : (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          className="space-y-3"
+        >
+          <textarea
+            value={responseContent}
+            onChange={(e) => setResponseContent(e.target.value)}
+            placeholder="Write your response to today's prompt..."
+            rows={6}
+            className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-amber-500/30 transition-colors resize-none"
+            data-testid="input-prompt-response"
+            autoFocus
+          />
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[9px] text-white/40 tracking-wide" data-testid="text-word-count">{wordCount(responseContent)} words</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowWriteArea(false); setResponseContent(""); }}
+                className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
+                data-testid="button-cancel-response"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!responseContent.trim() || submitMutation.isPending}
+                className="flex items-center gap-2 px-5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 hover:border-amber-500/40 rounded-full font-mono text-[9px] uppercase tracking-widest text-amber-400/80 hover:text-amber-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                data-testid="button-submit-prompt-response"
+              >
+                <Send size={11} />
+                Submit
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="pt-4 border-t border-white/[0.08]">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="font-mono text-[10px] uppercase tracking-widest text-white/50" data-testid="text-community-responses-header">
+            Community Responses {responses.length > 0 && `(${responses.length})`}
+          </h4>
+          <button
+            onClick={() => setShowNames(!showNames)}
+            className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors"
+            data-testid="button-toggle-names"
+          >
+            {showNames ? <Users size={11} /> : <ShieldOff size={11} />}
+            {showNames ? "Hide Names" : "Reveal Names"}
+          </button>
+        </div>
+
+        {isLoading && <ListSkeleton count={2} />}
+        {responses.length === 0 && !isLoading && (
+          <p className="font-serif text-sm text-white/40 italic text-center py-4" data-testid="text-no-responses">No responses yet — be the first to write.</p>
+        )}
+
+        <div className="space-y-3">
+          {responses.map((r) => (
+            <div key={r.id} className="p-4 rounded-lg border border-white/[0.08] bg-white/[0.02]" data-testid={`prompt-response-${r.id}`}>
+              <p className="font-serif text-sm text-white/65 leading-relaxed whitespace-pre-wrap" data-testid={`text-response-content-${r.id}`}>{r.content}</p>
+              <div className="flex items-center gap-3 mt-3 pt-2 border-t border-white/[0.06]">
+                <span className="font-mono text-[9px] text-white/40" data-testid={`text-response-author-${r.id}`}>
+                  {showNames ? r.authorName : "Anonymous Writer"}
+                </span>
+                <span className="font-mono text-[9px] text-white/30">{wordCount(r.content)} words</span>
+                <span className="font-mono text-[9px] text-white/30">{timeAgo(r.createdAt)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function WorkshopRoom({ onBack }: { onBack: () => void }) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
@@ -534,6 +666,15 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
   const [newCategory, setNewCategory] = useState<string>("freewrite");
   const [newDuration, setNewDuration] = useState<string>("");
   const queryClient = useQueryClient();
+
+  const { data: promptOfDay, isLoading: promptLoading } = useQuery<Exercise>({
+    queryKey: ["/api/workshop/prompt-of-day"],
+    queryFn: async () => {
+      const res = await fetch("/api/workshop/prompt-of-day", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch prompt of the day");
+      return res.json();
+    },
+  });
 
   const { data: exercises = [], isLoading } = useQuery<Exercise[]>({
     queryKey: ["/api/workshop"],
@@ -557,6 +698,7 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/workshop"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workshop/prompt-of-day"] });
       setShowNewForm(false);
       setNewTitle("");
       setNewPrompt("");
@@ -605,6 +747,63 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
       <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
         A space for creative play. Try a writing exercise, respond to a prompt, or create one for others. No pressure, no grades — just practice.
       </p>
+
+      {promptLoading && (
+        <div className="mb-8 animate-pulse">
+          <div className="border border-amber-500/15 rounded-2xl p-6 space-y-3 bg-amber-500/[0.02]">
+            <div className="h-4 w-32 bg-white/[0.06] rounded-lg" />
+            <div className="h-6 w-64 bg-white/[0.06] rounded-lg" />
+            <div className="h-16 w-full bg-white/[0.06] rounded-lg" />
+          </div>
+        </div>
+      )}
+
+      {promptOfDay && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-8"
+          data-testid="prompt-of-day-section"
+        >
+          <div className="border border-amber-500/15 rounded-2xl overflow-hidden bg-amber-500/[0.02]">
+            <div className="px-5 py-4 border-b border-amber-500/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-amber-400/60" />
+                <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/70" data-testid="text-todays-prompt-label">Today's Prompt</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {promptOfDay.durationMinutes && (
+                  <span className="flex items-center gap-1 font-mono text-[9px] text-white/40" data-testid="text-prompt-duration">
+                    <Clock size={10} />
+                    {promptOfDay.durationMinutes}m
+                  </span>
+                )}
+                <span className="px-2 py-0.5 rounded-full border border-amber-500/15 font-mono text-[8px] uppercase tracking-widest text-amber-400/50" data-testid="text-prompt-category">
+                  {promptOfDay.category}
+                </span>
+              </div>
+            </div>
+            <div className="p-5 space-y-3">
+              <h3 className="text-lg font-display font-light italic text-white/85" data-testid="text-prompt-title">{promptOfDay.title}</h3>
+              <p className="font-serif text-sm text-white/60 leading-relaxed italic" data-testid="text-prompt-text">{promptOfDay.prompt}</p>
+              <div className="flex items-center gap-3 pt-1">
+                <span className="font-mono text-[9px] text-white/35">by {promptOfDay.authorName}</span>
+                <span className="font-mono text-[9px] text-white/30">{promptOfDay.responseCount} {promptOfDay.responseCount === 1 ? "response" : "responses"}</span>
+              </div>
+            </div>
+            <div className="px-5 pb-5">
+              <PromptOfDayResponses exerciseId={promptOfDay.id} />
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-px flex-grow bg-white/[0.08]" />
+        <span className="font-mono text-[10px] uppercase tracking-widest text-white/40" data-testid="text-all-exercises-label">All Exercises</span>
+        <div className="h-px flex-grow bg-white/[0.08]" />
+      </div>
 
       <AnimatePresence>
         {showNewForm && (
@@ -749,7 +948,9 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
                         )}
                         <div className="flex items-center gap-1 text-white/55">
                           <PenLine size={10} />
-                          <span className="font-mono text-[9px]" data-testid={`text-response-count-${exercise.id}`}>{exercise.responseCount}</span>
+                          <span className="font-mono text-[9px]" data-testid={`text-response-count-${exercise.id}`}>
+                            {exercise.responseCount} {exercise.responseCount === 1 ? "response" : "responses"}
+                          </span>
                         </div>
                       </div>
                       <ChevronDown size={13} className={`text-white/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />

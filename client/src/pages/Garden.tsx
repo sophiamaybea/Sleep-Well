@@ -10,9 +10,9 @@ import {
   Flame, Archive, NotebookPen,
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
-  TreePine, Glasses, Compass
+  TreePine, Glasses, Compass, Eye, Moon, Clock
 } from "lucide-react";
-import type { Writing } from "@shared/schema";
+import type { Writing, WritingSnapshot } from "@shared/schema";
 import { useAccessibility } from "@/hooks/use-accessibility";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
@@ -30,18 +30,21 @@ const stageColors: Record<string, string> = {
   raw_seed: "border-amber-500/30 text-amber-400/80",
   growing: "border-emerald-500/30 text-emerald-400/80",
   ready_to_show: "border-pink-500/30 text-pink-400/80",
+  dormant: "border-violet-500/30 text-violet-400/80",
 };
 
 const stageAccent: Record<string, string> = {
   raw_seed: "bg-amber-500/10",
   growing: "bg-emerald-500/10",
   ready_to_show: "bg-pink-500/10",
+  dormant: "bg-violet-500/10",
 };
 
 const stageGlow: Record<string, string> = {
   raw_seed: "rgba(245, 158, 11, 0.15)",
   growing: "rgba(16, 185, 129, 0.15)",
   ready_to_show: "rgba(236, 72, 153, 0.15)",
+  dormant: "rgba(139, 92, 246, 0.15)",
 };
 
 const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
@@ -145,6 +148,7 @@ const stageIcons: Record<string, React.ReactNode> = {
   raw_seed: <SeedIcon className="w-4 h-4" />,
   growing: <SproutIcon className="w-4 h-4" />,
   ready_to_show: <BloomIcon className="w-4 h-4" />,
+  dormant: <Moon size={16} />,
 };
 
 function Skeleton({ className = "" }: { className?: string }) {
@@ -361,7 +365,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
   );
 }
 
-type StageFilter = "all" | "raw_seed" | "growing" | "ready_to_show";
+type StageFilter = "all" | "raw_seed" | "growing" | "ready_to_show" | "dormant";
 
 function PublishInvitations() {
   const queryClient = useQueryClient();
@@ -477,12 +481,14 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   const seedCount = searchAndTagFiltered.filter(w => readinessKey(w) === "raw_seed").length;
   const growingCount = searchAndTagFiltered.filter(w => readinessKey(w) === "growing").length;
   const readyCount = searchAndTagFiltered.filter(w => readinessKey(w) === "ready_to_show").length;
+  const dormantCount = searchAndTagFiltered.filter(w => readinessKey(w) === "dormant").length;
 
   const filters: { id: StageFilter; label: string; count: number; tip: string }[] = [
     { id: "all", label: "All", count: searchAndTagFiltered.length, tip: "All your pieces" },
     { id: "raw_seed", label: "Seeds", count: seedCount, tip: "Early ideas and fragments" },
     { id: "growing", label: "Growing", count: growingCount, tip: "Works in progress" },
     { id: "ready_to_show", label: "Ready", count: readyCount, tip: "Polished and ready to share" },
+    { id: "dormant", label: "Dormant", count: dormantCount, tip: "Sleeping pieces — not abandoned, just waiting" },
   ];
 
   return (
@@ -633,7 +639,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                   isExpanded
                     ? `${stageColors[readiness]?.split(" ")[0] || "border-white/25"} bg-emerald-950/20`
                     : "border-emerald-800/15 hover:border-emerald-700/25 bg-emerald-950/10"
-                }`}
+                } ${readiness === "dormant" ? "opacity-75" : ""}`}
               >
                 {isExpanded && (
                   <div className="absolute inset-0 pointer-events-none" style={{
@@ -667,6 +673,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                             {vis === "circle" ? <Users size={10} /> : <Globe size={10} />}
                           </span>
                         )}
+                        {vis === "garden" && <QuietlyReadIndicator writingId={w.id} />}
                       </div>
                       {((w as any).tags || []).length > 0 && (
                         <div className="flex gap-1 mt-0.5">
@@ -722,7 +729,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                             Share
                           </button>
                           <div onClick={(e) => e.stopPropagation()}>
-                            <ExportMenu title={w.title} content={w.content} />
+                            <ExportMenu title={w.title} content={w.content} writingId={w.id} />
                           </div>
                           <button
                             onClick={(e) => { e.stopPropagation(); onQuickUpdate(w.id, { isPinned: !(w as any).isPinned }); }}
@@ -769,7 +776,18 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [tagInput, setTagInput] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [previewSnapshot, setPreviewSnapshot] = useState<WritingSnapshot | null>(null);
   const hasMounted = useRef(false);
+
+  const { data: snapshots = [] } = useQuery<WritingSnapshot[]>({
+    queryKey: [`/api/writings/${writing.id}/snapshots`],
+    queryFn: async () => {
+      const res = await fetch(`/api/writings/${writing.id}/snapshots`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
 
   const doSave = useCallback(() => {
     onSave({ title: editTitle, content: editContent, genre: editGenre, readiness: editStage, tags: editTags });
@@ -812,7 +830,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : "Editing..."}
           </span>
           <span className="font-mono text-[9px] tracking-widest text-white/50">{wordCount(editContent)} words</span>
-          <ExportMenu title={editTitle} content={editContent} compact />
+          <ExportMenu title={editTitle} content={editContent} compact writingId={writing.id} />
           <button
             onClick={() => setShowDeleteConfirm(true)}
             className="p-1.5 text-white/50 hover:text-red-400/70 transition-colors"
@@ -858,6 +876,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               { id: "raw_seed", label: "Seed" },
               { id: "growing", label: "Growing" },
               { id: "ready_to_show", label: "Ready" },
+              { id: "dormant", label: "Dormant" },
             ] as const).map((s) => (
               <button
                 key={s.id}
@@ -925,6 +944,108 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           )}
         </div>
 
+        <div className="pb-2">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-white/35 hover:text-white/55 transition-colors"
+            data-testid="btn-version-history"
+          >
+            <Clock size={12} />
+            Version History
+            {snapshots.length > 0 && <span className="text-white/25">({snapshots.length})</span>}
+            <ChevronDown size={10} className={`transition-transform ${showHistory ? "rotate-180" : ""}`} />
+          </button>
+
+          <AnimatePresence>
+            {showHistory && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-3 space-y-0 relative pl-4 border-l border-white/[0.06]">
+                  <div className="relative py-2" data-testid="snapshot-current">
+                    <div className="absolute -left-[17px] top-3 w-2 h-2 rounded-full bg-emerald-400/60 ring-2 ring-emerald-400/20" />
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-400/70">Current</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[editStage] || "border-white/10 text-white/40"}`}>
+                        {editStage === "raw_seed" ? "Seed" : editStage === "growing" ? "Growing" : editStage === "ready_to_show" ? "Ready" : "Dormant"}
+                      </span>
+                      <span className="font-mono text-[8px] text-white/25">{wordCount(editContent)} words</span>
+                    </div>
+                  </div>
+
+                  {snapshots.length === 0 && (
+                    <p className="py-2 font-serif text-[11px] text-white/25 italic">No snapshots yet. Snapshots are saved when you change the readiness stage.</p>
+                  )}
+
+                  {snapshots.map((snap) => (
+                    <button
+                      key={snap.id}
+                      onClick={() => setPreviewSnapshot(snap)}
+                      className="relative w-full text-left py-2 group/snap hover:bg-white/[0.02] rounded-r-lg px-2 -ml-2 transition-colors"
+                      data-testid={`snapshot-${snap.id}`}
+                    >
+                      <div className="absolute -left-[15px] top-3.5 w-1.5 h-1.5 rounded-full bg-white/20 group-hover/snap:bg-white/40 transition-colors" />
+                      <div className="flex items-center gap-2">
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[snap.readiness] || "border-white/10 text-white/40"}`}>
+                          {snap.readiness === "raw_seed" ? "Seed" : snap.readiness === "growing" ? "Growing" : snap.readiness === "ready_to_show" ? "Ready" : "Dormant"}
+                        </span>
+                        <span className="font-mono text-[8px] text-white/25">{snap.wordCount} words</span>
+                        <span className="font-mono text-[8px] text-white/20">{timeAgo(snap.createdAt)}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+          {previewSnapshot && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+              onClick={() => setPreviewSnapshot(null)}
+              data-testid="snapshot-preview-overlay"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#0b101a] border border-white/[0.08] rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+              >
+                <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest border ${stageColors[previewSnapshot.readiness] || "border-white/10 text-white/40"}`}>
+                      {previewSnapshot.readiness === "raw_seed" ? "Seed" : previewSnapshot.readiness === "growing" ? "Growing" : previewSnapshot.readiness === "ready_to_show" ? "Ready" : "Dormant"}
+                    </span>
+                    <span className="font-mono text-[9px] text-white/30">{previewSnapshot.wordCount} words</span>
+                    <span className="font-mono text-[9px] text-white/25">{timeAgo(previewSnapshot.createdAt)}</span>
+                  </div>
+                  <button
+                    onClick={() => setPreviewSnapshot(null)}
+                    className="p-1.5 text-white/40 hover:text-white/70 transition-colors"
+                    data-testid="btn-close-preview"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-6 overflow-y-auto">
+                  <h3 className="font-display text-xl font-light italic text-white/70 mb-4">{previewSnapshot.title || "Untitled"}</h3>
+                  <ContentRenderer content={previewSnapshot.content} className="font-serif text-white/55 leading-[1.9]" />
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <RichEditor
           content={editContent}
           onChange={setEditContent}
@@ -938,9 +1059,124 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
 
 type FeedWriting = Writing & { authorName: string | null };
 
+function QuietReadButton({ writingId }: { writingId: string }) {
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery<{ hasRead: boolean }>({
+    queryKey: ["/api/quiet-read", writingId],
+    queryFn: async () => {
+      const res = await fetch(`/api/quiet-read/${writingId}`, { credentials: "include" });
+      if (!res.ok) return { hasRead: false };
+      return res.json();
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/quiet-read/${writingId}`, {
+        method: "POST", credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(["/api/quiet-read", writingId], { hasRead: true });
+    },
+  });
+
+  const hasRead = data?.hasRead || false;
+
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); if (!hasRead) mutation.mutate(); }}
+      className={`group/quiet relative flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
+        hasRead
+          ? "text-amber-300/40 hover:text-amber-300/50"
+          : "text-white/20 hover:text-white/40"
+      }`}
+      title={hasRead ? "You were here" : "I was here"}
+      data-testid={`button-quiet-read-${writingId}`}
+      disabled={isLoading}
+    >
+      <Eye size={14} />
+      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[8px] tracking-widest text-white/40 opacity-0 group-hover/quiet:opacity-100 transition-opacity pointer-events-none">
+        {hasRead ? "you were here" : "I was here"}
+      </span>
+    </button>
+  );
+}
+
+function QuietlyReadIndicator({ writingId }: { writingId: string }) {
+  const { data } = useQuery<{ hasBeenRead: boolean }>({
+    queryKey: ["/api/quietly-read", writingId],
+    queryFn: async () => {
+      const res = await fetch(`/api/quietly-read/${writingId}`, { credentials: "include" });
+      if (!res.ok) return { hasBeenRead: false };
+      return res.json();
+    },
+  });
+
+  if (!data?.hasBeenRead) return null;
+
+  return (
+    <span className="flex items-center gap-1 text-[8px] font-mono tracking-widest text-amber-300/25 italic" data-testid={`indicator-quietly-read-${writingId}`}>
+      <span className="w-1 h-1 rounded-full bg-amber-300/30" />
+      someone was here
+    </span>
+  );
+}
+
+type ReadingRoomSort = "recent" | "quiet" | "tended";
+const readingRoomGenres = ["all", "poetry", "fiction", "essay", "hybrid", "fragment", "other"];
+
+function CuratedOpportunitiesBanner() {
+  const [dismissed, setDismissed] = useState(false);
+  const { data: opps = [] } = useQuery<any[]>({
+    queryKey: ["/api/curated-opportunities"],
+    queryFn: async () => {
+      const res = await fetch("/api/curated-opportunities");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  if (dismissed || opps.length === 0) return null;
+
+  const display = opps.slice(0, 2);
+
+  return (
+    <div className="mb-6 relative" data-testid="curated-opportunities-banner">
+      <div className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04] p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-amber-400/50">From the editors</span>
+          <button onClick={() => setDismissed(true)} className="text-white/20 hover:text-white/40 transition-colors" data-testid="btn-dismiss-opps">
+            <X size={12} />
+          </button>
+        </div>
+        <div className="space-y-2">
+          {display.map((opp: any) => (
+            <div key={opp.id} className="flex items-baseline justify-between gap-3" data-testid={`garden-opp-${opp.id}`}>
+              <div className="min-w-0">
+                {opp.link ? (
+                  <a href={opp.link} target="_blank" rel="noopener noreferrer" className="font-serif text-sm text-amber-200/80 hover:text-amber-200 underline underline-offset-2 decoration-amber-500/20 hover:decoration-amber-500/40 transition-colors">{opp.title}</a>
+                ) : (
+                  <span className="font-serif text-sm text-amber-200/80">{opp.title}</span>
+                )}
+                {opp.outlet && <span className="font-mono text-[8px] uppercase tracking-widest text-white/30 ml-2">{opp.outlet}</span>}
+              </div>
+              {opp.deadline && <span className="font-mono text-[8px] text-white/25 whitespace-nowrap flex-shrink-0">{opp.deadline}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) => void }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [activeSort, setActiveSort] = useState<ReadingRoomSort>("recent");
+  const [genreFilter, setGenreFilter] = useState("all");
   const perPage = 8;
 
   const { data: tendingFeed = [], isLoading: loadingTending } = useQuery<FeedWriting[]>({
@@ -963,28 +1199,85 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
 
   if (loadingTending || loadingGarden) return <ReadingRoomSkeleton />;
 
+  const tendedAuthorIds = new Set(tendingFeed.map(p => p.authorId));
+
   const seen = new Set<string>();
   const allPieces: FeedWriting[] = [];
   for (const piece of tendingFeed) {
-    if (!seen.has(piece.id)) { seen.add(piece.id); allPieces.push(piece); }
+    if (!seen.has(piece.id) && piece.readiness !== "dormant") { seen.add(piece.id); allPieces.push(piece); }
   }
   for (const piece of gardenFeed) {
-    if (!seen.has(piece.id)) { seen.add(piece.id); allPieces.push(piece); }
+    if (!seen.has(piece.id) && piece.readiness !== "dormant") { seen.add(piece.id); allPieces.push(piece); }
   }
 
-  allPieces.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+  let filteredPieces = genreFilter === "all"
+    ? [...allPieces]
+    : allPieces.filter(p => p.genre === genreFilter);
 
-  const visiblePieces = allPieces.slice(0, page * perPage);
-  const hasMore = allPieces.length > visiblePieces.length;
+  if (activeSort === "tended") {
+    filteredPieces = filteredPieces.filter(p => tendedAuthorIds.has(p.authorId));
+  }
+
+  if (activeSort === "recent" || activeSort === "tended") {
+    filteredPieces.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+  } else if (activeSort === "quiet") {
+    filteredPieces.sort((a, b) => new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime());
+  }
+
+  const visiblePieces = filteredPieces.slice(0, page * perPage);
+  const hasMore = filteredPieces.length > visiblePieces.length;
+
+  const sortOptions: { id: ReadingRoomSort; label: string }[] = [
+    { id: "recent", label: "Recent" },
+    { id: "quiet", label: "Quiet" },
+    { id: "tended", label: "Tended" },
+  ];
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 mb-2">
           <BookOpen size={16} className="text-emerald-400/50" />
           <h2 className="font-display text-xl font-light italic text-white/70">Reading Room</h2>
         </div>
         <p className="font-serif text-xs text-white/35 italic">Letters from gardens you tend, and new voices growing nearby</p>
+      </div>
+
+      <CuratedOpportunitiesBanner />
+
+      <div className="flex flex-col items-center gap-3 mb-8">
+        <div className="flex items-center gap-1.5 flex-wrap justify-center">
+          {sortOptions.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => { setActiveSort(s.id); setPage(1); }}
+              className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
+                activeSort === s.id
+                  ? "border-amber-500/30 bg-amber-500/10 text-amber-300/90"
+                  : "border-white/[0.06] text-white/35 hover:text-white/55 hover:border-white/15"
+              }`}
+              data-testid={`sort-${s.id}`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 flex-wrap justify-center">
+          {readingRoomGenres.map((g) => (
+            <button
+              key={g}
+              onClick={() => { setGenreFilter(g); setPage(1); }}
+              className={`px-2.5 py-1 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
+                genreFilter === g
+                  ? "border-amber-500/30 bg-amber-500/10 text-amber-300/90"
+                  : "border-transparent text-white/25 hover:text-white/45"
+              }`}
+              data-testid={`genre-filter-${g}`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
       </div>
 
       {allPieces.length === 0 && (
@@ -994,6 +1287,17 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
           <h3 className="relative text-xl font-display font-light italic text-white/50">No letters yet</h3>
           <p className="relative font-serif text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
             When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
+          </p>
+        </div>
+      )}
+
+      {allPieces.length > 0 && filteredPieces.length === 0 && (
+        <div className="border border-dashed border-white/[0.06] rounded-2xl p-12 text-center space-y-3">
+          <Eye size={24} className="mx-auto text-white/15" />
+          <p className="font-serif text-sm text-white/35 italic">
+            {activeSort === "tended"
+              ? "No pieces from writers you're tending yet. Tend a garden to see their work here."
+              : "No pieces match this filter."}
           </p>
         </div>
       )}
@@ -1044,6 +1348,10 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
 
                   {!isExpanded && (
                     <div className="flex items-center gap-3 mt-3">
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <QuietReadButton writingId={piece.id} />
+                      </div>
+                      <span className="w-px h-3 bg-white/[0.06]" />
                       <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                       <ResonanceBar writingId={piece.id} compact />
                     </div>
@@ -1062,6 +1370,8 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                       <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
+                            <QuietReadButton writingId={piece.id} />
+                            <span className="w-px h-3 bg-white/[0.06]" />
                             <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                             <span className="font-mono text-[8px] text-white/30">{wordCount(piece.content)} words</span>
                           </div>
@@ -1696,24 +2006,228 @@ const reflectionPrompts = [
 ];
 
 function CirclesView() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [expandedCircle, setExpandedCircle] = useState<string | null>(null);
+  const [selectedWritingId, setSelectedWritingId] = useState<string>("");
+
   const { data: circles = [] } = useQuery<any[]>({
     queryKey: ["/api/circles"],
     queryFn: async () => { const r = await fetch("/api/circles", { credentials: "include" }); return r.ok ? r.json() : []; },
   });
 
+  const { data: writings = [] } = useQuery<any[]>({
+    queryKey: ["/api/writings"],
+    queryFn: async () => { const r = await fetch("/api/writings", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+
+  const joinMutation = useMutation({
+    mutationFn: async (circleId: string) => {
+      const r = await fetch(`/api/circles/${circleId}/join`, { method: "POST", credentials: "include" });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.message); }
+      return r.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/circles"] }),
+  });
+
+  const shareMutation = useMutation({
+    mutationFn: async ({ circleId, writingId }: { circleId: string; writingId: string }) => {
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      const weekNum = Math.floor((now.getTime() - startOfYear.getTime()) / (7 * 86400000));
+      const weekOf = `${now.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+      const r = await fetch(`/api/circles/${circleId}/shares`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        body: JSON.stringify({ writingId, weekOf }),
+      });
+      if (!r.ok) throw new Error("Failed to share");
+      return r.json();
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/circles/${vars.circleId}/shares`] });
+      setSelectedWritingId("");
+    },
+  });
+
   return (
     <div className="space-y-4">
-      {circles.map((c: any) => (
-        <div key={c.id} className="border border-white/[0.20] rounded-xl p-4">
-          <h4 className="font-display text-base font-light italic text-white/75">{c.name}</h4>
-          {c.description && <p className="font-serif text-xs text-white/60 mt-1">{c.description}</p>}
-          <div className="flex items-center gap-2 mt-2">
-            <Users size={10} className="text-white/50" />
-            <span className="font-mono text-[8px] text-white/50">{c.memberCount || 0} members</span>
+      {circles.map((c: any) => {
+        const isFull = (c.memberCount || 0) >= (c.maxMembers || 5);
+        const isExpanded = expandedCircle === c.id;
+
+        return (
+          <div key={c.id} className="border border-white/[0.20] rounded-xl overflow-hidden" data-testid={`circle-card-${c.id}`}>
+            <button
+              onClick={() => setExpandedCircle(isExpanded ? null : c.id)}
+              className="w-full p-4 text-left hover:bg-white/[0.02] transition-colors"
+              data-testid={`circle-toggle-${c.id}`}
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="font-display text-base font-light italic text-white/75">{c.name}</h4>
+                <div className="flex items-center gap-2">
+                  {isFull && (
+                    <span className="font-mono text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/70 border border-amber-500/20" data-testid={`badge-full-${c.id}`}>
+                      Full
+                    </span>
+                  )}
+                  <ChevronDown size={14} className={`text-white/40 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </div>
+              </div>
+              {c.description && <p className="font-serif text-xs text-white/60 mt-1">{c.description}</p>}
+              <div className="flex items-center gap-2 mt-2">
+                <Users size={10} className="text-white/50" />
+                <span className="font-mono text-[8px] text-white/50" data-testid={`text-member-count-${c.id}`}>
+                  {c.memberCount || 0}/{c.maxMembers || 5} members
+                </span>
+              </div>
+            </button>
+
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <CircleDetail circle={c} userId={user?.id || ""} writings={writings} isFull={isFull}
+                    onJoin={() => joinMutation.mutate(c.id)}
+                    onShare={(writingId) => shareMutation.mutate({ circleId: c.id, writingId })}
+                    isJoining={joinMutation.isPending}
+                    isSharing={shareMutation.isPending}
+                    selectedWritingId={selectedWritingId}
+                    onSelectWriting={setSelectedWritingId}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </div>
-      ))}
+        );
+      })}
       {circles.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
+    </div>
+  );
+}
+
+function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoining, isSharing, selectedWritingId, onSelectWriting }: {
+  circle: any; userId: string; writings: any[]; isFull: boolean;
+  onJoin: () => void; onShare: (writingId: string) => void;
+  isJoining: boolean; isSharing: boolean;
+  selectedWritingId: string; onSelectWriting: (id: string) => void;
+}) {
+  const { data: members = [] } = useQuery<any[]>({
+    queryKey: [`/api/circles/${circle.id}/members`],
+    queryFn: async () => { const r = await fetch(`/api/circles/${circle.id}/members`, { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+
+  const { data: currentSharer } = useQuery<any>({
+    queryKey: [`/api/circles/${circle.id}/current-sharer`],
+    queryFn: async () => { const r = await fetch(`/api/circles/${circle.id}/current-sharer`, { credentials: "include" }); return r.ok ? r.json() : null; },
+  });
+
+  const { data: shares = [] } = useQuery<any[]>({
+    queryKey: [`/api/circles/${circle.id}/shares`],
+    queryFn: async () => { const r = await fetch(`/api/circles/${circle.id}/shares`, { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+
+  const isMember = members.some((m: any) => m.userId === userId);
+  const isMyTurn = currentSharer?.userId === userId;
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const weekNum = Math.floor((now.getTime() - startOfYear.getTime()) / (7 * 86400000));
+  const currentWeek = `${now.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+  const thisWeekShare = shares.find((s: any) => s.weekOf === currentWeek);
+
+  return (
+    <div className="px-4 pb-4 space-y-4 border-t border-white/[0.08]">
+      {isMember && currentSharer && (
+        <div className="pt-3 space-y-3">
+          <h5 className="font-mono text-[9px] uppercase tracking-[0.3em] text-teal-400/60 flex items-center gap-2">
+            <Clock size={11} />
+            This Week
+          </h5>
+
+          {thisWeekShare ? (
+            <div className="rounded-lg border border-emerald-500/15 bg-emerald-500/[0.04] p-3" data-testid={`share-this-week-${circle.id}`}>
+              <p className="font-serif text-xs text-white/70">
+                <span className="text-emerald-400/80 font-display italic">{thisWeekShare.userName}</span> shared
+                {thisWeekShare.writingTitle && (
+                  <> — <span className="italic text-white/60">"{thisWeekShare.writingTitle}"</span></>
+                )}
+              </p>
+              <p className="font-mono text-[8px] text-emerald-400/40 mt-1 uppercase tracking-widest">Read & Respond</p>
+            </div>
+          ) : isMyTurn ? (
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-3" data-testid={`share-your-turn-${circle.id}`}>
+              <p className="font-serif text-xs text-amber-200/80 mb-2">It's your turn to share — pick a piece</p>
+              <div className="flex gap-2">
+                <select
+                  value={selectedWritingId}
+                  onChange={(e) => onSelectWriting(e.target.value)}
+                  className="flex-1 bg-white/[0.06] border border-white/[0.12] rounded-lg px-2 py-1.5 font-serif text-xs text-white/70 focus:outline-none focus:border-amber-500/30"
+                  data-testid={`select-writing-${circle.id}`}
+                >
+                  <option value="">Choose a writing...</option>
+                  {writings.map((w: any) => (
+                    <option key={w.id} value={w.id}>{w.title}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => selectedWritingId && onShare(selectedWritingId)}
+                  disabled={!selectedWritingId || isSharing}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300/80 font-mono text-[9px] uppercase tracking-wider hover:bg-amber-500/30 transition-colors disabled:opacity-40"
+                  data-testid={`btn-share-${circle.id}`}
+                >
+                  Share
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-3" data-testid={`share-waiting-${circle.id}`}>
+              <p className="font-serif text-xs text-white/55">
+                Waiting for <span className="text-teal-400/70 font-display italic">{currentSharer.userName}</span> to share this week
+              </p>
+            </div>
+          )}
+
+          {members.length > 1 && (
+            <div className="flex items-center gap-1 flex-wrap" data-testid={`rotation-order-${circle.id}`}>
+              <span className="font-mono text-[7px] text-white/30 uppercase tracking-widest mr-1">Rotation:</span>
+              {members.map((m: any, i: number) => (
+                <span
+                  key={m.id}
+                  className={`font-mono text-[8px] px-1.5 py-0.5 rounded-full ${
+                    m.userId === currentSharer?.userId
+                      ? "bg-teal-500/15 text-teal-400/70 border border-teal-500/20"
+                      : "text-white/30"
+                  }`}
+                >
+                  {m.userName || "?"}
+                  {i < members.length - 1 && <span className="text-white/15 ml-1">→</span>}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!isMember && (
+        <div className="pt-3">
+          <button
+            onClick={onJoin}
+            disabled={isFull || isJoining}
+            className={`px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-colors ${
+              isFull
+                ? "bg-white/[0.04] text-white/30 cursor-not-allowed border border-white/[0.08]"
+                : "bg-emerald-500/15 text-emerald-400/80 border border-emerald-500/20 hover:bg-emerald-500/25"
+            }`}
+            data-testid={`btn-join-circle-${circle.id}`}
+          >
+            {isFull ? "Circle is full" : isJoining ? "Joining..." : "Join Circle"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
