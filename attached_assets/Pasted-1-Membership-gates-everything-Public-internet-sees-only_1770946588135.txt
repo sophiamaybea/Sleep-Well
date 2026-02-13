@@ -1,0 +1,129 @@
+1. Membership gates everything
+Public internet sees only: The Page (the journal) + a light marketing site explaining the Garden model.
+​
+
+To read or interact with any Garden writing, you must be a logged‑in member.
+
+Inside, members see:
+
+Their Personal Garden
+
+One or more Circles
+
+A Garden Gallery: the wider stream of member work.
+
+Think of it as a private clubhouse: discovery and interaction are rich, but everything is “inside the walls.”
+
+2. Visibility levels for each piece
+When planting a piece, a writer chooses one of three scopes:
+
+Private – only me.
+
+Circle‑only – visible to my chosen Circle(s).
+
+Whole Garden – visible to all members and editors.
+
+Plus a simple toggle:
+
+“Available for editorial consideration” (yes/no).
+
+That’s the only “submission” action they ever take. Everything else is just “where in the Garden can this live?”
+
+3. Garden Gallery: discovery without public exposure
+Within the members‑only Garden, you can have:
+
+A Garden Feed (chronological + smart ranking):
+
+Only pieces marked “Whole Garden” show.
+
+Filter by tags, form, length, themes.
+
+Optional: “Show me quiet pieces” (no or few responses yet) to encourage attention to overlooked work.
+
+Profile Gardens:
+
+Each member has a Garden profile page listing:
+
+A selection of their Garden pieces (scoped to Whole Garden or Circles you share).
+
+Tiny “inner weather” snippet if they choose (e.g., “currently in fallow season”).
+
+No public follower counts; just “Connections” or “Circles in common” to keep it non‑competitive.
+
+You get discovery and community, but it never leaks beyond membership.
+
+4. Interaction: humane, members‑only
+Inside the Garden, members can:
+
+Respond with non‑quantified reactions (Resonated / Held me / Opened something), shown as subtle glows rather than counts.
+
+Leave comments or “Sit with this” acknowledgements.
+
+Invite someone into:
+
+a Circle
+
+a one‑to‑one Compassion Correspondence
+
+a co‑writing session.
+
+All of this is only visible to logged‑in members. There is no way to deep‑link to a piece for non‑members; hitting the URL logged‑out shows a “This lives in the Garden” page + membership invite.
+
+5. Editors’ view inside the same system
+Editors use a Garden Curator view that’s basically the same as the Garden Gallery, but with extra tools:
+
+Filters:
+
+Only show pieces where “Available for editorial consideration” = true.
+
+Filter by theme, form, length, tags.
+
+Pin to Greenhouse (shortlist pool).
+
+Invite to The Page:
+
+Flow:
+
+Editor pins a piece from the Garden to the Greenhouse.
+
+If selected, editor sends an in‑app invite: “We’d like to move this from the Garden into the public journal.” (linking clear terms, mirroring your current submission language ).
+​
+
+Writer accepts → a public “journal version” is created for the website; the original Garden post remains, tagged “Exhibited on The Page.”
+
+Result: members see each other’s work; readers see only curated pieces on The Page.
+
+6. Mental‑health features in a social Garden
+Because everyone is a member, you can safely weave in the mindful tools:
+
+Window of Tolerance:
+
+Before interacting heavily, a writer can set themselves as “quiet mode” (red/blue zone) → their work is visible, but comments queue until they’re ready.
+
+Reframe Engine:
+
+When a piece is un‑pinned from the Greenhouse or a writer logs “disappointed,” they’re offered reframing / self‑compassion prompts privately.
+
+Fallow Field:
+
+Members can mark themselves as in a fallow season. Their profile shows a small icon and the Garden feed may lightly deprioritise their older pieces, so they feel less “on display.”
+
+All still inside the membership wall.
+
+7. How it feels to a member
+They join → gain access to the Garden (a private, members‑only reading & writing space).
+
+They plant pieces into:
+
+their own Garden
+
+their Circles
+
+the wider Garden.
+
+They discover others through the Garden Gallery, interact, and form Circles.
+
+Editors quietly wander the same Garden, curate into The Page.
+
+The outside world sees the polished journal and the “this all grew inside a private Garden” story.
+
