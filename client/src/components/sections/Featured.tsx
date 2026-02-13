@@ -2,7 +2,7 @@ import { Section } from "@/components/ui/section";
 import { content } from "@/data";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 interface GalleryItem {
   id: string;
@@ -15,41 +15,47 @@ interface GalleryItem {
 
 function ShineCard({ children, className, testId }: { children: React.ReactNode; className?: string; testId?: string }) {
   const ref = useRef<HTMLElement>(null);
+  const [hovered, setHovered] = useState(false);
   const mouseX = useMotionValue(0.5);
-  const mouseY = useMotionValue(0.5);
-  const liftY = useSpring(0, { stiffness: 200, damping: 20 });
 
-  const shineX = useTransform(mouseX, [0, 1], ["-100%", "200%"]);
-  const shineOpacity = useTransform(liftY, [-6, 0], [1, 0]);
+  const shineX = useTransform(mouseX, [0, 1], ["-20%", "120%"]);
 
-  function handleEnter() { liftY.set(-6); }
-  function handleLeave() { liftY.set(0); mouseX.set(0.5); mouseY.set(0.5); }
   function handleMove(e: React.MouseEvent) {
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
     mouseX.set((e.clientX - rect.left) / rect.width);
-    mouseY.set((e.clientY - rect.top) / rect.height);
   }
 
   return (
     <motion.article
       ref={ref}
-      style={{ y: liftY }}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); mouseX.set(0.5); }}
       onMouseMove={handleMove}
+      whileHover={{ y: -10, scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 200, damping: 15 }}
       className={className}
       data-testid={testId}
     >
       <motion.div
         className="absolute inset-0 pointer-events-none rounded-xl overflow-hidden"
-        style={{ opacity: shineOpacity }}
+        animate={{ opacity: hovered ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
       >
         <motion.div
-          className="absolute inset-y-0 w-[60px] bg-gradient-to-r from-transparent via-white/[0.04] to-transparent"
+          className="absolute inset-y-0 w-[100px] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent blur-sm"
           style={{ left: shineX }}
         />
       </motion.div>
+      <motion.div
+        className="absolute inset-0 pointer-events-none rounded-xl"
+        animate={{
+          boxShadow: hovered
+            ? "0 20px 60px rgba(255,255,255,0.05), 0 0 30px rgba(255,255,255,0.03)"
+            : "0 0 0 rgba(0,0,0,0)"
+        }}
+        transition={{ duration: 0.4 }}
+      />
       {children}
     </motion.article>
   );
@@ -88,7 +94,7 @@ export default function Featured() {
               <ShineCard
                 key={item.id}
                 testId={`card-gallery-${item.id}`}
-                className="group relative border border-white/5 rounded-xl p-8 md:p-12 hover:border-white/15 hover:bg-white/[0.02] transition-all duration-500 cursor-default"
+                className="group relative border border-white/5 rounded-xl p-8 md:p-12 hover:border-white/25 hover:bg-white/[0.03] transition-all duration-300 cursor-default"
               >
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -99,7 +105,7 @@ export default function Featured() {
                   <div className="flex items-center gap-4 mb-6">
                     <motion.span
                       className="font-mono text-[10px] uppercase tracking-widest text-white/30 px-3 py-1 border border-white/10 rounded-full"
-                      whileHover={{ scale: 1.05, borderColor: "rgba(255,255,255,0.2)" }}
+                      whileHover={{ scale: 1.1, borderColor: "rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.6)" }}
                     >
                       {item.genre}
                     </motion.span>
@@ -112,7 +118,7 @@ export default function Featured() {
                   <h3 className="text-3xl md:text-4xl font-display font-light tracking-tight mb-6 group-hover:text-white transition-colors duration-300">
                     {item.title}
                   </h3>
-                  <div className="font-serif text-lg leading-relaxed text-white/60 max-w-3xl whitespace-pre-wrap group-hover:text-white/70 transition-colors duration-300">
+                  <div className="font-serif text-lg leading-relaxed text-white/60 max-w-3xl whitespace-pre-wrap group-hover:text-white/80 transition-colors duration-300">
                     {item.content.length > 500
                       ? item.content.slice(0, 500) + "..."
                       : item.content}
@@ -122,17 +128,21 @@ export default function Featured() {
             ))}
           </div>
         ) : (
-          <div className="relative w-full aspect-[16/9] md:aspect-[21/9] border border-white/10 bg-white/[0.02] backdrop-blur-sm overflow-hidden flex flex-col items-center justify-center p-12 text-center group hover:border-white/15 transition-colors duration-500">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+          <motion.div
+            className="relative w-full aspect-[16/9] md:aspect-[21/9] border border-white/10 bg-white/[0.02] backdrop-blur-sm overflow-hidden flex flex-col items-center justify-center p-12 text-center group cursor-default"
+            whileHover={{ borderColor: "rgba(255,255,255,0.2)", scale: 1.005 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <motion.div
-              className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+              className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent shadow-[0_0_20px_rgba(255,255,255,0.3)]"
               animate={{ top: ["0%", "100%"], opacity: [0, 1, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
             />
             <div className="relative z-10 space-y-6">
               <motion.span
-                className="inline-block px-4 py-1 border border-white/10 rounded-full font-mono text-[10px] uppercase tracking-widest opacity-50 mb-4"
-                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                className="inline-block px-4 py-1 border border-white/10 rounded-full font-mono text-[10px] uppercase tracking-widest mb-4"
+                animate={{ opacity: [0.3, 0.7, 0.3], borderColor: ["rgba(255,255,255,0.1)", "rgba(255,255,255,0.25)", "rgba(255,255,255,0.1)"] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
                 Coming Soon
@@ -144,11 +154,11 @@ export default function Featured() {
                 {content.featured.emptyState.description}
               </p>
             </div>
-            <div className="absolute top-4 left-4 w-2 h-2 border-t border-l border-white/20" />
-            <div className="absolute top-4 right-4 w-2 h-2 border-t border-r border-white/20" />
-            <div className="absolute bottom-4 left-4 w-2 h-2 border-b border-l border-white/20" />
-            <div className="absolute bottom-4 right-4 w-2 h-2 border-b border-r border-white/20" />
-          </div>
+            <div className="absolute top-4 left-4 w-3 h-3 border-t border-l border-white/20 group-hover:border-white/40 group-hover:w-5 group-hover:h-5 transition-all duration-500" />
+            <div className="absolute top-4 right-4 w-3 h-3 border-t border-r border-white/20 group-hover:border-white/40 group-hover:w-5 group-hover:h-5 transition-all duration-500" />
+            <div className="absolute bottom-4 left-4 w-3 h-3 border-b border-l border-white/20 group-hover:border-white/40 group-hover:w-5 group-hover:h-5 transition-all duration-500" />
+            <div className="absolute bottom-4 right-4 w-3 h-3 border-b border-r border-white/20 group-hover:border-white/40 group-hover:w-5 group-hover:h-5 transition-all duration-500" />
+          </motion.div>
         )}
       </div>
     </Section>

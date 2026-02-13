@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 function SeedDoodle() {
   return (
@@ -37,37 +37,37 @@ function BloomDoodle() {
   );
 }
 
-const stageGlow: Record<string, string> = {
-  Seed: "hover:shadow-[0_0_30px_rgba(251,191,36,0.1)] hover:border-amber-500/20",
-  Sprout: "hover:shadow-[0_0_30px_rgba(52,211,153,0.1)] hover:border-emerald-500/20",
-  Bloom: "hover:shadow-[0_0_30px_rgba(244,114,182,0.1)] hover:border-pink-500/20",
+const stageColors: Record<string, { glow: string; border: string; text: string }> = {
+  Seed: {
+    glow: "rgba(251,191,36,0.15)",
+    border: "hover:border-amber-400/40",
+    text: "group-hover:text-amber-300",
+  },
+  Sprout: {
+    glow: "rgba(52,211,153,0.15)",
+    border: "hover:border-emerald-400/40",
+    text: "group-hover:text-emerald-300",
+  },
+  Bloom: {
+    glow: "rgba(244,114,182,0.15)",
+    border: "hover:border-pink-400/40",
+    text: "group-hover:text-pink-300",
+  },
 };
 
 function GrowCard({ item, index }: { item: { stage: string; icon: React.ReactNode; desc: string }; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
-  const iconScale = useSpring(1, { stiffness: 300, damping: 15 });
-  const glowOpacity = useSpring(0, { stiffness: 200, damping: 20 });
 
   const bgX = useTransform(mouseX, [0, 1], ["0%", "100%"]);
   const bgY = useTransform(mouseY, [0, 1], ["0%", "100%"]);
+  const colors = stageColors[item.stage];
   const glowBackground = useTransform(
     [bgX, bgY],
-    ([x, y]) => `radial-gradient(circle at ${x} ${y}, rgba(255,255,255,0.04) 0%, transparent 60%)`
+    ([x, y]) => `radial-gradient(circle at ${x} ${y}, ${colors.glow} 0%, transparent 70%)`
   );
-
-  function handleEnter() {
-    iconScale.set(1.3);
-    glowOpacity.set(1);
-  }
-
-  function handleLeave() {
-    iconScale.set(1);
-    glowOpacity.set(0);
-    mouseX.set(0.5);
-    mouseY.set(0.5);
-  }
 
   function handleMove(e: React.MouseEvent) {
     const rect = ref.current?.getBoundingClientRect();
@@ -79,42 +79,52 @@ function GrowCard({ item, index }: { item: { stage: string; icon: React.ReactNod
   return (
     <motion.div
       ref={ref}
-      key={item.stage}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 + index * 0.15, duration: 0.6 }}
       viewport={{ once: true }}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); mouseX.set(0.5); mouseY.set(0.5); }}
       onMouseMove={handleMove}
-      className={`text-center space-y-3 p-6 border border-white/5 rounded-xl bg-white/[0.02] backdrop-blur-sm transition-all duration-500 cursor-default relative overflow-hidden ${stageGlow[item.stage] || ""}`}
+      whileHover={{ scale: 1.05, y: -8 }}
+      className={`group text-center space-y-4 p-8 border border-white/5 rounded-xl bg-white/[0.02] backdrop-blur-sm cursor-default relative overflow-hidden transition-colors duration-300 ${colors.border}`}
       data-testid={`card-stage-${item.stage.toLowerCase()}`}
     >
       <motion.div
         className="absolute inset-0 pointer-events-none rounded-xl"
-        style={{ opacity: glowOpacity, background: glowBackground }}
+        style={{ background: glowBackground }}
+        animate={{ opacity: hovered ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
       />
-      <motion.div className="text-white/80 relative z-10" style={{ scale: iconScale }}>
+      <motion.div
+        className="text-white/80 relative z-10"
+        animate={{ scale: hovered ? 1.4 : 1, rotate: hovered ? [0, -5, 5, 0] : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 12 }}
+      >
         {item.icon}
       </motion.div>
-      <h3 className="font-display text-xl font-light relative z-10">{item.stage}</h3>
-      <p className="text-sm font-serif opacity-60 leading-relaxed relative z-10">{item.desc}</p>
+      <h3 className={`font-display text-xl font-light relative z-10 transition-colors duration-300 ${colors.text}`}>
+        {item.stage}
+      </h3>
+      <p className="text-sm font-serif opacity-60 leading-relaxed relative z-10 group-hover:opacity-90 transition-opacity duration-300">
+        {item.desc}
+      </p>
     </motion.div>
   );
 }
 
 function MagneticLink({ href, children, className, testId }: { href: string; children: React.ReactNode; className?: string; testId?: string }) {
   const ref = useRef<HTMLAnchorElement>(null);
-  const x = useSpring(0, { stiffness: 200, damping: 15 });
-  const y = useSpring(0, { stiffness: 200, damping: 15 });
+  const x = useSpring(0, { stiffness: 150, damping: 12 });
+  const y = useSpring(0, { stiffness: 150, damping: 12 });
 
   function handleMove(e: React.MouseEvent) {
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    x.set((e.clientX - cx) * 0.3);
-    y.set((e.clientY - cy) * 0.3);
+    x.set((e.clientX - cx) * 0.4);
+    y.set((e.clientY - cy) * 0.4);
   }
 
   function handleLeave() {
@@ -131,6 +141,7 @@ function MagneticLink({ href, children, className, testId }: { href: string; chi
       onMouseLeave={handleLeave}
       className={className}
       data-testid={testId}
+      whileHover={{ scale: 1.05 }}
     >
       {children}
     </motion.a>
@@ -214,7 +225,7 @@ export default function GardenIntro() {
               Enter Your Garden
               <motion.span
                 className="text-lg inline-block"
-                whileHover={{ x: 6 }}
+                whileHover={{ x: 8, scale: 1.3 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 →
