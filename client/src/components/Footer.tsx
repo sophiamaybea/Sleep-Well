@@ -1,4 +1,4 @@
-import { content } from "@/data";
+import { Link } from "wouter";
 
 export default function Footer() {
   return (
@@ -9,18 +9,23 @@ export default function Footer() {
             You tend your Garden.<br/>We tend our attention.
           </h2>
           <div className="flex flex-wrap gap-4">
-            <button className="px-8 py-4 bg-primary text-background font-mono text-sm uppercase tracking-widest hover:bg-secondary transition-colors">
+            <Link href="/garden" className="px-8 py-4 bg-primary text-background font-mono text-sm uppercase tracking-widest hover:bg-secondary transition-colors" data-testid="footer-enter-garden">
               Enter The Garden
-            </button>
-            <button className="px-8 py-4 border border-white/20 text-primary font-mono text-sm uppercase tracking-widest hover:bg-white/5 transition-colors">
+            </Link>
+            <Link href="/gallery" className="px-8 py-4 border border-white/20 text-primary font-mono text-sm uppercase tracking-widest hover:bg-white/5 transition-colors" data-testid="footer-read-gallery">
               Read The Gallery
-            </button>
+            </Link>
           </div>
         </div>
 
-        <div className="text-right space-y-2 opacity-50 font-mono text-xs uppercase tracking-widest">
-          <p>The Page Gallery Journal © 2026</p>
-          <p>Curated by Attention</p>
+        <div className="text-right space-y-4">
+          <Link href="/about" className="block font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors" data-testid="footer-about">
+            Our Philosophy
+          </Link>
+          <div className="space-y-2 opacity-50 font-mono text-xs uppercase tracking-widest">
+            <p>The Page Gallery Journal © 2026</p>
+            <p>Curated by Attention</p>
+          </div>
         </div>
       </div>
     </footer>

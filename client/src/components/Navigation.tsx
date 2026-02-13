@@ -18,10 +18,8 @@ export default function Navigation() {
   }, []);
 
   const menuItems: { label: string; href: string; isPage?: boolean }[] = [
-    { label: "The Two Doors", href: "#two-doors" },
     { label: "Read the Journal", href: "/gallery", isPage: true },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Manifesto", href: "#manifesto" }
+    { label: "About", href: "/about", isPage: true },
   ];
 
   return (

@@ -11,7 +11,7 @@ import {
   CalendarRange, Network, Mic, Moon, Bell,
   FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
-  TreePine, Glasses, ShieldOff, Lightbulb
+  TreePine, Glasses, ShieldOff, Lightbulb, Compass
 } from "lucide-react";
 import type { Writing } from "@shared/schema";
 import { useAccessibility } from "@/hooks/use-accessibility";
@@ -25,7 +25,7 @@ import ExportMenu from "@/components/garden/ExportMenu";
 
 type Zone = "desk" | "reading-room" | "greenhouse";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "press" | "rejection-wall" | "opportunities" | "idea-drops" | null;
-type GreenhouseTool = "freewrite" | "growth-journal" | "inner-weather" | "rituals" | "compost" | "reflections" | "circles" | null;
+type GreenhouseTool = "freewrite" | "growth-journal" | "inner-weather" | "circles" | null;
 
 const stageColors: Record<string, string> = {
   raw_seed: "border-amber-500/30 text-amber-400/80",
@@ -273,9 +273,9 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
             )}
-            <span className="relative z-10 flex items-center gap-2">
+            <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
               {z.icon}
-              <span className="hidden sm:inline">{z.label}</span>
+              <span className="text-[8px] sm:text-[10px]">{z.label}</span>
             </span>
           </button>
         ))}
@@ -297,45 +297,71 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
 }
 
 function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSelectRoom: (room: ActiveRoom) => void }) {
+  const [showRooms, setShowRooms] = useState(false);
+  const activeRoomData = rooms.find(r => r.id === activeRoom);
+
   return (
-    <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-      {rooms.map((room) => {
-        const isActive = activeRoom === room.id;
-        return room.comingSoon ? (
-          <div
-            key={room.id}
-            onClick={() => {
-              const el = document.getElementById(`coming-soon-toast-${room.id}`);
-              if (el) { el.classList.remove('opacity-0'); el.classList.add('opacity-100'); setTimeout(() => { el.classList.remove('opacity-100'); el.classList.add('opacity-0'); }, 2000); }
-            }}
-            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.08] text-white/20 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap select-none cursor-pointer hover:text-white/30 transition-all"
-            title={room.desc}
-            data-testid={`room-${room.id}`}
-          >
-            {room.icon}
-            {room.label}
-            <span className="text-[7px] text-white/15 ml-0.5">soon</span>
-            <div id={`coming-soon-toast-${room.id}`} className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full font-mono text-[8px] text-white/60 whitespace-nowrap opacity-0 transition-opacity duration-300 pointer-events-none">
-              Coming soon — we're building this
-            </div>
-          </div>
-        ) : (
+    <div className="relative">
+      <div className="flex items-center gap-2">
+        {activeRoomData && (
           <button
-            key={room.id}
-            onClick={() => onSelectRoom(isActive ? null : room.id as ActiveRoom)}
-            title={room.desc}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
-              isActive
-                ? "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80"
-                : "border-emerald-800/12 text-white/40 hover:text-white/60 hover:border-emerald-700/20"
-            }`}
-            data-testid={`room-${room.id}`}
+            onClick={() => onSelectRoom(null)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all"
+            data-testid={`room-${activeRoomData.id}`}
           >
-            {room.icon}
-            {room.label}
+            {activeRoomData.icon}
+            {activeRoomData.label}
+            <X size={10} className="ml-1 opacity-60" />
           </button>
-        );
-      })}
+        )}
+        <button
+          onClick={() => setShowRooms(!showRooms)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
+            showRooms
+              ? "border-white/20 bg-white/[0.06] text-white/70"
+              : "border-emerald-800/12 text-white/40 hover:text-white/60 hover:border-emerald-700/20"
+          }`}
+          data-testid="button-discover-rooms"
+        >
+          <Compass size={12} />
+          Discover
+          <ChevronDown size={10} className={`transition-transform ${showRooms ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {showRooms && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -4, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-2">
+              {rooms.map((room) => {
+                const isActive = activeRoom === room.id;
+                return (
+                  <button
+                    key={room.id}
+                    onClick={() => { onSelectRoom(isActive ? null : room.id as ActiveRoom); setShowRooms(false); }}
+                    title={room.desc}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
+                      isActive
+                        ? "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80"
+                        : "border-white/[0.06] text-white/40 hover:text-white/60 hover:border-white/15 hover:bg-white/[0.03]"
+                    }`}
+                    data-testid={`room-${room.id}`}
+                  >
+                    {room.icon}
+                    <span className="truncate">{room.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -444,15 +470,24 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
       return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
     });
 
-  const seedCount = activeWritings.filter(w => readinessKey(w) === "raw_seed").length;
-  const growingCount = activeWritings.filter(w => readinessKey(w) === "growing").length;
-  const readyCount = activeWritings.filter(w => readinessKey(w) === "ready_to_show").length;
+  const searchAndTagFiltered = baseWritings
+    .filter(w => !activeTag || ((w as any).tags || []).includes(activeTag))
+    .filter(w => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      const plainContent = w.content.includes("<") ? stripHtml(w.content) : w.content;
+      return w.title.toLowerCase().includes(q) || plainContent.toLowerCase().includes(q) || ((w as any).tags || []).some((t: string) => t.toLowerCase().includes(q));
+    });
 
-  const filters: { id: StageFilter; label: string; count: number }[] = [
-    { id: "all", label: "All", count: activeWritings.length },
-    { id: "raw_seed", label: "Seeds", count: seedCount },
-    { id: "growing", label: "Growing", count: growingCount },
-    { id: "ready_to_show", label: "Ready", count: readyCount },
+  const seedCount = searchAndTagFiltered.filter(w => readinessKey(w) === "raw_seed").length;
+  const growingCount = searchAndTagFiltered.filter(w => readinessKey(w) === "growing").length;
+  const readyCount = searchAndTagFiltered.filter(w => readinessKey(w) === "ready_to_show").length;
+
+  const filters: { id: StageFilter; label: string; count: number; tip: string }[] = [
+    { id: "all", label: "All", count: searchAndTagFiltered.length, tip: "All your pieces" },
+    { id: "raw_seed", label: "Seeds", count: seedCount, tip: "Early ideas and fragments" },
+    { id: "growing", label: "Growing", count: growingCount, tip: "Works in progress" },
+    { id: "ready_to_show", label: "Ready", count: readyCount, tip: "Polished and ready to share" },
   ];
 
   return (
@@ -499,6 +534,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
+              title={f.tip}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest transition-all ${
                 activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/60 hover:text-white/60"
               }`}
@@ -575,7 +611,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             data-testid="button-plant-seed"
           >
             <Sparkles size={13} />
-            Plant Your First Seed
+            Start Your First Piece
           </motion.button>
         </div>
       )}
@@ -688,7 +724,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                             data-testid={`button-plant-${w.id}`}
                           >
                             <MapPin size={11} />
-                            Plant
+                            Share
                           </button>
                           <div onClick={(e) => e.stopPropagation()}>
                             <ExportMenu title={w.title} content={w.content} />
@@ -1067,12 +1103,9 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
 }
 
 const greenhouseTools = [
-  { id: "freewrite" as const, label: "Freewrite", desc: "A typewriter for your thoughts — just you, the keys, and the sound of writing. No saving, no editing. Pure flow.", icon: <PenLine size={20} />, color: "warmGray" },
+  { id: "freewrite" as const, label: "Freewrite", desc: "A typewriter with optional timer — pure flow writing with timed sessions to build your practice.", icon: <PenLine size={20} />, color: "warmGray" },
   { id: "growth-journal" as const, label: "Growth Journal", desc: "A private space to reflect on your writing journey — celebrate progress, note struggles, track what you're learning", icon: <NotebookPen size={20} />, color: "emerald" },
   { id: "inner-weather" as const, label: "Inner Weather", desc: "Check in with your creative mood and energy before you write — track patterns over time", icon: <CloudSun size={20} />, color: "sky" },
-  { id: "rituals" as const, label: "Rituals", desc: "Set a timer and write — timed sessions to build a consistent creative practice", icon: <Flame size={20} />, color: "amber" },
-  { id: "compost" as const, label: "Compost", desc: "Save fragments, abandoned drafts, and stray lines here — nothing is wasted, everything can be recycled", icon: <Archive size={20} />, color: "violet" },
-  { id: "reflections" as const, label: "Reflections", desc: "Structured prompts to think about your craft — what you're reading, what you're trying, what's working", icon: <Brain size={20} />, color: "pink" },
   { id: "circles" as const, label: "Circles", desc: "Create or join small writing groups for ongoing conversation and mutual support", icon: <Users size={20} />, color: "indigo" },
 ];
 
@@ -1148,9 +1181,6 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
     "freewrite": <FreewriteView />,
     "growth-journal": <GrowthJournalView />,
     "inner-weather": <InnerWeatherView />,
-    "rituals": <RitualsView />,
-    "compost": <CompostView />,
-    "reflections": <ReflectionsView />,
     "circles": <CirclesView />,
   };
 
@@ -1382,9 +1412,41 @@ function FreewriteView() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [planted, setPlanted] = useState(false);
+  const [timerDuration, setTimerDuration] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
   const { playKey, playSpace, playReturn } = useTypewriterSound();
+
+  function startTimer(minutes: number) {
+    setTimerDuration(minutes);
+    setTimeLeft(minutes * 60);
+    setIsTimerRunning(true);
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          setIsTimerRunning(false);
+          fetch("/api/rituals", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ type: "timed_write", duration: minutes, wordsWritten: 0, notes: "" }) })
+            .then(() => queryClient.invalidateQueries({ queryKey: ["/api/rituals"] }));
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setIsTimerRunning(false);
+    setTimerDuration(null);
+    setTimeLeft(0);
+  }
+
+  const timerMins = Math.floor(timeLeft / 60);
+  const timerSecs = timeLeft % 60;
 
   const plantMutation = useMutation({
     mutationFn: async () => {
@@ -1424,7 +1486,7 @@ function FreewriteView() {
       {isFullscreen && (
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-stone-600/30 to-transparent" />
       )}
-      <div className={`flex items-center justify-between ${isFullscreen ? "px-8 pt-6 pb-2" : "mb-4"}`}>
+      <div className={`flex items-center justify-between flex-wrap gap-2 ${isFullscreen ? "px-8 pt-6 pb-2" : "mb-4"}`}>
         <div className="flex items-center gap-4">
           <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-stone-500">
             {wordCount} words
@@ -1433,8 +1495,25 @@ function FreewriteView() {
           <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-stone-500">
             {charCount} chars
           </span>
+          {isTimerRunning && (
+            <>
+              <span className="text-stone-700">|</span>
+              <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-amber-400/80 tabular-nums">
+                {timerMins}:{timerSecs.toString().padStart(2, "0")}
+              </span>
+              <button onClick={stopTimer} className="font-mono text-[8px] tracking-widest uppercase text-stone-600 hover:text-stone-400 transition-colors" data-testid="button-stop-timer">stop</button>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-3">
+          {!isTimerRunning && (
+            <div className="flex items-center gap-1">
+              <Flame size={11} className="text-stone-600" />
+              {[5, 10, 15, 25].map(d => (
+                <button key={d} onClick={() => startTimer(d)} className="font-mono text-[8px] tracking-widest uppercase px-2 py-0.5 rounded-full text-stone-600 hover:text-amber-400/80 hover:bg-amber-500/[0.06] transition-all" data-testid={`button-timer-${d}`} title={`${d} minute timed session`}>{d}m</button>
+              ))}
+            </div>
+          )}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={`font-mono text-[9px] tracking-widest uppercase px-3 py-1 rounded-full border transition-all ${
@@ -1530,40 +1609,77 @@ function FreewriteView() {
 }
 
 function GrowthJournalView() {
+  const [tab, setTab] = useState<"journal" | "prompts">("journal");
   const { data: entries = [] } = useQuery<any[]>({
     queryKey: ["/api/growth-journal"],
     queryFn: async () => { const r = await fetch("/api/growth-journal", { credentials: "include" }); return r.ok ? r.json() : []; },
   });
+  const { data: reflectionEntries = [] } = useQuery<any[]>({
+    queryKey: ["/api/reflections"],
+    queryFn: async () => { const r = await fetch("/api/reflections", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
   const queryClient = useQueryClient();
   const [content, setContent] = useState("");
+  const [promptIndex, setPromptIndex] = useState(() => Math.floor(Math.random() * reflectionPrompts.length));
+  const currentPrompt = reflectionPrompts[promptIndex];
 
   const addMutation = useMutation({
     mutationFn: async () => {
+      if (tab === "prompts") {
+        const r = await fetch("/api/reflections", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ title: currentPrompt, content, category: "craft" }) });
+        if (!r.ok) throw new Error("Failed"); return r.json();
+      }
       const r = await fetch("/api/growth-journal", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ content, mood: "reflective" }) });
       if (!r.ok) throw new Error("Failed"); return r.json();
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/growth-journal"] }); setContent(""); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/growth-journal"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reflections"] });
+      setContent("");
+      if (tab === "prompts") setPromptIndex((promptIndex + 1) % reflectionPrompts.length);
+    },
   });
+
+  const allEntries = tab === "journal" ? entries : reflectionEntries;
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center gap-1 p-0.5 bg-white/[0.03] rounded-lg border border-white/[0.06] w-fit">
+        <button onClick={() => setTab("journal")} className={`px-3 py-1.5 rounded-md font-mono text-[9px] uppercase tracking-widest transition-all ${tab === "journal" ? "bg-white/[0.08] text-white/80" : "text-white/40 hover:text-white/60"}`} data-testid="tab-journal">Journal</button>
+        <button onClick={() => setTab("prompts")} className={`px-3 py-1.5 rounded-md font-mono text-[9px] uppercase tracking-widest transition-all ${tab === "prompts" ? "bg-white/[0.08] text-white/80" : "text-white/40 hover:text-white/60"}`} data-testid="tab-prompts">Prompts</button>
+      </div>
+
+      {tab === "prompts" && (
+        <div className="border border-pink-500/10 bg-pink-500/[0.02] rounded-xl p-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-display text-base font-light italic text-pink-200/60 leading-relaxed">{currentPrompt}</p>
+            <button onClick={() => setPromptIndex((promptIndex + 1) % reflectionPrompts.length)} className="flex-shrink-0 p-1.5 text-white/30 hover:text-white/60 transition-colors" title="New prompt" data-testid="button-next-prompt">
+              <Sparkles size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="What's growing in your practice today..."
+          placeholder={tab === "prompts" ? "Reflect on this prompt..." : "What's growing in your practice today..."}
           className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 resize-none h-28 transition-colors"
           data-testid="input-journal-entry"
         />
-        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">Add Entry</button>
+        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">
+          {tab === "prompts" ? "Save Reflection" : "Add Entry"}
+        </button>
       </div>
-      {entries.map((e: any) => (
+      {allEntries.map((e: any) => (
         <div key={e.id} className="border border-white/[0.15] rounded-xl p-4">
+          {e.title && <h4 className="font-display text-sm font-light italic text-white/45 mb-2">{e.title}</h4>}
           <p className="font-serif text-sm text-white/60 leading-relaxed">{e.content}</p>
           <span className="font-mono text-[8px] text-white/45 mt-2 block">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">No entries yet. Start reflecting on your growth.</p>}
+      {allEntries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">{tab === "prompts" ? "Your reflections will gather here over time." : "No entries yet. Start reflecting on your growth."}</p>}
     </div>
   );
 }
@@ -1642,163 +1758,6 @@ function InnerWeatherView() {
   );
 }
 
-function calcStreak(sessions: any[]): { current: number; longest: number; thisWeek: number; totalMinutes: number } {
-  if (sessions.length === 0) return { current: 0, longest: 0, thisWeek: 0, totalMinutes: 0 };
-  const days = new Set<string>();
-  let totalMinutes = 0;
-  sessions.forEach((s: any) => {
-    const d = new Date(s.createdAt).toDateString();
-    days.add(d);
-    totalMinutes += (s.duration || 0);
-  });
-  const sortedDays = Array.from(days).map(d => new Date(d)).sort((a, b) => b.getTime() - a.getTime());
-  let current = 0;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  for (let i = 0; i < sortedDays.length; i++) {
-    const expected = new Date(today); expected.setDate(expected.getDate() - i);
-    if (sortedDays[i].toDateString() === expected.toDateString()) current++;
-    else break;
-  }
-  let longest = 0, run = 0;
-  for (let i = 0; i < sortedDays.length; i++) {
-    if (i === 0) { run = 1; } else {
-      const diff = (sortedDays[i - 1].getTime() - sortedDays[i].getTime()) / 86400000;
-      run = diff <= 1.5 ? run + 1 : 1;
-    }
-    if (run > longest) longest = run;
-  }
-  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-  const thisWeek = sessions.filter((s: any) => new Date(s.createdAt) >= weekAgo).length;
-  return { current, longest, thisWeek, totalMinutes };
-}
-
-function RitualsView() {
-  const { data: sessions = [] } = useQuery<any[]>({
-    queryKey: ["/api/rituals"],
-    queryFn: async () => { const r = await fetch("/api/rituals", { credentials: "include" }); return r.ok ? r.json() : []; },
-  });
-  const queryClient = useQueryClient();
-  const [duration, setDuration] = useState(15);
-  const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const streak = calcStreak(sessions);
-
-  function startTimer() {
-    setTimeLeft(duration * 60);
-    setIsRunning(true);
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          setIsRunning(false);
-          fetch("/api/rituals", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ type: "timed_write", duration, wordsWritten: 0, notes: "" }) })
-            .then(() => queryClient.invalidateQueries({ queryKey: ["/api/rituals"] }));
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }
-
-  const mins = Math.floor(timeLeft / 60);
-  const secs = timeLeft % 60;
-
-  return (
-    <div className="space-y-6">
-      {sessions.length > 0 && (
-        <div className="grid grid-cols-4 gap-2">
-          <div className="border border-amber-500/10 bg-amber-500/[0.03] rounded-xl p-3 text-center">
-            <p className="text-2xl font-display font-light text-amber-400/70">{streak.current}</p>
-            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">Day Streak</p>
-          </div>
-          <div className="border border-white/[0.06] rounded-xl p-3 text-center">
-            <p className="text-2xl font-display font-light text-white/60">{streak.longest}</p>
-            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">Best Streak</p>
-          </div>
-          <div className="border border-white/[0.06] rounded-xl p-3 text-center">
-            <p className="text-2xl font-display font-light text-white/60">{streak.thisWeek}</p>
-            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">This Week</p>
-          </div>
-          <div className="border border-white/[0.06] rounded-xl p-3 text-center">
-            <p className="text-2xl font-display font-light text-white/60">{Math.round(streak.totalMinutes / 60)}h</p>
-            <p className="font-mono text-[7px] uppercase tracking-widest text-white/35 mt-1">Total</p>
-          </div>
-        </div>
-      )}
-
-      <div className="text-center space-y-4">
-        {!isRunning ? (
-          <>
-            <div className="flex items-center justify-center gap-3">
-              {[5, 10, 15, 25, 45].map(d => (
-                <button key={d} onClick={() => setDuration(d)} className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${duration === d ? "border-white/20 bg-white/[0.08] text-white/80" : "border-transparent text-white/55 hover:text-white/60"}`}>{d}m</button>
-              ))}
-            </div>
-            <button onClick={startTimer} className="px-6 py-3 bg-white/[0.05] hover:bg-white/[0.08] border border-amber-500/20 hover:border-amber-500/40 rounded-full font-mono text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-300 transition-all" data-testid="button-start-ritual">
-              {streak.current > 0 ? `Continue Streak (Day ${streak.current})` : "Begin Ritual"}
-            </button>
-          </>
-        ) : (
-          <div className="py-8">
-            <p className="text-5xl font-display font-light text-white/80 tabular-nums">{mins}:{secs.toString().padStart(2, "0")}</p>
-            <p className="font-serif text-sm text-white/55 mt-3">Write freely. The timer is tending to the time.</p>
-          </div>
-        )}
-      </div>
-      {sessions.length > 0 && (
-        <div>
-          <p className="font-mono text-[9px] uppercase tracking-widest text-white/50 mb-2">Past Sessions</p>
-          {sessions.slice(0, 8).map((s: any) => (
-            <div key={s.id} className="flex items-center gap-3 py-2 border-b border-white/[0.03]">
-              <Flame size={10} className="text-amber-400/30" />
-              <span className="font-mono text-[9px] text-white/60">{s.duration}min</span>
-              <span className="font-mono text-[8px] text-white/30">{timeAgo(s.createdAt)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CompostView() {
-  const { data: entries = [] } = useQuery<any[]>({
-    queryKey: ["/api/compost"],
-    queryFn: async () => { const r = await fetch("/api/compost", { credentials: "include" }); return r.ok ? r.json() : []; },
-  });
-  const queryClient = useQueryClient();
-  const [fragment, setFragment] = useState("");
-
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const r = await fetch("/api/compost", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ content: fragment, source: "manual" }) });
-      if (!r.ok) throw new Error("Failed"); return r.json();
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/compost"] }); setFragment(""); },
-  });
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <textarea value={fragment} onChange={(e) => setFragment(e.target.value)} placeholder="Toss a fragment, a cut line, an abandoned thought..." className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 resize-none h-24 transition-colors" data-testid="input-compost" />
-        <button onClick={() => addMutation.mutate()} disabled={!fragment.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-compost">Add to Compost</button>
-      </div>
-      {entries.map((e: any) => (
-        <div key={e.id} className={`border rounded-xl p-4 ${e.isRecycled ? "border-emerald-500/10 bg-emerald-500/[0.02]" : "border-white/[0.15]"}`}>
-          <p className="font-serif text-sm text-white/55 leading-relaxed italic">{e.content}</p>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="font-mono text-[8px] text-white/30">{timeAgo(e.createdAt)}</span>
-            {e.isRecycled && <span className="font-mono text-[8px] text-emerald-400/40">recycled</span>}
-          </div>
-        </div>
-      ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">Nothing composting yet. Toss in your fragments.</p>}
-    </div>
-  );
-}
-
 const reflectionPrompts = [
   "What surprised you about your writing this week?",
   "Describe a sentence you wrote that felt true. Why did it work?",
@@ -1816,58 +1775,6 @@ const reflectionPrompts = [
   "What are you learning about pacing, rhythm, or silence in your work?",
   "If your current project were a room, what would be in it?",
 ];
-
-function ReflectionsView() {
-  const { data: entries = [] } = useQuery<any[]>({
-    queryKey: ["/api/reflections"],
-    queryFn: async () => { const r = await fetch("/api/reflections", { credentials: "include" }); return r.ok ? r.json() : []; },
-  });
-  const queryClient = useQueryClient();
-  const [content, setContent] = useState("");
-  const [promptIndex, setPromptIndex] = useState(() => Math.floor(Math.random() * reflectionPrompts.length));
-
-  const currentPrompt = reflectionPrompts[promptIndex];
-
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const r = await fetch("/api/reflections", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ title: currentPrompt, content, category: "craft" }) });
-      if (!r.ok) throw new Error("Failed"); return r.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reflections"] });
-      setContent("");
-      setPromptIndex((promptIndex + 1) % reflectionPrompts.length);
-    },
-  });
-
-  return (
-    <div className="space-y-5">
-      <div className="border border-pink-500/10 bg-pink-500/[0.02] rounded-xl p-5 space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <p className="font-display text-lg font-light italic text-pink-200/60 leading-relaxed">{currentPrompt}</p>
-          <button
-            onClick={() => setPromptIndex((promptIndex + 1) % reflectionPrompts.length)}
-            className="flex-shrink-0 p-1.5 text-white/30 hover:text-white/60 transition-colors"
-            title="New prompt"
-            data-testid="button-next-prompt"
-          >
-            <Sparkles size={14} />
-          </button>
-        </div>
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Reflect..." className="w-full bg-white/[0.03] border border-white/[0.10] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/35 focus:outline-none focus:border-white/30 resize-none h-28 transition-colors" data-testid="input-reflection-content" />
-        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-reflection">Save Reflection</button>
-      </div>
-      {entries.map((e: any) => (
-        <div key={e.id} className="border border-white/[0.08] rounded-xl p-4">
-          {e.title && <h4 className="font-display text-sm font-light italic text-white/45 mb-2">{e.title}</h4>}
-          <p className="font-serif text-sm text-white/55 leading-relaxed">{e.content}</p>
-          <span className="font-mono text-[8px] text-white/30 mt-2 block">{timeAgo(e.createdAt)}</span>
-        </div>
-      ))}
-      {entries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-4 text-center">Your reflections will gather here over time.</p>}
-    </div>
-  );
-}
 
 function CirclesView() {
   const { data: circles = [] } = useQuery<any[]>({

@@ -156,15 +156,31 @@ export default function StarTitle() {
     };
   }, []);
 
+  const handleSkip = () => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const bottom = el.offsetTop + el.offsetHeight;
+    window.scrollTo({ top: bottom - window.innerHeight * 0.2, behavior: "smooth" });
+  };
+
   return (
     <div ref={wrapRef} className="h-[220vh] w-full relative mb-[-20vh]">
-      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden pointer-events-none">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
         <motion.div
           style={{ opacity: hintOpacity }}
-          className="absolute bottom-20 font-mono text-[10px] tracking-[0.3em] text-white/40 animate-pulse"
+          className="absolute bottom-20 flex flex-col items-center gap-3"
         >
-          SCROLL TO REVEAL
+          <span className="font-mono text-[10px] tracking-[0.3em] text-white/40 animate-pulse pointer-events-none">
+            SCROLL TO REVEAL
+          </span>
+          <button
+            onClick={handleSkip}
+            className="font-mono text-[9px] tracking-[0.2em] text-white/25 hover:text-white/50 transition-colors uppercase pointer-events-auto"
+            data-testid="button-skip-animation"
+          >
+            Skip
+          </button>
         </motion.div>
       </div>
     </div>
