@@ -191,6 +191,9 @@ function CourseCatalog({ onSelectCourse }: { onSelectCourse: (id: string) => voi
         <p className="text-white/40 font-body text-sm max-w-md mx-auto leading-relaxed italic">
           Study the architecture of writing at your own pace.
         </p>
+        <p className="text-white/15 font-body text-[11px] max-w-sm mx-auto leading-relaxed mt-4 italic">
+          courses are included with your plan or available individually. seed members receive one free course. cultivator members receive all courses.
+        </p>
       </motion.div>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -492,11 +495,14 @@ function CourseDetailView({ courseId, onBack, onSelectLesson }: {
             {course.description}
           </p>
 
-          <div className="flex items-center gap-6 text-[9px] font-mono uppercase tracking-[0.15em] text-white/25 mb-8">
+          <div className="flex items-center gap-6 text-[9px] font-mono uppercase tracking-[0.15em] text-white/25 mb-2">
             <span>{course.lessonCount} lessons</span>
             <span className="w-[1px] h-3 bg-white/10" />
             <span className="italic font-body text-[11px] normal-case tracking-normal text-white/35">by {course.instructor}</span>
           </div>
+          <p className="text-white/20 font-body text-[11px] italic leading-relaxed mb-8">
+            Sophia Maye — poet, editor, and founder of The Page Gallery Journal
+          </p>
 
           {course.hasAccess && course.lessonCount > 0 && (
             <div className="mb-2">
@@ -694,14 +700,17 @@ function ExerciseWriter({ courseId, lessonId, writingPrompt }: {
             </p>
           </div>
 
+          <p className="text-white/15 font-mono text-[9px] tracking-wide mb-2 italic">
+            line breaks and spacing are preserved exactly as you type them.
+          </p>
           <textarea
             ref={textareaRef}
             value={content}
             onChange={handleChange}
             placeholder="Begin writing here... your work saves automatically."
-            className="w-full bg-transparent border-0 text-white/70 font-body text-sm leading-[1.8] resize-none focus:outline-none placeholder:text-white/15 min-h-[200px]"
-            style={{ fontFamily: "'Special Elite', 'Courier New', monospace" }}
-            rows={10}
+            className="w-full bg-transparent border-0 text-white/70 text-[15px] resize-none focus:outline-none placeholder:text-white/15 min-h-[200px]"
+            style={{ fontFamily: "Georgia, 'Cormorant Garamond', serif", whiteSpace: "pre-wrap", lineHeight: 1.6, tabSize: 4 }}
+            rows={12}
             data-testid="textarea-exercise"
           />
         </div>
@@ -1047,6 +1056,177 @@ function InteractiveLessonContent({ html }: { html: string }) {
   );
 }
 
+const suggestedReadings: Record<string, { author: string; title: string; note?: string }[]> = {
+  "Welcome & Orientation": [
+    { author: "Mary Oliver", title: "A Poetry Handbook", note: "Essential introduction to the craft" },
+    { author: "Edward Hirsch", title: "How to Read a Poem and Fall in Love with Poetry" },
+    { author: "Mark Strand & Eavan Boland", title: "The Making of a Poem: A Norton Anthology of Poetic Forms" },
+  ],
+  "The Line as Unit of Thought": [
+    { author: "William Carlos Williams", title: "Spring and All" },
+    { author: "Denise Levertov", title: "Some Notes on Organic Form", note: "Essay on line as breath" },
+    { author: "C.D. Wright", title: "Steal Away: Selected and New Poems" },
+  ],
+  "Enjambment as Argument": [
+    { author: "Claudia Rankine", title: "Citizen: An American Lyric", note: "Radical use of line and space" },
+    { author: "James Wright", title: "Above the River: Complete Poems" },
+    { author: "Robert Hass", title: "Time and Materials" },
+  ],
+  "Stanza Breaks vs Section Breaks": [
+    { author: "Louise Glück", title: "The Wild Iris", note: "Masterful stanza architecture" },
+    { author: "Frank Bidart", title: "In the Western Night: Collected Poems" },
+    { author: "Brigit Pegeen Kelly", title: "Song" },
+  ],
+  "Syntax and Lineation": [
+    { author: "John Ashbery", title: "Self-Portrait in a Convex Mirror" },
+    { author: "Jorie Graham", title: "The Dream of the Unified Field", note: "Syntax against lineation" },
+    { author: "A.R. Ammons", title: "Garbage", note: "One long sentence as poem" },
+  ],
+  "Constraint Forms as Structural Practice": [
+    { author: "Terrance Hayes", title: "Lighthead", note: "The golden shovel and invented forms" },
+    { author: "Harryette Mullen", title: "Sleeping with the Dictionary", note: "Constraint as liberation" },
+    { author: "Christian Bök", title: "Eunoia", note: "Lipogram — each chapter uses only one vowel" },
+  ],
+  "White Space as Composition": [
+    { author: "Charles Olson", title: "The Maximus Poems", note: "Open field composition" },
+    { author: "Susan Howe", title: "Singularities", note: "Page as visual field" },
+    { author: "Larry Eigner", title: "The Collected Poems" },
+  ],
+  "Sound and Measure (Syllabics)": [
+    { author: "Gerard Manley Hopkins", title: "Poems and Prose", note: "Sprung rhythm" },
+    { author: "Seamus Heaney", title: "Opened Ground: Selected Poems", note: "Sonic patterning" },
+    { author: "Gwendolyn Brooks", title: "Selected Poems", note: "Sound and measure in service of meaning" },
+  ],
+  "The Prose Poem and Hybridity": [
+    { author: "Charles Baudelaire", title: "Paris Spleen", note: "Foundational prose poems" },
+    { author: "Claudia Rankine", title: "Don't Let Me Be Lonely", note: "Hybrid form" },
+    { author: "Anne Carson", title: "Short Talks", note: "Between essay and poem" },
+  ],
+  "Revision as Re-Seeing": [
+    { author: "Donald Hall", title: "The Unsayable Said", note: "On the revision process" },
+    { author: "Stephen Dobyns", title: "Best Words, Best Order", note: "Practical craft essays" },
+    { author: "Richard Hugo", title: "The Triggering Town", note: "Finding the real subject" },
+  ],
+  "Close Reading Workshop": [
+    { author: "Helen Vendler", title: "Poems, Poets, Poetry: An Introduction and Anthology" },
+    { author: "Terry Eagleton", title: "How to Read a Poem" },
+    { author: "Randall Jarrell", title: "No Other Book: Selected Essays", note: "Close reading as art" },
+  ],
+  "Capstone: Your Sequence": [
+    { author: "Natasha Trethewey", title: "Native Guard", note: "Sequence as historical witness" },
+    { author: "Jack Gilbert", title: "Refusing Heaven" },
+    { author: "Rita Dove", title: "Thomas and Beulah", note: "Narrative sequence" },
+  ],
+  "Why Form Matters": [
+    { author: "Mary Oliver", title: "Rules for the Dance", note: "A practical guide to poetic form" },
+    { author: "Robert Pinsky", title: "The Sounds of Poetry" },
+  ],
+  "The Line Break as Instrument": [
+    { author: "William Carlos Williams", title: "Paterson" },
+    { author: "Denise Levertov", title: "The Poet in the World" },
+  ],
+  "Stanza and Breath": [
+    { author: "W.S. Merwin", title: "The Rain in the Trees", note: "Unpunctuated stanzas" },
+    { author: "Elizabeth Bishop", title: "Geography III" },
+  ],
+  "Sound and Rhythm": [
+    { author: "Seamus Heaney", title: "Finders Keepers: Selected Prose" },
+    { author: "Robert Frost", title: "Collected Poems", note: "The sound of sense" },
+  ],
+  "Putting It All Together": [
+    { author: "Stanley Kunitz", title: "The Collected Poems" },
+    { author: "Mark Doty", title: "Fire to Fire: New and Selected Poems" },
+  ],
+  "What Is a Lyric Essay?": [
+    { author: "Maggie Nelson", title: "Bluets", note: "Lyric essay as numbered meditation" },
+    { author: "Jenny Offill", title: "Dept. of Speculation" },
+  ],
+  "The Art of Braiding": [
+    { author: "Eula Biss", title: "On Immunity", note: "Braided research and personal narrative" },
+    { author: "Sarah Manguso", title: "Ongoingness" },
+  ],
+  "Fragment and White Space": [
+    { author: "Anne Carson", title: "Nox", note: "Fragment as elegy" },
+    { author: "Wayne Koestenbaum", title: "My 1980s & Other Essays" },
+  ],
+  "Image as Argument": [
+    { author: "Joan Didion", title: "The White Album" },
+    { author: "James Baldwin", title: "Notes of a Native Son", note: "Image and moral argument" },
+  ],
+  "Seeing Your Draft Freshly": [
+    { author: "Anne Lamott", title: "Bird by Bird", note: "On shitty first drafts" },
+    { author: "Verlyn Klinkenborg", title: "Several Short Sentences About Writing" },
+  ],
+  "Finding the Real Subject": [
+    { author: "Richard Hugo", title: "The Triggering Town", note: "The poem you thought vs. the poem you wrote" },
+    { author: "Kim Addonizio", title: "Ordinary Genius" },
+  ],
+  "Structural Revision": [
+    { author: "Ursula K. Le Guin", title: "Steering the Craft" },
+    { author: "Francine Prose", title: "Reading Like a Writer" },
+  ],
+  "Sentence-Level Craft": [
+    { author: "Stanley Fish", title: "How to Write a Sentence and How to Read One" },
+    { author: "Virginia Tufte", title: "Artful Sentences: Syntax as Style" },
+  ],
+};
+
+function SuggestedReading({ lessonTitle }: { lessonTitle: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const readings = suggestedReadings[lessonTitle];
+  if (!readings || readings.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="rounded-xl border border-white/[0.06] bg-gradient-to-b from-white/[0.02] to-transparent overflow-hidden"
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-6 py-4 flex items-center justify-between text-left group"
+        data-testid="button-toggle-reading-list"
+      >
+        <div className="flex items-center gap-2">
+          <BookOpen size={13} className="text-white/20" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/25">Suggested Reading</span>
+        </div>
+        <ChevronDown
+          size={13}
+          className={`text-white/20 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pb-5 space-y-3 border-t border-white/[0.04] pt-3">
+              {readings.map((r, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-white/10 mt-0.5 text-[10px]">{i + 1}.</span>
+                  <div>
+                    <span className="font-body text-[13px] text-white/40 italic">{r.title}</span>
+                    <span className="font-body text-[13px] text-white/25"> — {r.author}</span>
+                    {r.note && (
+                      <span className="font-body text-[11px] text-white/15 block mt-0.5">{r.note}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
 function LessonView({ courseId, lessonId, onBack, onNavigate }: {
   courseId: string;
   lessonId: string;
@@ -1136,6 +1316,8 @@ function LessonView({ courseId, lessonId, onBack, onNavigate }: {
           writingPrompt={lesson.writingPrompt}
         />
       )}
+
+      <SuggestedReading lessonTitle={lesson.title} />
 
       <div className="flex items-center justify-between pt-4">
         <div>
