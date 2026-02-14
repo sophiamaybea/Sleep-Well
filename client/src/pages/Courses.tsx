@@ -90,6 +90,30 @@ const genreIcons: Record<string, React.ReactNode> = {
   craft: <Sparkles size={14} />,
 };
 
+const genreCardBg: Record<string, string> = {
+  poetry: "bg-gradient-to-br from-violet-950/15 via-indigo-950/10 to-emerald-950/8",
+  essay: "bg-gradient-to-br from-amber-950/15 via-emerald-950/10 to-teal-950/8",
+  fiction: "bg-gradient-to-br from-emerald-950/15 via-teal-950/12 to-cyan-950/8",
+  craft: "bg-gradient-to-br from-rose-950/12 via-amber-950/10 to-emerald-950/8",
+  nonfiction: "bg-gradient-to-br from-slate-950/12 via-emerald-950/10 to-teal-950/8",
+};
+
+const genreCardBorder: Record<string, string> = {
+  poetry: "border-violet-800/20 hover:border-violet-600/30",
+  essay: "border-amber-800/20 hover:border-amber-600/30",
+  fiction: "border-emerald-800/20 hover:border-emerald-600/30",
+  craft: "border-rose-800/20 hover:border-rose-600/30",
+  nonfiction: "border-slate-700/20 hover:border-slate-500/25",
+};
+
+const genreGlow: Record<string, string> = {
+  poetry: "rgba(139, 92, 246, 0.06)",
+  essay: "rgba(245, 158, 11, 0.06)",
+  fiction: "rgba(16, 185, 129, 0.06)",
+  craft: "rgba(244, 63, 94, 0.06)",
+  nonfiction: "rgba(148, 163, 184, 0.06)",
+};
+
 function StarRating({ rating, onRate, size = 18, interactive = false }: {
   rating: number;
   onRate?: (r: number) => void;
@@ -131,17 +155,19 @@ function CourseCatalog({ onSelectCourse }: { onSelectCourse: (id: string) => voi
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <h2 className="font-display text-2xl text-white/90 mb-2">Courses</h2>
-          <p className="text-white/50 font-body text-sm max-w-lg mx-auto">
-            Craft lessons from The Page Gallery — study the architecture of writing at your own pace.
+      <div className="space-y-10">
+        <div className="text-center pt-12 pb-4">
+          <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/25 mb-4">The Page Gallery</p>
+          <h2 className="font-display text-4xl sm:text-5xl text-white/90 italic mb-4">Craft Studies</h2>
+          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent mx-auto mb-4" />
+          <p className="text-white/40 font-body text-sm max-w-md mx-auto leading-relaxed italic">
+            Study the architecture of writing at your own pace.
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2">
           {[1, 2, 3].map(i => (
-            <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6 animate-pulse">
-              <div className="h-5 w-2/3 bg-white/10 rounded mb-3" />
+            <div key={i} className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-7 animate-pulse">
+              <div className="h-5 w-2/3 bg-white/10 rounded mb-4" />
               <div className="h-3 w-full bg-white/5 rounded mb-2" />
               <div className="h-3 w-4/5 bg-white/5 rounded" />
             </div>
@@ -152,16 +178,20 @@ function CourseCatalog({ onSelectCourse }: { onSelectCourse: (id: string) => voi
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center py-8">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <GraduationCap size={20} className="text-emerald-400/70" />
-          <h2 className="font-display text-2xl text-white/90">Courses</h2>
-        </div>
-        <p className="text-white/50 font-body text-sm max-w-lg mx-auto">
-          Craft lessons from The Page Gallery — study the architecture of writing at your own pace.
+    <div className="space-y-10">
+      <motion.div
+        className="text-center pt-12 pb-4"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/25 mb-4">The Page Gallery</p>
+        <h1 className="font-display text-4xl sm:text-5xl text-white/90 italic mb-4">Craft Studies</h1>
+        <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent mx-auto mb-4" />
+        <p className="text-white/40 font-body text-sm max-w-md mx-auto leading-relaxed italic">
+          Study the architecture of writing at your own pace.
         </p>
-      </div>
+      </motion.div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         {courses?.map((course, i) => (
@@ -170,9 +200,10 @@ function CourseCatalog({ onSelectCourse }: { onSelectCourse: (id: string) => voi
       </div>
 
       {(!courses || courses.length === 0) && !isLoading && (
-        <div className="text-center py-16 text-white/30">
-          <GraduationCap size={32} className="mx-auto mb-3 opacity-40" />
-          <p className="font-body text-sm">No courses available yet. Check back soon.</p>
+        <div className="text-center py-20 text-white/30">
+          <Feather size={28} className="mx-auto mb-4 opacity-30" />
+          <p className="font-display text-lg italic text-white/25 mb-2">The syllabus is being written.</p>
+          <p className="font-body text-xs text-white/20">Courses will appear here when they are ready.</p>
         </div>
       )}
     </div>
@@ -188,60 +219,56 @@ function CourseCard({ course, index, onSelect }: { course: CourseListItem; index
   return (
     <motion.button
       onClick={() => onSelect(course.id)}
-      className="text-left rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 sm:p-7 hover:bg-white/[0.06] hover:border-white/[0.14] transition-all group relative overflow-hidden"
-      whileHover={{ y: -3, scale: 1.01 }}
+      className={`text-left rounded-2xl border p-7 sm:p-8 transition-all group relative overflow-hidden ${genreCardBg[course.genre] || "bg-emerald-950/10"} ${genreCardBorder[course.genre] || "border-white/[0.08] hover:border-white/[0.14]"}`}
+      whileHover={{ y: -2 }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
+      transition={{ delay: index * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       data-testid={`card-course-${course.id}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] via-transparent to-amber-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{
+        background: `radial-gradient(ellipse at 80% 0%, ${genreGlow[course.genre] || "transparent"} 0%, transparent 60%)`,
+      }} />
 
       <div className="relative">
-        <div className="flex items-start justify-between mb-4">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-900/20 border border-emerald-800/15 text-emerald-400/70 text-[10px] font-mono uppercase tracking-wider">
-            {genreIcons[course.genre]}
+        <div className="flex items-start justify-between mb-5">
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
             {genreLabels[course.genre] || course.genre}
           </span>
           {course.hasAccess ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-900/20 border border-emerald-600/20 text-emerald-400/70 text-[10px] font-mono uppercase tracking-wider">
-              <Check size={10} />
-              {course.accessReason === "cultivator" ? "Included" : "Owned"}
+            <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-emerald-400/50">
+              {course.accessReason === "cultivator" ? "included" : "yours"}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-900/15 border border-amber-800/15 text-amber-400/70 text-[10px] font-mono uppercase tracking-wider">
+            <span className="font-display text-sm italic text-amber-400/60">
               ${course.price}
             </span>
           )}
         </div>
 
-        <h3 className="font-display text-xl text-white/85 mb-3 group-hover:text-white/95 transition-colors leading-tight" data-testid={`text-course-title-${course.id}`}>
+        <h3 className="font-display text-xl sm:text-2xl text-white/85 mb-3 group-hover:text-white/95 transition-colors leading-tight italic" data-testid={`text-course-title-${course.id}`}>
           {course.title}
         </h3>
 
-        <p className="text-white/40 text-sm font-body leading-relaxed line-clamp-3 mb-5">
+        <p className="text-white/35 text-sm font-body leading-relaxed line-clamp-3 mb-6">
           {course.description}
         </p>
 
         {ratingData && ratingData.count > 0 && (
-          <div className="flex items-center gap-2 mb-4">
-            <StarRating rating={Math.round(ratingData.average)} size={13} />
-            <span className="text-[10px] font-mono text-white/30">
-              {ratingData.average.toFixed(1)} ({ratingData.count})
+          <div className="flex items-center gap-2 mb-5">
+            <StarRating rating={Math.round(ratingData.average)} size={12} />
+            <span className="text-[9px] font-mono text-white/25">
+              {ratingData.average.toFixed(1)}
             </span>
           </div>
         )}
 
-        <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-white/30 pt-4 border-t border-white/[0.04]">
-          <span className="flex items-center gap-1.5">
-            <BookOpen size={11} className="text-emerald-400/40" />
-            {course.lessonCount} lessons
-          </span>
+        <div className="flex items-center justify-between text-[9px] font-mono uppercase tracking-[0.15em] text-white/25 pt-5 border-t border-white/[0.05]">
+          <span>{course.lessonCount} lessons</span>
           {course.includedInCultivator && !course.hasAccess && (
-            <span className="flex items-center gap-1 text-amber-500/50">
-              <Crown size={10} />
-              Free with Cultivator
+            <span className="flex items-center gap-1 text-amber-400/35">
+              <Crown size={9} />
+              cultivator
             </span>
           )}
         </div>
@@ -291,10 +318,10 @@ function CourseRatingSection({ courseId }: { courseId: string }) {
   };
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Star size={16} className="text-amber-400/60" />
-        <h3 className="font-mono text-[10px] uppercase tracking-wider text-white/40">Ratings & Reviews</h3>
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7">
+      <div className="mb-5">
+        <h3 className="font-display text-lg italic text-white/60 mb-1">What readers say</h3>
+        <div className="w-10 h-[1px] bg-white/10" />
       </div>
 
       {ratingsData && ratingsData.count > 0 && (
@@ -405,12 +432,13 @@ function CourseDetailView({ courseId, onBack, onSelectLesson }: {
 
   if (isLoading || !course) {
     return (
-      <div className="space-y-6">
-        <button onClick={onBack} className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm font-mono">
-          <ArrowLeft size={14} /> Back to courses
+      <div className="space-y-8">
+        <button onClick={onBack} className="text-white/30 hover:text-white/55 transition-colors font-mono text-[10px] lowercase tracking-[0.15em]">
+          <span className="inline-flex items-center gap-1.5"><ArrowLeft size={11} /> return to catalog</span>
         </button>
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-2/3 bg-white/10 rounded" />
+        <div className="animate-pulse space-y-5 rounded-2xl border border-white/[0.06] p-8">
+          <div className="h-4 w-1/4 bg-white/5 rounded" />
+          <div className="h-8 w-2/3 bg-white/8 rounded" />
           <div className="h-4 w-full bg-white/5 rounded" />
           <div className="h-4 w-4/5 bg-white/5 rounded" />
         </div>
@@ -421,86 +449,97 @@ function CourseDetailView({ courseId, onBack, onSelectLesson }: {
   const progressPercent = course.lessonCount > 0 ? Math.round((course.completedCount / course.lessonCount) * 100) : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <button
         onClick={onBack}
-        className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm font-mono transition-colors"
+        className="text-white/30 hover:text-white/55 transition-colors font-mono text-[10px] lowercase tracking-[0.15em]"
         data-testid="button-back-courses"
       >
-        <ArrowLeft size={14} /> Back to courses
+        <span className="inline-flex items-center gap-1.5">
+          <ArrowLeft size={11} />
+          return to catalog
+        </span>
       </button>
 
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 sm:p-8">
-        <div className="flex items-start justify-between mb-4">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-900/20 border border-emerald-800/15 text-emerald-400/70 text-[10px] font-mono uppercase tracking-wider">
-            {genreIcons[course.genre]}
-            {genreLabels[course.genre] || course.genre}
-          </span>
-          {course.hasAccess && course.accessReason === "cultivator" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-900/15 border border-amber-800/15 text-amber-400/60 text-[10px] font-mono uppercase tracking-wider">
-              <Crown size={10} />
-              Cultivator
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className={`rounded-2xl border overflow-hidden relative ${genreCardBg[course.genre] || "bg-emerald-950/10"} ${genreCardBorder[course.genre]?.split(" ")[0] || "border-white/[0.08]"}`}
+      >
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: `radial-gradient(ellipse at 30% 0%, ${genreGlow[course.genre]?.replace("0.06", "0.1") || "transparent"} 0%, transparent 50%)`,
+        }} />
+
+        <div className="relative p-7 sm:p-10">
+          <div className="flex items-start justify-between mb-6">
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
+              {genreLabels[course.genre] || course.genre}
             </span>
+            {course.hasAccess && course.accessReason === "cultivator" && (
+              <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-amber-400/40 flex items-center gap-1">
+                <Crown size={9} />
+                cultivator
+              </span>
+            )}
+          </div>
+
+          <h2 className="font-display text-3xl sm:text-4xl text-white/90 italic mb-4 leading-tight" data-testid="text-course-detail-title">
+            {course.title}
+          </h2>
+
+          <p className="text-white/40 font-body text-sm leading-relaxed mb-6 max-w-xl">
+            {course.description}
+          </p>
+
+          <div className="flex items-center gap-6 text-[9px] font-mono uppercase tracking-[0.15em] text-white/25 mb-8">
+            <span>{course.lessonCount} lessons</span>
+            <span className="w-[1px] h-3 bg-white/10" />
+            <span className="italic font-body text-[11px] normal-case tracking-normal text-white/35">by {course.instructor}</span>
+          </div>
+
+          {course.hasAccess && course.lessonCount > 0 && (
+            <div className="mb-2">
+              <div className="flex items-center justify-between text-[9px] font-mono uppercase tracking-[0.15em] text-white/30 mb-2">
+                <span>Progress</span>
+                <span>{course.completedCount} of {course.lessonCount}</span>
+              </div>
+              <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-emerald-500/40 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </div>
+            </div>
+          )}
+
+          {!course.hasAccess && (
+            <div className="rounded-xl border border-amber-800/15 bg-amber-900/[0.06] p-5">
+              <p className="text-white/45 text-sm font-body italic mb-3">
+                {course.includedInCultivator
+                  ? "Included with the Cultivator plan, or available individually."
+                  : "Purchase for permanent access."}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="font-display text-xl italic text-amber-400/60">${course.price}</span>
+                <button
+                  onClick={() => purchaseMutation.mutate()}
+                  disabled={purchaseMutation.isPending}
+                  className="px-5 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.12] hover:bg-white/[0.1] hover:border-white/[0.18] text-white/70 hover:text-white/90 transition-all font-mono text-[10px] uppercase tracking-[0.15em]"
+                  data-testid="button-purchase-course"
+                >
+                  {purchaseMutation.isPending ? "opening..." : "begin studying"}
+                </button>
+              </div>
+            </div>
           )}
         </div>
-
-        <h2 className="font-display text-2xl sm:text-3xl text-white/90 mb-3" data-testid="text-course-detail-title">
-          {course.title}
-        </h2>
-
-        <p className="text-white/50 font-body text-sm leading-relaxed mb-6">
-          {course.description}
-        </p>
-
-        <div className="flex items-center gap-4 text-[10px] font-mono uppercase tracking-wider text-white/30 mb-6">
-          <span>{course.lessonCount} lessons</span>
-          <span>by {course.instructor}</span>
-        </div>
-
-        {course.hasAccess && course.lessonCount > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-white/40 mb-2">
-              <span>Progress</span>
-              <span>{course.completedCount}/{course.lessonCount} complete</span>
-            </div>
-            <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-emerald-500/40 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-          </div>
-        )}
-
-        {!course.hasAccess && (
-          <div className="rounded-lg border border-amber-800/20 bg-amber-900/10 p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/70 text-sm font-body mb-1">
-                  {course.includedInCultivator
-                    ? "This course is included with the Cultivator plan, or purchase it individually."
-                    : "Purchase this course for permanent access."}
-                </p>
-                <p className="text-amber-400/60 font-display text-xl">${course.price}</p>
-              </div>
-              <button
-                onClick={() => purchaseMutation.mutate()}
-                disabled={purchaseMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600/20 border border-emerald-600/25 text-emerald-300/80 hover:bg-emerald-600/30 transition-all font-mono text-xs uppercase tracking-wider"
-                data-testid="button-purchase-course"
-              >
-                <ShoppingCart size={14} />
-                {purchaseMutation.isPending ? "Processing..." : "Get Access"}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      </motion.div>
 
       <div className="space-y-2">
-        <h3 className="font-mono text-[10px] uppercase tracking-wider text-white/30 px-1 mb-3">Lessons</h3>
+        <h3 className="font-display text-sm italic text-white/40 px-1 mb-4">Lessons</h3>
         {course.lessons.map((lesson, i) => {
           const isAccessible = course.hasAccess;
           return (
@@ -510,7 +549,7 @@ function CourseDetailView({ courseId, onBack, onSelectLesson }: {
               disabled={!isAccessible}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.04, duration: 0.3 }}
+              transition={{ delay: i * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className={`w-full text-left flex items-center gap-3 p-4 rounded-lg border transition-all group/lesson ${
                 isAccessible
                   ? "border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04] cursor-pointer"
@@ -1038,54 +1077,54 @@ function LessonView({ courseId, lessonId, onBack, onNavigate }: {
 
   if (isLoading || !lesson) {
     return (
-      <div className="space-y-6">
-        <button onClick={onBack} className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm font-mono">
-          <ArrowLeft size={14} /> Back to course
+      <div className="space-y-8">
+        <button onClick={onBack} className="text-white/30 hover:text-white/55 transition-colors font-mono text-[10px] lowercase tracking-[0.15em]">
+          <span className="inline-flex items-center gap-1.5"><ArrowLeft size={11} /> return to course</span>
         </button>
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 w-1/3 bg-white/10 rounded" />
+        <div className="animate-pulse space-y-5 rounded-2xl border border-white/[0.06] p-8">
+          <div className="h-3 w-1/6 bg-white/5 rounded" />
+          <div className="h-7 w-1/2 bg-white/8 rounded" />
+          <div className="w-12 h-[1px] bg-white/5" />
           <div className="h-4 w-full bg-white/5 rounded" />
           <div className="h-4 w-4/5 bg-white/5 rounded" />
-          <div className="h-4 w-full bg-white/5 rounded" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm font-mono transition-colors"
+          className="text-white/30 hover:text-white/55 transition-colors font-mono text-[10px] lowercase tracking-[0.15em]"
           data-testid="button-back-course"
         >
-          <ArrowLeft size={14} /> Back to course
+          <span className="inline-flex items-center gap-1.5">
+            <ArrowLeft size={11} />
+            return to course
+          </span>
         </button>
-        <span className="text-[10px] font-mono uppercase tracking-wider text-white/30">
-          Lesson {lesson.currentIndex} of {lesson.totalLessons}
+        <span className="text-[9px] font-mono text-white/20 tracking-[0.15em]">
+          {lesson.currentIndex} of {lesson.totalLessons}
         </span>
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-white/[0.08] bg-white/[0.03] overflow-hidden"
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent overflow-hidden"
       >
-        <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-2">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-emerald-900/20 border border-emerald-800/20 flex items-center justify-center">
-              <span className="text-emerald-400/60 text-xs font-mono">{lesson.currentIndex}</span>
-            </div>
-            <div>
-              <h2 className="font-display text-xl sm:text-2xl text-white/90" data-testid="text-lesson-title">
-                {lesson.title}
-              </h2>
-            </div>
-          </div>
+        <div className="px-7 sm:px-10 pt-8 sm:pt-10 pb-3">
+          <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/20 mb-3">Lesson {lesson.currentIndex}</p>
+          <h2 className="font-display text-2xl sm:text-3xl text-white/90 italic leading-tight" data-testid="text-lesson-title">
+            {lesson.title}
+          </h2>
+          <div className="w-12 h-[1px] bg-white/10 mt-5" />
         </div>
 
-        <div className="px-6 sm:px-8 pb-6 sm:pb-8">
+        <div className="px-7 sm:px-10 pb-8 sm:pb-10">
           <InteractiveLessonContent html={lesson.content} />
         </div>
       </motion.div>
@@ -1098,40 +1137,40 @@ function LessonView({ courseId, lessonId, onBack, onNavigate }: {
         />
       )}
 
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center justify-between pt-4">
         <div>
           {lesson.prevLessonId ? (
             <button
               onClick={() => onNavigate(lesson.prevLessonId!)}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg border border-white/[0.06] text-white/40 hover:text-white/60 hover:border-white/[0.12] transition-all font-mono text-xs"
+              className="text-white/25 hover:text-white/50 transition-colors font-mono text-[10px] lowercase tracking-[0.15em]"
               data-testid="button-prev-lesson"
             >
-              <ChevronLeft size={14} /> Previous
+              <span className="inline-flex items-center gap-1"><ChevronLeft size={11} /> previous</span>
             </button>
           ) : <div />}
         </div>
 
         <button
           onClick={() => lesson.completed ? uncompleteMutation.mutate() : completeMutation.mutate()}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all font-mono text-xs uppercase tracking-wider ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all font-mono text-[10px] uppercase tracking-[0.15em] ${
             lesson.completed
-              ? "border-emerald-600/25 bg-emerald-600/15 text-emerald-300/80"
-              : "border-white/[0.08] text-white/50 hover:border-emerald-600/20 hover:text-emerald-300/60 hover:bg-emerald-900/10"
+              ? "border-emerald-600/20 bg-emerald-600/10 text-emerald-300/70"
+              : "border-white/[0.08] text-white/40 hover:border-emerald-600/15 hover:text-emerald-300/50 hover:bg-emerald-900/[0.06]"
           }`}
           data-testid="button-mark-complete"
         >
-          {lesson.completed ? <CheckCircle2 size={14} /> : <Circle size={14} />}
-          {lesson.completed ? "Completed" : "Mark Complete"}
+          {lesson.completed ? <CheckCircle2 size={13} /> : <Circle size={13} />}
+          {lesson.completed ? "completed" : "mark complete"}
         </button>
 
         <div>
           {lesson.nextLessonId ? (
             <button
               onClick={() => onNavigate(lesson.nextLessonId!)}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg border border-white/[0.06] text-white/40 hover:text-white/60 hover:border-white/[0.12] transition-all font-mono text-xs"
+              className="text-white/25 hover:text-white/50 transition-colors font-mono text-[10px] lowercase tracking-[0.15em]"
               data-testid="button-next-lesson"
             >
-              Next <ChevronRight size={14} />
+              <span className="inline-flex items-center gap-1">continue <ChevronRight size={11} /></span>
             </button>
           ) : <div />}
         </div>
@@ -1179,28 +1218,25 @@ export default function Courses() {
       <div className="night-garden-atmosphere" />
       <div className="moonlight-glow" />
 
-      <header className="sticky top-0 z-50 garden-header-bg backdrop-blur-md">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setLocation("/garden")}
-              className="text-white/40 hover:text-white/60 transition-colors"
-              data-testid="button-back-garden"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div className="flex items-center gap-2">
-              <GraduationCap size={16} className="text-emerald-400/60" />
-              <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">Courses</span>
-            </div>
-          </div>
+      <header className="sticky top-0 z-50 garden-header-bg backdrop-blur-md border-b border-white/[0.04]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={() => setLocation("/garden")}
+            className="text-white/30 hover:text-white/55 transition-colors font-mono text-[10px] lowercase tracking-[0.15em]"
+            data-testid="button-back-garden"
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <ArrowLeft size={11} />
+              garden
+            </span>
+          </button>
 
           <button
             onClick={() => setIsLightMode(!isLightMode)}
-            className="px-2 py-1 rounded-full border border-white/[0.06] text-white/30 hover:text-white/50 font-mono text-[9px] uppercase tracking-wider transition-all"
+            className="text-white/20 hover:text-white/40 font-mono text-[9px] lowercase tracking-[0.15em] transition-colors"
             data-testid="button-toggle-theme"
           >
-            {isLightMode ? "Dark" : "Light"}
+            {isLightMode ? "night" : "daylight"}
           </button>
         </div>
       </header>
