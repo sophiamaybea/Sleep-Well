@@ -11,7 +11,7 @@ import {
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
   TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send,
-  Flag, ExternalLink, Camera, Crown, RotateCcw, Settings, GraduationCap
+  Flag, ExternalLink, Camera, Crown, RotateCcw, Settings, GraduationCap, Trophy
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -3255,6 +3255,14 @@ export default function Garden() {
                           >
                             <GraduationCap size={14} />
                             Courses
+                          </a>
+                          <a
+                            href="/challenges"
+                            className="flex items-center gap-2 px-2 py-2 rounded-lg text-amber-400/60 hover:text-amber-400/90 hover:bg-amber-400/[0.05] transition-all font-serif text-sm"
+                            data-testid="nav-challenges"
+                          >
+                            <Trophy size={14} />
+                            Challenges
                           </a>
                           <button
                             onClick={() => { setActiveZone("desk"); setShowProfileMenu(false); }}

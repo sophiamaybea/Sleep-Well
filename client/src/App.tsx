@@ -12,6 +12,7 @@ import EditorStudio from "@/pages/EditorStudio";
 import Gallery from "@/pages/Gallery";
 import About from "@/pages/About";
 import Courses from "@/pages/Courses";
+import Challenges from "@/pages/Challenges";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/editor-studio" component={EditorStudio} />
       <Route path="/about" component={About} />
       <Route path="/courses" component={Courses} />
+      <Route path="/challenges" component={Challenges} />
       <Route component={NotFound} />
     </Switch>
   );
