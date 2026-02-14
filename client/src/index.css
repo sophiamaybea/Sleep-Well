@@ -394,138 +394,222 @@
   background: linear-gradient(135deg, rgba(11,16,26,0.95) 0%, rgba(10,18,16,0.95) 100%);
 }
 
-/* ─── Garden Light Mode ─── */
+/* ─── Garden Light Mode: "Warm Study" ─── */
+/* A muted parchment palette — warm sepia tones, ink-brown text, soft shadows.
+   Designed to feel like an old study or reading nook, not a bright white screen. */
+
 .garden-light {
-  --color-background: hsl(35 30% 96%);
-  --color-foreground: hsl(220 30% 12%);
-  --color-card: hsl(35 25% 92%);
-  --color-card-foreground: hsl(220 30% 15%);
-  --color-popover: hsl(35 30% 96%);
-  --color-popover-foreground: hsl(220 30% 12%);
-  --color-primary: hsl(220 30% 12%);
-  --color-primary-foreground: hsl(35 30% 96%);
-  --color-secondary: hsl(35 15% 85%);
-  --color-border: hsl(35 15% 82%);
-  --color-input: hsl(35 15% 82%);
-  --color-ring: hsl(220 30% 12%);
+  --color-background: #ede6d8;
+  --color-foreground: #2c2418;
+  --color-card: #e4dccf;
+  --color-card-foreground: #2c2418;
+  --color-popover: #e8e0d2;
+  --color-popover-foreground: #2c2418;
+  --color-primary: #3d3225;
+  --color-primary-foreground: #ede6d8;
+  --color-secondary: #d9d0c1;
+  --color-secondary-foreground: #3d3225;
+  --color-muted: #d9d0c1;
+  --color-muted-foreground: #7a6e5d;
+  --color-accent: #e4dccf;
+  --color-accent-foreground: #2c2418;
+  --color-destructive: #a33b3b;
+  --color-destructive-foreground: #ede6d8;
+  --color-border: #c8bfaf;
+  --color-input: #c8bfaf;
+  --color-ring: #3d3225;
   color-scheme: light;
 }
 
+/* ─── Light: Backgrounds ─── */
 .garden-light .garden-bg {
-  background: linear-gradient(180deg, hsl(35 30% 96%) 0%, hsl(35 25% 94%) 30%, hsl(35 28% 95%) 60%, hsl(35 30% 96%) 100%) !important;
+  background: linear-gradient(180deg, #ede6d8 0%, #e8e0d0 40%, #ebe4d5 70%, #ede6d8 100%) !important;
 }
 .garden-light .garden-header-bg {
-  background: rgba(250, 245, 235, 0.92) !important;
-  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  background: rgba(232, 224, 210, 0.94) !important;
+  border-bottom: 1px solid rgba(60, 50, 35, 0.1) !important;
+  box-shadow: 0 1px 8px rgba(60, 50, 35, 0.06) !important;
 }
 .garden-light .garden-dropdown-bg {
-  background: rgba(250, 245, 235, 0.98) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  background: rgba(232, 224, 210, 0.98) !important;
+  border-color: rgba(60, 50, 35, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(60, 50, 35, 0.12) !important;
 }
-
 .garden-light .glass-panel {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  background-color: rgba(237, 230, 216, 0.8) !important;
+  border-color: rgba(60, 50, 35, 0.1) !important;
   backdrop-filter: blur(12px) !important;
+  box-shadow: 0 1px 4px rgba(60, 50, 35, 0.05) !important;
+}
+.garden-light .a11y-panel-bg {
+  background: rgba(232, 224, 210, 0.96) !important;
+  border-color: rgba(60, 50, 35, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(60, 50, 35, 0.08) !important;
 }
 
+/* ─── Light: Hide dark-mode atmospherics ─── */
 .garden-light .night-garden-atmosphere,
 .garden-light .moonlight-glow {
   display: none !important;
 }
 
-.garden-light .garden-bg [class*="text-white"] {
-  color: rgba(0, 0, 0, 0.7);
-}
+/* ─── Light: Text color remapping ─── */
+/* High emphasis (headings, labels, strong text) */
 .garden-light .garden-bg [class*="text-white/9"],
 .garden-light .garden-bg [class*="text-white/8"] {
-  color: rgba(0, 0, 0, 0.85) !important;
+  color: #2c2418 !important;
 }
+/* Medium emphasis (body, descriptions) */
 .garden-light .garden-bg [class*="text-white/7"],
 .garden-light .garden-bg [class*="text-white/6"] {
-  color: rgba(0, 0, 0, 0.7) !important;
+  color: #4a3f30 !important;
 }
+/* Low emphasis (hints, metadata) */
 .garden-light .garden-bg [class*="text-white/5"],
 .garden-light .garden-bg [class*="text-white/4"] {
-  color: rgba(0, 0, 0, 0.5) !important;
+  color: #7a6e5d !important;
 }
+/* Muted (placeholders, ghost text) */
 .garden-light .garden-bg [class*="text-white/3"],
 .garden-light .garden-bg [class*="text-white/2"],
 .garden-light .garden-bg [class*="text-white/1"] {
-  color: rgba(0, 0, 0, 0.3) !important;
+  color: #a09482 !important;
+}
+/* Catch-all for unclassed text-white */
+.garden-light .garden-bg [class*="text-white"] {
+  color: #4a3f30;
 }
 
+/* ─── Light: Background color remapping ─── */
 .garden-light .garden-bg [class*="bg-white/"] {
-  background-color: rgba(0, 0, 0, 0.04) !important;
+  background-color: rgba(60, 50, 35, 0.05) !important;
 }
 .garden-light .garden-bg [class*="hover:bg-white/"]:hover {
-  background-color: rgba(0, 0, 0, 0.07) !important;
+  background-color: rgba(60, 50, 35, 0.09) !important;
 }
 
-.garden-light .garden-bg [class*="border-white/"],
-.garden-light .garden-bg [class*="border-emerald-"] {
-  border-color: rgba(0, 0, 0, 0.08) !important;
+/* ─── Light: Border remapping ─── */
+.garden-light .garden-bg [class*="border-white/"] {
+  border-color: rgba(60, 50, 35, 0.12) !important;
 }
 
+/* ─── Light: Accent colors — rich and readable on parchment ─── */
 .garden-light .garden-bg [class*="text-emerald-"] {
-  color: hsl(160 60% 30%) !important;
+  color: #2d6a4f !important;
 }
 .garden-light .garden-bg [class*="text-amber-"] {
-  color: hsl(35 70% 35%) !important;
+  color: #92600a !important;
 }
 .garden-light .garden-bg [class*="text-violet-"] {
-  color: hsl(270 50% 40%) !important;
+  color: #6b3fa0 !important;
 }
 .garden-light .garden-bg [class*="text-red-"] {
-  color: hsl(0 60% 40%) !important;
+  color: #a33b3b !important;
+}
+.garden-light .garden-bg [class*="text-pink-"] {
+  color: #a33b6b !important;
+}
+.garden-light .garden-bg [class*="text-stone-"] {
+  color: #6b5e4f !important;
 }
 
 .garden-light .garden-bg [class*="bg-emerald-"] {
-  background-color: hsla(160 60% 30%, 0.1) !important;
+  background-color: rgba(45, 106, 79, 0.1) !important;
 }
 .garden-light .garden-bg [class*="bg-amber-"] {
-  background-color: hsla(35 70% 35%, 0.1) !important;
+  background-color: rgba(146, 96, 10, 0.08) !important;
 }
 .garden-light .garden-bg [class*="bg-violet-"] {
-  background-color: hsla(270 50% 40%, 0.1) !important;
+  background-color: rgba(107, 63, 160, 0.08) !important;
 }
 
 .garden-light .garden-bg [class*="border-emerald-"] {
-  border-color: hsla(160 60% 30%, 0.15) !important;
+  border-color: rgba(45, 106, 79, 0.2) !important;
 }
 .garden-light .garden-bg [class*="border-amber-"] {
-  border-color: hsla(35 70% 35%, 0.15) !important;
+  border-color: rgba(146, 96, 10, 0.18) !important;
+}
+.garden-light .garden-bg [class*="border-violet-"] {
+  border-color: rgba(107, 63, 160, 0.15) !important;
 }
 
+/* ─── Light: Editor prose ─── */
 .garden-light .prose-editor .tiptap h2,
 .garden-light .prose-editor .tiptap h3,
+.garden-light .prose-content h2,
+.garden-light .prose-content h3 {
+  color: #2c2418 !important;
+}
 .garden-light .prose-editor .tiptap strong,
 .garden-light .prose-editor .tiptap em,
-.garden-light .prose-content h2,
-.garden-light .prose-content h3,
 .garden-light .prose-content strong {
-  color: rgba(0, 0, 0, 0.85) !important;
+  color: #2c2418 !important;
 }
-
 .garden-light .prose-editor .tiptap p,
 .garden-light .prose-content p {
-  color: rgba(0, 0, 0, 0.75) !important;
+  color: #3d3225 !important;
 }
-
+.garden-light .prose-editor .tiptap blockquote,
+.garden-light .prose-content blockquote {
+  border-left-color: rgba(60, 50, 35, 0.2) !important;
+  color: #6b5e4f !important;
+}
+.garden-light .prose-editor .tiptap hr,
+.garden-light .prose-content hr {
+  border-top-color: rgba(60, 50, 35, 0.1) !important;
+}
 .garden-light .tiptap p.is-editor-empty:first-child::before {
-  color: rgba(0, 0, 0, 0.25) !important;
+  color: #a09482 !important;
 }
 
+/* ─── Light: Editor cursor & selection ─── */
+.garden-light .prose-editor .tiptap {
+  caret-color: #3d3225 !important;
+}
+.garden-light .typewriter-editor.tiptap {
+  caret-color: #6b3f0a !important;
+  color: #3d3225 !important;
+}
+.garden-light .typewriter-editor.tiptap::selection,
+.garden-light .typewriter-editor.tiptap *::selection {
+  background: rgba(146, 96, 10, 0.18) !important;
+}
+.garden-light .prose-editor .tiptap::selection,
+.garden-light .prose-editor .tiptap *::selection {
+  background: rgba(45, 106, 79, 0.15) !important;
+}
+
+/* ─── Light: Form elements ─── */
 .garden-light select option {
-  background-color: hsl(35 30% 96%) !important;
-  color: hsl(220 30% 12%) !important;
+  background-color: #e8e0d2 !important;
+  color: #2c2418 !important;
+}
+.garden-light input,
+.garden-light textarea,
+.garden-light select {
+  color: #2c2418 !important;
+}
+.garden-light input::placeholder,
+.garden-light textarea::placeholder {
+  color: #a09482 !important;
 }
 
+/* ─── Light: Backdrop blur ─── */
 .garden-light [class*="backdrop-blur"] {
   backdrop-filter: blur(12px) !important;
 }
 
-.garden-light .a11y-panel-bg {
-  background: rgba(245, 240, 230, 0.95) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
+/* ─── Light: Scrollbar ─── */
+.garden-light ::-webkit-scrollbar {
+  width: 8px;
+}
+.garden-light ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.garden-light ::-webkit-scrollbar-thumb {
+  background: rgba(60, 50, 35, 0.15);
+  border-radius: 4px;
+}
+.garden-light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(60, 50, 35, 0.25);
 }
