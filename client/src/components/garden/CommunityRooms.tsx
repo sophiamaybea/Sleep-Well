@@ -2987,3 +2987,318 @@ export function IdeaDropsRoom({ onBack }: { onBack: () => void }) {
     </div>
   );
 }
+
+export function FirstReaderRoom({ onBack }: { onBack: () => void }) {
+  const [readerView, setReaderView] = useState<"drop" | "read" | "mine">("drop");
+  const [dropContent, setDropContent] = useState("");
+  const [dropGenre, setDropGenre] = useState("poetry");
+  const [responseInputs, setResponseInputs] = useState<Record<string, { alive: string; striking: string; suggestion: string }>>({});
+  const queryClient = useQueryClient();
+
+  const { data: drops = [], isLoading: loadingDrops } = useQuery<any[]>({
+    queryKey: ["/api/first-reader"],
+    queryFn: async () => {
+      const res = await fetch("/api/first-reader", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch drops");
+      return res.json();
+    },
+    enabled: readerView === "read",
+  });
+
+  const { data: myDrops = [], isLoading: loadingMine } = useQuery<any[]>({
+    queryKey: ["/api/first-reader/mine"],
+    queryFn: async () => {
+      const res = await fetch("/api/first-reader/mine", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch my drops");
+      return res.json();
+    },
+    enabled: readerView === "mine",
+  });
+
+  const dropMutation = useMutation({
+    mutationFn: async (data: { content: string; genre: string }) => {
+      const res = await fetch("/api/first-reader", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to create drop");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/first-reader"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/first-reader/mine"] });
+      setDropContent("");
+      setReaderView("mine");
+    },
+  });
+
+  const respondMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { aliveSignal: string; strikingLine?: string; oneSuggestion?: string } }) => {
+      const res = await fetch(`/api/first-reader/${id}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to respond");
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/first-reader"] });
+      setResponseInputs((prev) => {
+        const next = { ...prev };
+        delete next[variables.id];
+        return next;
+      });
+    },
+  });
+
+  const handleDrop = () => {
+    if (!dropContent.trim()) return;
+    dropMutation.mutate({ content: dropContent.trim(), genre: dropGenre });
+  };
+
+  const handleRespond = (dropId: string) => {
+    const inputs = responseInputs[dropId];
+    if (!inputs?.alive?.trim()) return;
+    const data: { aliveSignal: string; strikingLine?: string; oneSuggestion?: string } = {
+      aliveSignal: inputs.alive.trim(),
+    };
+    if (inputs.striking?.trim()) data.strikingLine = inputs.striking.trim();
+    if (inputs.suggestion?.trim()) data.oneSuggestion = inputs.suggestion.trim();
+    respondMutation.mutate({ id: dropId, data });
+  };
+
+  const getInput = (dropId: string) => responseInputs[dropId] || { alive: "", striking: "", suggestion: "" };
+  const setInput = (dropId: string, field: string, value: string) => {
+    setResponseInputs((prev) => ({ ...prev, [dropId]: { ...getInput(dropId), [field]: value } }));
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto" data-testid="first-reader-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <Feather size={16} className="text-amber-400/50" />
+          <h2 className="text-xl font-display font-light italic text-white/80">First Reader</h2>
+        </div>
+        <div className="w-16" />
+      </div>
+
+      <div className="flex gap-1 mb-6 p-1 bg-white/[0.03] border border-white/[0.08] rounded-full w-fit" data-testid="first-reader-view-toggle">
+        {(["drop", "read", "mine"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setReaderView(v)}
+            className={`px-4 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all ${
+              readerView === v
+                ? "bg-amber-500/15 border border-amber-500/25 text-amber-300/80"
+                : "text-white/50 hover:text-white/70 border border-transparent"
+            }`}
+            data-testid={`button-reader-${v}`}
+          >
+            {v === "drop" ? "Drop" : v === "read" ? "Read" : "My Drops"}
+          </button>
+        ))}
+      </div>
+
+      {readerView === "drop" && (
+        <div className="space-y-4">
+          <p className="font-serif text-sm text-white/50 italic">Drop something you wrote in the last 24 hours. Raw, unpolished, fresh. Someone will read it and tell you if there's something alive in it.</p>
+          <textarea
+            value={dropContent}
+            onChange={e => setDropContent(e.target.value)}
+            placeholder="Paste or write your fresh piece here..."
+            className="w-full h-40 bg-transparent border border-white/[0.08] rounded-xl px-4 py-3 font-serif text-sm text-white/70 placeholder:text-white/25 focus:border-amber-500/30 focus:outline-none resize-none"
+            data-testid="input-drop-content"
+          />
+          <div className="flex items-center gap-3">
+            <select value={dropGenre} onChange={e => setDropGenre(e.target.value)}
+              className="bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-mono text-xs text-white/50 focus:outline-none"
+              data-testid="select-drop-genre">
+              <option value="poetry">Poetry</option>
+              <option value="fiction">Fiction</option>
+              <option value="nonfiction">Nonfiction</option>
+              <option value="fragment">Fragment</option>
+            </select>
+            <button onClick={handleDrop} disabled={!dropContent.trim() || dropMutation.isPending}
+              className="px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 text-amber-300/70 hover:bg-amber-500/15 transition-all disabled:opacity-30"
+              data-testid="button-drop">
+              Drop it
+            </button>
+          </div>
+        </div>
+      )}
+
+      {readerView === "read" && (
+        <div className="space-y-6">
+          {loadingDrops ? (
+            <ListSkeleton count={3} />
+          ) : drops.length === 0 ? (
+            <p className="text-center font-serif text-sm text-white/30 py-12">No fresh drops waiting. Check back soon.</p>
+          ) : drops.map((drop: any) => (
+            <div key={drop.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5" data-testid={`drop-card-${drop.id}`}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/25">{drop.genre}</span>
+                <span className="font-mono text-[8px] text-white/20">·</span>
+                <span className="font-mono text-[8px] text-white/20">{timeAgo(drop.createdAt)}</span>
+              </div>
+              <div className="font-serif text-sm text-white/60 whitespace-pre-wrap leading-relaxed mb-4">{drop.content}</div>
+              <div className="border-t border-white/[0.06] pt-3 space-y-2">
+                <textarea placeholder="Is there something alive in this? (required)"
+                  value={getInput(drop.id).alive}
+                  onChange={e => setInput(drop.id, "alive", e.target.value)}
+                  className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-2 font-serif text-xs text-white/50 placeholder:text-white/20 focus:outline-none resize-none h-16"
+                  data-testid={`input-alive-${drop.id}`} />
+                <input type="text" placeholder="A line that stopped you (optional)"
+                  value={getInput(drop.id).striking}
+                  onChange={e => setInput(drop.id, "striking", e.target.value)}
+                  className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-2 font-serif text-xs text-white/50 placeholder:text-white/20 focus:outline-none"
+                  data-testid={`input-striking-${drop.id}`} />
+                <input type="text" placeholder="One small suggestion (optional)"
+                  value={getInput(drop.id).suggestion}
+                  onChange={e => setInput(drop.id, "suggestion", e.target.value)}
+                  className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-2 font-serif text-xs text-white/50 placeholder:text-white/20 focus:outline-none"
+                  data-testid={`input-suggestion-${drop.id}`} />
+                <button
+                  onClick={() => handleRespond(drop.id)}
+                  disabled={!getInput(drop.id).alive?.trim() || respondMutation.isPending}
+                  className="px-3 py-1.5 rounded-lg font-mono text-[8px] uppercase tracking-widest bg-white/[0.04] border border-white/[0.08] text-white/40 hover:text-white/60 transition-all disabled:opacity-30"
+                  data-testid={`button-respond-${drop.id}`}>
+                  Leave your impression
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {readerView === "mine" && (
+        <div className="space-y-4">
+          {loadingMine ? (
+            <ListSkeleton count={3} />
+          ) : myDrops.length === 0 ? (
+            <p className="text-center font-serif text-sm text-white/30 py-12">You haven't dropped anything yet.</p>
+          ) : myDrops.map((drop: any) => (
+            <div key={drop.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+              <p className="font-serif text-xs text-white/40 truncate mb-2">{drop.content.slice(0, 100)}...</p>
+              <span className="font-mono text-[8px] text-white/20">{drop.responses?.length || 0} {(drop.responses?.length || 0) === 1 ? "reader" : "readers"}</span>
+              {(drop.responses || []).map((r: any) => (
+                <div key={r.id} className="mt-3 pl-3 border-l-2 border-amber-500/15">
+                  <p className="font-serif text-xs text-white/50">{r.aliveSignal}</p>
+                  {r.strikingLine && <p className="font-serif text-[11px] text-amber-300/40 italic mt-1">"...{r.strikingLine}"</p>}
+                  {r.oneSuggestion && <p className="font-mono text-[8px] text-white/30 mt-1">{r.oneSuggestion}</p>}
+                </div>
+              ))}
+              {(drop.responses?.length || 0) === 0 && <p className="font-serif text-[11px] text-white/20 italic mt-2">Waiting for a reader...</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ReadingShelfRoom({ onBack }: { onBack: () => void }) {
+  const [bookTitle, setBookTitle] = useState("");
+  const [bookAuthor, setBookAuthor] = useState("");
+  const [bookReaction, setBookReaction] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: shelfEntries = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/reading-shelf"],
+    queryFn: async () => {
+      const res = await fetch("/api/reading-shelf", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch reading shelf");
+      return res.json();
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async (data: { bookTitle: string; author?: string; reaction: string }) => {
+      const res = await fetch("/api/reading-shelf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to add to shelf");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reading-shelf"] });
+      setBookTitle("");
+      setBookAuthor("");
+      setBookReaction("");
+    },
+  });
+
+  const handleAddShelf = () => {
+    if (!bookTitle.trim() || !bookReaction.trim()) return;
+    const data: { bookTitle: string; author?: string; reaction: string } = {
+      bookTitle: bookTitle.trim(),
+      reaction: bookReaction.trim(),
+    };
+    if (bookAuthor.trim()) data.author = bookAuthor.trim();
+    addMutation.mutate(data);
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto" data-testid="reading-shelf-room">
+      <div className="flex items-center justify-between mb-8">
+        <BackButton onBack={onBack} />
+        <div className="flex items-center gap-3">
+          <BookOpen size={16} className="text-white/55" />
+          <h2 className="text-xl font-display font-light italic text-white/80">Reading Shelf</h2>
+        </div>
+        <div className="w-16" />
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-3">
+        <p className="font-serif text-sm text-white/50 italic">What are you reading? Share a title and what it's doing to you.</p>
+        <input type="text" value={bookTitle} onChange={e => setBookTitle(e.target.value)}
+          placeholder="Title"
+          className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-sm text-white/60 placeholder:text-white/25 focus:outline-none"
+          data-testid="input-book-title" />
+        <input type="text" value={bookAuthor} onChange={e => setBookAuthor(e.target.value)}
+          placeholder="Author (optional)"
+          className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-xs text-white/50 placeholder:text-white/20 focus:outline-none"
+          data-testid="input-book-author" />
+        <textarea value={bookReaction} onChange={e => setBookReaction(e.target.value)}
+          placeholder="One sentence about what it's doing to you..."
+          className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-xs text-white/50 placeholder:text-white/20 focus:outline-none resize-none h-12"
+          data-testid="input-book-reaction" />
+        <button onClick={handleAddShelf} disabled={!bookTitle.trim() || !bookReaction.trim() || addMutation.isPending}
+          className="px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest bg-white/[0.04] border border-white/[0.08] text-white/40 hover:text-white/60 transition-all disabled:opacity-30"
+          data-testid="button-add-shelf">
+          Share
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="mt-6"><ListSkeleton count={4} /></div>
+      ) : (
+        <div className="space-y-4 mt-6">
+          {shelfEntries.map((e: any) => (
+            <div key={e.id} className="flex gap-3 items-start" data-testid={`shelf-entry-${e.id}`}>
+              <BookOpen size={14} className="text-white/15 mt-1 flex-shrink-0" />
+              <div>
+                <p className="font-serif text-sm text-white/60">
+                  <span className="italic">{e.bookTitle}</span>
+                  {e.author && <span className="text-white/30"> — {e.author}</span>}
+                </p>
+                <p className="font-serif text-xs text-white/40 mt-0.5">{e.reaction}</p>
+                <p className="font-mono text-[7px] text-white/15 mt-1">{e.userName} · {timeAgo(e.createdAt)}</p>
+              </div>
+            </div>
+          ))}
+          {shelfEntries.length === 0 && (
+            <p className="text-center font-serif text-sm text-white/25 py-8">No one has shared what they're reading yet. Be the first.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

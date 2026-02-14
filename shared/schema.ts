@@ -117,6 +117,7 @@ export const circles = pgTable("circles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
+  theme: text("theme"),
   maxMembers: integer("max_members").notNull().default(5),
   createdById: varchar("created_by_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
@@ -474,6 +475,36 @@ export const ideaDrops = pgTable("idea_drops", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === FIRST READER ===
+export const firstReaderDrops = pgTable("first_reader_drops", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  genre: text("genre").notNull().default("poetry"),
+  status: text("status").notNull().default("waiting"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const firstReaderResponses = pgTable("first_reader_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dropId: varchar("drop_id").notNull().references(() => firstReaderDrops.id),
+  readerId: varchar("reader_id").notNull().references(() => users.id),
+  aliveSignal: text("alive_signal").notNull(),
+  strikingLine: text("striking_line"),
+  oneSuggestion: text("one_suggestion"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === READING SHELF ===
+export const readingShelfEntries = pgTable("reading_shelf_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  bookTitle: text("book_title").notNull(),
+  author: text("author"),
+  reaction: text("reaction").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const editorialFlags = pgTable("editorial_flags", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   writingId: varchar("writing_id").notNull().references(() => writings.id),
@@ -548,6 +579,9 @@ export const insertOpportunityNoteSchema = createInsertSchema(opportunityNotes).
 export const insertPromptPotluckSchema = createInsertSchema(promptPotluckItems).omit({ id: true, userId: true, createdAt: true });
 export const insertCircleShareSchema = createInsertSchema(circleShares).omit({ id: true, userId: true, createdAt: true });
 export const insertIdeaDropSchema = createInsertSchema(ideaDrops).omit({ id: true, userId: true, status: true, adoptedById: true, createdAt: true });
+export const insertFirstReaderDropSchema = createInsertSchema(firstReaderDrops).omit({ id: true, authorId: true, status: true, createdAt: true });
+export const insertFirstReaderResponseSchema = createInsertSchema(firstReaderResponses).omit({ id: true, readerId: true, createdAt: true });
+export const insertReadingShelfSchema = createInsertSchema(readingShelfEntries).omit({ id: true, userId: true, createdAt: true });
 export const insertEditorialFlagSchema = createInsertSchema(editorialFlags).omit({ id: true, authorId: true, status: true, seenByEditorId: true, seenAt: true, editorResponse: true, respondedAt: true, createdAt: true });
 export const insertEditorsWalkSchema = createInsertSchema(editorsWalks).omit({ id: true, createdById: true, createdAt: true });
 export const insertQuietReadSchema = createInsertSchema(quietReads).omit({ id: true, readerId: true, createdAt: true });
@@ -645,3 +679,6 @@ export type CircleMicroPrompt = typeof circleMicroPrompts.$inferSelect;
 export type CircleMicroResponse = typeof circleMicroResponses.$inferSelect;
 export type EditorialFlag = typeof editorialFlags.$inferSelect;
 export type EditorsWalk = typeof editorsWalks.$inferSelect;
+export type FirstReaderDrop = typeof firstReaderDrops.$inferSelect;
+export type FirstReaderResponse = typeof firstReaderResponses.$inferSelect;
+export type ReadingShelfEntry = typeof readingShelfEntries.$inferSelect;

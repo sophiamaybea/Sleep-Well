@@ -43,6 +43,9 @@ import {
   gardenPresence,
   type EditorialFlag, editorialFlags,
   type EditorsWalk, editorsWalks,
+  type FirstReaderDrop, firstReaderDrops,
+  type FirstReaderResponse, firstReaderResponses,
+  type ReadingShelfEntry, readingShelfEntries,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -327,6 +330,19 @@ export interface IStorage {
   getActiveEditorsWalk(): Promise<EditorsWalk | null>;
   getEditorsWalks(): Promise<EditorsWalk[]>;
   createEditorsWalk(editorId: string, data: { title: string; description?: string; startsAt: Date; endsAt: Date; flagLimit?: number }): Promise<EditorsWalk>;
+
+  // First Reader
+  createFirstReaderDrop(authorId: string, data: { content: string; genre?: string }): Promise<FirstReaderDrop>;
+  getFirstReaderDrops(genre?: string): Promise<(FirstReaderDrop & { authorName: string | null; responseCount: number })[]>;
+  getMyFirstReaderDrops(authorId: string): Promise<(FirstReaderDrop & { responses: FirstReaderResponse[] })[]>;
+  createFirstReaderResponse(readerId: string, data: { dropId: string; aliveSignal: string; strikingLine?: string; oneSuggestion?: string }): Promise<FirstReaderResponse>;
+
+  // Reading Shelf
+  getReadingShelf(): Promise<(ReadingShelfEntry & { userName: string | null })[]>;
+  addToReadingShelf(userId: string, data: { bookTitle: string; author?: string; reaction: string }): Promise<ReadingShelfEntry>;
+
+  // Struggle Signals
+  getStruggleSignals(): Promise<{ dormantThisWeek: number; movedBackward: number; revisitedSeeds: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2371,6 +2387,92 @@ export class DatabaseStorage implements IStorage {
       createdById: editorId,
     }).returning();
     return walk;
+  }
+
+  // === FIRST READER ===
+  async createFirstReaderDrop(authorId: string, data: { content: string; genre?: string }): Promise<FirstReaderDrop> {
+    const [drop] = await db.insert(firstReaderDrops).values({ authorId, ...data }).returning();
+    return drop;
+  }
+
+  async getFirstReaderDrops(genre?: string): Promise<(FirstReaderDrop & { authorName: string | null; responseCount: number })[]> {
+    let conditions: any[] = [eq(firstReaderDrops.status, "waiting")];
+    if (genre && genre !== "any") conditions.push(eq(firstReaderDrops.genre, genre));
+
+    const results = await db.select({
+      id: firstReaderDrops.id,
+      authorId: firstReaderDrops.authorId,
+      content: firstReaderDrops.content,
+      genre: firstReaderDrops.genre,
+      status: firstReaderDrops.status,
+      createdAt: firstReaderDrops.createdAt,
+      authorName: users.firstName,
+    }).from(firstReaderDrops)
+      .leftJoin(users, eq(firstReaderDrops.authorId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(firstReaderDrops.createdAt));
+
+    const enriched: (FirstReaderDrop & { authorName: string | null; responseCount: number })[] = [];
+    for (const r of results) {
+      const [res] = await db.select({ cnt: count() }).from(firstReaderResponses).where(eq(firstReaderResponses.dropId, r.id));
+      enriched.push({ ...r, responseCount: res?.cnt ?? 0 } as any);
+    }
+    return enriched;
+  }
+
+  async getMyFirstReaderDrops(authorId: string): Promise<(FirstReaderDrop & { responses: FirstReaderResponse[] })[]> {
+    const drops = await db.select().from(firstReaderDrops)
+      .where(eq(firstReaderDrops.authorId, authorId))
+      .orderBy(desc(firstReaderDrops.createdAt));
+
+    const enriched: (FirstReaderDrop & { responses: FirstReaderResponse[] })[] = [];
+    for (const d of drops) {
+      const responses = await db.select().from(firstReaderResponses)
+        .where(eq(firstReaderResponses.dropId, d.id))
+        .orderBy(desc(firstReaderResponses.createdAt));
+      enriched.push({ ...d, responses });
+    }
+    return enriched;
+  }
+
+  async createFirstReaderResponse(readerId: string, data: { dropId: string; aliveSignal: string; strikingLine?: string; oneSuggestion?: string }): Promise<FirstReaderResponse> {
+    const [response] = await db.insert(firstReaderResponses).values({ readerId, ...data }).returning();
+    return response;
+  }
+
+  // === READING SHELF ===
+  async getReadingShelf(): Promise<(ReadingShelfEntry & { userName: string | null })[]> {
+    return await db.select({
+      id: readingShelfEntries.id,
+      userId: readingShelfEntries.userId,
+      bookTitle: readingShelfEntries.bookTitle,
+      author: readingShelfEntries.author,
+      reaction: readingShelfEntries.reaction,
+      createdAt: readingShelfEntries.createdAt,
+      userName: users.firstName,
+    }).from(readingShelfEntries)
+      .leftJoin(users, eq(readingShelfEntries.userId, users.id))
+      .orderBy(desc(readingShelfEntries.createdAt))
+      .limit(50) as any;
+  }
+
+  async addToReadingShelf(userId: string, data: { bookTitle: string; author?: string; reaction: string }): Promise<ReadingShelfEntry> {
+    const [entry] = await db.insert(readingShelfEntries).values({ userId, ...data }).returning();
+    return entry;
+  }
+
+  // === STRUGGLE SIGNALS ===
+  async getStruggleSignals(): Promise<{ dormantThisWeek: number; movedBackward: number; revisitedSeeds: number }> {
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const [dormant] = await db.select({ cnt: count() }).from(writings)
+      .where(and(eq(writings.readiness, "dormant"), sql`${writings.updatedAt} >= ${oneWeekAgo}`));
+    const [seeds] = await db.select({ cnt: count() }).from(writings)
+      .where(and(eq(writings.readiness, "raw_seed"), sql`${writings.updatedAt} >= ${oneWeekAgo}`, sql`${writings.createdAt} < ${oneWeekAgo}`));
+    return {
+      dormantThisWeek: dormant?.cnt ?? 0,
+      movedBackward: 0,
+      revisitedSeeds: seeds?.cnt ?? 0,
+    };
   }
 }
 

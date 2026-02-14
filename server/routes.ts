@@ -21,6 +21,8 @@ import {
   insertPromptPotluckSchema, insertCircleShareSchema, insertIdeaDropSchema,
   insertCircleMicroResponseSchema,
   insertEditorialFlagSchema, insertEditorsWalkSchema,
+  insertFirstReaderDropSchema, insertFirstReaderResponseSchema,
+  insertReadingShelfSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -2073,6 +2075,92 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error finding smart match:", error);
       res.status(500).json({ message: "Failed to find match" });
+    }
+  });
+
+  // === FIRST READER ===
+  app.post("/api/first-reader", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertFirstReaderDropSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const drop = await storage.createFirstReaderDrop(req.user.claims.sub, {
+        content: parsed.data.content,
+        genre: parsed.data.genre ?? undefined,
+      });
+      res.status(201).json(drop);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create drop" });
+    }
+  });
+
+  app.get("/api/first-reader", isAuthenticated, async (req: any, res) => {
+    try {
+      const genre = req.query.genre as string | undefined;
+      const drops = await storage.getFirstReaderDrops(genre);
+      const userId = req.user.claims.sub;
+      res.json(drops.filter((d: any) => d.authorId !== userId));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch drops" });
+    }
+  });
+
+  app.get("/api/first-reader/mine", isAuthenticated, async (req: any, res) => {
+    try {
+      const drops = await storage.getMyFirstReaderDrops(req.user.claims.sub);
+      res.json(drops);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch my drops" });
+    }
+  });
+
+  app.post("/api/first-reader/:id/respond", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertFirstReaderResponseSchema.safeParse({ ...req.body, dropId: req.params.id });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const response = await storage.createFirstReaderResponse(req.user.claims.sub, {
+        dropId: parsed.data.dropId,
+        aliveSignal: parsed.data.aliveSignal,
+        strikingLine: parsed.data.strikingLine ?? undefined,
+        oneSuggestion: parsed.data.oneSuggestion ?? undefined,
+      });
+      res.status(201).json(response);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to respond" });
+    }
+  });
+
+  // === READING SHELF ===
+  app.get("/api/reading-shelf", isAuthenticated, async (req, res) => {
+    try {
+      const entries = await storage.getReadingShelf();
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reading shelf" });
+    }
+  });
+
+  app.post("/api/reading-shelf", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertReadingShelfSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      const entry = await storage.addToReadingShelf(req.user.claims.sub, {
+        bookTitle: parsed.data.bookTitle,
+        author: parsed.data.author ?? undefined,
+        reaction: parsed.data.reaction,
+      });
+      res.status(201).json(entry);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add to reading shelf" });
+    }
+  });
+
+  // === STRUGGLE SIGNALS ===
+  app.get("/api/struggle-signals", isAuthenticated, async (req, res) => {
+    try {
+      const signals = await storage.getStruggleSignals();
+      res.json(signals);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch signals" });
     }
   });
 

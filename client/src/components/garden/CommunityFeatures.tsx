@@ -29,6 +29,7 @@ export function CirclesPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [circleTheme, setCircleTheme] = useState("");
   const [messageText, setMessageText] = useState("");
   const [intentionContent, setIntentionContent] = useState("");
   const [intentionWeek, setIntentionWeek] = useState(() => {
@@ -48,8 +49,8 @@ export function CirclesPage() {
   const { data: circles = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/circles"], queryFn: () => apiFetch("/api/circles") });
 
   const createCircle = useMutation({
-    mutationFn: () => apiFetch("/api/circles", { method: "POST", body: JSON.stringify({ name, description }) }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/circles"] }); setName(""); setDescription(""); setShowCreate(false); },
+    mutationFn: () => apiFetch("/api/circles", { method: "POST", body: JSON.stringify({ name, description, theme: circleTheme || undefined }) }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/circles"] }); setName(""); setDescription(""); setCircleTheme(""); setShowCreate(false); },
   });
 
   const joinCircle = useMutation({
@@ -597,6 +598,16 @@ export function CirclesPage() {
                     data-testid="input-circle-description"
                   />
                 </FormField>
+                <FormField label="Theme">
+                  <input
+                    type="text"
+                    value={circleTheme}
+                    onChange={e => setCircleTheme(e.target.value)}
+                    placeholder="Shared obsession (e.g. 'writing about grief', 'place-based poetry')"
+                    className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-xs text-white/50 placeholder:text-white/20 focus:outline-none"
+                    data-testid="input-circle-theme"
+                  />
+                </FormField>
                 <ActionButton
                   onClick={() => name.trim() && createCircle.mutate()}
                   disabled={!name.trim() || createCircle.isPending}
@@ -631,6 +642,9 @@ export function CirclesPage() {
                 <div className="flex-grow min-w-0">
                   <h3 className="text-lg font-display font-light italic text-white/80 mb-1 group-hover:text-white/95 transition-colors">{circle.name}</h3>
                   <p className="text-sm font-serif text-white/30 line-clamp-2">{circle.description}</p>
+                  {circle.theme && (
+                    <p className="font-mono text-[8px] uppercase tracking-widest text-amber-300/30 mt-1">{circle.theme}</p>
+                  )}
                   <div className="flex items-center gap-3 mt-3">
                     <Badge color="emerald">
                       <Users size={10} /> {circle.memberCount ?? 0} members

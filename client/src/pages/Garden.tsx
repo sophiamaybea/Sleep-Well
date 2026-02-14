@@ -20,12 +20,12 @@ import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow"
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
 import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
-import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom } from "@/components/garden/CommunityRooms";
+import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, FirstReaderRoom, ReadingShelfRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
 
 type Zone = "desk" | "reading-room" | "greenhouse";
-type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | null;
+type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | null;
 
 const stageColors: Record<string, string> = {
@@ -246,6 +246,8 @@ const rooms = [
   { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises", comingSoon: false },
   { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Shared writing space", comingSoon: false },
   { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange", comingSoon: false },
+  { id: "first-reader", label: "First Reader", icon: <Eye size={13} />, desc: "Drop fresh writing, get honest first impressions", comingSoon: false },
+  { id: "shelf", label: "Reading Shelf", icon: <BookOpen size={13} />, desc: "What the community is reading", comingSoon: false },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
@@ -808,7 +810,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 bg-violet-500/5 text-violet-300/70">
                                   <Flag size={10} />
                                   {existingFlag.status === "flagged" ? "Flagged for editors" : 
-                                   existingFlag.status === "seen" ? "Seen by an editor" : 
+                                   existingFlag.status === "seen" ? "An editor paused here" : 
                                    "Editor responded"}
                                 </div>
                               );
@@ -2296,6 +2298,9 @@ function CirclesView() {
                 </div>
               </div>
               {c.description && <p className="font-serif text-xs text-white/60 mt-1">{c.description}</p>}
+              {c.theme && (
+                <p className="font-mono text-[8px] uppercase tracking-widest text-amber-300/30 mt-1">{c.theme}</p>
+              )}
               <div className="flex items-center gap-2 mt-2">
                 <Users size={10} className="text-white/50" />
                 <span className="font-mono text-[8px] text-white/50" data-testid={`text-member-count-${c.id}`}>
@@ -2563,6 +2568,16 @@ export default function Garden() {
     refetchInterval: 60000,
   });
 
+  const { data: struggleSignals } = useQuery<{ dormantThisWeek: number; movedBackward: number; revisitedSeeds: number }>({
+    queryKey: ["/api/struggle-signals"],
+    queryFn: async () => {
+      const res = await fetch("/api/struggle-signals", { credentials: "include" });
+      if (!res.ok) return { dormantThisWeek: 0, movedBackward: 0, revisitedSeeds: 0 };
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
   const { data: tierData } = useQuery<{ tier: string }>({
     queryKey: ["/api/user/tier"],
     queryFn: async () => {
@@ -2740,6 +2755,16 @@ export default function Garden() {
                       <p className="font-serif italic text-[9px] text-white/25">
                         This month: {gardenPulse.newSeeds > 0 && <>{gardenPulse.newSeeds} {gardenPulse.newSeeds === 1 ? "writer" : "writers"} planted new seeds</>}{gardenPulse.newSeeds > 0 && gardenPulse.bloomedPieces > 0 && ". "}{gardenPulse.bloomedPieces > 0 && <>{gardenPulse.bloomedPieces} {gardenPulse.bloomedPieces === 1 ? "piece" : "pieces"} bloomed</>}.
                       </p>
+                    )}
+                    {struggleSignals && (struggleSignals.dormantThisWeek > 0 || struggleSignals.revisitedSeeds > 0) && (
+                      <div className="flex items-center gap-3 font-mono text-[8px] text-white/20 mt-1">
+                        {struggleSignals.dormantThisWeek > 0 && (
+                          <span>{struggleSignals.dormantThisWeek} {struggleSignals.dormantThisWeek === 1 ? "piece" : "pieces"} went dormant this week</span>
+                        )}
+                        {struggleSignals.revisitedSeeds > 0 && (
+                          <span>{struggleSignals.revisitedSeeds} old {struggleSignals.revisitedSeeds === 1 ? "seed" : "seeds"} revisited</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
@@ -2937,6 +2962,10 @@ export default function Garden() {
                 <SwapRoom onBack={() => setActiveRoom(null)} />
               ) : activeRoom === "the-desk" ? (
                 <TheDeskRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "first-reader" ? (
+                <FirstReaderRoom onBack={() => setActiveRoom(null)} />
+              ) : activeRoom === "shelf" ? (
+                <ReadingShelfRoom onBack={() => setActiveRoom(null)} />
               ) : isEditing && activeWriting ? (
                 <WriteEditor
                   key={activeWriting.id}

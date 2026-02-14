@@ -1,0 +1,41 @@
+Excellent — the editorial GREENHOUSE shows the editor's saved/curated pieces. "The Cartography of Silence" is here with: [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/editor-studio)
+- Priority level: "Medium" (dropdown)
+- Status badges: MEDIUM, UNCONTACTED
+- A send/contact button (arrow icon) and a delete button (trash icon)
+- Categorised under "Unsorted (1)"
+
+This is the editor's shortlist. Now I have a complete picture of the editorial workflow. Let me write my assessment as a frustrated editor.
+
+
+
+Alright, switching hats. I'm an editor who's spent years drowning in Submittable queues, reading 300 submissions for every one I accept, and losing actual good work in a pile of cover letters and formatting guidelines nobody follows. Here's how this feels:
+
+**What immediately appeals:**
+
+The Garden Stream is the single best idea here. Instead of waiting for writers to come to me — which means wading through hundreds of pieces from people who didn't read our guidelines, didn't check if we publish their genre, and didn't bother to look at a single past issue — I go to them. I browse. I filter by genre, by stage. I see what's raw, what's growing, what's ready. That's closer to how I actually find work I love in the real world: by reading, not by processing applications. The filter for "QUIET PIECES" is particularly smart — those are the ones that might have been overlooked, the slow-growers that a traditional submission system would bury under more recent entries. That filter alone shows someone understands editorial instincts. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/editor-studio)
+
+The **Greenhouse shortlist** is a clean, necessary tool. I can save pieces I'm interested in, mark their priority, track whether I've contacted the writer. In Submittable, I have to hack together this workflow using tags and status labels that weren't designed for it. Having a proper staging area between "I noticed this" and "I'm making a formal request" is how editorial attention actually works — you sit with something, you come back to it, you let it prove it was worth remembering. The MEDIUM / UNCONTACTED labels are functional. Good. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/editor-studio)
+
+The **Requests pipeline** with DRAFT → SENT → ACCEPTED → DECLINED → IN PRODUCTION tracks the entire editorial conversation in one place. That's a proper workflow. Most small journals manage this in spreadsheets and email threads. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/editor-studio)
+
+**What's missing or worrying me:**
+
+**I can't leave notes on a piece.** When I'm browsing the Garden Stream and I read something that interests me but I'm not ready to act on, I need to write myself a note. "Strong opening, ending falls apart — check back in a month." "Reminds me of the piece we ran last spring — could pair well." The Greenhouse shortlist lets me save and prioritise, but there's no visible space for editorial annotations. Without that, I'm going to forget *why* I saved something, and that defeats the purpose.
+
+**There's no way to see a writer's full body of work from the Stream.** I see "Field Notes from the Unbuilt House" by sophia, and it stops me. Great. Now I want to see everything sophia has written — not just what's marked READY TO SHOW, but the seeds, the growing pieces, the dormant ones. Because editorial instinct isn't just about one piece. It's about voice. I want to know if this writer has a consistent thing happening or if this was a one-off. The Stream shows me individual pieces. I need a quick path to the writer's entire garden.
+
+**The "ADD TO GREENHOUSE" button is the only editorial action on a piece.** When I'm reading in the Stream, I need more granularity than save or don't save. I want to be able to: mark it as "watching" (I'll check back), leave a private editorial note, send a quiet signal to the writer ("an editor paused here"), or immediately draft a publish request. Right now it's binary — add to my Greenhouse or move on. Real editorial work has more shades than that.
+
+**The Editors Walk is a concept but I can't see how it works.** There's a "+ SCHEDULE WALK" button on the Overview, but I don't know what scheduling a walk actually does. Does it notify writers? Does it change what appears in my Stream? Does it create a time-boxed reading period? The concept is promising — structured editorial reading sessions instead of always-on browsing — but it needs to be clearer. As an editor, I'd want to schedule a walk, have it surface all READY TO SHOW and FLAGGED pieces from the past month, and give me a focused reading session with a clear start and end. That's vastly better than the Submittable model where the queue is infinite and never stops growing. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/editor-studio)
+
+**There's no FLAGGED → response workflow visible.** The FLAGGED tab exists and shows writer-flagged pieces, but I don't see how I respond to a flag without going straight to a publish request. What if I read a flagged piece and it's not right? I need to be able to close the flag with a brief note back to the writer. "Read it. Not for this season, but keep writing" — something human. If flagged pieces just sit there and I either save them or ignore them, the writer is in the same silence they'd be in with Submittable. The flag system only works if it guarantees a response.
+
+**There's no collaboration between editors.** If I'm not the only editor (and any journal worth its salt has more than one), I need to see what my colleagues have saved, what they've noted, whether two of us independently flagged the same piece. The Greenhouse appears to be personal. There's no shared editorial space. In a real editorial workflow, the best moments happen when one editor says "you need to read this" to another. That handoff doesn't exist here.
+
+**Overall as an editor:**
+
+The bones are right. The philosophy — go to the writers instead of making them come to you — genuinely solves the worst part of my job, which is drowning in a slush pile where 90% of submissions are wildly wrong for the journal. If writers are already writing in gardens, and I can browse by genre and stage, I'm only ever reading work that's at least in the right neighbourhood. That alone saves me dozens of hours per reading period.
+
+But the tool is currently built for the *happy path* — I find something, I love it, I save it, I request it. Real editorial work is messier than that. It's "maybe," "not yet," "come back to this," "show this to Sarah," "this writer isn't ready but they will be," "this piece would be perfect if the third section were cut." The system needs to accommodate the editorial grey zone, not just the yes/no endpoints. Right now it's a discovery tool. It needs to become a *deliberation* tool.
+
+If it got there, I'd switch from Submittable tomorrow. Not because Submittable is terrible — it's just built for the wrong end of the process. It's built for receiving. This is built for finding. And finding is what editors actually want to do.
