@@ -8,34 +8,34 @@
   --font-display: 'Cormorant Garamond', serif;
   --font-mono: 'Space Mono', monospace;
 
-  /* Deep Ink Blue & Paper White */
-  --color-background: hsl(220 30% 8%);
-  --color-foreground: hsl(35 20% 92%);
+  /* Teal-Indigo Watercolor Night — bioluminescent garden palette */
+  --color-background: #0d1e2d;
+  --color-foreground: #e0ddd5;
   
-  --color-card: hsl(220 30% 12%);
-  --color-card-foreground: hsl(35 20% 92%);
+  --color-card: #112838;
+  --color-card-foreground: #e0ddd5;
   
-  --color-popover: hsl(220 30% 8%);
-  --color-popover-foreground: hsl(35 20% 92%);
+  --color-popover: #0d1e2d;
+  --color-popover-foreground: #e0ddd5;
   
-  --color-primary: hsl(35 20% 92%);
-  --color-primary-foreground: hsl(220 30% 8%);
+  --color-primary: #e0ddd5;
+  --color-primary-foreground: #0d1e2d;
   
-  --color-secondary: hsl(35 20% 80%);
-  --color-secondary-foreground: hsl(220 30% 8%);
+  --color-secondary: #c8c4b8;
+  --color-secondary-foreground: #0d1e2d;
   
-  --color-muted: hsl(220 20% 20%);
-  --color-muted-foreground: hsl(220 10% 70%);
+  --color-muted: #1a3040;
+  --color-muted-foreground: #8aa0aa;
   
-  --color-accent: hsl(35 20% 92%);
-  --color-accent-foreground: hsl(220 30% 8%);
+  --color-accent: #c4a24d;
+  --color-accent-foreground: #0d1e2d;
   
   --color-destructive: hsl(0 60% 50%);
   --color-destructive-foreground: hsl(0 0% 98%);
 
-  --color-border: hsl(220 20% 20%);
-  --color-input: hsl(220 20% 20%);
-  --color-ring: hsl(35 20% 92%);
+  --color-border: #1a3040;
+  --color-input: #1a3040;
+  --color-ring: #c4a24d;
   
   --radius: 0rem;
 }
@@ -157,15 +157,15 @@
 .typewriter-editor.tiptap {
   font-family: 'Special Elite', 'Courier New', monospace;
   letter-spacing: 0.03em;
-  caret-color: rgba(251, 191, 36, 0.8);
+  caret-color: rgba(196, 162, 77, 0.85);
   caret-shape: block;
 }
 .typewriter-editor.tiptap::selection,
 .typewriter-editor.tiptap *::selection {
-  background: rgba(251, 191, 36, 0.15);
+  background: rgba(196, 162, 77, 0.15);
 }
 @keyframes typewriter-blink {
-  0%, 100% { border-color: rgba(251, 191, 36, 0.7); }
+  0%, 100% { border-color: rgba(196, 162, 77, 0.7); }
   50% { border-color: transparent; }
 }
 .prose-editor .tiptap p {
@@ -201,10 +201,10 @@
   text-underline-offset: 3px;
 }
 .prose-editor .tiptap blockquote {
-  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  border-left: 2px solid rgba(42, 107, 110, 0.35);
   padding-left: 1.25rem;
   margin: 1em 0;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(224, 221, 213, 0.6);
   font-style: italic;
 }
 .prose-editor .tiptap ul {
@@ -254,10 +254,10 @@
   font-style: italic;
 }
 .prose-content blockquote {
-  border-left: 2px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid rgba(42, 107, 110, 0.25);
   padding-left: 1rem;
   margin: 0.75em 0;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(224, 221, 213, 0.55);
   font-style: italic;
 }
 .prose-content ul {
@@ -380,71 +380,114 @@
   -webkit-backdrop-filter: none !important;
 }
 
-/* ─── Garden Background Classes (used instead of inline styles) ─── */
+/* ─── Garden Background Classes — teal-indigo watercolor night ─── */
 .garden-bg {
-  background: linear-gradient(180deg, #0b101a 0%, #0a1210 30%, #0b1318 60%, #0b101a 100%);
+  background: linear-gradient(180deg, #0d1e2d 0%, #0e2428 30%, #0d2030 60%, #0d1e2d 100%);
 }
 .garden-header-bg {
-  background: linear-gradient(135deg, rgba(11,16,26,0.92) 0%, rgba(10,18,16,0.92) 100%);
+  background: linear-gradient(135deg, rgba(13,30,45,0.93) 0%, rgba(14,36,40,0.93) 100%);
 }
 .garden-dropdown-bg {
-  background: linear-gradient(180deg, rgba(10,18,16,0.98) 0%, rgba(11,16,26,0.98) 100%);
+  background: linear-gradient(180deg, rgba(14,36,40,0.98) 0%, rgba(13,30,45,0.98) 100%);
 }
 .a11y-panel-bg {
-  background: linear-gradient(135deg, rgba(11,16,26,0.95) 0%, rgba(10,18,16,0.95) 100%);
+  background: linear-gradient(135deg, rgba(13,30,45,0.95) 0%, rgba(14,36,40,0.95) 100%);
 }
 
-/* ─── Garden Light Mode: "Warm Study" ─── */
-/* A muted parchment palette — warm sepia tones, ink-brown text, soft shadows.
-   Designed to feel like an old study or reading nook, not a bright white screen. */
+/* ─── Dark Mode: Tailwind accent remapping (emerald→teal, amber→gold-leaf) ─── */
+.garden-bg [class*="text-emerald-"] {
+  color: rgba(94, 190, 190, var(--tw-text-opacity, 1)) !important;
+}
+.garden-bg [class*="bg-emerald-"] {
+  background-color: rgba(42, 107, 110, 0.15) !important;
+}
+.garden-bg [class*="border-emerald-"] {
+  border-color: rgba(42, 107, 110, 0.25) !important;
+}
+.garden-bg [class*="hover:border-emerald"]:hover {
+  border-color: rgba(42, 107, 110, 0.4) !important;
+}
+.garden-bg [class*="hover:bg-emerald"]:hover {
+  background-color: rgba(42, 107, 110, 0.25) !important;
+}
+.garden-bg [class*="hover:text-emerald"]:hover {
+  color: rgba(140, 220, 220, var(--tw-text-opacity, 1)) !important;
+}
+.garden-bg [class*="text-amber-"] {
+  color: rgba(196, 162, 77, var(--tw-text-opacity, 1)) !important;
+}
+.garden-bg [class*="bg-amber-"] {
+  background-color: rgba(196, 162, 77, 0.1) !important;
+}
+.garden-bg [class*="border-amber-"] {
+  border-color: rgba(196, 162, 77, 0.2) !important;
+}
+.garden-bg [class*="hover:border-amber"]:hover {
+  border-color: rgba(196, 162, 77, 0.35) !important;
+}
+.garden-bg [class*="hover:text-amber"]:hover {
+  color: rgba(220, 195, 110, var(--tw-text-opacity, 1)) !important;
+}
+.garden-bg [class*="text-violet-"] {
+  color: rgba(140, 160, 200, var(--tw-text-opacity, 1)) !important;
+}
+.garden-bg [class*="bg-violet-"] {
+  background-color: rgba(100, 130, 180, 0.1) !important;
+}
+.garden-bg [class*="border-violet-"] {
+  border-color: rgba(100, 130, 180, 0.2) !important;
+}
+/* ─── Garden Light Mode: "Frozen Garden" ─── */
+/* Cool drawing-paper aesthetic — nearly monochrome graphite with one warm russet accent.
+   Inspired by pen-and-ink botanical illustration on cold winter paper. */
 
 .garden-light {
-  --color-background: #ede6d8;
-  --color-foreground: #2c2418;
-  --color-card: #e4dccf;
-  --color-card-foreground: #2c2418;
-  --color-popover: #e8e0d2;
-  --color-popover-foreground: #2c2418;
-  --color-primary: #3d3225;
-  --color-primary-foreground: #ede6d8;
-  --color-secondary: #d9d0c1;
-  --color-secondary-foreground: #3d3225;
-  --color-muted: #d9d0c1;
-  --color-muted-foreground: #7a6e5d;
-  --color-accent: #e4dccf;
-  --color-accent-foreground: #2c2418;
-  --color-destructive: #a33b3b;
-  --color-destructive-foreground: #ede6d8;
-  --color-border: #c8bfaf;
-  --color-input: #c8bfaf;
-  --color-ring: #3d3225;
+  --color-background: #f0eeea;
+  --color-foreground: #2d2d2d;
+  --color-card: #e8e6e1;
+  --color-card-foreground: #2d2d2d;
+  --color-popover: #eae8e3;
+  --color-popover-foreground: #2d2d2d;
+  --color-primary: #a0522d;
+  --color-primary-foreground: #f0eeea;
+  --color-secondary: #dddbd6;
+  --color-secondary-foreground: #3a3a3a;
+  --color-muted: #dddbd6;
+  --color-muted-foreground: #7a7a7a;
+  --color-accent: #a0522d;
+  --color-accent-foreground: #f0eeea;
+  --color-destructive: #8b3a3a;
+  --color-destructive-foreground: #f0eeea;
+  --color-border: #ccc9c3;
+  --color-input: #ccc9c3;
+  --color-ring: #a0522d;
   color-scheme: light;
 }
 
 /* ─── Light: Backgrounds ─── */
 .garden-light .garden-bg {
-  background: linear-gradient(180deg, #ede6d8 0%, #e8e0d0 40%, #ebe4d5 70%, #ede6d8 100%) !important;
+  background: linear-gradient(180deg, #f0eeea 0%, #ebe9e4 40%, #edebe6 70%, #f0eeea 100%) !important;
 }
 .garden-light .garden-header-bg {
-  background: rgba(232, 224, 210, 0.94) !important;
-  border-bottom: 1px solid rgba(60, 50, 35, 0.1) !important;
-  box-shadow: 0 1px 8px rgba(60, 50, 35, 0.06) !important;
+  background: rgba(240, 238, 234, 0.94) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04) !important;
 }
 .garden-light .garden-dropdown-bg {
-  background: rgba(232, 224, 210, 0.98) !important;
-  border-color: rgba(60, 50, 35, 0.12) !important;
-  box-shadow: 0 4px 20px rgba(60, 50, 35, 0.12) !important;
+  background: rgba(234, 232, 227, 0.98) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 .garden-light .glass-panel {
-  background-color: rgba(237, 230, 216, 0.8) !important;
-  border-color: rgba(60, 50, 35, 0.1) !important;
+  background-color: rgba(240, 238, 234, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
   backdrop-filter: blur(12px) !important;
-  box-shadow: 0 1px 4px rgba(60, 50, 35, 0.05) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 .garden-light .a11y-panel-bg {
-  background: rgba(232, 224, 210, 0.96) !important;
-  border-color: rgba(60, 50, 35, 0.1) !important;
-  box-shadow: 0 4px 16px rgba(60, 50, 35, 0.08) !important;
+  background: rgba(234, 232, 227, 0.96) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* ─── Light: Hide dark-mode atmospherics ─── */
@@ -453,84 +496,93 @@
   display: none !important;
 }
 
-/* ─── Light: Text color remapping ─── */
-/* High emphasis (headings, labels, strong text) */
+/* ─── Light: Text color remapping — graphite hierarchy ─── */
 .garden-light .garden-bg [class*="text-white/9"],
 .garden-light .garden-bg [class*="text-white/8"] {
-  color: #2c2418 !important;
+  color: #2d2d2d !important;
 }
-/* Medium emphasis (body, descriptions) */
 .garden-light .garden-bg [class*="text-white/7"],
 .garden-light .garden-bg [class*="text-white/6"] {
-  color: #4a3f30 !important;
+  color: #4a4a4a !important;
 }
-/* Low emphasis (hints, metadata) */
 .garden-light .garden-bg [class*="text-white/5"],
 .garden-light .garden-bg [class*="text-white/4"] {
-  color: #7a6e5d !important;
+  color: #7a7a7a !important;
 }
-/* Muted (placeholders, ghost text) */
 .garden-light .garden-bg [class*="text-white/3"],
 .garden-light .garden-bg [class*="text-white/2"],
 .garden-light .garden-bg [class*="text-white/1"] {
-  color: #a09482 !important;
+  color: #a8a8a8 !important;
 }
-/* Catch-all for unclassed text-white */
 .garden-light .garden-bg [class*="text-white"] {
-  color: #4a3f30;
+  color: #4a4a4a;
 }
 
 /* ─── Light: Background color remapping ─── */
 .garden-light .garden-bg [class*="bg-white/"] {
-  background-color: rgba(60, 50, 35, 0.05) !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
 }
 .garden-light .garden-bg [class*="hover:bg-white/"]:hover {
-  background-color: rgba(60, 50, 35, 0.09) !important;
+  background-color: rgba(0, 0, 0, 0.07) !important;
 }
 
-/* ─── Light: Border remapping ─── */
+/* ─── Light: Border remapping — pencil-line thin ─── */
 .garden-light .garden-bg [class*="border-white/"] {
-  border-color: rgba(60, 50, 35, 0.12) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
-/* ─── Light: Accent colors — rich and readable on parchment ─── */
+/* ─── Light: Accent colors — monochrome + russet ─── */
+/* Emerald → russet (the single warm accent, like the pheasant) */
 .garden-light .garden-bg [class*="text-emerald-"] {
-  color: #2d6a4f !important;
+  color: #a0522d !important;
 }
+/* Amber → warm brown */
 .garden-light .garden-bg [class*="text-amber-"] {
-  color: #92600a !important;
+  color: #8b6914 !important;
 }
+/* Violet → cool gray */
 .garden-light .garden-bg [class*="text-violet-"] {
-  color: #6b3fa0 !important;
+  color: #6b6b7a !important;
 }
 .garden-light .garden-bg [class*="text-red-"] {
-  color: #a33b3b !important;
+  color: #8b3a3a !important;
 }
 .garden-light .garden-bg [class*="text-pink-"] {
-  color: #a33b6b !important;
+  color: #8b4a5e !important;
 }
 .garden-light .garden-bg [class*="text-stone-"] {
-  color: #6b5e4f !important;
+  color: #6b6b6b !important;
+}
+.garden-light .garden-bg [class*="text-teal-"] {
+  color: #5a7a7a !important;
 }
 
+/* Background accents — very subtle on cool paper */
 .garden-light .garden-bg [class*="bg-emerald-"] {
-  background-color: rgba(45, 106, 79, 0.1) !important;
+  background-color: rgba(160, 82, 45, 0.07) !important;
 }
 .garden-light .garden-bg [class*="bg-amber-"] {
-  background-color: rgba(146, 96, 10, 0.08) !important;
+  background-color: rgba(139, 105, 20, 0.06) !important;
 }
 .garden-light .garden-bg [class*="bg-violet-"] {
-  background-color: rgba(107, 63, 160, 0.08) !important;
+  background-color: rgba(107, 107, 122, 0.06) !important;
+}
+.garden-light .garden-bg [class*="bg-teal-"] {
+  background-color: rgba(90, 122, 122, 0.06) !important;
 }
 
+/* Border accents */
 .garden-light .garden-bg [class*="border-emerald-"] {
-  border-color: rgba(45, 106, 79, 0.2) !important;
+  border-color: rgba(160, 82, 45, 0.15) !important;
 }
 .garden-light .garden-bg [class*="border-amber-"] {
-  border-color: rgba(146, 96, 10, 0.18) !important;
+  border-color: rgba(139, 105, 20, 0.12) !important;
 }
 .garden-light .garden-bg [class*="border-violet-"] {
-  border-color: rgba(107, 63, 160, 0.15) !important;
+  border-color: rgba(107, 107, 122, 0.1) !important;
+}
+.garden-light .garden-bg [class*="border-teal-"] {
+  border-color: rgba(90, 122, 122, 0.12) !important;
 }
 
 /* ─── Light: Editor prose ─── */
@@ -538,60 +590,60 @@
 .garden-light .prose-editor .tiptap h3,
 .garden-light .prose-content h2,
 .garden-light .prose-content h3 {
-  color: #2c2418 !important;
+  color: #2d2d2d !important;
 }
 .garden-light .prose-editor .tiptap strong,
 .garden-light .prose-editor .tiptap em,
 .garden-light .prose-content strong {
-  color: #2c2418 !important;
+  color: #2d2d2d !important;
 }
 .garden-light .prose-editor .tiptap p,
 .garden-light .prose-content p {
-  color: #3d3225 !important;
+  color: #3a3a3a !important;
 }
 .garden-light .prose-editor .tiptap blockquote,
 .garden-light .prose-content blockquote {
-  border-left-color: rgba(60, 50, 35, 0.2) !important;
-  color: #6b5e4f !important;
+  border-left-color: rgba(0, 0, 0, 0.12) !important;
+  color: #6b6b6b !important;
 }
 .garden-light .prose-editor .tiptap hr,
 .garden-light .prose-content hr {
-  border-top-color: rgba(60, 50, 35, 0.1) !important;
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
 }
 .garden-light .tiptap p.is-editor-empty:first-child::before {
-  color: #a09482 !important;
+  color: #a8a8a8 !important;
 }
 
 /* ─── Light: Editor cursor & selection ─── */
 .garden-light .prose-editor .tiptap {
-  caret-color: #3d3225 !important;
+  caret-color: #2d2d2d !important;
 }
 .garden-light .typewriter-editor.tiptap {
-  caret-color: #6b3f0a !important;
-  color: #3d3225 !important;
+  caret-color: #a0522d !important;
+  color: #3a3a3a !important;
 }
 .garden-light .typewriter-editor.tiptap::selection,
 .garden-light .typewriter-editor.tiptap *::selection {
-  background: rgba(146, 96, 10, 0.18) !important;
+  background: rgba(160, 82, 45, 0.15) !important;
 }
 .garden-light .prose-editor .tiptap::selection,
 .garden-light .prose-editor .tiptap *::selection {
-  background: rgba(45, 106, 79, 0.15) !important;
+  background: rgba(160, 82, 45, 0.12) !important;
 }
 
 /* ─── Light: Form elements ─── */
 .garden-light select option {
-  background-color: #e8e0d2 !important;
-  color: #2c2418 !important;
+  background-color: #eae8e3 !important;
+  color: #2d2d2d !important;
 }
 .garden-light input,
 .garden-light textarea,
 .garden-light select {
-  color: #2c2418 !important;
+  color: #2d2d2d !important;
 }
 .garden-light input::placeholder,
 .garden-light textarea::placeholder {
-  color: #a09482 !important;
+  color: #a8a8a8 !important;
 }
 
 /* ─── Light: Backdrop blur ─── */
@@ -601,15 +653,15 @@
 
 /* ─── Light: Scrollbar ─── */
 .garden-light ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 .garden-light ::-webkit-scrollbar-track {
   background: transparent;
 }
 .garden-light ::-webkit-scrollbar-thumb {
-  background: rgba(60, 50, 35, 0.15);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
 }
 .garden-light ::-webkit-scrollbar-thumb:hover {
-  background: rgba(60, 50, 35, 0.25);
+  background: rgba(0, 0, 0, 0.18);
 }

@@ -18,7 +18,10 @@ The Page Gallery Journal is a literary journal platform designed to be an immers
 - **3D Graphics:** Three.js / React Three Fiber for the star background
 
 ### Key Design Decisions
-The platform features a distinctive space-themed immersive design, characterized by a 3D star background and a consistent aesthetic. Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and `Space Mono` for monospaced elements. The color palette centers on a deep blue/cream (`#0b101a` for background). Interactive elements include an opening book animation triggered by scroll, and a central "Garden" metaphor where writings progress through stages (seed → sprout → bloom).
+The platform features a distinctive immersive design with dual-theme support:
+- **Dark mode ("Teal-Indigo Watercolor Night"):** Inspired by bioluminescent watercolor illustration — deep teal-indigo background (#0d1e2d), gold-leaf firefly accents (#c4a24d), teal-cyan plant silhouettes, and a moonlit atmosphere with cyan glow. Replaces the original flat navy/emerald palette.
+- **Light mode ("Frozen Garden"):** Inspired by pen-and-ink botanical illustration on cold winter paper — cool off-white (#f0eeea), graphite text hierarchy (#2d2d2d → #a8a8a8), nearly monochrome UI with a single warm russet accent (#a0522d) for primary actions and active states.
+Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and `Space Mono` for monospaced elements. Interactive elements include an opening book animation triggered by scroll, and a central "Garden" metaphor where writings progress through stages (seed → sprout → bloom).
 
 **UI/UX and Features:**
 - **Authentic Typewriter Experience:** Integrates Web Audio API for mechanical key clicks and a "Special Elite" font with an amber cursor for an immersive writing environment.
