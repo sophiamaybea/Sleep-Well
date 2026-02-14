@@ -275,6 +275,19 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin: 1.5em 0;
 }
+.prose-content pre {
+  font-family: 'Cormorant Garamond', serif;
+  white-space: pre;
+  line-height: 2;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  overflow-x: auto;
+  tab-size: 4;
+}
 
 /* ─── Accessibility: Reduced Motion ─── */
 .a11y-reduced-motion *,
