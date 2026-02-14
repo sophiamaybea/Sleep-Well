@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,7 +6,7 @@ import {
   BookOpen, ChevronLeft, ChevronRight, Check, Lock, Crown,
   GraduationCap, Sparkles, PenLine, ArrowLeft, CheckCircle2,
   Circle, X, ShoppingCart, Feather, Star, Send, Sprout,
-  Save, Leaf, MessageCircle
+  Save, Leaf, MessageCircle, ChevronDown, Copy, Eye, EyeOff
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -753,6 +753,261 @@ function ExerciseWriter({ courseId, lessonId, writingPrompt }: {
   );
 }
 
+function InteractiveLessonContent({ html }: { html: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Set<number>>(new Set());
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [highlightedTerm, setHighlightedTerm] = useState<string | null>(null);
+
+  const sanitizedHtml = useMemo(() => DOMPurify.sanitize(html), [html]);
+
+  const sections = useMemo(() => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(sanitizedHtml, "text/html");
+    const nodes = Array.from(doc.body.childNodes);
+
+    const result: { type: string; heading?: string; content: string; index: number }[] = [];
+    let currentSection: { type: string; heading?: string; content: string; index: number } | null = null;
+    let sectionIndex = 0;
+
+    nodes.forEach((node) => {
+      const el = node as HTMLElement;
+      const tagName = el.tagName?.toLowerCase();
+
+      if (tagName === "h2" || tagName === "h3") {
+        if (currentSection) result.push(currentSection);
+        currentSection = {
+          type: tagName,
+          heading: el.textContent || "",
+          content: "",
+          index: sectionIndex++,
+        };
+      } else {
+        const outerHtml = el.outerHTML || el.textContent || "";
+        if (currentSection) {
+          currentSection.content += outerHtml;
+        } else {
+          result.push({ type: "content", content: outerHtml, index: sectionIndex++ });
+        }
+      }
+    });
+    if (currentSection) result.push(currentSection);
+    return result;
+  }, [sanitizedHtml]);
+
+  const toggleSection = (index: number) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const toggleCheck = (key: string) => {
+    setCheckedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const copyText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copied", description: "Text copied to clipboard" });
+  };
+
+  const renderInteractiveHtml = (htmlStr: string, sectionIdx: number) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlStr, "text/html");
+    const nodes = Array.from(doc.body.childNodes);
+
+    return nodes.map((node, nodeIdx) => {
+      const el = node as HTMLElement;
+      const tagName = el.tagName?.toLowerCase();
+
+      if (tagName === "ul" || tagName === "ol") {
+        const items = Array.from(el.querySelectorAll("li"));
+        return (
+          <div key={`${sectionIdx}-${nodeIdx}`} className="my-4 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 space-y-1">
+            {items.map((li, liIdx) => {
+              const itemKey = `${sectionIdx}-${nodeIdx}-${liIdx}`;
+              const isChecked = checkedItems.has(itemKey);
+              return (
+                <div
+                  key={itemKey}
+                  onClick={() => toggleCheck(itemKey)}
+                  className={`flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all group/item
+                    ${isChecked ? "bg-emerald-900/10 border border-emerald-800/15" : "hover:bg-white/[0.03] border border-transparent"}
+                    ${liIdx < items.length - 1 ? "border-b border-b-white/[0.03]" : ""}`}
+                  data-testid={`check-item-${itemKey}`}
+                >
+                  <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 transition-all
+                    ${isChecked
+                      ? "bg-emerald-600/30 border-emerald-500/40"
+                      : "border-white/15 group-hover/item:border-emerald-500/30"}`}
+                  >
+                    {isChecked && <Check size={10} className="text-emerald-300/80" />}
+                    {tagName === "ol" && !isChecked && (
+                      <span className="text-[9px] font-mono text-white/30">{liIdx + 1}</span>
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm leading-relaxed transition-all flex-1 ${isChecked ? "text-white/35 line-through decoration-white/15" : "text-white/55"}`}
+                    dangerouslySetInnerHTML={{ __html: li.innerHTML }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+
+      if (tagName === "blockquote") {
+        const text = el.textContent || "";
+        return (
+          <div key={`${sectionIdx}-${nodeIdx}`} className="my-5 relative group/quote">
+            <div className="border-l-2 border-amber-500/25 pl-5 py-3 italic text-white/50 bg-amber-900/5 rounded-r-xl pr-12">
+              <div dangerouslySetInnerHTML={{ __html: el.innerHTML }} />
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); copyText(text); }}
+              className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover/quote:opacity-100 transition-opacity bg-white/5 hover:bg-white/10 text-white/30 hover:text-white/50"
+              data-testid={`button-copy-quote-${sectionIdx}-${nodeIdx}`}
+            >
+              <Copy size={12} />
+            </button>
+          </div>
+        );
+      }
+
+      if (tagName === "table") {
+        return (
+          <div key={`${sectionIdx}-${nodeIdx}`} className="my-5 rounded-xl border border-white/[0.06] overflow-hidden">
+            <div
+              className="interactive-table text-xs [&_thead]:bg-white/[0.04] [&_th]:text-left [&_th]:text-white/50 [&_th]:font-mono [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-[10px] [&_th]:px-4 [&_th]:py-3 [&_th]:border-b [&_th]:border-white/[0.08] [&_td]:px-4 [&_td]:py-3 [&_td]:text-white/50 [&_td]:border-b [&_td]:border-white/[0.04] [&_td]:align-top [&_td]:leading-relaxed [&_tr]:transition-colors [&_tbody_tr:hover]:bg-white/[0.03] [&_table]:w-full [&_table]:border-collapse"
+              dangerouslySetInnerHTML={{ __html: el.outerHTML }}
+            />
+          </div>
+        );
+      }
+
+      if (tagName === "p") {
+        return (
+          <p
+            key={`${sectionIdx}-${nodeIdx}`}
+            className="text-white/55 leading-[1.85] mb-4 lesson-paragraph [&_strong]:text-emerald-300/80 [&_strong]:bg-emerald-900/15 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded [&_strong]:border [&_strong]:border-emerald-800/15 [&_strong]:text-[13px] [&_strong]:font-medium [&_strong]:cursor-pointer [&_strong]:transition-all [&_strong:hover]:bg-emerald-900/30 [&_strong:hover]:border-emerald-700/25 [&_strong:hover]:text-emerald-200/90 [&_strong:hover]:shadow-[0_0_12px_rgba(16,185,129,0.15)] [&_em]:text-white/50 [&_em]:italic"
+            dangerouslySetInnerHTML={{ __html: el.innerHTML }}
+          />
+        );
+      }
+
+      if (tagName === "hr") {
+        return <hr key={`${sectionIdx}-${nodeIdx}`} className="border-white/[0.06] my-8" />;
+      }
+
+      return (
+        <div
+          key={`${sectionIdx}-${nodeIdx}`}
+          className="[&_strong]:text-emerald-300/80 [&_strong]:bg-emerald-900/15 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded [&_strong]:border [&_strong]:border-emerald-800/15 [&_strong]:text-[13px] [&_strong]:font-medium [&_strong]:cursor-pointer [&_strong]:transition-all [&_strong:hover]:bg-emerald-900/30 [&_strong:hover]:border-emerald-700/25 [&_strong:hover]:text-emerald-200/90 [&_strong:hover]:shadow-[0_0_12px_rgba(16,185,129,0.15)] [&_em]:text-white/50"
+          dangerouslySetInnerHTML={{ __html: el.outerHTML }}
+        />
+      );
+    });
+  };
+
+  return (
+    <div ref={contentRef} className="lesson-content font-body text-sm text-white/65 leading-relaxed space-y-0">
+      {sections.map((section) => {
+        if (section.type === "h2") {
+          const isCollapsed = collapsedSections.has(section.index);
+          return (
+            <div key={section.index} className="mt-8 first:mt-0">
+              <button
+                onClick={() => toggleSection(section.index)}
+                className="w-full flex items-center justify-between gap-3 pb-3 border-b border-white/[0.08] group/section cursor-pointer text-left"
+                data-testid={`button-toggle-section-${section.index}`}
+              >
+                <h2 className="font-display text-lg text-white/90 tracking-wide group-hover/section:text-white transition-colors">
+                  {section.heading}
+                </h2>
+                <motion.div
+                  animate={{ rotate: isCollapsed ? -90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-white/30 group-hover/section:text-white/50 transition-colors flex-shrink-0"
+                >
+                  <ChevronDown size={16} />
+                </motion.div>
+              </button>
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-4">
+                      {renderInteractiveHtml(section.content, section.index)}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        }
+
+        if (section.type === "h3") {
+          const isCollapsed = collapsedSections.has(section.index);
+          return (
+            <div key={section.index} className="mt-6">
+              <button
+                onClick={() => toggleSection(section.index)}
+                className="w-full flex items-center justify-between gap-3 pl-3 border-l-2 border-emerald-500/30 group/section cursor-pointer text-left"
+                data-testid={`button-toggle-section-${section.index}`}
+              >
+                <h3 className="font-display text-[15px] text-emerald-300/70 tracking-wide group-hover/section:text-emerald-200/80 transition-colors">
+                  {section.heading}
+                </h3>
+                <motion.div
+                  animate={{ rotate: isCollapsed ? -90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-emerald-400/30 group-hover/section:text-emerald-400/50 transition-colors flex-shrink-0"
+                >
+                  <ChevronDown size={14} />
+                </motion.div>
+              </button>
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3">
+                      {renderInteractiveHtml(section.content, section.index)}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        }
+
+        return (
+          <div key={section.index}>
+            {renderInteractiveHtml(section.content, section.index)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function LessonView({ courseId, lessonId, onBack, onNavigate }: {
   courseId: string;
   lessonId: string;
@@ -831,36 +1086,7 @@ function LessonView({ courseId, lessonId, onBack, onNavigate }: {
         </div>
 
         <div className="px-6 sm:px-8 pb-6 sm:pb-8">
-          <div
-            className="lesson-content font-body text-sm text-white/65 leading-relaxed
-
-              [&_h2]:font-display [&_h2]:text-lg [&_h2]:text-white/90 [&_h2]:mt-10 [&_h2]:mb-5 [&_h2]:pb-3 [&_h2]:border-b [&_h2]:border-white/[0.08] [&_h2]:tracking-wide
-
-              [&_h3]:font-display [&_h3]:text-[15px] [&_h3]:text-emerald-300/70 [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:pl-3 [&_h3]:border-l-2 [&_h3]:border-emerald-500/30 [&_h3]:tracking-wide
-
-              [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:text-amber-400/60 [&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:uppercase [&_h4]:tracking-[0.15em] [&_h4]:pl-3 [&_h4]:border-l-2 [&_h4]:border-amber-500/20
-
-              [&_strong]:text-emerald-300/80 [&_strong]:bg-emerald-900/15 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded [&_strong]:border [&_strong]:border-emerald-800/15 [&_strong]:text-[13px] [&_strong]:font-medium
-
-              [&_em]:text-white/50 [&_em]:italic
-
-              [&_p]:text-white/55 [&_p]:leading-[1.85] [&_p]:mb-4
-
-              [&_ul]:my-4 [&_ul]:space-y-2 [&_ul]:pl-0 [&_ul]:list-none [&_ul]:rounded-xl [&_ul]:border [&_ul]:border-white/[0.06] [&_ul]:bg-white/[0.015] [&_ul]:p-4
-              [&_ul_li]:text-white/55 [&_ul_li]:leading-relaxed [&_ul_li]:pl-5 [&_ul_li]:relative [&_ul_li]:before:content-[''] [&_ul_li]:before:absolute [&_ul_li]:before:left-1 [&_ul_li]:before:top-[10px] [&_ul_li]:before:w-1.5 [&_ul_li]:before:h-1.5 [&_ul_li]:before:rounded-full [&_ul_li]:before:bg-emerald-500/30 [&_ul_li]:border-b [&_ul_li]:border-white/[0.03] [&_ul_li]:pb-2 [&_ul_li]:last:border-b-0 [&_ul_li]:last:pb-0
-
-              [&_ol]:my-4 [&_ol]:space-y-2 [&_ol]:pl-0 [&_ol]:list-none [&_ol]:rounded-xl [&_ol]:border [&_ol]:border-white/[0.06] [&_ol]:bg-white/[0.015] [&_ol]:p-4
-              [&_ol_li]:text-white/55 [&_ol_li]:leading-relaxed [&_ol_li]:pl-8 [&_ol_li]:relative [&_ol_li]:border-b [&_ol_li]:border-white/[0.03] [&_ol_li]:pb-2 [&_ol_li]:last:border-b-0 [&_ol_li]:last:pb-0
-
-              [&_blockquote]:my-5 [&_blockquote]:border-l-2 [&_blockquote]:border-amber-500/25 [&_blockquote]:pl-5 [&_blockquote]:py-3 [&_blockquote]:italic [&_blockquote]:text-white/50 [&_blockquote]:bg-amber-900/5 [&_blockquote]:rounded-r-xl [&_blockquote]:pr-5
-
-              [&_hr]:border-white/[0.06] [&_hr]:my-8
-
-              [&_table]:w-full [&_table]:text-xs [&_table]:border-collapse [&_table]:my-5 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/[0.06]
-              [&_thead]:bg-white/[0.04] [&_th]:text-left [&_th]:text-white/50 [&_th]:font-mono [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-[10px] [&_th]:px-4 [&_th]:py-3 [&_th]:border-b [&_th]:border-white/[0.08]
-              [&_td]:px-4 [&_td]:py-3 [&_td]:text-white/50 [&_td]:border-b [&_td]:border-white/[0.04] [&_td]:align-top [&_td]:leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lesson.content) }}
-          />
+          <InteractiveLessonContent html={lesson.content} />
         </div>
       </motion.div>
 
