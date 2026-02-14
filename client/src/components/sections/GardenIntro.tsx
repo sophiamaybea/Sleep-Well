@@ -168,36 +168,46 @@ export default function GardenIntro() {
   ];
 
   return (
-    <section id="garden-intro" className="relative py-40 overflow-hidden" data-testid="section-garden-intro">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(52,211,153,0.03) 0%, transparent 60%)" }} />
+    <section id="garden-intro" className="relative pt-24 pb-40 overflow-hidden" data-testid="section-garden-intro">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 10%, rgba(52,211,153,0.05) 0%, transparent 50%)" }} />
 
       <div className="max-w-5xl mx-auto w-full px-6 relative">
         <div className="text-center space-y-10 relative z-10">
           <motion.span
-            initial={{ opacity: 0, letterSpacing: "0.15em" }}
-            whileInView={{ opacity: 0.4, letterSpacing: "0.3em" }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            viewport={{ once: true }}
+            initial={{ opacity: 0, y: -10, letterSpacing: "0.15em" }}
+            whileInView={{ opacity: 0.5, y: 0, letterSpacing: "0.3em" }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true, margin: "100px" }}
             className="font-mono text-xs tracking-[0.3em] block uppercase"
           >
             Your Private Space
           </motion.span>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            viewport={{ once: true }}
-            className="text-5xl md:text-7xl font-display font-light tracking-tight italic"
-            data-testid="heading-garden-intro"
-          >
-            The Garden
-          </motion.h2>
+          <div className="relative">
+            <motion.div
+              className="absolute inset-0 -inset-x-20 pointer-events-none"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true, margin: "50px" }}
+              style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.03) 0%, transparent 60%)" }}
+            />
+            <motion.h2
+              initial={{ opacity: 0, y: 30, filter: "blur(12px)", scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true, margin: "50px" }}
+              className="text-5xl md:text-7xl font-display font-light tracking-tight italic relative"
+              data-testid="heading-garden-intro"
+            >
+              The Garden
+            </motion.h2>
+          </div>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 0.7, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             viewport={{ once: true }}
             className="text-lg md:text-xl font-serif font-light leading-relaxed max-w-2xl mx-auto"
           >

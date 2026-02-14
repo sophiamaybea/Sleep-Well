@@ -90,7 +90,7 @@ export default function Hero() {
     <>
       <StarTitle />
 
-      <section id="hero-content" className="relative z-10 min-h-[60vh] py-24 px-6 md:px-12 lg:px-24">
+      <section id="hero-content" className="relative z-10 min-h-[50vh] pt-16 pb-12 px-6 md:px-12 lg:px-24">
         <div
           className="max-w-7xl mx-auto"
           onMouseMove={handleMouseMove}
@@ -159,6 +159,18 @@ export default function Hero() {
           </div>
         </div>
       </section>
+
+      <div className="relative z-10 h-32 -mb-16 pointer-events-none" aria-hidden="true">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(13,30,45,0.4) 50%, rgba(13,30,45,0.6) 100%)" }} />
+        <motion.div
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+          viewport={{ once: true }}
+          style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(52,211,153,0.04) 0%, transparent 70%)" }}
+        />
+      </div>
     </>
   );
 }
