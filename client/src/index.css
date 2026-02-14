@@ -380,6 +380,20 @@
   -webkit-backdrop-filter: none !important;
 }
 
+/* ─── Garden Background Classes (used instead of inline styles) ─── */
+.garden-bg {
+  background: linear-gradient(180deg, #0b101a 0%, #0a1210 30%, #0b1318 60%, #0b101a 100%);
+}
+.garden-header-bg {
+  background: linear-gradient(135deg, rgba(11,16,26,0.92) 0%, rgba(10,18,16,0.92) 100%);
+}
+.garden-dropdown-bg {
+  background: linear-gradient(180deg, rgba(10,18,16,0.98) 0%, rgba(11,16,26,0.98) 100%);
+}
+.a11y-panel-bg {
+  background: linear-gradient(135deg, rgba(11,16,26,0.95) 0%, rgba(10,18,16,0.95) 100%);
+}
+
 /* ─── Garden Light Mode ─── */
 .garden-light {
   --color-background: hsl(35 30% 96%);
@@ -394,6 +408,19 @@
   --color-border: hsl(35 15% 82%);
   --color-input: hsl(35 15% 82%);
   --color-ring: hsl(220 30% 12%);
+  color-scheme: light;
+}
+
+.garden-light .garden-bg {
+  background: linear-gradient(180deg, hsl(35 30% 96%) 0%, hsl(35 25% 94%) 30%, hsl(35 28% 95%) 60%, hsl(35 30% 96%) 100%) !important;
+}
+.garden-light .garden-header-bg {
+  background: rgba(250, 245, 235, 0.92) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+.garden-light .garden-dropdown-bg {
+  background: rgba(250, 245, 235, 0.98) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 .garden-light .glass-panel {
@@ -402,37 +429,72 @@
   backdrop-filter: blur(12px) !important;
 }
 
-.garden-light .text-white\/20,
-.garden-light .text-white\/25,
-.garden-light .text-white\/30 {
+.garden-light .night-garden-atmosphere,
+.garden-light .moonlight-glow {
+  display: none !important;
+}
+
+.garden-light .garden-bg [class*="text-white"] {
+  color: rgba(0, 0, 0, 0.7);
+}
+.garden-light .garden-bg [class*="text-white/9"],
+.garden-light .garden-bg [class*="text-white/8"] {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+.garden-light .garden-bg [class*="text-white/7"],
+.garden-light .garden-bg [class*="text-white/6"] {
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+.garden-light .garden-bg [class*="text-white/5"],
+.garden-light .garden-bg [class*="text-white/4"] {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+.garden-light .garden-bg [class*="text-white/3"],
+.garden-light .garden-bg [class*="text-white/2"],
+.garden-light .garden-bg [class*="text-white/1"] {
   color: rgba(0, 0, 0, 0.3) !important;
 }
 
-.garden-light .text-white\/40,
-.garden-light .text-white\/45,
-.garden-light .text-white\/50 {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-.garden-light .text-white\/60,
-.garden-light .text-white\/70,
-.garden-light .text-white\/80,
-.garden-light .text-white\/90 {
-  color: rgba(0, 0, 0, 0.8) !important;
-}
-
-.garden-light .bg-white\/\[0\.02\],
-.garden-light .bg-white\/\[0\.03\],
-.garden-light .bg-white\/\[0\.04\],
-.garden-light .bg-white\/\[0\.05\] {
+.garden-light .garden-bg [class*="bg-white/"] {
   background-color: rgba(0, 0, 0, 0.04) !important;
 }
+.garden-light .garden-bg [class*="hover:bg-white/"]:hover {
+  background-color: rgba(0, 0, 0, 0.07) !important;
+}
 
-.garden-light .border-white\/\[0\.06\],
-.garden-light .border-white\/\[0\.08\],
-.garden-light .border-white\/\[0\.10\],
-.garden-light .border-white\/\[0\.12\] {
+.garden-light .garden-bg [class*="border-white/"],
+.garden-light .garden-bg [class*="border-emerald-"] {
   border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.garden-light .garden-bg [class*="text-emerald-"] {
+  color: hsl(160 60% 30%) !important;
+}
+.garden-light .garden-bg [class*="text-amber-"] {
+  color: hsl(35 70% 35%) !important;
+}
+.garden-light .garden-bg [class*="text-violet-"] {
+  color: hsl(270 50% 40%) !important;
+}
+.garden-light .garden-bg [class*="text-red-"] {
+  color: hsl(0 60% 40%) !important;
+}
+
+.garden-light .garden-bg [class*="bg-emerald-"] {
+  background-color: hsla(160 60% 30%, 0.1) !important;
+}
+.garden-light .garden-bg [class*="bg-amber-"] {
+  background-color: hsla(35 70% 35%, 0.1) !important;
+}
+.garden-light .garden-bg [class*="bg-violet-"] {
+  background-color: hsla(270 50% 40%, 0.1) !important;
+}
+
+.garden-light .garden-bg [class*="border-emerald-"] {
+  border-color: hsla(160 60% 30%, 0.15) !important;
+}
+.garden-light .garden-bg [class*="border-amber-"] {
+  border-color: hsla(35 70% 35%, 0.15) !important;
 }
 
 .garden-light .prose-editor .tiptap h2,
@@ -450,10 +512,20 @@
   color: rgba(0, 0, 0, 0.75) !important;
 }
 
-.garden-light .bg-\[\#0b101a\] {
-  background-color: var(--color-background) !important;
-}
-
 .garden-light .tiptap p.is-editor-empty:first-child::before {
   color: rgba(0, 0, 0, 0.25) !important;
+}
+
+.garden-light select option {
+  background-color: hsl(35 30% 96%) !important;
+  color: hsl(220 30% 12%) !important;
+}
+
+.garden-light [class*="backdrop-blur"] {
+  backdrop-filter: blur(12px) !important;
+}
+
+.garden-light .a11y-panel-bg {
+  background: rgba(245, 240, 230, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }

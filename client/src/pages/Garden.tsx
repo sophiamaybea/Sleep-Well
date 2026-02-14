@@ -11,7 +11,7 @@ import {
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
   TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send,
-  Flag, ExternalLink, Camera, Crown, RotateCcw
+  Flag, ExternalLink, Camera, Crown, RotateCcw, Settings
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
 import { toast } from "@/hooks/use-toast";
@@ -54,7 +54,7 @@ const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
 
 function NightGardenAtmosphere() {
   return (
-    <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
+    <div className="night-garden-atmosphere fixed inset-0 z-[1] pointer-events-none overflow-hidden">
       <div className="absolute top-[-5%] right-[15%] w-[500px] h-[500px] rounded-full animate-moonpulse"
         style={{ background: "radial-gradient(circle, rgba(200, 220, 255, 0.08) 0%, rgba(200, 220, 255, 0.03) 40%, transparent 70%)" }} />
 
@@ -2691,6 +2691,7 @@ export default function Garden() {
   const [showPlantingFlow, setShowPlantingFlow] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showA11yPanel, setShowA11yPanel] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
   const { settings: a11y, toggle: toggleA11y } = useAccessibility();
@@ -2874,11 +2875,11 @@ export default function Garden() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative" style={{ background: "linear-gradient(180deg, #0b101a 0%, #0a1210 30%, #0b1318 60%, #0b101a 100%)" }}>
+    <div className="min-h-screen bg-background text-foreground relative garden-bg">
       <NightGardenAtmosphere />
 
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-emerald-900/25" style={{ background: "linear-gradient(135deg, rgba(11,16,26,0.92) 0%, rgba(10,18,16,0.92) 100%)" }}>
+        <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-emerald-900/25 garden-header-bg">
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
               <a href="/" className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/45 hover:text-white/60 transition-colors group" data-testid="link-home">
@@ -2919,6 +2920,18 @@ export default function Garden() {
               </div>
 
               <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowA11yPanel(!showA11yPanel)}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                    showA11yPanel
+                      ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300"
+                      : "bg-white/[0.04] border border-white/[0.1] text-white/40 hover:text-white/60 hover:border-white/20"
+                  }`}
+                  data-testid="button-a11y-panel"
+                  title="Appearance & Accessibility"
+                >
+                  <Settings size={13} />
+                </button>
                 <NotificationBell onClick={() => setShowNotifications(true)} />
                 <div className="relative">
                   <button
@@ -2934,7 +2947,7 @@ export default function Garden() {
                         initial={{ opacity: 0, y: 5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-emerald-800/20 shadow-2xl z-[100] overflow-y-auto max-h-[80vh] scrollbar-hide" style={{ background: "linear-gradient(180deg, rgba(10,18,16,0.98) 0%, rgba(11,16,26,0.98) 100%)" }}
+                        className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-emerald-800/20 shadow-2xl z-[100] overflow-y-auto max-h-[80vh] scrollbar-hide garden-dropdown-bg"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="p-4 border-b border-emerald-900/20">
@@ -3000,52 +3013,6 @@ export default function Garden() {
                             Whispers
                           </button>
                         </div>
-                        <div className="p-3 border-b border-emerald-900/20">
-                          <div className="px-2 py-1 mb-2">
-                            <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
-                              <Glasses size={12} />
-                              Appearance & Accessibility
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-1 gap-1">
-                            {([
-                              { key: "gardenLight" as const, label: "Light Mode", desc: "Warm paper theme", icon: a11y.gardenLight ? <Moon size={12} /> : <Sparkles size={12} /> },
-                              { key: "reducedMotion" as const, label: "Reduce Motion", desc: "Pause animations", icon: null },
-                              { key: "highContrast" as const, label: "High Contrast", desc: "Brighter text", icon: null },
-                              { key: "largerText" as const, label: "Larger Text", desc: "Increase font size", icon: null },
-                              { key: "dyslexiaFont" as const, label: "Dyslexia Font", desc: "Easier to read", icon: null },
-                              { key: "widerSpacing" as const, label: "Wider Spacing", desc: "More room", icon: null },
-                              { key: "focusMode" as const, label: "Focus Mode", desc: "No decorations", icon: null },
-                            ]).map((opt) => (
-                              <button
-                                key={opt.key}
-                                onClick={() => toggleA11y(opt.key)}
-                                className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all group ${
-                                  a11y[opt.key] ? "bg-white/[0.06]" : "hover:bg-white/[0.04]"
-                                }`}
-                                data-testid={`toggle-a11y-${opt.key}`}
-                              >
-                                <div className="text-left">
-                                  <p className={`font-serif text-xs transition-colors ${
-                                    a11y[opt.key] ? "text-white/90" : "text-white/65 group-hover:text-white/80"
-                                  }`}>{opt.label}</p>
-                                  <p className="font-mono text-[7px] text-white/25 uppercase tracking-widest">{opt.desc}</p>
-                                </div>
-                                <div className={`w-7 h-4 rounded-full border transition-all flex items-center ${
-                                  a11y[opt.key]
-                                    ? "bg-emerald-500/30 border-emerald-500/50"
-                                    : "bg-white/[0.04] border-white/[0.12]"
-                                }`}>
-                                  <div className={`w-2.5 h-2.5 rounded-full transition-all ${
-                                    a11y[opt.key]
-                                      ? "bg-emerald-400 translate-x-3.5"
-                                      : "bg-white/30 translate-x-0.5"
-                                  }`} />
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
                         <div className="p-2">
                           <a href="/api/logout" className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/50 hover:text-red-400/80 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
                             <LogOut size={13} />
@@ -3067,7 +3034,57 @@ export default function Garden() {
           </div>
         </header>
 
-        <main className="pt-8 pb-24 px-6" onClick={() => showProfileMenu && setShowProfileMenu(false)}>
+        <AnimatePresence>
+          {showA11yPanel && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="sticky top-[57px] z-40 overflow-hidden border-b border-emerald-900/15 backdrop-blur-xl a11y-panel-bg"
+            >
+              <div className="max-w-5xl mx-auto px-6 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
+                    <Glasses size={12} />
+                    Appearance & Accessibility
+                  </span>
+                  <button onClick={() => setShowA11yPanel(false)} className="text-white/30 hover:text-white/60 transition-colors" data-testid="button-close-a11y">
+                    <X size={14} />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    { key: "gardenLight" as const, label: "Light Mode", icon: <Sparkles size={11} /> },
+                    { key: "reducedMotion" as const, label: "Reduce Motion", icon: <Eye size={11} /> },
+                    { key: "highContrast" as const, label: "High Contrast", icon: <Eye size={11} /> },
+                    { key: "largerText" as const, label: "Larger Text", icon: null },
+                    { key: "dyslexiaFont" as const, label: "Dyslexia Font", icon: null },
+                    { key: "widerSpacing" as const, label: "Wider Spacing", icon: null },
+                    { key: "focusMode" as const, label: "Focus Mode", icon: <Moon size={11} /> },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => toggleA11y(opt.key)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-wider transition-all border ${
+                        a11y[opt.key]
+                          ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                          : "bg-white/[0.03] border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:text-white/70"
+                      }`}
+                      data-testid={`a11y-toggle-${opt.key}`}
+                    >
+                      {opt.icon}
+                      {opt.label}
+                      {a11y[opt.key] && <Check size={10} className="text-emerald-400" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <main className="pt-8 pb-24 px-6" onClick={() => { showProfileMenu && setShowProfileMenu(false); }}>
           {activeWalk && (
             <div className="mb-6 rounded-2xl border border-violet-500/15 bg-violet-950/[0.08] p-5 text-center max-w-5xl mx-auto" data-testid="editors-walk-banner">
               <div className="flex items-center justify-center gap-2 mb-2">
