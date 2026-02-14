@@ -3028,6 +3028,7 @@ export default function Garden() {
                                     { key: "dyslexiaFont" as const, label: "Dyslexia Font", desc: "Easier to read" },
                                     { key: "widerSpacing" as const, label: "Wider Spacing", desc: "More breathing room" },
                                     { key: "focusMode" as const, label: "Focus Mode", desc: "Remove decorations" },
+                                    { key: "gardenLight" as const, label: "Light Mode", desc: "Warm paper theme" },
                                   ]).map((opt) => (
                                     <button
                                       key={opt.key}

@@ -379,3 +379,81 @@
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+/* ─── Garden Light Mode ─── */
+.garden-light {
+  --color-background: hsl(35 30% 96%);
+  --color-foreground: hsl(220 30% 12%);
+  --color-card: hsl(35 25% 92%);
+  --color-card-foreground: hsl(220 30% 15%);
+  --color-popover: hsl(35 30% 96%);
+  --color-popover-foreground: hsl(220 30% 12%);
+  --color-primary: hsl(220 30% 12%);
+  --color-primary-foreground: hsl(35 30% 96%);
+  --color-secondary: hsl(35 15% 85%);
+  --color-border: hsl(35 15% 82%);
+  --color-input: hsl(35 15% 82%);
+  --color-ring: hsl(220 30% 12%);
+}
+
+.garden-light .glass-panel {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.garden-light .text-white\/20,
+.garden-light .text-white\/25,
+.garden-light .text-white\/30 {
+  color: rgba(0, 0, 0, 0.3) !important;
+}
+
+.garden-light .text-white\/40,
+.garden-light .text-white\/45,
+.garden-light .text-white\/50 {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.garden-light .text-white\/60,
+.garden-light .text-white\/70,
+.garden-light .text-white\/80,
+.garden-light .text-white\/90 {
+  color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.garden-light .bg-white\/\[0\.02\],
+.garden-light .bg-white\/\[0\.03\],
+.garden-light .bg-white\/\[0\.04\],
+.garden-light .bg-white\/\[0\.05\] {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.garden-light .border-white\/\[0\.06\],
+.garden-light .border-white\/\[0\.08\],
+.garden-light .border-white\/\[0\.10\],
+.garden-light .border-white\/\[0\.12\] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.garden-light .prose-editor .tiptap h2,
+.garden-light .prose-editor .tiptap h3,
+.garden-light .prose-editor .tiptap strong,
+.garden-light .prose-editor .tiptap em,
+.garden-light .prose-content h2,
+.garden-light .prose-content h3,
+.garden-light .prose-content strong {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.garden-light .prose-editor .tiptap p,
+.garden-light .prose-content p {
+  color: rgba(0, 0, 0, 0.75) !important;
+}
+
+.garden-light .bg-\[\#0b101a\] {
+  background-color: var(--color-background) !important;
+}
+
+.garden-light .tiptap p.is-editor-empty:first-child::before {
+  color: rgba(0, 0, 0, 0.25) !important;
+}

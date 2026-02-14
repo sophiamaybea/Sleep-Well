@@ -38,6 +38,7 @@ function applyToDOM(settings: AccessibilitySettings) {
   root.classList.toggle("a11y-dyslexia-font", settings.dyslexiaFont);
   root.classList.toggle("a11y-wider-spacing", settings.widerSpacing);
   root.classList.toggle("a11y-focus-mode", settings.focusMode);
+  root.classList.toggle("garden-light", settings.gardenLight);
 }
 
 export function useAccessibility() {
