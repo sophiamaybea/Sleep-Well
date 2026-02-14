@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Garden from "@/pages/Garden";
 import WriterProfile from "@/pages/WriterProfile";
+import PublicGarden from "@/pages/PublicGarden";
 import EditorStudio from "@/pages/EditorStudio";
 import Gallery from "@/pages/Gallery";
 import About from "@/pages/About";
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/garden" component={Garden} />
       <Route path="/writer/:id" component={WriterProfile} />
+      <Route path="/public-garden/:userId" component={PublicGarden} />
       <Route path="/gallery" component={Gallery} />
       <Route path="/editor-studio" component={EditorStudio} />
       <Route path="/about" component={About} />

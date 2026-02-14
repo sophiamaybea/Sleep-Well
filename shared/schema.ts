@@ -19,6 +19,7 @@ export const writings = pgTable("writings", {
   isPublished: boolean("is_published").notNull().default(false),
   isPinned: boolean("is_pinned").notNull().default(false),
   isArchived: boolean("is_archived").notNull().default(false),
+  isPublicGarden: boolean("is_public_garden").notNull().default(false),
   tags: text("tags").array().default(sql`'{}'::text[]`),
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -469,6 +470,29 @@ export const ideaDrops = pgTable("idea_drops", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const editorialFlags = pgTable("editorial_flags", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("flagged"),
+  seenByEditorId: varchar("seen_by_editor_id").references(() => users.id),
+  seenAt: timestamp("seen_at"),
+  editorResponse: text("editor_response"),
+  respondedAt: timestamp("responded_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const editorsWalks = pgTable("editors_walks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  startsAt: timestamp("starts_at").notNull(),
+  endsAt: timestamp("ends_at").notNull(),
+  flagLimit: integer("flag_limit").notNull().default(3),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertWritingSchema = createInsertSchema(writings).omit({
   id: true, authorId: true, isPublished: true, publishedAt: true, createdAt: true, updatedAt: true,
@@ -476,6 +500,7 @@ export const insertWritingSchema = createInsertSchema(writings).omit({
   visibility: z.enum(["personal", "circle", "garden"]).optional(),
   readiness: z.enum(["raw_seed", "growing", "ready_to_show", "dormant"]).optional(),
   editorialAvailable: z.boolean().optional(),
+  isPublicGarden: z.boolean().optional(),
 });
 export const updateWritingSchema = insertWritingSchema.partial();
 
@@ -515,6 +540,8 @@ export const insertOpportunityNoteSchema = createInsertSchema(opportunityNotes).
 export const insertPromptPotluckSchema = createInsertSchema(promptPotluckItems).omit({ id: true, userId: true, createdAt: true });
 export const insertCircleShareSchema = createInsertSchema(circleShares).omit({ id: true, userId: true, createdAt: true });
 export const insertIdeaDropSchema = createInsertSchema(ideaDrops).omit({ id: true, userId: true, status: true, adoptedById: true, createdAt: true });
+export const insertEditorialFlagSchema = createInsertSchema(editorialFlags).omit({ id: true, authorId: true, status: true, seenByEditorId: true, seenAt: true, editorResponse: true, respondedAt: true, createdAt: true });
+export const insertEditorsWalkSchema = createInsertSchema(editorsWalks).omit({ id: true, createdById: true, createdAt: true });
 export const insertQuietReadSchema = createInsertSchema(quietReads).omit({ id: true, readerId: true, createdAt: true });
 export const insertWritingSnapshotSchema = createInsertSchema(writingSnapshots).omit({ id: true, createdAt: true });
 
@@ -608,3 +635,5 @@ export type CafeQuestion = typeof cafeQuestions.$inferSelect;
 export type CafeResponse = typeof cafeResponses.$inferSelect;
 export type CircleMicroPrompt = typeof circleMicroPrompts.$inferSelect;
 export type CircleMicroResponse = typeof circleMicroResponses.$inferSelect;
+export type EditorialFlag = typeof editorialFlags.$inferSelect;
+export type EditorsWalk = typeof editorsWalks.$inferSelect;

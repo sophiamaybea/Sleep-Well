@@ -10,9 +10,11 @@ import {
   Flame, Archive, NotebookPen,
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
-  TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send
+  TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send,
+  Flag, ExternalLink
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
+import { toast } from "@/hooks/use-toast";
 import { useAccessibility } from "@/hooks/use-accessibility";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
@@ -431,13 +433,15 @@ function PublishInvitations() {
   );
 }
 
-function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating }: {
+function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating, myFlags, flagMutation }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
   onCreateNew: () => void;
   onOpenPlanting: (w: Writing) => void;
   onQuickUpdate: (id: string, data: Record<string, any>) => void;
   isCreating: boolean;
+  myFlags: any[];
+  flagMutation: any;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
@@ -747,6 +751,48 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                             {(w as any).isArchived ? <ArchiveRestore size={11} /> : <Archive size={11} />}
                             {(w as any).isArchived ? "Restore" : "Archive"}
                           </button>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onQuickUpdate(w.id, { isPublicGarden: !(w as any).isPublicGarden });
+                              }}
+                              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border ${
+                                (w as any).isPublicGarden
+                                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300/80"
+                                  : "border-white/[0.06] text-white/30 hover:text-white/50 hover:border-white/15"
+                              }`}
+                              data-testid={`toggle-public-${w.id}`}
+                            >
+                              <Globe size={10} />
+                              {(w as any).isPublicGarden ? "Public" : "Make Public"}
+                            </button>
+                          </div>
+                          {readiness === "ready_to_show" && (() => {
+                            const existingFlag = myFlags.find((f: any) => f.writingId === w.id);
+                            if (existingFlag) {
+                              return (
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 bg-violet-500/5 text-violet-300/70">
+                                  <Flag size={10} />
+                                  {existingFlag.status === "flagged" ? "Flagged for editors" : 
+                                   existingFlag.status === "seen" ? "Seen by an editor" : 
+                                   "Editor responded"}
+                                </div>
+                              );
+                            }
+                            return (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); flagMutation.mutate(w.id); }}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border border-white/[0.06] text-white/30 hover:text-violet-300/60 hover:border-violet-500/20"
+                                data-testid={`button-flag-${w.id}`}
+                              >
+                                <Flag size={10} />
+                                Ready for eyes
+                              </button>
+                            );
+                          })()}
                         </div>
                       </div>
                     </motion.div>
@@ -2484,6 +2530,47 @@ export default function Garden() {
     refetchInterval: 60000,
   });
 
+  const { data: myFlags = [] } = useQuery<any[]>({
+    queryKey: ["/api/editorial-flags/mine"],
+    queryFn: async () => {
+      const res = await fetch("/api/editorial-flags/mine", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
+  const { data: activeWalk } = useQuery<any>({
+    queryKey: ["/api/editors-walk/active"],
+    queryFn: async () => {
+      const res = await fetch("/api/editors-walk/active");
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  const flagMutation = useMutation({
+    mutationFn: async (writingId: string) => {
+      const res = await fetch("/api/editorial-flags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ writingId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editorial-flags/mine"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Cannot flag", description: err.message, variant: "destructive" });
+    },
+  });
+
   useEffect(() => {
     if (!isAuthenticated) return;
     const sendHeartbeat = () => { fetch("/api/presence", { method: "POST", credentials: "include" }).catch(() => {}); };
@@ -2642,6 +2729,16 @@ export default function Garden() {
                               <p className="font-mono text-[8px] text-white/50 uppercase tracking-widest">{user?.role === "editor" ? "Editor" : "Writer"}</p>
                             </div>
                           </div>
+                          <a
+                            href={`/public-garden/${user?.id}`}
+                            target="_blank"
+                            rel="noopener"
+                            className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-emerald-400/50 hover:text-emerald-400/80 transition-colors mt-2"
+                            data-testid="link-public-garden"
+                          >
+                            <ExternalLink size={10} />
+                            Your Public Garden
+                          </a>
                         </div>
                         <div className="p-3 border-b border-emerald-900/20 space-y-2">
                           <a
@@ -2758,6 +2855,22 @@ export default function Garden() {
         </header>
 
         <main className="pt-8 pb-24 px-6" onClick={() => showProfileMenu && setShowProfileMenu(false)}>
+          {activeWalk && (
+            <div className="mb-6 rounded-2xl border border-violet-500/15 bg-violet-950/[0.08] p-5 text-center max-w-5xl mx-auto" data-testid="editors-walk-banner">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-violet-400/60 animate-pulse" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-violet-300/70">The Editors Walk</span>
+              </div>
+              <p className="font-display text-lg font-light italic text-white/70">{activeWalk.title}</p>
+              {activeWalk.description && <p className="font-serif text-xs text-white/45 mt-1">{activeWalk.description}</p>}
+              <p className="font-mono text-[9px] text-violet-300/50 mt-3">
+                Editors are walking through the gardens. Flag up to {activeWalk.flagLimit} pieces during this window.
+              </p>
+              <p className="font-mono text-[8px] text-white/30 mt-1">
+                Ends {new Date(activeWalk.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeRoom ? `room-${activeRoom}` : (isEditing ? `editor-${activeWriting?.id}` : activeZone)}
@@ -2791,6 +2904,8 @@ export default function Garden() {
                   onOpenPlanting={openPlanting}
                   onQuickUpdate={(id, data) => updateMutation.mutate({ id, ...data })}
                   isCreating={createMutation.isPending}
+                  myFlags={myFlags}
+                  flagMutation={flagMutation}
                 />
               ) : activeZone === "reading-room" ? (
                 <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} />

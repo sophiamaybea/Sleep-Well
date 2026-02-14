@@ -1,0 +1,33 @@
+Honest answer, thinking about what I'd actually pull out my card for versus what I'd admire from the free tier:
+
+**What I'd pay for:**
+
+**1. Editorial eyes on my work — the flag/submission window.**
+This is the only feature worth real money to me. The core promise of the platform is that editors read your garden and might select your work. If there were a paid tier where I could flag a piece for editorial attention — even once a quarter — and get a guaranteed read with a brief private response ("not right for us," "keep developing this," "we're interested"), I'd pay for that without hesitation. Not because I want to skip the queue, but because the current model offers zero confirmation that anyone with editorial authority has looked at what I wrote. A guaranteed read with a human sentence of feedback is worth more than every other feature on the platform combined. That's not a writing tool — that's access to an editor, which writers pay hundreds of dollars for elsewhere.
+
+**2. Swap with matching, not random.**
+The free version of Swap — drop a piece, get matched with whoever — is fine. But if a paid tier let me match by genre, by length, by the kind of feedback I'm looking for ("I need line-level honesty" vs "just tell me if this lands"), that's worth paying for. Good beta readers are genuinely hard to find. A system that matches me with someone who writes in my genre and wants the same depth of feedback I do is solving a problem I currently spend real time and social energy on. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**3. Export in submission-ready formats.**
+The EXPORT button exists, but if it could spit out a properly formatted Shunn manuscript (.docx, double-spaced, standard headers, word count), a clean PDF for portfolio use, and maybe even pre-fill the metadata for common submission platforms — that saves me 20 minutes per submission that I currently waste in Word. It's not glamorous, but it's the kind of utility that makes a paid tier feel practical rather than aspirational. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**4. Version history / piece evolution.**
+Being able to see how a piece changed from seed to ready — not tracked changes, just dated snapshots each time I made a significant edit. That's something I'd want as a learning tool for my own craft, and it doesn't exist anywhere else in a writing app. Google Docs has version history, but it's a mess of micro-edits. A deliberate "save this state" feature that lets me look back at the arc of a piece's development is genuinely valuable and worth a few pounds a month.
+
+**What I would NOT pay for:**
+
+**The Greenhouse tools.** Freewrite, Growth Journal, Circles — these are nice, but they're not worth money. Free journaling apps are everywhere. Timed writing is a phone timer. Circles would need to be thriving and well-matched to justify a cost, and you can't charge for a community feature before the community exists. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**Reactions and social features.** "This glows," "Deep roots," "Fireflies here" — these are lovely and they should be free for everyone. Putting social warmth behind a paywall would be actively hostile to the community you're building. The Reading Room, the "you were here" signal, Today's Letter, the presence indicators — all of that is what makes the platform feel alive. Charging for it would make it feel transactional. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**Tables and Workshop.** Discussion forums and writing exercises are table stakes. Every writing community has them for free. Charging for them would feel desperate.
+
+**More storage or more pieces.** If the free tier lets me write, I'll write. Don't throttle the writing. That directly contradicts the philosophy.
+
+**The pricing model that would actually work:**
+
+Free tier: The Desk, Reading Room, Greenhouse, Swap (basic), Workshop, Tables. Everything a writer needs to write and be part of the community.
+
+Paid tier (maybe £5-8/month or £50/year): Editorial flag (1 per quarter with guaranteed read + brief response), smart Swap matching, submission-ready export, version history, and maybe priority visibility during Open Garden editorial walks — not jumping the queue, but knowing your flagged piece is in the first batch editors see.
+
+The distinction should be: **free to write, pay for the bridge between writing and publishing.** The Desk is the studio. The paid tier is the door that opens outward. That's a clean split that respects the philosophy — you never pay to write, you pay for the moment when you're ready to be read seriously. Most writers will stay free for months before they have something worth flagging, and that's fine. The free tier isn't a demo. It's the real product. The paid tier is for the moment when a piece is done and you want it to go somewhere.

@@ -5,12 +5,12 @@ import {
   ArrowLeft, Search, Plus, Send, BookOpen,
   Inbox, FileText, Layers, Eye, Leaf, MessageCircle,
   ChevronDown, ChevronRight, Trash2, Edit3, Clock,
-  CheckCircle, XCircle, GripVertical, X, Sparkles
+  CheckCircle, XCircle, GripVertical, X, Sparkles, Flag
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 
-type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues";
+type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged";
 
 function stripHtmlForExcerpt(html: string): string {
   return html.replace(/<[^>]*>/g, "").slice(0, 200);
@@ -76,6 +76,7 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "greenhouse", label: "Greenhouse", icon: <BookOpen size={15} /> },
   { id: "requests", label: "Requests", icon: <Inbox size={15} /> },
   { id: "issues", label: "Issues", icon: <FileText size={15} /> },
+  { id: "flagged", label: "Flagged", icon: <Flag size={15} /> },
 ];
 
 function CuratedOpportunitiesSection() {
@@ -224,9 +225,166 @@ function CuratedOpportunitiesSection() {
   );
 }
 
+function FlaggedTab() {
+  const queryClient = useQueryClient();
+  const [respondingId, setRespondingId] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState("");
+
+  const { data: flaggedQueue = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/editor/flagged-queue"],
+    queryFn: async () => {
+      const res = await fetch("/api/editor/flagged-queue", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const markSeen = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("POST", `/api/editor/flags/${id}/seen`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editor/flagged-queue"] });
+    },
+  });
+
+  const respond = useMutation({
+    mutationFn: async ({ id, response }: { id: string; response: string }) => {
+      await apiRequest("POST", `/api/editor/flags/${id}/respond`, { response });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editor/flagged-queue"] });
+      setRespondingId(null);
+      setResponseText("");
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5 animate-pulse space-y-3">
+            <div className="h-4 w-48 bg-white/10 rounded" />
+            <div className="h-3 w-full bg-white/[0.06] rounded" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+      {flaggedQueue.length === 0 ? (
+        <div className="text-center py-16">
+          <Flag size={24} className="mx-auto mb-3 text-violet-400/30" />
+          <p className="font-serif text-sm text-white/40">No flagged pieces waiting. Writers haven't raised any flags yet.</p>
+        </div>
+      ) : (
+        flaggedQueue.map((item: any) => (
+          <div
+            key={item.id}
+            data-testid={`flagged-card-${item.id}`}
+            className="bg-white/5 border border-violet-500/15 rounded-xl p-5 transition-all"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-grow">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="font-serif text-xs text-white/50">{item.authorName || "Unknown"}</span>
+                  <span className="px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 text-violet-300">
+                    {item.genre || "untagged"}
+                  </span>
+                </div>
+                <h3 className="font-display text-base font-light italic text-amber-200/90 mb-1">{item.writingTitle || "Untitled"}</h3>
+                <p className="font-mono text-[9px] text-violet-300/50">
+                  <Flag size={10} className="inline mr-1" />
+                  Flagged {timeAgo(item.createdAt)}
+                </p>
+                {item.editorResponse && (
+                  <p className="font-serif text-xs text-white/40 italic mt-2 pl-3 border-l-2 border-violet-500/20">
+                    {item.editorResponse}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {!item.seenAt && (
+                  <button
+                    onClick={() => markSeen.mutate(item.id)}
+                    disabled={markSeen.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-violet-500/20 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-all disabled:opacity-50"
+                    data-testid={`button-mark-seen-${item.id}`}
+                  >
+                    <Eye size={12} /> Seen
+                  </button>
+                )}
+                {!item.editorResponse && (
+                  <button
+                    onClick={() => setRespondingId(respondingId === item.id ? null : item.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
+                    data-testid={`button-respond-${item.id}`}
+                  >
+                    <MessageCircle size={12} /> Respond
+                  </button>
+                )}
+              </div>
+            </div>
+            <AnimatePresence>
+              {respondingId === item.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-3 pt-3 border-t border-white/5 flex gap-2">
+                    <input
+                      type="text"
+                      value={responseText}
+                      onChange={e => setResponseText(e.target.value)}
+                      placeholder="This stayed with me... / Keep tending this one..."
+                      className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-violet-500/30 transition-colors"
+                      data-testid={`input-respond-${item.id}`}
+                    />
+                    <button
+                      onClick={() => {
+                        if (!responseText.trim()) return;
+                        respond.mutate({ id: item.id, response: responseText.trim() });
+                      }}
+                      disabled={!responseText.trim() || respond.isPending}
+                      className="px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-all disabled:opacity-50"
+                    >
+                      <Send size={12} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))
+      )}
+    </motion.div>
+  );
+}
+
 function OverviewTab() {
+  const queryClient = useQueryClient();
+  const [showWalkForm, setShowWalkForm] = useState(false);
+  const [walkTitle, setWalkTitle] = useState("");
+  const [walkDesc, setWalkDesc] = useState("");
+  const [walkStart, setWalkStart] = useState("");
+  const [walkEnd, setWalkEnd] = useState("");
+
   const { data: overview, isLoading } = useQuery<any>({
     queryKey: ["/api/editor/overview"],
+  });
+
+  const { data: activeWalk } = useQuery({
+    queryKey: ["/api/editors-walk/active"],
+    queryFn: async () => {
+      const res = await fetch("/api/editors-walk/active");
+      if (!res.ok) return null;
+      return res.json();
+    },
   });
 
   const cards = [
@@ -270,6 +428,68 @@ function OverviewTab() {
         ))}
       </div>
       <CuratedOpportunitiesSection />
+      <div className="mt-8 pt-6 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.3em] text-violet-300/60">Editors Walk</h3>
+          <button
+            onClick={() => setShowWalkForm(!showWalkForm)}
+            className="font-mono text-[9px] uppercase tracking-widest text-violet-300/50 hover:text-violet-300/80 transition-colors"
+            data-testid="button-new-walk"
+          >
+            + Schedule Walk
+          </button>
+        </div>
+        {activeWalk && (
+          <div className="rounded-xl border border-violet-500/15 bg-violet-950/[0.06] p-4 mb-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-2 h-2 rounded-full bg-violet-400/60 animate-pulse" />
+              <span className="font-mono text-[9px] uppercase tracking-widest text-violet-300/60">Active Now</span>
+            </div>
+            <p className="font-serif text-sm text-white/70">{activeWalk.title}</p>
+            <p className="font-mono text-[8px] text-white/35 mt-1">
+              Ends {new Date(activeWalk.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          </div>
+        )}
+        {showWalkForm && (
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+            <input type="text" placeholder="Walk title (e.g. 'Spring Open Garden')" value={walkTitle} onChange={e => setWalkTitle(e.target.value)}
+              className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-sm text-white/70 placeholder:text-white/25 focus:border-violet-500/30 focus:outline-none" />
+            <textarea placeholder="Brief description (optional)" value={walkDesc} onChange={e => setWalkDesc(e.target.value)}
+              className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-sm text-white/70 placeholder:text-white/25 focus:border-violet-500/30 focus:outline-none resize-none h-16" />
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="font-mono text-[8px] text-white/35 uppercase tracking-widest">Starts</label>
+                <input type="date" value={walkStart} onChange={e => setWalkStart(e.target.value)}
+                  className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-mono text-xs text-white/60 focus:border-violet-500/30 focus:outline-none" />
+              </div>
+              <div className="flex-1">
+                <label className="font-mono text-[8px] text-white/35 uppercase tracking-widest">Ends</label>
+                <input type="date" value={walkEnd} onChange={e => setWalkEnd(e.target.value)}
+                  className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-mono text-xs text-white/60 focus:border-violet-500/30 focus:outline-none" />
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                if (!walkTitle || !walkStart || !walkEnd) return;
+                await fetch("/api/editors-walk", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ title: walkTitle, description: walkDesc, startsAt: new Date(walkStart).toISOString(), endsAt: new Date(walkEnd).toISOString() }),
+                });
+                setShowWalkForm(false);
+                setWalkTitle(""); setWalkDesc(""); setWalkStart(""); setWalkEnd("");
+                queryClient.invalidateQueries({ queryKey: ["/api/editors-walk/active"] });
+              }}
+              className="w-full py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest bg-violet-500/10 border border-violet-500/20 text-violet-300/70 hover:bg-violet-500/15 transition-all"
+              data-testid="button-create-walk"
+            >
+              Schedule Walk
+            </button>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -1357,6 +1577,7 @@ export default function EditorStudio() {
           {activeTab === "greenhouse" && <GreenhouseTab />}
           {activeTab === "requests" && <RequestsTab />}
           {activeTab === "issues" && <IssuesTab />}
+          {activeTab === "flagged" && <FlaggedTab />}
         </motion.div>
       </AnimatePresence>
     </div>

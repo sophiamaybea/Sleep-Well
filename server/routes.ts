@@ -20,6 +20,7 @@ import {
   insertRejectionWallSchema, insertOpportunitySchema, insertOpportunityNoteSchema,
   insertPromptPotluckSchema, insertCircleShareSchema, insertIdeaDropSchema,
   insertCircleMicroResponseSchema,
+  insertEditorialFlagSchema, insertEditorsWalkSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1815,7 +1816,7 @@ export async function registerRoutes(
       if (writing.authorId !== req.user.claims.sub) return res.status(403).json({ message: "Forbidden" });
 
       const user = await storage.getUser(req.user.claims.sub);
-      const authorName = user?.username || user?.firstName || "Author";
+      const authorName = user?.firstName || "Author";
       const plainContent = (writing.content || "")
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<\/p>/gi, "\n\n")
@@ -1894,12 +1895,122 @@ export async function registerRoutes(
 
   app.get("/api/garden-pulse", isAuthenticated, async (req: any, res) => {
     try {
-      const activeWriters = await storage.getActiveWriterCount();
+      const activeCount = await storage.getActiveWriterCount();
       const summary = await storage.getGardenSummary();
-      res.json({ activeWriters, ...summary });
+      res.json({ activeWriters: activeCount, ...summary });
     } catch (error) {
       console.error("Error fetching garden pulse:", error);
       res.status(500).json({ message: "Failed to fetch garden pulse" });
+    }
+  });
+
+  // === PUBLIC GARDEN ===
+  app.get("/api/public-garden/:userId", async (req, res) => {
+    try {
+      const profile = await storage.getPublicGarden(req.params.userId);
+      if (!profile) return res.status(404).json({ message: "Writer not found" });
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching public garden:", error);
+      res.status(500).json({ message: "Failed to fetch public garden" });
+    }
+  });
+
+  // === EDITORIAL FLAGS ===
+  app.post("/api/editorial-flags", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { writingId } = req.body;
+      if (!writingId) return res.status(400).json({ message: "writingId is required" });
+
+      const walk = await storage.getActiveEditorsWalk();
+      const flagLimit = walk ? walk.flagLimit : 1;
+      const activeCount = await storage.getActiveFlagCount(userId);
+      if (activeCount >= flagLimit) {
+        return res.status(400).json({ message: walk ? `You can flag up to ${flagLimit} pieces during the Editors Walk` : "You can only flag one piece at a time" });
+      }
+
+      const flag = await storage.createEditorialFlag(userId, writingId);
+      res.status(201).json(flag);
+    } catch (error) {
+      console.error("Error creating editorial flag:", error);
+      res.status(500).json({ message: "Failed to create flag" });
+    }
+  });
+
+  app.get("/api/editorial-flags/mine", isAuthenticated, async (req: any, res) => {
+    try {
+      const flags = await storage.getMyFlags(req.user.claims.sub);
+      res.json(flags);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch flags" });
+    }
+  });
+
+  app.get("/api/editor/flagged-queue", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const queue = await storage.getFlaggedQueue();
+      res.json(queue);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch flagged queue" });
+    }
+  });
+
+  app.post("/api/editor/flags/:id/seen", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const flag = await storage.markFlagSeen(req.params.id, req.user.claims.sub);
+      if (!flag) return res.status(404).json({ message: "Flag not found" });
+      res.json(flag);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark flag as seen" });
+    }
+  });
+
+  app.post("/api/editor/flags/:id/respond", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const { response } = req.body;
+      if (!response || typeof response !== "string") return res.status(400).json({ message: "response is required" });
+      const flag = await storage.respondToFlag(req.params.id, req.user.claims.sub, response);
+      if (!flag) return res.status(404).json({ message: "Flag not found" });
+      res.json(flag);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to respond to flag" });
+    }
+  });
+
+  // === EDITORS WALK ===
+  app.get("/api/editors-walk/active", async (req, res) => {
+    try {
+      const walk = await storage.getActiveEditorsWalk();
+      res.json(walk);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch active walk" });
+    }
+  });
+
+  app.get("/api/editors-walk", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const walks = await storage.getEditorsWalks();
+      res.json(walks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch walks" });
+    }
+  });
+
+  app.post("/api/editors-walk", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const { title, description, startsAt, endsAt, flagLimit } = req.body;
+      if (!title || !startsAt || !endsAt) return res.status(400).json({ message: "title, startsAt, and endsAt are required" });
+      const walk = await storage.createEditorsWalk(req.user.claims.sub, {
+        title,
+        description,
+        startsAt: new Date(startsAt),
+        endsAt: new Date(endsAt),
+        flagLimit: flagLimit || 3,
+      });
+      res.status(201).json(walk);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create walk" });
     }
   });
 

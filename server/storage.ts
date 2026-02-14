@@ -41,6 +41,8 @@ import {
   type CircleMicroPrompt, circleMicroPrompts,
   type CircleMicroResponse, circleMicroResponses,
   gardenPresence,
+  type EditorialFlag, editorialFlags,
+  type EditorsWalk, editorsWalks,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -305,6 +307,23 @@ export interface IStorage {
   updatePresence(userId: string): Promise<void>;
   getActiveWriterCount(): Promise<number>;
   getGardenSummary(): Promise<{ activeWriters: number; newSeeds: number; bloomedPieces: number; totalWriters: number }>;
+
+  // Public Garden
+  getPublicGarden(userId: string): Promise<{ user: User; writings: (Writing & { resonanceCount: number })[]; tenderCount: number; tendingCount: number; lastPublicAt: Date | null } | null>;
+
+  // Editorial Flags
+  createEditorialFlag(authorId: string, writingId: string): Promise<EditorialFlag>;
+  getActiveFlag(authorId: string): Promise<EditorialFlag | null>;
+  getActiveFlagCount(authorId: string): Promise<number>;
+  getFlaggedQueue(): Promise<(EditorialFlag & { writingTitle: string; authorName: string | null; genre: string })[]>;
+  markFlagSeen(flagId: string, editorId: string): Promise<EditorialFlag | null>;
+  respondToFlag(flagId: string, editorId: string, response: string): Promise<EditorialFlag | null>;
+  getMyFlags(authorId: string): Promise<(EditorialFlag & { writingTitle: string })[]>;
+
+  // Editors Walk
+  getActiveEditorsWalk(): Promise<EditorsWalk | null>;
+  getEditorsWalks(): Promise<EditorsWalk[]>;
+  createEditorsWalk(editorId: string, data: { title: string; description?: string; startsAt: Date; endsAt: Date; flagLimit?: number }): Promise<EditorsWalk>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -346,6 +365,8 @@ export class DatabaseStorage implements IStorage {
       stage: writings.stage, genre: writings.genre, visibility: writings.visibility,
       readiness: writings.readiness, editorialAvailable: writings.editorialAvailable,
       isPublished: writings.isPublished, publishedAt: writings.publishedAt,
+      isPinned: writings.isPinned, isArchived: writings.isArchived,
+      isPublicGarden: writings.isPublicGarden, tags: writings.tags,
       createdAt: writings.createdAt, updatedAt: writings.updatedAt,
     };
   }
@@ -1278,7 +1299,7 @@ export class DatabaseStorage implements IStorage {
       const [res] = await db.select({ cnt: count() }).from(resonances).where(eq(resonances.writingId, r.id));
       const resonanceCount = res?.cnt ?? 0;
       if (filters?.quiet && resonanceCount > 0) continue;
-      enriched.push({ ...r, resonanceCount });
+      enriched.push({ ...r, resonanceCount } as any);
     }
     return enriched;
   }
@@ -2149,6 +2170,153 @@ export class DatabaseStorage implements IStorage {
       bloomedPieces: bloomResult?.count || 0,
       totalWriters: totalResult?.count || 0,
     };
+  }
+
+  // === PUBLIC GARDEN ===
+  async getPublicGarden(userId: string) {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return null;
+
+    const publicWritings = await db.select().from(writings)
+      .where(and(eq(writings.authorId, userId), or(eq(writings.isPublicGarden, true), eq(writings.isPublished, true))))
+      .orderBy(desc(writings.updatedAt));
+
+    const writingsWithResonance: (Writing & { resonanceCount: number })[] = [];
+    for (const w of publicWritings) {
+      const [res] = await db.select({ cnt: count() }).from(resonances).where(eq(resonances.writingId, w.id));
+      writingsWithResonance.push({ ...w, resonanceCount: Number(res?.cnt || 0) });
+    }
+
+    const [tenderRes] = await db.select({ cnt: count() }).from(tending).where(eq(tending.gardenerId, userId));
+    const [tendingRes] = await db.select({ cnt: count() }).from(tending).where(eq(tending.tenderId, userId));
+
+    const lastPublicAt = publicWritings.length > 0 ? publicWritings[0].updatedAt : null;
+
+    return {
+      user,
+      writings: writingsWithResonance,
+      tenderCount: Number(tenderRes?.cnt || 0),
+      tendingCount: Number(tendingRes?.cnt || 0),
+      lastPublicAt,
+    };
+  }
+
+  // === EDITORIAL FLAGS ===
+  async createEditorialFlag(authorId: string, writingId: string): Promise<EditorialFlag> {
+    const [flag] = await db.insert(editorialFlags).values({ writingId, authorId }).returning();
+    return flag;
+  }
+
+  async getActiveFlag(authorId: string): Promise<EditorialFlag | null> {
+    const [flag] = await db.select().from(editorialFlags)
+      .where(and(eq(editorialFlags.authorId, authorId), eq(editorialFlags.status, "flagged")));
+    return flag || null;
+  }
+
+  async getActiveFlagCount(authorId: string): Promise<number> {
+    const [result] = await db.select({ cnt: count() }).from(editorialFlags)
+      .where(and(eq(editorialFlags.authorId, authorId), eq(editorialFlags.status, "flagged")));
+    return Number(result?.cnt || 0);
+  }
+
+  async getFlaggedQueue(): Promise<(EditorialFlag & { writingTitle: string; authorName: string | null; genre: string })[]> {
+    const results = await db.select({
+      id: editorialFlags.id,
+      writingId: editorialFlags.writingId,
+      authorId: editorialFlags.authorId,
+      status: editorialFlags.status,
+      seenByEditorId: editorialFlags.seenByEditorId,
+      seenAt: editorialFlags.seenAt,
+      editorResponse: editorialFlags.editorResponse,
+      respondedAt: editorialFlags.respondedAt,
+      createdAt: editorialFlags.createdAt,
+      writingTitle: writings.title,
+      authorName: users.firstName,
+      genre: writings.genre,
+    }).from(editorialFlags)
+      .leftJoin(writings, eq(editorialFlags.writingId, writings.id))
+      .leftJoin(users, eq(editorialFlags.authorId, users.id))
+      .where(eq(editorialFlags.status, "flagged"))
+      .orderBy(asc(editorialFlags.createdAt));
+    return results.map(r => ({ ...r, writingTitle: r.writingTitle || "Untitled", genre: r.genre || "poetry" }));
+  }
+
+  async markFlagSeen(flagId: string, editorId: string): Promise<EditorialFlag | null> {
+    const [updated] = await db.update(editorialFlags)
+      .set({ seenByEditorId: editorId, seenAt: new Date(), status: "seen" })
+      .where(eq(editorialFlags.id, flagId)).returning();
+    return updated || null;
+  }
+
+  async respondToFlag(flagId: string, editorId: string, response: string): Promise<EditorialFlag | null> {
+    const [updated] = await db.update(editorialFlags)
+      .set({
+        seenByEditorId: editorId,
+        editorResponse: response,
+        respondedAt: new Date(),
+        status: "responded",
+        seenAt: new Date(),
+      })
+      .where(eq(editorialFlags.id, flagId)).returning();
+
+    if (updated) {
+      const [writing] = await db.select({ title: writings.title }).from(writings).where(eq(writings.id, updated.writingId));
+      await db.insert(notifications).values({
+        userId: updated.authorId,
+        type: "editor_response",
+        actorId: editorId,
+        writingId: updated.writingId,
+        message: `An editor responded to your flagged piece "${writing?.title || 'Untitled'}": "${response}"`,
+      });
+    }
+
+    return updated || null;
+  }
+
+  async getMyFlags(authorId: string): Promise<(EditorialFlag & { writingTitle: string })[]> {
+    const results = await db.select({
+      id: editorialFlags.id,
+      writingId: editorialFlags.writingId,
+      authorId: editorialFlags.authorId,
+      status: editorialFlags.status,
+      seenByEditorId: editorialFlags.seenByEditorId,
+      seenAt: editorialFlags.seenAt,
+      editorResponse: editorialFlags.editorResponse,
+      respondedAt: editorialFlags.respondedAt,
+      createdAt: editorialFlags.createdAt,
+      writingTitle: writings.title,
+    }).from(editorialFlags)
+      .leftJoin(writings, eq(editorialFlags.writingId, writings.id))
+      .where(eq(editorialFlags.authorId, authorId))
+      .orderBy(desc(editorialFlags.createdAt));
+    return results.map(r => ({ ...r, writingTitle: r.writingTitle || "Untitled" }));
+  }
+
+  // === EDITORS WALK ===
+  async getActiveEditorsWalk(): Promise<EditorsWalk | null> {
+    const now = new Date();
+    const [walk] = await db.select().from(editorsWalks)
+      .where(and(
+        sql`${editorsWalks.startsAt} <= ${now}`,
+        sql`${editorsWalks.endsAt} >= ${now}`,
+      ));
+    return walk || null;
+  }
+
+  async getEditorsWalks(): Promise<EditorsWalk[]> {
+    return await db.select().from(editorsWalks).orderBy(desc(editorsWalks.startsAt));
+  }
+
+  async createEditorsWalk(editorId: string, data: { title: string; description?: string; startsAt: Date; endsAt: Date; flagLimit?: number }): Promise<EditorsWalk> {
+    const [walk] = await db.insert(editorsWalks).values({
+      title: data.title,
+      description: data.description,
+      startsAt: data.startsAt,
+      endsAt: data.endsAt,
+      flagLimit: data.flagLimit || 3,
+      createdById: editorId,
+    }).returning();
+    return walk;
   }
 }
 
