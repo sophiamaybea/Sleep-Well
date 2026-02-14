@@ -324,47 +324,117 @@ export default function Gallery() {
               <div className="border-t border-white/[0.06]">
                 {displayedGallery.map((item, i) => {
                   const readingTime = getReadingTime(item.content);
+                  const isFeatured = i < 2 && !searchQuery && activeGenre === "all" && !selectedContributor;
+                  const excerpt = isFeatured ? stripHtml(item.content).slice(0, 120).trim() : "";
+
+                  if (isFeatured) {
+                    return (
+                      <motion.button
+                        key={item.id}
+                        initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+                        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        transition={{
+                          delay: i * 0.12,
+                          duration: 0.9,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        viewport={{ once: true, margin: "-30px" }}
+                        onClick={() => setSelectedPiece(item)}
+                        className="w-full text-left border-b border-white/[0.06] group cursor-pointer transition-all duration-500 relative"
+                        data-testid={`button-piece-${item.id}`}
+                      >
+                        <div className="py-12 px-8 -mx-8 rounded-sm hover:bg-white/[0.02] transition-all duration-700 relative overflow-hidden">
+                          <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-400/0 to-transparent group-hover:via-amber-400/20 transition-all duration-700" />
+
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/30 group-hover:text-amber-200/50 transition-colors duration-500">
+                                {item.genre}
+                              </span>
+                              <span className="font-mono text-[9px] text-white/15">
+                                {readingTime} min
+                              </span>
+                            </div>
+
+                            <h3 className="text-3xl md:text-5xl font-display font-light tracking-tight text-white/80 group-hover:text-white transition-colors duration-500 italic leading-[1.15]">
+                              {item.title}
+                            </h3>
+
+                            {excerpt && (
+                              <p className="font-serif text-sm leading-relaxed text-white/25 group-hover:text-white/35 transition-colors duration-500 max-w-xl line-clamp-2 italic">
+                                {excerpt}{excerpt.length >= 120 ? "..." : ""}
+                              </p>
+                            )}
+
+                            <div className="flex items-center justify-between pt-2">
+                              <div className="flex items-center gap-4">
+                                {item.authorName && (
+                                  <span className="font-serif text-[13px] italic text-white/30 group-hover:text-white/50 transition-colors duration-500">
+                                    {item.authorName}
+                                  </span>
+                                )}
+                                {item.publishedAt && (
+                                  <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
+                                    {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/0 group-hover:text-amber-200/50 transition-all duration-500 translate-x-2 group-hover:translate-x-0" data-testid={`text-reading-time-${item.id}`}>
+                                Read
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.button>
+                    );
+                  }
+
                   return (
                     <motion.button
                       key={item.id}
                       initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
                       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                       transition={{
-                        delay: Math.min(i * 0.08, 0.4),
+                        delay: Math.min(i * 0.06, 0.4),
                         duration: 0.7,
                         ease: [0.22, 1, 0.36, 1],
                       }}
                       viewport={{ once: true, margin: "-30px" }}
                       onClick={() => setSelectedPiece(item)}
-                      className="w-full text-left py-8 border-b border-white/[0.06] group cursor-pointer hover:bg-white/[0.015] transition-all duration-500 px-6 -mx-6 rounded-sm"
+                      className="w-full text-left border-b border-white/[0.06] group cursor-pointer transition-all duration-500 relative"
                       data-testid={`button-piece-${item.id}`}
-                      whileHover={{ x: 4 }}
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-3 min-w-0">
-                          <h3 className="text-2xl md:text-3xl font-display font-light tracking-tight text-white/75 group-hover:text-white transition-colors duration-500 italic truncate">
-                            {item.title}
-                          </h3>
-                          <div className="flex items-center gap-4">
-                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25 group-hover:text-amber-200/40 transition-colors duration-500">
-                              {item.genre}
-                            </span>
-                            {item.authorName && (
-                              <span className="font-serif text-[12px] italic text-white/25 group-hover:text-white/35 transition-colors duration-500">
-                                {item.authorName}
+                      <div className="py-7 px-6 -mx-6 rounded-sm hover:bg-white/[0.015] transition-all duration-500 relative overflow-hidden">
+                        <div className="absolute bottom-0 left-6 w-0 group-hover:w-24 h-px bg-gradient-to-r from-amber-400/30 to-transparent transition-all duration-700 ease-out" />
+
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="space-y-2 min-w-0">
+                            <h3 className="text-xl md:text-2xl font-display font-light tracking-tight text-white/70 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
+                              {item.title}
+                            </h3>
+                            <div className="flex items-center gap-4">
+                              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25 group-hover:text-amber-200/40 transition-colors duration-500">
+                                {item.genre}
                               </span>
-                            )}
-                            <span className="font-mono text-[9px] text-white/20" data-testid={`text-reading-time-${item.id}`}>
-                              {readingTime} min
-                            </span>
-                            {item.publishedAt && (
-                              <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
-                                {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                              {item.authorName && (
+                                <span className="font-serif text-[12px] italic text-white/25 group-hover:text-white/35 transition-colors duration-500">
+                                  {item.authorName}
+                                </span>
+                              )}
+                              <span className="font-mono text-[9px] text-white/20" data-testid={`text-reading-time-${item.id}`}>
+                                {readingTime} min
                               </span>
-                            )}
+                              {item.publishedAt && (
+                                <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
+                                  {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                </span>
+                              )}
+                            </div>
                           </div>
+                          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/0 group-hover:text-amber-200/40 transition-all duration-500 flex-shrink-0 translate-x-3 group-hover:translate-x-0">
+                            Read
+                          </span>
                         </div>
-                        <ChevronRight size={18} className="text-white/10 group-hover:text-amber-200/50 group-hover:translate-x-2 transition-all duration-500 mt-2 flex-shrink-0" />
                       </div>
                     </motion.button>
                   );
