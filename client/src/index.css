@@ -667,6 +667,41 @@
   background: rgba(0, 0, 0, 0.18);
 }
 
+/* ─── Lesson content modular styling ─── */
+.lesson-content ol {
+  counter-reset: step;
+}
+.lesson-content ol li {
+  counter-increment: step;
+}
+.lesson-content ol li::before {
+  content: counter(step);
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: rgba(6, 78, 59, 0.2);
+  border: 1px solid rgba(6, 78, 59, 0.15);
+  color: rgba(52, 211, 153, 0.5);
+  font-size: 10px;
+  font-family: 'Space Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lesson-content > h2,
+.lesson-content > h3,
+.lesson-content > h4 {
+  clear: both;
+}
+
+.lesson-content > h2:first-child {
+  margin-top: 0;
+}
+
 /* ─── Scrollbar hide utility ─── */
 .scrollbar-hide {
   -ms-overflow-style: none;

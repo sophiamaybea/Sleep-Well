@@ -832,19 +832,33 @@ function LessonView({ courseId, lessonId, onBack, onNavigate }: {
 
         <div className="px-6 sm:px-8 pb-6 sm:pb-8">
           <div
-            className="prose-content font-body text-sm text-white/65 leading-relaxed space-y-4
-              [&_h2]:font-display [&_h2]:text-xl [&_h2]:text-white/90 [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-white/[0.06]
-              [&_h3]:font-display [&_h3]:text-base [&_h3]:text-white/80 [&_h3]:mt-6 [&_h3]:mb-2
-              [&_h4]:font-display [&_h4]:text-sm [&_h4]:text-emerald-300/70 [&_h4]:mt-4 [&_h4]:mb-2 [&_h4]:uppercase [&_h4]:tracking-wide
-              [&_strong]:text-white/80 [&_em]:text-white/55 [&_em]:italic
-              [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:list-disc [&_ul_li]:text-white/55 [&_ul_li]:leading-relaxed
-              [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:list-decimal [&_ol_li]:text-white/55 [&_ol_li]:leading-relaxed
-              [&_p]:text-white/60 [&_p]:leading-[1.75]
-              [&_blockquote]:border-l-2 [&_blockquote]:border-amber-500/30 [&_blockquote]:pl-4 [&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:text-white/55 [&_blockquote]:bg-amber-900/5 [&_blockquote]:rounded-r-lg [&_blockquote]:pr-4
-              [&_hr]:border-white/[0.06] [&_hr]:my-6
-              [&_table]:w-full [&_table]:text-xs [&_table]:border-collapse
-              [&_thead]:bg-white/[0.04] [&_th]:text-left [&_th]:text-white/50 [&_th]:font-mono [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-[10px] [&_th]:px-3 [&_th]:py-2 [&_th]:border-b [&_th]:border-white/[0.08]
-              [&_td]:px-3 [&_td]:py-2 [&_td]:text-white/50 [&_td]:border-b [&_td]:border-white/[0.04] [&_td]:align-top [&_td]:leading-relaxed"
+            className="lesson-content font-body text-sm text-white/65 leading-relaxed
+
+              [&_h2]:font-display [&_h2]:text-lg [&_h2]:text-white/90 [&_h2]:mt-10 [&_h2]:mb-5 [&_h2]:pb-3 [&_h2]:border-b [&_h2]:border-white/[0.08] [&_h2]:tracking-wide
+
+              [&_h3]:font-display [&_h3]:text-[15px] [&_h3]:text-emerald-300/70 [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:pl-3 [&_h3]:border-l-2 [&_h3]:border-emerald-500/30 [&_h3]:tracking-wide
+
+              [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:text-amber-400/60 [&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:uppercase [&_h4]:tracking-[0.15em] [&_h4]:pl-3 [&_h4]:border-l-2 [&_h4]:border-amber-500/20
+
+              [&_strong]:text-emerald-300/80 [&_strong]:bg-emerald-900/15 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded [&_strong]:border [&_strong]:border-emerald-800/15 [&_strong]:text-[13px] [&_strong]:font-medium
+
+              [&_em]:text-white/50 [&_em]:italic
+
+              [&_p]:text-white/55 [&_p]:leading-[1.85] [&_p]:mb-4
+
+              [&_ul]:my-4 [&_ul]:space-y-2 [&_ul]:pl-0 [&_ul]:list-none [&_ul]:rounded-xl [&_ul]:border [&_ul]:border-white/[0.06] [&_ul]:bg-white/[0.015] [&_ul]:p-4
+              [&_ul_li]:text-white/55 [&_ul_li]:leading-relaxed [&_ul_li]:pl-5 [&_ul_li]:relative [&_ul_li]:before:content-[''] [&_ul_li]:before:absolute [&_ul_li]:before:left-1 [&_ul_li]:before:top-[10px] [&_ul_li]:before:w-1.5 [&_ul_li]:before:h-1.5 [&_ul_li]:before:rounded-full [&_ul_li]:before:bg-emerald-500/30 [&_ul_li]:border-b [&_ul_li]:border-white/[0.03] [&_ul_li]:pb-2 [&_ul_li]:last:border-b-0 [&_ul_li]:last:pb-0
+
+              [&_ol]:my-4 [&_ol]:space-y-2 [&_ol]:pl-0 [&_ol]:list-none [&_ol]:rounded-xl [&_ol]:border [&_ol]:border-white/[0.06] [&_ol]:bg-white/[0.015] [&_ol]:p-4
+              [&_ol_li]:text-white/55 [&_ol_li]:leading-relaxed [&_ol_li]:pl-8 [&_ol_li]:relative [&_ol_li]:border-b [&_ol_li]:border-white/[0.03] [&_ol_li]:pb-2 [&_ol_li]:last:border-b-0 [&_ol_li]:last:pb-0
+
+              [&_blockquote]:my-5 [&_blockquote]:border-l-2 [&_blockquote]:border-amber-500/25 [&_blockquote]:pl-5 [&_blockquote]:py-3 [&_blockquote]:italic [&_blockquote]:text-white/50 [&_blockquote]:bg-amber-900/5 [&_blockquote]:rounded-r-xl [&_blockquote]:pr-5
+
+              [&_hr]:border-white/[0.06] [&_hr]:my-8
+
+              [&_table]:w-full [&_table]:text-xs [&_table]:border-collapse [&_table]:my-5 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/[0.06]
+              [&_thead]:bg-white/[0.04] [&_th]:text-left [&_th]:text-white/50 [&_th]:font-mono [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-[10px] [&_th]:px-4 [&_th]:py-3 [&_th]:border-b [&_th]:border-white/[0.08]
+              [&_td]:px-4 [&_td]:py-3 [&_td]:text-white/50 [&_td]:border-b [&_td]:border-white/[0.04] [&_td]:align-top [&_td]:leading-relaxed"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lesson.content) }}
           />
         </div>
