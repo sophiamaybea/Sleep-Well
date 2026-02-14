@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, User, LogOut, PenLine } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -63,19 +63,18 @@ export default function Navigation() {
             {!isLoading && (
               isAuthenticated ? (
                 <>
-                  <Link href="/garden" className="text-white/70 hover:text-white transition-colors flex items-center gap-2" data-testid="nav-garden">
-                    <PenLine size={14} />
+                  <Link href="/garden" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-garden">
                     My Garden
+                    <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
                   </Link>
-                  <a href="/api/logout" className="text-white/70 hover:text-white transition-colors flex items-center gap-2" data-testid="nav-logout">
-                    <LogOut size={14} />
-                    Logout
+                  <a href="/api/logout" className="text-white/40 hover:text-white/70 transition-all duration-300 text-[10px] lowercase tracking-[0.15em]" data-testid="nav-logout">
+                    leave
                   </a>
                 </>
               ) : (
-                <a href="/api/login" className="text-white/70 hover:text-white transition-colors flex items-center gap-2" data-testid="nav-login">
-                  <User size={14} />
-                  Sign In
+                <a href="/api/login" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-login">
+                  Enter
+                  <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
                 </a>
               )
             )}
@@ -151,9 +150,9 @@ export default function Navigation() {
                       initial={{ y: 20, opacity: 0 }} 
                       animate={{ y: 0, opacity: 1 }} 
                       transition={{ delay: 0.6 }}
-                      className="font-mono text-sm text-white/40 hover:text-white uppercase tracking-widest"
+                      className="font-mono text-[11px] text-white/30 hover:text-white/60 lowercase tracking-[0.15em] transition-colors"
                     >
-                      Logout
+                      leave
                     </motion.a>
                   </>
                 ) : (
@@ -164,7 +163,7 @@ export default function Navigation() {
                     transition={{ delay: 0.5 }}
                     className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
                   >
-                    Sign In
+                    Enter
                   </motion.a>
                 )
               )}
