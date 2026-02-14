@@ -171,46 +171,35 @@ export default function Gallery() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="flex flex-col sm:flex-row items-center gap-4 justify-center"
+              className="space-y-5"
             >
-              <div className="relative w-full sm:w-80">
-                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" />
-                <input
-                  type="text"
-                  placeholder="Search the gallery..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-full font-serif text-sm text-white/80 placeholder:text-white/25 focus:outline-none focus:border-amber-600/30 transition-colors"
-                  data-testid="input-gallery-search"
-                />
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {genreFilters.map((g) => (
+                  <button
+                    key={g}
+                    onClick={() => setActiveGenre(g)}
+                    className={`px-5 py-2.5 rounded-full font-serif text-[13px] italic tracking-wide whitespace-nowrap transition-all duration-300 ${
+                      activeGenre === g
+                        ? "bg-amber-600/15 border border-amber-500/30 text-amber-200/90 shadow-[0_0_12px_rgba(217,169,56,0.08)]"
+                        : "border border-white/[0.07] text-white/40 hover:text-white/65 hover:border-white/15 hover:bg-white/[0.03]"
+                    }`}
+                    data-testid={`button-genre-${g}`}
+                  >
+                    {g === "all" ? "All" : g.charAt(0).toUpperCase() + g.slice(1)}
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setActiveGenre("all")}
-                  className={`px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all flex-shrink-0 ${
-                    activeGenre === "all"
-                      ? "bg-amber-600/15 border border-amber-600/30 text-amber-200/80"
-                      : "border border-white/[0.06] text-white/35 hover:text-white/55 hover:border-white/15"
-                  }`}
-                  data-testid="button-genre-all"
-                >
-                  all
-                </button>
-                <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-                  {genreFilters.filter(g => g !== "all").map((g) => (
-                    <button
-                      key={g}
-                      onClick={() => setActiveGenre(g)}
-                      className={`px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all ${
-                        activeGenre === g
-                          ? "bg-amber-600/15 border border-amber-600/30 text-amber-200/80"
-                          : "border border-white/[0.06] text-white/35 hover:text-white/55 hover:border-white/15"
-                      }`}
-                      data-testid={`button-genre-${g}`}
-                    >
-                      {g}
-                    </button>
-                  ))}
+              <div className="flex justify-center">
+                <div className="relative w-full sm:w-80">
+                  <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" />
+                  <input
+                    type="text"
+                    placeholder="Search the gallery..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-full font-serif text-sm text-white/80 placeholder:text-white/25 focus:outline-none focus:border-amber-600/30 transition-colors"
+                    data-testid="input-gallery-search"
+                  />
                 </div>
               </div>
             </motion.div>
