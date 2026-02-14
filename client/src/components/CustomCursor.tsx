@@ -1,19 +1,25 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useLocation } from "wouter";
 
 export default function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [location] = useLocation();
-
-  const isGarden = location === "/garden" || location.startsWith("/garden");
+  const [isLightMode, setIsLightMode] = useState(false);
 
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: -100, y: -100 });
   const ringPos = useRef({ x: -100, y: -100 });
   const rafId = useRef<number>(0);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsLightMode(!!document.querySelector(".garden-light"));
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    setIsLightMode(!!document.querySelector(".garden-light"));
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const updateRing = () => {
@@ -73,11 +79,11 @@ export default function CustomCursor() {
 
   const ringSize = isHovering ? 64 : 36;
 
-  const dotColor = isGarden ? "rgba(0, 0, 0, 0.9)" : "rgba(255, 255, 255, 0.85)";
-  const ringBorder = isGarden
+  const dotColor = isLightMode ? "rgba(0, 0, 0, 0.9)" : "rgba(255, 255, 255, 0.85)";
+  const ringBorder = isLightMode
     ? (isHovering ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.25)")
     : (isHovering ? "rgba(255, 255, 255, 0.35)" : "rgba(255, 255, 255, 0.2)");
-  const ringBg = isGarden
+  const ringBg = isLightMode
     ? (isHovering ? "rgba(0, 0, 0, 0.08)" : "transparent")
     : (isHovering ? "rgba(255, 255, 255, 0.08)" : "transparent");
 
