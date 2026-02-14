@@ -103,48 +103,59 @@ function CourseCatalog({ onSelectCourse }: { onSelectCourse: (id: string) => voi
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {courses?.map((course) => (
+      <div className="grid gap-5 sm:grid-cols-2">
+        {courses?.map((course, i) => (
           <motion.button
             key={course.id}
             onClick={() => onSelectCourse(course.id)}
-            className="text-left rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all group"
-            whileHover={{ y: -2 }}
+            className="text-left rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 sm:p-7 hover:bg-white/[0.06] hover:border-white/[0.14] transition-all group relative overflow-hidden"
+            whileHover={{ y: -3, scale: 1.01 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1, duration: 0.4 }}
             data-testid={`card-course-${course.id}`}
           >
-            <div className="flex items-start justify-between mb-3">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-900/20 border border-emerald-800/15 text-emerald-400/70 text-[10px] font-mono uppercase tracking-wider">
-                {genreIcons[course.genre]}
-                {genreLabels[course.genre] || course.genre}
-              </span>
-              {course.hasAccess ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-900/20 border border-emerald-800/15 text-emerald-400/70 text-[10px] font-mono uppercase tracking-wider">
-                  <Check size={10} />
-                  {course.accessReason === "cultivator" ? "Included" : "Owned"}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-900/15 border border-amber-800/15 text-amber-400/70 text-[10px] font-mono uppercase tracking-wider">
-                  ${course.price}
-                </span>
-              )}
-            </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] via-transparent to-amber-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-            <h3 className="font-display text-lg text-white/85 mb-2 group-hover:text-white/95 transition-colors" data-testid={`text-course-title-${course.id}`}>
-              {course.title}
-            </h3>
-
-            <p className="text-white/40 text-sm font-body leading-relaxed line-clamp-3 mb-4">
-              {course.description}
-            </p>
-
-            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-white/30">
-              <span>{course.lessonCount} lessons</span>
-              {course.includedInCultivator && !course.hasAccess && (
-                <span className="flex items-center gap-1 text-amber-500/50">
-                  <Crown size={10} />
-                  Free with Cultivator
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-900/20 border border-emerald-800/15 text-emerald-400/70 text-[10px] font-mono uppercase tracking-wider">
+                  {genreIcons[course.genre]}
+                  {genreLabels[course.genre] || course.genre}
                 </span>
-              )}
+                {course.hasAccess ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-900/20 border border-emerald-600/20 text-emerald-400/70 text-[10px] font-mono uppercase tracking-wider">
+                    <Check size={10} />
+                    {course.accessReason === "cultivator" ? "Included" : "Owned"}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-900/15 border border-amber-800/15 text-amber-400/70 text-[10px] font-mono uppercase tracking-wider">
+                    ${course.price}
+                  </span>
+                )}
+              </div>
+
+              <h3 className="font-display text-xl text-white/85 mb-3 group-hover:text-white/95 transition-colors leading-tight" data-testid={`text-course-title-${course.id}`}>
+                {course.title}
+              </h3>
+
+              <p className="text-white/40 text-sm font-body leading-relaxed line-clamp-3 mb-5">
+                {course.description}
+              </p>
+
+              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-white/30 pt-4 border-t border-white/[0.04]">
+                <span className="flex items-center gap-1.5">
+                  <BookOpen size={11} className="text-emerald-400/40" />
+                  {course.lessonCount} lessons
+                </span>
+                {course.includedInCultivator && !course.hasAccess && (
+                  <span className="flex items-center gap-1 text-amber-500/50">
+                    <Crown size={10} />
+                    Free with Cultivator
+                  </span>
+                )}
+              </div>
             </div>
           </motion.button>
         ))}
@@ -275,36 +286,41 @@ function CourseDetailView({ courseId, onBack, onSelectLesson }: {
       </div>
 
       <div className="space-y-2">
-        <h3 className="font-mono text-[10px] uppercase tracking-wider text-white/30 px-1">Lessons</h3>
+        <h3 className="font-mono text-[10px] uppercase tracking-wider text-white/30 px-1 mb-3">Lessons</h3>
         {course.lessons.map((lesson, i) => {
           const isAccessible = course.hasAccess;
           return (
-            <button
+            <motion.button
               key={lesson.id}
               onClick={() => isAccessible && onSelectLesson(lesson.id)}
               disabled={!isAccessible}
-              className={`w-full text-left flex items-center gap-3 p-4 rounded-lg border transition-all ${
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.3 }}
+              className={`w-full text-left flex items-center gap-3 p-4 rounded-lg border transition-all group/lesson ${
                 isAccessible
                   ? "border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04] cursor-pointer"
                   : "border-white/[0.04] opacity-50 cursor-not-allowed"
               }`}
               data-testid={`button-lesson-${lesson.id}`}
             >
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                 lesson.completed
                   ? "bg-emerald-600/20 border border-emerald-600/25"
-                  : "bg-white/[0.04] border border-white/[0.08]"
+                  : isAccessible
+                    ? "bg-white/[0.04] border border-white/[0.08] group-hover/lesson:border-emerald-600/20 group-hover/lesson:bg-emerald-900/10"
+                    : "bg-white/[0.04] border border-white/[0.08]"
               }`}>
                 {lesson.completed ? (
                   <Check size={14} className="text-emerald-400/80" />
                 ) : isAccessible ? (
-                  <span className="text-white/30 text-xs font-mono">{i + 1}</span>
+                  <span className="text-white/30 text-xs font-mono group-hover/lesson:text-emerald-400/50 transition-colors">{i + 1}</span>
                 ) : (
                   <Lock size={12} className="text-white/20" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-body ${lesson.completed ? "text-white/60" : "text-white/70"}`}>
+                <p className={`text-sm font-body transition-colors ${lesson.completed ? "text-white/60" : "text-white/70"} ${isAccessible ? "group-hover/lesson:text-white/85" : ""}`}>
                   {lesson.title}
                 </p>
                 {lesson.hasWritingPrompt && (
@@ -313,8 +329,8 @@ function CourseDetailView({ courseId, onBack, onSelectLesson }: {
                   </span>
                 )}
               </div>
-              {isAccessible && <ChevronRight size={16} className="text-white/20 flex-shrink-0" />}
-            </button>
+              {isAccessible && <ChevronRight size={16} className="text-white/20 flex-shrink-0 group-hover/lesson:text-white/40 group-hover/lesson:translate-x-0.5 transition-all" />}
+            </motion.button>
           );
         })}
       </div>
@@ -389,13 +405,18 @@ function LessonView({ courseId, lessonId, onBack, onNavigate }: {
 
         <div
           className="prose-content font-body text-sm text-white/65 leading-relaxed space-y-4
-            [&_h2]:font-display [&_h2]:text-lg [&_h2]:text-white/85 [&_h2]:mt-6 [&_h2]:mb-3
-            [&_h3]:font-display [&_h3]:text-base [&_h3]:text-white/80 [&_h3]:mt-5 [&_h3]:mb-2
-            [&_strong]:text-white/75 [&_em]:text-white/60
-            [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:list-disc [&_ul_li]:text-white/55
-            [&_ol]:space-y-1.5 [&_ol]:pl-5 [&_ol]:list-decimal [&_ol_li]:text-white/55
-            [&_p]:text-white/60
-            [&_blockquote]:border-l-2 [&_blockquote]:border-emerald-600/20 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-white/50"
+            [&_h2]:font-display [&_h2]:text-xl [&_h2]:text-white/90 [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-white/[0.06]
+            [&_h3]:font-display [&_h3]:text-base [&_h3]:text-white/80 [&_h3]:mt-6 [&_h3]:mb-2
+            [&_h4]:font-display [&_h4]:text-sm [&_h4]:text-emerald-300/70 [&_h4]:mt-4 [&_h4]:mb-2 [&_h4]:uppercase [&_h4]:tracking-wide
+            [&_strong]:text-white/80 [&_em]:text-white/55 [&_em]:italic
+            [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:list-disc [&_ul_li]:text-white/55 [&_ul_li]:leading-relaxed
+            [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:list-decimal [&_ol_li]:text-white/55 [&_ol_li]:leading-relaxed
+            [&_p]:text-white/60 [&_p]:leading-[1.75]
+            [&_blockquote]:border-l-2 [&_blockquote]:border-amber-500/30 [&_blockquote]:pl-4 [&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:text-white/55 [&_blockquote]:bg-amber-900/5 [&_blockquote]:rounded-r-lg [&_blockquote]:pr-4
+            [&_hr]:border-white/[0.06] [&_hr]:my-6
+            [&_table]:w-full [&_table]:text-xs [&_table]:border-collapse
+            [&_thead]:bg-white/[0.04] [&_th]:text-left [&_th]:text-white/50 [&_th]:font-mono [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-[10px] [&_th]:px-3 [&_th]:py-2 [&_th]:border-b [&_th]:border-white/[0.08]
+            [&_td]:px-3 [&_td]:py-2 [&_td]:text-white/50 [&_td]:border-b [&_td]:border-white/[0.04] [&_td]:align-top [&_td]:leading-relaxed"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lesson.content) }}
         />
 
