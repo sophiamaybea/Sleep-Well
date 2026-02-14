@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Send, Plus, Trash2, Edit3, Check, X, Copy, Star,
+  Send, Plus, Trash2, Edit3, Check, X, Copy, Diamond,
   Clock, FileText, Award, BarChart3, BookOpen,
   ChevronDown, ExternalLink, AlertCircle, Sparkles,
   Lock, TrendingUp, Calendar, User
@@ -873,7 +873,7 @@ function CreditsTab() {
                   <div className="flex gap-1 mt-1">
                     {[1, 2, 3, 4, 5].map((n) => (
                       <button key={n} onClick={() => setFormData({ ...formData, prestige: n })} className="p-1 transition-colors" data-testid={`star-${n}`}>
-                        <Star size={16} className={n <= formData.prestige ? "text-amber-400/80 fill-amber-400/80" : "text-white/15"} />
+                        <Diamond size={16} className={n <= formData.prestige ? "text-amber-400/80 fill-amber-400/80" : "text-white/15"} />
                       </button>
                     ))}
                   </div>
@@ -960,7 +960,7 @@ function CreditsTab() {
                 <div className="flex items-center gap-2">
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <Star key={n} size={10} className={n <= c.prestige ? "text-amber-400/60 fill-amber-400/60" : "text-white/10"} />
+                      <Diamond key={n} size={10} className={n <= c.prestige ? "text-amber-400/60 fill-amber-400/60" : "text-white/10"} />
                     ))}
                   </div>
                   <button
