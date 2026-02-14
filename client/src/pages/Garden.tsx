@@ -23,8 +23,9 @@ import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden
 import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, FirstReaderRoom, ReadingShelfRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
+import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
-type Zone = "desk" | "reading-room" | "greenhouse";
+type Zone = "desk" | "reading-room" | "greenhouse" | "submissions";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | null;
 
@@ -255,6 +256,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
     { id: "desk", label: "Your Desk", desc: "Your private writing space — drafts, fragments, and works in progress", icon: <PenLine size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
     { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
     { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
+    { id: "submissions", label: "Career", desc: "Track submissions, manage credits, and build your publishing career", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
   ];
 
   return (
@@ -1538,9 +1540,12 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
               <div className={`rounded-2xl border transition-all duration-300 ${
                 isExpanded ? "border-emerald-700/20 bg-emerald-950/20" : "border-transparent hover:border-emerald-800/15"
               }`}>
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setExpandedId(isExpanded ? null : piece.id)}
-                  className="w-full text-left p-5 md:p-6"
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedId(isExpanded ? null : piece.id); }}
+                  className="w-full text-left p-5 md:p-6 cursor-pointer"
                   data-testid={`button-open-letter-${piece.id}`}
                 >
                   <div className="flex items-center gap-2 mb-3">
@@ -1580,7 +1585,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                       <ResonanceBar writingId={piece.id} compact />
                     </div>
                   )}
-                </button>
+                </div>
 
                 <AnimatePresence>
                   {isExpanded && (
@@ -2989,6 +2994,8 @@ export default function Garden() {
                 />
               ) : activeZone === "reading-room" ? (
                 <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} />
+              ) : activeZone === "submissions" ? (
+                <SubmissionsZone userTier={userTier as "free" | "paid"} />
               ) : (
                 <GreenhouseZone />
               )}

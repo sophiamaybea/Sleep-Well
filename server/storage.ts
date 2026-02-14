@@ -46,6 +46,9 @@ import {
   type FirstReaderDrop, firstReaderDrops,
   type FirstReaderResponse, firstReaderResponses,
   type ReadingShelfEntry, readingShelfEntries,
+  submissions, publicationCredits, coverLetterTemplates, writerBios,
+  type Submission, type PublicationCredit, type CoverLetterTemplate, type WriterBio,
+  type InsertSubmission, type InsertPublicationCredit,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -353,6 +356,37 @@ export interface IStorage {
 
   // Struggle Signals
   getStruggleSignals(): Promise<{ dormantThisWeek: number; movedBackward: number; revisitedSeeds: number }>;
+
+  getSubmissions(userId: string): Promise<Submission[]>;
+  getSubmissionsByWriting(userId: string, writingId: string): Promise<Submission[]>;
+  createSubmission(userId: string, data: InsertSubmission): Promise<Submission>;
+  updateSubmission(id: string, userId: string, data: Partial<Submission>): Promise<Submission | null>;
+  deleteSubmission(id: string, userId: string): Promise<boolean>;
+  getSubmissionStats(userId: string): Promise<{ total: number; pending: number; accepted: number; rejected: number; withdrawn: number }>;
+
+  getPublicationCredits(userId: string): Promise<PublicationCredit[]>;
+  createPublicationCredit(userId: string, data: InsertPublicationCredit): Promise<PublicationCredit>;
+  updatePublicationCredit(id: string, userId: string, data: Partial<PublicationCredit>): Promise<PublicationCredit | null>;
+  deletePublicationCredit(id: string, userId: string): Promise<boolean>;
+  getUpcomingReversions(userId: string): Promise<PublicationCredit[]>;
+
+  getCoverLetterTemplates(userId: string): Promise<CoverLetterTemplate[]>;
+  createCoverLetterTemplate(userId: string, data: { name: string; template: string; isDefault?: boolean }): Promise<CoverLetterTemplate>;
+  updateCoverLetterTemplate(id: string, userId: string, data: Partial<CoverLetterTemplate>): Promise<CoverLetterTemplate | null>;
+  deleteCoverLetterTemplate(id: string, userId: string): Promise<boolean>;
+
+  getWriterBio(userId: string): Promise<WriterBio | null>;
+  upsertWriterBio(userId: string, data: Partial<WriterBio>): Promise<WriterBio>;
+
+  getWritingAnalytics(userId: string): Promise<{
+    totalPieces: number;
+    byStage: Record<string, number>;
+    byGenre: Record<string, number>;
+    writingFrequency: { month: string; count: number }[];
+    avgDaysToReady: number | null;
+    dormantPieces: number;
+    recentActivity: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2305,6 +2339,7 @@ export class DatabaseStorage implements IStorage {
       writingId: editorialFlags.writingId,
       authorId: editorialFlags.authorId,
       status: editorialFlags.status,
+      isPaidFlag: editorialFlags.isPaidFlag,
       seenByEditorId: editorialFlags.seenByEditorId,
       seenAt: editorialFlags.seenAt,
       editorResponse: editorialFlags.editorResponse,
@@ -2359,6 +2394,7 @@ export class DatabaseStorage implements IStorage {
       writingId: editorialFlags.writingId,
       authorId: editorialFlags.authorId,
       status: editorialFlags.status,
+      isPaidFlag: editorialFlags.isPaidFlag,
       seenByEditorId: editorialFlags.seenByEditorId,
       seenAt: editorialFlags.seenAt,
       editorResponse: editorialFlags.editorResponse,
@@ -2520,6 +2556,160 @@ export class DatabaseStorage implements IStorage {
       movedBackward: 0,
       revisitedSeeds: seeds?.cnt ?? 0,
     };
+  }
+
+  async getSubmissions(userId: string): Promise<Submission[]> {
+    return await db.select().from(submissions).where(eq(submissions.userId, userId)).orderBy(desc(submissions.createdAt));
+  }
+
+  async getSubmissionsByWriting(userId: string, writingId: string): Promise<Submission[]> {
+    return await db.select().from(submissions).where(and(eq(submissions.userId, userId), eq(submissions.writingId, writingId))).orderBy(desc(submissions.createdAt));
+  }
+
+  async createSubmission(userId: string, data: InsertSubmission): Promise<Submission> {
+    const [created] = await db.insert(submissions).values({ ...data, userId }).returning();
+    return created;
+  }
+
+  async updateSubmission(id: string, userId: string, data: Partial<Submission>): Promise<Submission | null> {
+    const { id: _id, userId: _uid, createdAt: _ca, ...updateData } = data as any;
+    const [updated] = await db.update(submissions).set({ ...updateData, updatedAt: new Date() })
+      .where(and(eq(submissions.id, id), eq(submissions.userId, userId))).returning();
+    return updated || null;
+  }
+
+  async deleteSubmission(id: string, userId: string): Promise<boolean> {
+    const result = await db.delete(submissions).where(and(eq(submissions.id, id), eq(submissions.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  async getSubmissionStats(userId: string): Promise<{ total: number; pending: number; accepted: number; rejected: number; withdrawn: number }> {
+    const rows = await db.select({ status: submissions.status, cnt: count() }).from(submissions)
+      .where(eq(submissions.userId, userId)).groupBy(submissions.status);
+    const stats = { total: 0, pending: 0, accepted: 0, rejected: 0, withdrawn: 0 };
+    for (const row of rows) {
+      const c = Number(row.cnt);
+      stats.total += c;
+      if (row.status === "pending") stats.pending = c;
+      else if (row.status === "accepted") stats.accepted = c;
+      else if (row.status === "rejected") stats.rejected = c;
+      else if (row.status === "withdrawn") stats.withdrawn = c;
+    }
+    return stats;
+  }
+
+  async getPublicationCredits(userId: string): Promise<PublicationCredit[]> {
+    return await db.select().from(publicationCredits).where(eq(publicationCredits.userId, userId)).orderBy(desc(publicationCredits.createdAt));
+  }
+
+  async createPublicationCredit(userId: string, data: InsertPublicationCredit): Promise<PublicationCredit> {
+    const [created] = await db.insert(publicationCredits).values({ ...data, userId }).returning();
+    return created;
+  }
+
+  async updatePublicationCredit(id: string, userId: string, data: Partial<PublicationCredit>): Promise<PublicationCredit | null> {
+    const { id: _id, userId: _uid, createdAt: _ca, ...updateData } = data as any;
+    const [updated] = await db.update(publicationCredits).set(updateData)
+      .where(and(eq(publicationCredits.id, id), eq(publicationCredits.userId, userId))).returning();
+    return updated || null;
+  }
+
+  async deletePublicationCredit(id: string, userId: string): Promise<boolean> {
+    const result = await db.delete(publicationCredits).where(and(eq(publicationCredits.id, id), eq(publicationCredits.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  async getUpcomingReversions(userId: string): Promise<PublicationCredit[]> {
+    return await db.select().from(publicationCredits)
+      .where(and(
+        eq(publicationCredits.userId, userId),
+        sql`${publicationCredits.rightsRevertDate} IS NOT NULL`,
+        eq(publicationCredits.rightsReverted, false),
+        sql`${publicationCredits.rightsRevertDate} > NOW()`
+      ))
+      .orderBy(asc(publicationCredits.rightsRevertDate));
+  }
+
+  async getCoverLetterTemplates(userId: string): Promise<CoverLetterTemplate[]> {
+    return await db.select().from(coverLetterTemplates).where(eq(coverLetterTemplates.userId, userId)).orderBy(desc(coverLetterTemplates.createdAt));
+  }
+
+  async createCoverLetterTemplate(userId: string, data: { name: string; template: string; isDefault?: boolean }): Promise<CoverLetterTemplate> {
+    const [created] = await db.insert(coverLetterTemplates).values({ ...data, userId }).returning();
+    return created;
+  }
+
+  async updateCoverLetterTemplate(id: string, userId: string, data: Partial<CoverLetterTemplate>): Promise<CoverLetterTemplate | null> {
+    const { id: _id, userId: _uid, createdAt: _ca, ...updateData } = data as any;
+    const [updated] = await db.update(coverLetterTemplates).set({ ...updateData, updatedAt: new Date() })
+      .where(and(eq(coverLetterTemplates.id, id), eq(coverLetterTemplates.userId, userId))).returning();
+    return updated || null;
+  }
+
+  async deleteCoverLetterTemplate(id: string, userId: string): Promise<boolean> {
+    const result = await db.delete(coverLetterTemplates).where(and(eq(coverLetterTemplates.id, id), eq(coverLetterTemplates.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  async getWriterBio(userId: string): Promise<WriterBio | null> {
+    const [bio] = await db.select().from(writerBios).where(eq(writerBios.userId, userId));
+    return bio || null;
+  }
+
+  async upsertWriterBio(userId: string, data: Partial<WriterBio>): Promise<WriterBio> {
+    const existing = await this.getWriterBio(userId);
+    if (existing) {
+      const { id: _id, userId: _uid, createdAt: _ca, ...updateData } = data as any;
+      const [updated] = await db.update(writerBios).set({ ...updateData, updatedAt: new Date() })
+        .where(eq(writerBios.userId, userId)).returning();
+      return updated;
+    }
+    const { id: _id, userId: _uid, createdAt: _ca, updatedAt: _ua, ...insertData } = data as any;
+    const [created] = await db.insert(writerBios).values({ ...insertData, userId }).returning();
+    return created;
+  }
+
+  async getWritingAnalytics(userId: string): Promise<{
+    totalPieces: number;
+    byStage: Record<string, number>;
+    byGenre: Record<string, number>;
+    writingFrequency: { month: string; count: number }[];
+    avgDaysToReady: number | null;
+    dormantPieces: number;
+    recentActivity: number;
+  }> {
+    const [totalRow] = await db.select({ cnt: count() }).from(writings).where(eq(writings.authorId, userId));
+    const totalPieces = Number(totalRow?.cnt ?? 0);
+
+    const stageRows = await db.select({ stage: writings.stage, cnt: count() }).from(writings)
+      .where(eq(writings.authorId, userId)).groupBy(writings.stage);
+    const byStage: Record<string, number> = {};
+    for (const r of stageRows) byStage[r.stage] = Number(r.cnt);
+
+    const genreRows = await db.select({ genre: writings.genre, cnt: count() }).from(writings)
+      .where(eq(writings.authorId, userId)).groupBy(writings.genre);
+    const byGenre: Record<string, number> = {};
+    for (const r of genreRows) byGenre[r.genre] = Number(r.cnt);
+
+    const freqRows = await db.execute(
+      sql`SELECT to_char(created_at, 'YYYY-MM') as month, COUNT(*)::int as count FROM writings WHERE author_id = ${userId} GROUP BY month ORDER BY month DESC LIMIT 12`
+    );
+    const writingFrequency = (freqRows.rows as any[]).map((r: any) => ({ month: r.month, count: Number(r.count) }));
+
+    const [avgRow] = await db.execute(
+      sql`SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/86400) as avg_days FROM writings WHERE author_id = ${userId} AND readiness = 'ready_to_show'`
+    ).then(r => r.rows as any[]);
+    const avgDaysToReady = avgRow?.avg_days ? Number(avgRow.avg_days) : null;
+
+    const [dormantRow] = await db.select({ cnt: count() }).from(writings)
+      .where(and(eq(writings.authorId, userId), eq(writings.readiness, "dormant")));
+    const dormantPieces = Number(dormantRow?.cnt ?? 0);
+
+    const [recentRow] = await db.select({ cnt: count() }).from(writings)
+      .where(and(eq(writings.authorId, userId), sql`${writings.updatedAt} > NOW() - INTERVAL '7 days'`));
+    const recentActivity = Number(recentRow?.cnt ?? 0);
+
+    return { totalPieces, byStage, byGenre, writingFrequency, avgDaysToReady, dormantPieces, recentActivity };
   }
 }
 

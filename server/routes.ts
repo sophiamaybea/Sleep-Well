@@ -420,13 +420,91 @@ export async function registerRoutes(
     }
   });
 
-  // === SUBMISSIONS (READ-ONLY view from replant requests) ===
   app.get("/api/submissions", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getReplantRequests(req.user.claims.sub);
-      res.json(items);
+      const subs = await storage.getSubmissions(req.user.claims.sub);
+      res.json(subs);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch submissions" });
+    }
+  });
+
+  app.get("/api/submissions/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const stats = await storage.getSubmissionStats(req.user.claims.sub);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch submission stats" });
+    }
+  });
+
+  app.get("/api/submissions/by-writing/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const subs = await storage.getSubmissionsByWriting(req.user.claims.sub, req.params.writingId);
+      res.json(subs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch submissions" });
+    }
+  });
+
+  app.post("/api/submissions", isAuthenticated, async (req: any, res) => {
+    try {
+      const sub = await storage.createSubmission(req.user.claims.sub, req.body);
+      res.json(sub);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create submission" });
+    }
+  });
+
+  app.patch("/api/submissions/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const sub = await storage.updateSubmission(req.params.id, req.user.claims.sub, req.body);
+      if (!sub) return res.status(404).json({ message: "Submission not found" });
+      res.json(sub);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update submission" });
+    }
+  });
+
+  app.delete("/api/submissions/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteSubmission(req.params.id, req.user.claims.sub);
+      if (!deleted) return res.status(404).json({ message: "Submission not found" });
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete submission" });
+    }
+  });
+
+  app.post("/api/submissions/:id/accept", isAuthenticated, async (req: any, res) => {
+    try {
+      const sub = await storage.updateSubmission(req.params.id, req.user.claims.sub, {
+        status: "accepted",
+        respondedAt: new Date(),
+      });
+      if (!sub) return res.status(404).json({ message: "Submission not found" });
+      const otherSubs = sub.writingId
+        ? await storage.getSubmissionsByWriting(req.user.claims.sub, sub.writingId)
+        : [];
+      const pendingElsewhere = otherSubs.filter(s => s.id !== sub.id && s.status === "pending");
+      res.json({ submission: sub, pendingElsewhere });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to accept submission" });
+    }
+  });
+
+  app.post("/api/submissions/bulk-withdraw", isAuthenticated, async (req: any, res) => {
+    try {
+      const { submissionIds } = req.body;
+      if (!Array.isArray(submissionIds)) return res.status(400).json({ message: "submissionIds array required" });
+      const results = await Promise.all(
+        submissionIds.map((id: string) =>
+          storage.updateSubmission(id, req.user.claims.sub, { status: "withdrawn", respondedAt: new Date() })
+        )
+      );
+      res.json({ updated: results.filter(Boolean).length });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to bulk withdraw" });
     }
   });
 
@@ -2232,6 +2310,118 @@ export async function registerRoutes(
       res.json({ walk, stream, flags });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch walk queue" });
+    }
+  });
+
+  app.get("/api/credits", isAuthenticated, async (req: any, res) => {
+    try {
+      const credits = await storage.getPublicationCredits(req.user.claims.sub);
+      res.json(credits);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch credits" });
+    }
+  });
+
+  app.get("/api/credits/reversions", isAuthenticated, async (req: any, res) => {
+    try {
+      const reversions = await storage.getUpcomingReversions(req.user.claims.sub);
+      res.json(reversions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reversions" });
+    }
+  });
+
+  app.post("/api/credits", isAuthenticated, async (req: any, res) => {
+    try {
+      const credit = await storage.createPublicationCredit(req.user.claims.sub, req.body);
+      res.json(credit);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create credit" });
+    }
+  });
+
+  app.patch("/api/credits/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const credit = await storage.updatePublicationCredit(req.params.id, req.user.claims.sub, req.body);
+      if (!credit) return res.status(404).json({ message: "Credit not found" });
+      res.json(credit);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update credit" });
+    }
+  });
+
+  app.delete("/api/credits/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deletePublicationCredit(req.params.id, req.user.claims.sub);
+      if (!deleted) return res.status(404).json({ message: "Credit not found" });
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete credit" });
+    }
+  });
+
+  app.get("/api/cover-letters", isAuthenticated, async (req: any, res) => {
+    try {
+      const templates = await storage.getCoverLetterTemplates(req.user.claims.sub);
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cover letter templates" });
+    }
+  });
+
+  app.post("/api/cover-letters", isAuthenticated, async (req: any, res) => {
+    try {
+      const template = await storage.createCoverLetterTemplate(req.user.claims.sub, req.body);
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create cover letter template" });
+    }
+  });
+
+  app.patch("/api/cover-letters/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const template = await storage.updateCoverLetterTemplate(req.params.id, req.user.claims.sub, req.body);
+      if (!template) return res.status(404).json({ message: "Template not found" });
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update cover letter template" });
+    }
+  });
+
+  app.delete("/api/cover-letters/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteCoverLetterTemplate(req.params.id, req.user.claims.sub);
+      if (!deleted) return res.status(404).json({ message: "Template not found" });
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete cover letter template" });
+    }
+  });
+
+  app.get("/api/writer-bio", isAuthenticated, async (req: any, res) => {
+    try {
+      const bio = await storage.getWriterBio(req.user.claims.sub);
+      res.json(bio);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch writer bio" });
+    }
+  });
+
+  app.put("/api/writer-bio", isAuthenticated, async (req: any, res) => {
+    try {
+      const bio = await storage.upsertWriterBio(req.user.claims.sub, req.body);
+      res.json(bio);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update writer bio" });
+    }
+  });
+
+  app.get("/api/writing-analytics", isAuthenticated, async (req: any, res) => {
+    try {
+      const analytics = await storage.getWritingAnalytics(req.user.claims.sub);
+      res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch writing analytics" });
     }
   });
 

@@ -682,3 +682,76 @@ export type EditorsWalk = typeof editorsWalks.$inferSelect;
 export type FirstReaderDrop = typeof firstReaderDrops.$inferSelect;
 export type FirstReaderResponse = typeof firstReaderResponses.$inferSelect;
 export type ReadingShelfEntry = typeof readingShelfEntries.$inferSelect;
+
+// === SUBMISSION TRACKER ===
+
+export const submissions = pgTable("submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").references(() => writings.id),
+  journalName: text("journal_name").notNull(),
+  journalUrl: text("journal_url"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  status: text("status").notNull().default("pending"),
+  responseDeadline: timestamp("response_deadline"),
+  respondedAt: timestamp("responded_at"),
+  simultaneousSub: boolean("simultaneous_sub").notNull().default(true),
+  notes: text("notes"),
+  coverLetter: text("cover_letter"),
+  genre: text("genre"),
+  pieceTitle: text("piece_title"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const publicationCredits = pgTable("publication_credits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").references(() => writings.id),
+  submissionId: varchar("submission_id").references(() => submissions.id),
+  journalName: text("journal_name").notNull(),
+  pieceTitle: text("piece_title").notNull(),
+  genre: text("genre"),
+  publishedAt: timestamp("published_at"),
+  rightsType: text("rights_type").default("first_serial"),
+  rightsDuration: text("rights_duration"),
+  rightsRevertDate: timestamp("rights_revert_date"),
+  rightsReverted: boolean("rights_reverted").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  prestige: integer("prestige").notNull().default(3),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const coverLetterTemplates = pgTable("cover_letter_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  name: text("name").notNull().default("Default"),
+  template: text("template").notNull(),
+  isDefault: boolean("is_default").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const writerBios = pgTable("writer_bios", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  shortBio: text("short_bio"),
+  fullBio: text("full_bio"),
+  oneLiner: text("one_liner"),
+  publicationCreditsText: text("publication_credits_text"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSubmissionSchema = createInsertSchema(submissions).omit({ id: true, userId: true, createdAt: true, updatedAt: true });
+export const insertPublicationCreditSchema = createInsertSchema(publicationCredits).omit({ id: true, userId: true, createdAt: true });
+export const insertCoverLetterTemplateSchema = createInsertSchema(coverLetterTemplates).omit({ id: true, userId: true, createdAt: true, updatedAt: true });
+export const insertWriterBioSchema = createInsertSchema(writerBios).omit({ id: true, userId: true, createdAt: true, updatedAt: true });
+
+export type Submission = typeof submissions.$inferSelect;
+export type InsertSubmission = z.infer<typeof insertSubmissionSchema>;
+export type PublicationCredit = typeof publicationCredits.$inferSelect;
+export type InsertPublicationCredit = z.infer<typeof insertPublicationCreditSchema>;
+export type CoverLetterTemplate = typeof coverLetterTemplates.$inferSelect;
+export type WriterBio = typeof writerBios.$inferSelect;
