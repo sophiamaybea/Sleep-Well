@@ -12,13 +12,14 @@ import {
   insertResonanceSchema, insertMarginaliaSchema,
   insertTableTopicSchema, insertTableReplySchema,
   insertWorkshopExerciseSchema, insertWorkshopResponseSchema,
-  insertSwapRequestSchema, insertSwapFeedbackSchema,
+  insertSwapRequestSchema, insertSwapFeedbackSchema, insertMicroSwapSchema,
   insertGreenhouseEntrySchema, insertPublishRequestSchema,
   insertRequestMessageSchema, insertIssueSchema, insertIssuePieceSchema,
   insertEditorNoteSchema,
   insertCircleIntentionSchema, insertCircleCelebrationSchema,
   insertRejectionWallSchema, insertOpportunitySchema, insertOpportunityNoteSchema,
   insertPromptPotluckSchema, insertCircleShareSchema, insertIdeaDropSchema,
+  insertCircleMicroResponseSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -145,6 +146,19 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching gallery:", error);
       res.status(500).json({ message: "Failed to fetch gallery" });
+    }
+  });
+
+  // === DAILY LETTER ===
+  app.get("/api/daily-letter", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const letter = await storage.getDailyLetter(userId);
+      if (!letter) return res.json(null);
+      res.json(letter);
+    } catch (error) {
+      console.error("Error fetching daily letter:", error);
+      res.status(500).json({ message: "Failed to fetch daily letter" });
     }
   });
 
@@ -611,6 +625,33 @@ export async function registerRoutes(
     }
   });
 
+  // === CIRCLE MICRO-PROMPTS ===
+  app.get("/api/circles/:id/micro-prompt", isAuthenticated, async (req: any, res) => {
+    try {
+      const members = await storage.getCircleMembers(req.params.id);
+      const isMember = members.some((m: any) => m.userId === req.user.claims.sub);
+      if (!isMember) return res.status(403).json({ message: "Not a member of this circle" });
+      const prompt = await storage.getCircleWeeklyPrompt(req.params.id);
+      res.json(prompt);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch micro-prompt" });
+    }
+  });
+
+  app.post("/api/circles/:id/micro-prompt/respond", isAuthenticated, async (req: any, res) => {
+    try {
+      const members = await storage.getCircleMembers(req.params.id);
+      const isMember = members.some((m: any) => m.userId === req.user.claims.sub);
+      if (!isMember) return res.status(403).json({ message: "Not a member of this circle" });
+      const parsed = insertCircleMicroResponseSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const response = await storage.respondToCircleMicroPrompt(req.user.claims.sub, parsed.data);
+      res.status(201).json(response);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit response" });
+    }
+  });
+
   // === MOONLIT READINGS ===
   app.get("/api/moonlit-readings", isAuthenticated, async (req: any, res) => {
     try {
@@ -932,6 +973,50 @@ export async function registerRoutes(
     }
   });
 
+  // === CAFÉ ===
+  app.get("/api/cafe/today", async (req, res) => {
+    try {
+      const question = await storage.getTodayCafeQuestion();
+      res.json(question);
+    } catch (error) {
+      console.error("Error fetching today's café question:", error);
+      res.status(500).json({ message: "Failed to fetch today's question" });
+    }
+  });
+
+  app.get("/api/cafe/questions/:id/responses", async (req, res) => {
+    try {
+      const responses = await storage.getCafeResponses(req.params.id);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching café responses:", error);
+      res.status(500).json({ message: "Failed to fetch responses" });
+    }
+  });
+
+  app.post("/api/cafe/questions/:id/responses", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const content = req.body.content?.trim();
+      if (!content) return res.status(400).json({ message: "Content is required" });
+      const response = await storage.createCafeResponse(userId, { questionId: req.params.id, content });
+      res.status(201).json(response);
+    } catch (error) {
+      console.error("Error creating café response:", error);
+      res.status(500).json({ message: "Failed to create response" });
+    }
+  });
+
+  app.get("/api/cafe/past", async (req, res) => {
+    try {
+      const questions = await storage.getPastCafeQuestions();
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching past café questions:", error);
+      res.status(500).json({ message: "Failed to fetch past questions" });
+    }
+  });
+
   // === WORKSHOP (EXERCISES & RESPONSES) ===
   app.get("/api/workshop/prompt-of-day", async (req, res) => {
     try {
@@ -1060,6 +1145,45 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error creating swap feedback:", error);
       res.status(500).json({ message: "Failed to create swap feedback" });
+    }
+  });
+
+  // === MICRO-SWAP ===
+  app.post("/api/micro-swaps", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const parsed = insertMicroSwapSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const swap = await storage.createMicroSwap(userId, { fragment: parsed.data.fragment, genre: parsed.data.genre ?? undefined });
+      res.status(201).json(swap);
+    } catch (error) {
+      console.error("Error creating micro-swap:", error);
+      res.status(500).json({ message: "Failed to create micro-swap" });
+    }
+  });
+
+  app.get("/api/micro-swaps", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const swaps = await storage.getMyMicroSwaps(userId);
+      res.json(swaps);
+    } catch (error) {
+      console.error("Error fetching micro-swaps:", error);
+      res.status(500).json({ message: "Failed to fetch micro-swaps" });
+    }
+  });
+
+  app.post("/api/micro-swaps/:id/respond", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { response } = req.body;
+      if (!response || typeof response !== "string") return res.status(400).json({ message: "Response is required" });
+      const swap = await storage.respondToMicroSwap(req.params.id, userId, response);
+      if (!swap) return res.status(404).json({ message: "Micro-swap not found" });
+      res.json(swap);
+    } catch (error) {
+      console.error("Error responding to micro-swap:", error);
+      res.status(500).json({ message: "Failed to respond to micro-swap" });
     }
   });
 
@@ -1620,6 +1744,20 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/writings/:id/whispers", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const writing = await storage.getWriting(req.params.id);
+      if (!writing) return res.status(404).json({ message: "Writing not found" });
+      if (writing.authorId !== userId) return res.status(403).json({ message: "Not authorized" });
+      const whispers = await storage.getQuietReadWhispers(req.params.id);
+      res.json(whispers);
+    } catch (error) {
+      console.error("Error fetching whispers:", error);
+      res.status(500).json({ message: "Failed to fetch whispers" });
+    }
+  });
+
   app.get("/api/quietly-read/:writingId", isAuthenticated, async (req: any, res) => {
     try {
       const hasBeenRead = await storage.hasBeenQuietlyRead(req.params.writingId);
@@ -1739,6 +1877,29 @@ export async function registerRoutes(
       res.send(buffer);
     } catch (error) {
       res.status(500).json({ message: "Failed to export" });
+    }
+  });
+
+  // === PRESENCE ===
+  app.post("/api/presence", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.updatePresence(userId);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error updating presence:", error);
+      res.status(500).json({ message: "Failed to update presence" });
+    }
+  });
+
+  app.get("/api/garden-pulse", isAuthenticated, async (req: any, res) => {
+    try {
+      const activeWriters = await storage.getActiveWriterCount();
+      const summary = await storage.getGardenSummary();
+      res.json({ activeWriters, ...summary });
+    } catch (error) {
+      console.error("Error fetching garden pulse:", error);
+      res.status(500).json({ message: "Failed to fetch garden pulse" });
     }
   });
 

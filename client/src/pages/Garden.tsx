@@ -10,7 +10,7 @@ import {
   Flame, Archive, NotebookPen,
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
-  TreePine, Glasses, Compass, Eye, Moon, Clock
+  TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
 import { useAccessibility } from "@/hooks/use-accessibility";
@@ -1106,6 +1106,8 @@ function QuietReadButton({ writingId }: { writingId: string }) {
 }
 
 function QuietlyReadIndicator({ writingId }: { writingId: string }) {
+  const [showWhispers, setShowWhispers] = useState(false);
+  const whisperRef = useRef<HTMLDivElement>(null);
   const { data } = useQuery<{ hasBeenRead: boolean }>({
     queryKey: ["/api/quietly-read", writingId],
     queryFn: async () => {
@@ -1115,13 +1117,61 @@ function QuietlyReadIndicator({ writingId }: { writingId: string }) {
     },
   });
 
+  const { data: whispers = [] } = useQuery<{ whisper: string; createdAt: string | null }[]>({
+    queryKey: ["/api/writings", writingId, "whispers"],
+    queryFn: async () => {
+      const res = await fetch(`/api/writings/${writingId}/whispers`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!data?.hasBeenRead,
+  });
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (whisperRef.current && !whisperRef.current.contains(e.target as Node)) {
+        setShowWhispers(false);
+      }
+    }
+    if (showWhispers) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showWhispers]);
+
   if (!data?.hasBeenRead) return null;
 
   return (
-    <span className="flex items-center gap-1 text-[8px] font-mono tracking-widest text-amber-300/25 italic" data-testid={`indicator-quietly-read-${writingId}`}>
-      <span className="w-1 h-1 rounded-full bg-amber-300/30" />
-      someone was here
-    </span>
+    <div className="relative" ref={whisperRef}>
+      <button
+        onClick={(e) => { e.stopPropagation(); setShowWhispers(!showWhispers); }}
+        className="flex items-center gap-1 text-[8px] font-mono tracking-widest text-amber-300/25 italic hover:text-amber-300/40 transition-colors cursor-pointer"
+        data-testid={`indicator-quietly-read-${writingId}`}
+      >
+        <Eye size={10} className="text-amber-300/30" />
+        {whispers.length > 0 ? `${whispers.length} whisper${whispers.length !== 1 ? "s" : ""}` : "someone was here"}
+      </button>
+
+      <AnimatePresence>
+        {showWhispers && whispers.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 top-full mt-2 z-50 min-w-[220px] max-w-[300px] rounded-xl border border-amber-500/10 bg-[#0a0a0a]/95 backdrop-blur-xl p-3 shadow-xl"
+            data-testid="whispers-list"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-2">
+              {whispers.map((w, i) => (
+                <p key={i} className="font-serif italic text-xs text-white/40 leading-relaxed" data-testid={`whisper-${i}`}>
+                  {w.whisper}
+                </p>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -1172,12 +1222,24 @@ function CuratedOpportunitiesBanner() {
   );
 }
 
+type DailyLetterPiece = Writing & { authorName: string | null; authorImage: string | null };
+
 function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) => void }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [dailyLetterExpanded, setDailyLetterExpanded] = useState(false);
   const [page, setPage] = useState(1);
   const [activeSort, setActiveSort] = useState<ReadingRoomSort>("recent");
   const [genreFilter, setGenreFilter] = useState("all");
   const perPage = 8;
+
+  const { data: dailyLetter, isLoading: loadingDailyLetter } = useQuery<DailyLetterPiece | null>({
+    queryKey: ["/api/daily-letter"],
+    queryFn: async () => {
+      const res = await fetch("/api/daily-letter", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
 
   const { data: tendingFeed = [], isLoading: loadingTending } = useQuery<FeedWriting[]>({
     queryKey: ["/api/tending-feed"],
@@ -1197,7 +1259,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
     },
   });
 
-  if (loadingTending || loadingGarden) return <ReadingRoomSkeleton />;
+  if (loadingTending || loadingGarden || loadingDailyLetter) return <ReadingRoomSkeleton />;
 
   const tendedAuthorIds = new Set(tendingFeed.map(p => p.authorId));
 
@@ -1224,6 +1286,10 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
     filteredPieces.sort((a, b) => new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime());
   }
 
+  if (dailyLetter) {
+    filteredPieces = filteredPieces.filter(p => p.id !== dailyLetter.id);
+  }
+
   const visiblePieces = filteredPieces.slice(0, page * perPage);
   const hasMore = filteredPieces.length > visiblePieces.length;
 
@@ -1232,6 +1298,9 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
     { id: "quiet", label: "Quiet" },
     { id: "tended", label: "Tended" },
   ];
+
+  const dailyLetterContentWords = dailyLetter ? wordCount(dailyLetter.content) : 0;
+  const shouldTruncateDailyLetter = dailyLetterContentWords > 500 && !dailyLetterExpanded;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -1242,6 +1311,77 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
         </div>
         <p className="font-serif text-xs text-white/35 italic">Letters from gardens you tend, and new voices growing nearby</p>
       </div>
+
+      {dailyLetter && (
+        <div className="mb-10" data-testid="daily-letter-card">
+          <div className="rounded-2xl border border-amber-500/10 bg-amber-950/[0.06] p-7 md:p-9 space-y-5"
+            style={{ boxShadow: "0 0 40px rgba(245, 158, 11, 0.03)" }}
+          >
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/50">
+              Today's Letter
+            </span>
+
+            <div className="flex items-center gap-2.5 pt-1">
+              <button
+                onClick={() => onViewProfile?.(dailyLetter.authorId)}
+                className="flex items-center gap-2.5 text-white/55 hover:text-white/75 transition-colors"
+                data-testid="daily-letter-author"
+              >
+                <div className="w-7 h-7 rounded-full bg-amber-500/[0.08] border border-amber-500/20 flex items-center justify-center text-amber-300/60 font-mono text-[10px] uppercase">
+                  {dailyLetter.authorName?.[0] || "?"}
+                </div>
+                <span className="font-serif text-sm">{dailyLetter.authorName || "Anonymous"}</span>
+              </button>
+              <span className="font-mono text-[8px] text-white/25">{timeAgo(dailyLetter.createdAt)}</span>
+            </div>
+
+            <h3 className="text-2xl md:text-3xl font-display font-light text-white/85 italic leading-snug" data-testid="daily-letter-title">
+              {dailyLetter.title || "Untitled"}
+            </h3>
+
+            <div className="pt-2">
+              <ContentRenderer
+                content={dailyLetter.content}
+                maxLength={shouldTruncateDailyLetter ? 2500 : undefined}
+                className="font-serif text-white/55 leading-[2] text-[15px]"
+              />
+              {shouldTruncateDailyLetter && (
+                <button
+                  onClick={() => setDailyLetterExpanded(true)}
+                  className="mt-4 font-mono text-[10px] uppercase tracking-widest text-amber-400/50 hover:text-amber-400/70 transition-colors"
+                  data-testid="daily-letter-continue-reading"
+                >
+                  Continue reading →
+                </button>
+              )}
+            </div>
+
+            <div className="pt-3 space-y-4">
+              <div className="flex items-center gap-3">
+                <QuietReadButton writingId={dailyLetter.id} />
+                <span className="w-px h-3 bg-white/[0.06]" />
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/40">{dailyLetter.genre}</span>
+                <span className="font-mono text-[8px] text-white/25">{dailyLetterContentWords} words</span>
+                <div className="ml-auto">
+                  <TendButton gardenerId={dailyLetter.authorId} size="sm" />
+                </div>
+              </div>
+              <ResonanceBar writingId={dailyLetter.id} />
+              {dailyLetterExpanded && (
+                <MarginaliaSection writingId={dailyLetter.id} authorId={dailyLetter.authorId} />
+              )}
+            </div>
+          </div>
+
+          {(allPieces.length > 1 || (allPieces.length === 1 && allPieces[0].id !== dailyLetter.id)) && (
+            <div className="flex items-center gap-4 mt-10 mb-2">
+              <div className="flex-1 border-t border-white/[0.04]" />
+              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/25">More from the Garden</span>
+              <div className="flex-1 border-t border-white/[0.04]" />
+            </div>
+          )}
+        </div>
+      )}
 
       <CuratedOpportunitiesBanner />
 
@@ -1323,16 +1463,19 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                   data-testid={`button-open-letter-${piece.id}`}
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <button
+                    <span
+                      role="link"
+                      tabIndex={0}
                       onClick={(e) => { e.stopPropagation(); onViewProfile?.(piece.authorId); }}
-                      className="flex items-center gap-2 text-white/50 hover:text-white/75 transition-colors"
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onViewProfile?.(piece.authorId); } }}
+                      className="flex items-center gap-2 text-white/50 hover:text-white/75 transition-colors cursor-pointer"
                       data-testid={`link-author-${piece.id}`}
                     >
                       <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.15] flex items-center justify-center text-white/50 font-mono text-[8px] uppercase">
                         {piece.authorName?.[0] || "?"}
                       </div>
                       <span className="font-serif text-xs">{piece.authorName || "Anonymous"}</span>
-                    </button>
+                    </span>
                     <span className="font-mono text-[8px] text-white/30">{timeAgo(piece.updatedAt)}</span>
                   </div>
 
@@ -2131,8 +2274,29 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
     queryFn: async () => { const r = await fetch(`/api/circles/${circle.id}/shares`, { credentials: "include" }); return r.ok ? r.json() : []; },
   });
 
+  const { data: microPrompt, refetch: refetchPrompt } = useQuery<any>({
+    queryKey: [`/api/circles/${circle.id}/micro-prompt`],
+    queryFn: async () => { const r = await fetch(`/api/circles/${circle.id}/micro-prompt`, { credentials: "include" }); return r.ok ? r.json() : null; },
+    enabled: members.some((m: any) => m.userId === userId),
+  });
+
+  const queryClient = useQueryClient();
+  const [microResponse, setMicroResponse] = useState("");
+  const respondMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const r = await fetch(`/api/circles/${circle.id}/micro-prompt/respond`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        body: JSON.stringify({ promptId: microPrompt?.id, content }),
+      });
+      if (!r.ok) throw new Error("Failed");
+      return r.json();
+    },
+    onSuccess: () => { setMicroResponse(""); refetchPrompt(); },
+  });
+
   const isMember = members.some((m: any) => m.userId === userId);
   const isMyTurn = currentSharer?.userId === userId;
+  const hasResponded = microPrompt?.responses?.some((r: any) => r.userId === userId);
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 1);
   const weekNum = Math.floor((now.getTime() - startOfYear.getTime()) / (7 * 86400000));
@@ -2212,6 +2376,57 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
         </div>
       )}
 
+      {isMember && microPrompt && (
+        <div className="pt-1 space-y-2" data-testid={`micro-prompt-${circle.id}`}>
+          <h5 className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/50 flex items-center gap-2">
+            <Sparkles size={10} />
+            This week's prompt
+          </h5>
+          <p className="font-serif italic text-sm text-amber-200/70 leading-relaxed">{microPrompt.prompt}</p>
+
+          {microPrompt.responses?.length > 0 && (
+            <div className="space-y-1.5">
+              {microPrompt.responses.map((r: any) => (
+                <div key={r.id} className="flex items-start gap-2" data-testid={`micro-response-${r.id}`}>
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center text-emerald-400/60 font-mono text-[8px] uppercase flex-shrink-0 mt-0.5">
+                    {r.userName?.[0] || "?"}
+                  </span>
+                  <div className="min-w-0">
+                    <span className="font-mono text-[8px] text-white/30 uppercase tracking-wider">{r.userName}</span>
+                    <p className="font-serif text-xs text-white/60 leading-snug">{r.content}</p>
+                  </div>
+                  {r.userId === userId && (
+                    <Check size={10} className="text-emerald-400/50 flex-shrink-0 mt-1" />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!hasResponded && (
+            <div className="flex gap-1.5" data-testid={`micro-prompt-input-${circle.id}`}>
+              <input
+                type="text"
+                value={microResponse}
+                onChange={(e) => setMicroResponse(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && microResponse.trim()) respondMutation.mutate(microResponse.trim()); }}
+                placeholder="Your response..."
+                className="flex-1 bg-white/[0.04] border border-amber-500/10 rounded-lg px-2.5 py-1.5 font-serif text-xs text-white/70 placeholder:text-white/20 focus:outline-none focus:border-amber-500/25 transition-colors"
+                data-testid={`input-micro-response-${circle.id}`}
+              />
+              <button
+                onClick={() => microResponse.trim() && respondMutation.mutate(microResponse.trim())}
+                disabled={!microResponse.trim() || respondMutation.isPending}
+                className="px-2 py-1.5 rounded-lg bg-amber-500/15 text-amber-300/70 hover:bg-amber-500/25 transition-colors disabled:opacity-30"
+                data-testid={`btn-micro-respond-${circle.id}`}
+              >
+                <Send size={11} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {!isMember && (
         <div className="pt-3">
           <button
@@ -2257,6 +2472,25 @@ export default function Garden() {
     },
     enabled: isAuthenticated,
   });
+
+  const { data: gardenPulse } = useQuery<{ activeWriters: number; newSeeds: number; bloomedPieces: number; totalWriters: number }>({
+    queryKey: ["/api/garden-pulse"],
+    queryFn: async () => {
+      const res = await fetch("/api/garden-pulse", { credentials: "include" });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 60000,
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const sendHeartbeat = () => { fetch("/api/presence", { method: "POST", credentials: "include" }).catch(() => {}); };
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -2357,8 +2591,28 @@ export default function Garden() {
                 <Leaf size={14} className="text-emerald-500/40 group-hover:text-emerald-400/60 transition-colors" />
               </a>
 
-              {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setProfileUserId(null); }} />}
-              {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/55">Writing</span>}
+              <div className="flex flex-col items-center">
+                {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setProfileUserId(null); }} />}
+                {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/55">Writing</span>}
+                {!isEditing && gardenPulse && gardenPulse.activeWriters > 0 && (
+                  <div className="flex flex-col items-center gap-0.5 mt-1.5" data-testid="garden-pulse">
+                    <div className="flex items-center gap-1.5">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400/40" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400/60" />
+                      </span>
+                      <span className="font-mono text-[9px] text-white/30">
+                        {gardenPulse.activeWriters} {gardenPulse.activeWriters === 1 ? "writer" : "writers"} in the garden right now
+                      </span>
+                    </div>
+                    {(gardenPulse.newSeeds > 0 || gardenPulse.bloomedPieces > 0) && (
+                      <p className="font-serif italic text-[9px] text-white/25">
+                        This month: {gardenPulse.newSeeds > 0 && <>{gardenPulse.newSeeds} {gardenPulse.newSeeds === 1 ? "writer" : "writers"} planted new seeds</>}{gardenPulse.newSeeds > 0 && gardenPulse.bloomedPieces > 0 && ". "}{gardenPulse.bloomedPieces > 0 && <>{gardenPulse.bloomedPieces} {gardenPulse.bloomedPieces === 1 ? "piece" : "pieces"} bloomed</>}.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
 
               <div className="flex items-center gap-1">
                 <NotificationBell onClick={() => setShowNotifications(true)} />

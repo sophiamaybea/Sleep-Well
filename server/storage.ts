@@ -20,6 +20,7 @@ import {
   type TableTopic, tableTopics, type TableReply, tableReplies,
   type WorkshopExercise, workshopExercises, type WorkshopResponse, workshopResponses,
   type SwapRequest, swapRequests, type SwapFeedbackEntry, swapFeedback,
+  type MicroSwap, microSwaps,
   type GreenhouseEntry, greenhouseEntries,
   type PublishRequest, publishRequests,
   type RequestMessage, requestMessages,
@@ -35,12 +36,20 @@ import {
   type IdeaDrop, ideaDrops,
   type QuietRead, quietReads,
   type WritingSnapshot, writingSnapshots,
+  type CafeQuestion, cafeQuestions,
+  type CafeResponse, cafeResponses,
+  type CircleMicroPrompt, circleMicroPrompts,
+  type CircleMicroResponse, circleMicroResponses,
+  gardenPresence,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
-import { eq, and, desc, ilike, or, sql, count } from "drizzle-orm";
+import { eq, and, desc, ilike, or, sql, count, ne, inArray, asc } from "drizzle-orm";
 
 export interface IStorage {
+  // Users
+  getUser(id: string): Promise<User | undefined>;
+
   // Writings
   getWritingsByAuthor(authorId: string): Promise<Writing[]>;
   getWriting(id: string): Promise<Writing | undefined>;
@@ -181,6 +190,12 @@ export interface IStorage {
   getSwapFeedback(swapId: string): Promise<SwapFeedbackEntry[]>;
   createSwapFeedback(userId: string, data: { swapId: string; toUserId: string; strengths: string; suggestions: string; favoriteLines?: string }): Promise<SwapFeedbackEntry>;
 
+  // Micro-swap
+  createMicroSwap(userId: string, data: { fragment: string; genre?: string }): Promise<MicroSwap>;
+  getMyMicroSwaps(userId: string): Promise<(MicroSwap & { partnerFragment?: string; partnerName?: string })[]>;
+  respondToMicroSwap(swapId: string, userId: string, response: string): Promise<MicroSwap | null>;
+  findWaitingMicroSwap(excludeUserId: string): Promise<MicroSwap | null>;
+
   // Writer Profile
   getWriterProfile(userId: string): Promise<{ user: User; writings: (Writing & { resonanceCount: number })[]; tenderCount: number; tendingCount: number } | null>;
   updateBio(userId: string, bio: string): Promise<void>;
@@ -267,13 +282,38 @@ export interface IStorage {
   hasQuietRead(readerId: string, writingId: string): Promise<boolean>;
   addQuietRead(readerId: string, writingId: string): Promise<QuietRead>;
   hasBeenQuietlyRead(writingId: string): Promise<boolean>;
+  getQuietReadWhispers(writingId: string): Promise<{ whisper: string; createdAt: Date | null }[]>;
 
   // Version Snapshots
   getSnapshots(writingId: string): Promise<WritingSnapshot[]>;
   createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number }): Promise<WritingSnapshot>;
+
+  // Daily Letter
+  getDailyLetter(userId: string): Promise<(Writing & { authorName: string | null; authorImage: string | null }) | null>;
+
+  // Café
+  getTodayCafeQuestion(): Promise<(CafeQuestion & { responseCount: number }) | null>;
+  getCafeResponses(questionId: string): Promise<(CafeResponse & { userName: string | null })[]>;
+  createCafeResponse(userId: string, data: { questionId: string; content: string }): Promise<CafeResponse>;
+  getPastCafeQuestions(limit?: number): Promise<(CafeQuestion & { responseCount: number })[]>;
+
+  // Circle Micro-Prompts
+  getCircleWeeklyPrompt(circleId: string): Promise<(CircleMicroPrompt & { responses: (CircleMicroResponse & { userName: string | null })[] }) | null>;
+  respondToCircleMicroPrompt(userId: string, data: { promptId: string; content: string }): Promise<CircleMicroResponse>;
+
+  // Presence
+  updatePresence(userId: string): Promise<void>;
+  getActiveWriterCount(): Promise<number>;
+  getGardenSummary(): Promise<{ activeWriters: number; newSeeds: number; bloomedPieces: number; totalWriters: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // === USERS ===
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
   // === WRITINGS ===
   async getWritingsByAuthor(authorId: string): Promise<Writing[]> {
     return await db.select().from(writings).where(eq(writings.authorId, authorId)).orderBy(desc(writings.updatedAt));
@@ -1054,6 +1094,73 @@ export class DatabaseStorage implements IStorage {
     return feedback;
   }
 
+  // === MICRO-SWAP ===
+  async findWaitingMicroSwap(excludeUserId: string): Promise<MicroSwap | null> {
+    const [found] = await db.select().from(microSwaps)
+      .where(and(eq(microSwaps.status, "waiting"), ne(microSwaps.userId, excludeUserId)))
+      .orderBy(asc(microSwaps.createdAt))
+      .limit(1);
+    return found || null;
+  }
+
+  async createMicroSwap(userId: string, data: { fragment: string; genre?: string }): Promise<MicroSwap> {
+    const [created] = await db.insert(microSwaps).values({ userId, ...data }).returning();
+
+    const waiting = await this.findWaitingMicroSwap(userId);
+    if (waiting) {
+      await db.update(microSwaps).set({ matchedWithId: waiting.id, status: "matched" }).where(eq(microSwaps.id, created.id));
+      await db.update(microSwaps).set({ matchedWithId: created.id, status: "matched" }).where(eq(microSwaps.id, waiting.id));
+      const [updated] = await db.select().from(microSwaps).where(eq(microSwaps.id, created.id));
+      return updated;
+    }
+    return created;
+  }
+
+  async getMyMicroSwaps(userId: string): Promise<(MicroSwap & { partnerFragment?: string; partnerName?: string })[]> {
+    const mySwaps = await db.select().from(microSwaps)
+      .where(eq(microSwaps.userId, userId))
+      .orderBy(desc(microSwaps.createdAt));
+
+    const enriched: (MicroSwap & { partnerFragment?: string; partnerName?: string })[] = [];
+    for (const s of mySwaps) {
+      let partnerFragment: string | undefined;
+      let partnerName: string | undefined;
+      if (s.matchedWithId) {
+        const [partner] = await db.select({
+          fragment: microSwaps.fragment,
+          userName: users.firstName,
+        }).from(microSwaps)
+          .leftJoin(users, eq(microSwaps.userId, users.id))
+          .where(eq(microSwaps.id, s.matchedWithId));
+        if (partner) {
+          partnerFragment = partner.fragment;
+          partnerName = partner.userName ?? undefined;
+        }
+      }
+      enriched.push({ ...s, partnerFragment, partnerName });
+    }
+    return enriched;
+  }
+
+  async respondToMicroSwap(swapId: string, userId: string, response: string): Promise<MicroSwap | null> {
+    const [swap] = await db.select().from(microSwaps)
+      .where(and(eq(microSwaps.id, swapId), eq(microSwaps.userId, userId)));
+    if (!swap || !swap.matchedWithId) return null;
+
+    await db.update(microSwaps).set({ response }).where(eq(microSwaps.id, swapId));
+
+    await db.update(microSwaps).set({ partnerResponse: response }).where(eq(microSwaps.id, swap.matchedWithId));
+
+    const [partner] = await db.select().from(microSwaps).where(eq(microSwaps.id, swap.matchedWithId));
+    if (partner?.response) {
+      await db.update(microSwaps).set({ status: "completed" }).where(eq(microSwaps.id, swapId));
+      await db.update(microSwaps).set({ status: "completed" }).where(eq(microSwaps.id, swap.matchedWithId));
+    }
+
+    const [updated] = await db.select().from(microSwaps).where(eq(microSwaps.id, swapId));
+    return updated || null;
+  }
+
   // === WRITER PROFILE ===
   async getWriterProfile(userId: string): Promise<{ user: User; writings: (Writing & { resonanceCount: number })[]; tenderCount: number; tendingCount: number } | null> {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -1711,6 +1818,80 @@ export class DatabaseStorage implements IStorage {
     return !!existing;
   }
 
+  async getQuietReadWhispers(writingId: string): Promise<{ whisper: string; createdAt: Date | null }[]> {
+    const reads = await db.select({
+      readerId: quietReads.readerId,
+      createdAt: quietReads.createdAt,
+    }).from(quietReads)
+      .where(eq(quietReads.writingId, writingId))
+      .orderBy(desc(quietReads.createdAt))
+      .limit(5);
+
+    const whispers: { whisper: string; createdAt: Date | null }[] = [];
+
+    for (const read of reads) {
+      const genreResult = await db.select({
+        genre: writings.genre,
+        cnt: count(),
+      }).from(writings)
+        .where(eq(writings.authorId, read.readerId))
+        .groupBy(writings.genre)
+        .orderBy(desc(count()))
+        .limit(1);
+
+      const primaryGenre = genreResult.length > 0 ? genreResult[0].genre : null;
+
+      const verbs = ["lingered here", "visited", "spent time here", "passed through"];
+      const verb = verbs[Math.floor(Math.random() * verbs.length)];
+
+      let descriptor: string;
+      if (primaryGenre === "poetry") {
+        descriptor = "a poet";
+      } else if (primaryGenre === "fiction") {
+        descriptor = "someone who writes fiction";
+      } else if (primaryGenre === "essay") {
+        descriptor = "someone who writes essays";
+      } else if (primaryGenre === "fragment") {
+        descriptor = "a collector of fragments";
+      } else {
+        descriptor = "a writer";
+      }
+
+      let timeContext = "";
+      if (read.createdAt) {
+        const now = new Date();
+        const readDate = new Date(read.createdAt);
+        const hour = readDate.getHours();
+        const isLateNight = hour >= 22 || hour < 5;
+
+        const diffMs = now.getTime() - readDate.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const isToday = readDate.toDateString() === now.toDateString();
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = readDate.toDateString() === yesterday.toDateString();
+
+        if (isLateNight) {
+          if (isToday) timeContext = " in the small hours";
+          else if (isYesterday) timeContext = " late last night";
+          else timeContext = ` ${diffDays} days ago, late at night`;
+        } else {
+          if (isToday) timeContext = " today";
+          else if (isYesterday) timeContext = " yesterday";
+          else if (diffDays < 7) timeContext = ` ${diffDays} days ago`;
+          else timeContext = ` ${Math.floor(diffDays / 7)} weeks ago`;
+        }
+      }
+
+      whispers.push({
+        whisper: `${descriptor} ${verb}${timeContext}`,
+        createdAt: read.createdAt,
+      });
+    }
+
+    return whispers;
+  }
+
   // === VERSION SNAPSHOTS ===
   async getSnapshots(writingId: string): Promise<WritingSnapshot[]> {
     return await db.select().from(writingSnapshots)
@@ -1721,6 +1902,253 @@ export class DatabaseStorage implements IStorage {
   async createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number }): Promise<WritingSnapshot> {
     const [snapshot] = await db.insert(writingSnapshots).values(data).returning();
     return snapshot;
+  }
+
+  // === DAILY LETTER ===
+  async getDailyLetter(userId: string): Promise<(Writing & { authorName: string | null; authorImage: string | null }) | null> {
+    const allPieces = await db.select({
+      ...this.writingSelectFields(),
+      authorName: users.firstName,
+      authorImage: users.profileImageUrl,
+    }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
+      .where(and(
+        or(eq(writings.visibility, "garden"), eq(writings.isPublished, true)),
+        ne(writings.readiness, "dormant")
+      ))
+      .orderBy(asc(writings.createdAt));
+
+    if (allPieces.length === 0) return null;
+
+    const tendedRows = await db.select({ gardenerId: tending.gardenerId })
+      .from(tending).where(eq(tending.tenderId, userId));
+    const tendedIds = new Set(tendedRows.map(r => r.gardenerId));
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now.getTime() - start.getTime();
+    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    const tendedPieces = allPieces.filter(p => tendedIds.has(p.authorId));
+    if (tendedPieces.length > 0) {
+      const index = dayOfYear % tendedPieces.length;
+      return tendedPieces[index];
+    }
+
+    const index = dayOfYear % allPieces.length;
+    return allPieces[index];
+  }
+
+  // === CAFÉ ===
+  private static CAFE_QUESTIONS = [
+    "What's the last sentence you wrote today?",
+    "What are you avoiding writing?",
+    "Describe the room you write in, in one sentence.",
+    "What word have you been turning over in your mind?",
+    "What did you read this week that stayed with you?",
+    "What's the hardest thing about what you're working on right now?",
+    "If your current piece were weather, what would it be?",
+    "What's one line from your writing you're secretly proud of?",
+    "What made you want to write today?",
+    "What's a word you've never used in your writing but want to?",
+    "What does your writing desk look like right now?",
+    "What's the first thing you do before you start writing?",
+    "What sound helps you write?",
+    "What are you reading right now, and why?",
+    "What's a sentence you deleted today that you kind of miss?",
+    "If you could write anywhere in the world right now, where?",
+    "What's a writing habit you're trying to build?",
+    "What's the most honest thing you've written recently?",
+    "What time of day do you write best?",
+    "What's a piece of writing advice you keep coming back to?",
+    "What emotion are you writing toward today?",
+    "What's the last thing that made you stop and take a note?",
+    "What character or image keeps showing up in your work?",
+    "What are you learning about your own writing lately?",
+    "What's a book that changed how you write?",
+    "What does 'done' look like for the piece you're working on?",
+    "What's the strangest thing you've researched for your writing?",
+    "What would your writing sound like if it were music?",
+    "What's one thing you want to try in your next piece?",
+    "What part of the writing process do you secretly enjoy most?",
+  ];
+
+  async getTodayCafeQuestion(): Promise<(CafeQuestion & { responseCount: number }) | null> {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now.getTime() - start.getTime();
+    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const questionText = DatabaseStorage.CAFE_QUESTIONS[dayOfYear % DatabaseStorage.CAFE_QUESTIONS.length];
+
+    const [existing] = await db.select().from(cafeQuestions).where(eq(cafeQuestions.question, questionText));
+
+    let question: CafeQuestion;
+    if (existing) {
+      question = existing;
+    } else {
+      const [created] = await db.insert(cafeQuestions).values({ question: questionText }).returning();
+      question = created;
+    }
+
+    const [responseCountResult] = await db.select({ count: count() }).from(cafeResponses).where(eq(cafeResponses.questionId, question.id));
+    return { ...question, responseCount: responseCountResult?.count || 0 };
+  }
+
+  async getCafeResponses(questionId: string): Promise<(CafeResponse & { userName: string | null })[]> {
+    return await db.select({
+      id: cafeResponses.id,
+      questionId: cafeResponses.questionId,
+      userId: cafeResponses.userId,
+      content: cafeResponses.content,
+      createdAt: cafeResponses.createdAt,
+      userName: users.firstName,
+    }).from(cafeResponses)
+      .leftJoin(users, eq(cafeResponses.userId, users.id))
+      .where(eq(cafeResponses.questionId, questionId))
+      .orderBy(asc(cafeResponses.createdAt));
+  }
+
+  async createCafeResponse(userId: string, data: { questionId: string; content: string }): Promise<CafeResponse> {
+    const [created] = await db.insert(cafeResponses).values({
+      questionId: data.questionId,
+      userId,
+      content: data.content,
+    }).returning();
+    return created;
+  }
+
+  async getPastCafeQuestions(limit: number = 7): Promise<(CafeQuestion & { responseCount: number })[]> {
+    const today = await this.getTodayCafeQuestion();
+    const todayId = today?.id;
+
+    const questions = await db.select({
+      id: cafeQuestions.id,
+      question: cafeQuestions.question,
+      createdAt: cafeQuestions.createdAt,
+      responseCount: count(cafeResponses.id),
+    }).from(cafeQuestions)
+      .leftJoin(cafeResponses, eq(cafeQuestions.id, cafeResponses.questionId))
+      .where(todayId ? ne(cafeQuestions.id, todayId) : sql`true`)
+      .groupBy(cafeQuestions.id, cafeQuestions.question, cafeQuestions.createdAt)
+      .orderBy(desc(cafeQuestions.createdAt))
+      .limit(limit);
+
+    return questions;
+  }
+
+  // === CIRCLE MICRO-PROMPTS ===
+  private microPromptsList = [
+    "What's one sentence you wrote this week?",
+    "What are you reading right now?",
+    "Share a line you almost deleted.",
+    "What's the weather like in your writing today?",
+    "Describe your writing mood in three words.",
+    "What's a question your current piece is asking?",
+    "What's the smallest thing you noticed today?",
+    "Name something you want to write but haven't yet.",
+    "What word keeps finding its way into your writing?",
+    "What surprised you about your writing this week?",
+    "What sound is in the background of your writing right now?",
+    "What's one thing you're avoiding putting on the page?",
+    "Describe the color of your last piece.",
+    "What did you learn from a failed draft?",
+    "What's a line from someone else that's stuck with you?",
+    "If your writing had a season right now, what would it be?",
+    "What's the last thing that made you want to write?",
+    "Share one word you discovered recently.",
+    "What are you writing toward?",
+    "What would your writing say to you if it could talk?",
+  ];
+
+  private getISOWeek(): string {
+    const now = new Date();
+    const jan4 = new Date(now.getFullYear(), 0, 4);
+    const dayOfYear = Math.floor((now.getTime() - jan4.getTime()) / 86400000) + jan4.getDay();
+    const weekNum = Math.ceil((dayOfYear + 1) / 7);
+    return `${now.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+  }
+
+  async getCircleWeeklyPrompt(circleId: string): Promise<(CircleMicroPrompt & { responses: (CircleMicroResponse & { userName: string | null })[] }) | null> {
+    const weekOf = this.getISOWeek();
+
+    let [existing] = await db.select().from(circleMicroPrompts)
+      .where(and(eq(circleMicroPrompts.circleId, circleId), eq(circleMicroPrompts.weekOf, weekOf)));
+
+    if (!existing) {
+      const weekNum = parseInt(weekOf.split("-W")[1], 10);
+      const promptText = this.microPromptsList[weekNum % this.microPromptsList.length];
+      const [created] = await db.insert(circleMicroPrompts).values({
+        circleId,
+        prompt: promptText,
+        weekOf,
+      }).returning();
+      existing = created;
+    }
+
+    const responses = await db.select({
+      id: circleMicroResponses.id,
+      promptId: circleMicroResponses.promptId,
+      userId: circleMicroResponses.userId,
+      content: circleMicroResponses.content,
+      createdAt: circleMicroResponses.createdAt,
+      userName: users.firstName,
+    }).from(circleMicroResponses)
+      .leftJoin(users, eq(circleMicroResponses.userId, users.id))
+      .where(eq(circleMicroResponses.promptId, existing.id))
+      .orderBy(asc(circleMicroResponses.createdAt));
+
+    return { ...existing, responses };
+  }
+
+  async respondToCircleMicroPrompt(userId: string, data: { promptId: string; content: string }): Promise<CircleMicroResponse> {
+    const [created] = await db.insert(circleMicroResponses).values({
+      promptId: data.promptId,
+      userId,
+      content: data.content,
+    }).returning();
+    return created;
+  }
+
+  // === PRESENCE ===
+  async updatePresence(userId: string): Promise<void> {
+    const [existing] = await db.select().from(gardenPresence).where(eq(gardenPresence.userId, userId));
+    if (existing) {
+      await db.update(gardenPresence).set({ lastSeen: new Date() }).where(eq(gardenPresence.userId, userId));
+    } else {
+      await db.insert(gardenPresence).values({ userId, lastSeen: new Date() });
+    }
+  }
+
+  async getActiveWriterCount(): Promise<number> {
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const [result] = await db.select({ count: count() }).from(gardenPresence)
+      .where(sql`${gardenPresence.lastSeen} > ${fifteenMinutesAgo}`);
+    return result?.count || 0;
+  }
+
+  async getGardenSummary(): Promise<{ activeWriters: number; newSeeds: number; bloomedPieces: number; totalWriters: number }> {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const [activeResult] = await db.select({ count: sql<number>`count(distinct ${gardenPresence.userId})` })
+      .from(gardenPresence)
+      .where(sql`${gardenPresence.lastSeen} > ${thirtyDaysAgo}`);
+
+    const [seedResult] = await db.select({ count: count() }).from(writings)
+      .where(sql`${writings.createdAt} > ${thirtyDaysAgo}`);
+
+    const [bloomResult] = await db.select({ count: count() }).from(writings)
+      .where(and(
+        eq(writings.isPublished, true),
+        sql`${writings.publishedAt} > ${thirtyDaysAgo}`
+      ));
+
+    const [totalResult] = await db.select({ count: count() }).from(users);
+
+    return {
+      activeWriters: Number(activeResult?.count) || 0,
+      newSeeds: seedResult?.count || 0,
+      bloomedPieces: bloomResult?.count || 0,
+      totalWriters: totalResult?.count || 0,
+    };
   }
 }
 

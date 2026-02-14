@@ -172,6 +172,14 @@ export const rootInfluences = pgTable("root_influences", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === PRESENCE ===
+
+export const gardenPresence = pgTable("garden_presence", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  lastSeen: timestamp("last_seen").defaultNow(),
+});
+
 // === COMMUNITY ROOMS ===
 
 export const tableTopics = pgTable("table_topics", {
@@ -233,6 +241,18 @@ export const swapFeedback = pgTable("swap_feedback", {
   strengths: text("strengths").notNull(),
   suggestions: text("suggestions").notNull(),
   favoriteLines: text("favorite_lines"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const microSwaps = pgTable("micro_swaps", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  fragment: text("fragment").notNull(),
+  genre: text("genre"),
+  matchedWithId: varchar("matched_with_id"),
+  response: text("response"),
+  partnerResponse: text("partner_response"),
+  status: text("status").notNull().default("waiting"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -480,6 +500,7 @@ export const insertWorkshopExerciseSchema = createInsertSchema(workshopExercises
 export const insertWorkshopResponseSchema = createInsertSchema(workshopResponses).omit({ id: true, authorId: true, createdAt: true });
 export const insertSwapRequestSchema = createInsertSchema(swapRequests).omit({ id: true, requesterId: true, status: true, matchedWithId: true, matchedWritingId: true, createdAt: true });
 export const insertSwapFeedbackSchema = createInsertSchema(swapFeedback).omit({ id: true, fromUserId: true, createdAt: true });
+export const insertMicroSwapSchema = createInsertSchema(microSwaps).omit({ id: true, userId: true, matchedWithId: true, response: true, partnerResponse: true, status: true, createdAt: true });
 export const insertGreenhouseEntrySchema = createInsertSchema(greenhouseEntries).omit({ id: true, editorId: true, stage: true, createdAt: true });
 export const insertPublishRequestSchema = createInsertSchema(publishRequests).omit({ id: true, editorId: true, authorId: true, status: true, createdAt: true, respondedAt: true });
 export const insertRequestMessageSchema = createInsertSchema(requestMessages).omit({ id: true, senderId: true, createdAt: true });
@@ -496,6 +517,45 @@ export const insertCircleShareSchema = createInsertSchema(circleShares).omit({ i
 export const insertIdeaDropSchema = createInsertSchema(ideaDrops).omit({ id: true, userId: true, status: true, adoptedById: true, createdAt: true });
 export const insertQuietReadSchema = createInsertSchema(quietReads).omit({ id: true, readerId: true, createdAt: true });
 export const insertWritingSnapshotSchema = createInsertSchema(writingSnapshots).omit({ id: true, createdAt: true });
+
+// === CIRCLE MICRO-PROMPTS ===
+
+export const circleMicroPrompts = pgTable("circle_micro_prompts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  circleId: varchar("circle_id").notNull().references(() => circles.id),
+  prompt: text("prompt").notNull(),
+  weekOf: text("week_of").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const circleMicroResponses = pgTable("circle_micro_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promptId: varchar("prompt_id").notNull().references(() => circleMicroPrompts.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCircleMicroResponseSchema = createInsertSchema(circleMicroResponses).omit({ id: true, userId: true, createdAt: true });
+
+// === CAFÉ ===
+
+export const cafeQuestions = pgTable("cafe_questions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  question: text("question").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const cafeResponses = pgTable("cafe_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  questionId: varchar("question_id").notNull().references(() => cafeQuestions.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCafeQuestionSchema = createInsertSchema(cafeQuestions).omit({ id: true, createdAt: true });
+export const insertCafeResponseSchema = createInsertSchema(cafeResponses).omit({ id: true, userId: true, createdAt: true });
 
 // Types
 export type InsertWriting = z.infer<typeof insertWritingSchema>;
@@ -527,6 +587,7 @@ export type WorkshopExercise = typeof workshopExercises.$inferSelect;
 export type WorkshopResponse = typeof workshopResponses.$inferSelect;
 export type SwapRequest = typeof swapRequests.$inferSelect;
 export type SwapFeedbackEntry = typeof swapFeedback.$inferSelect;
+export type MicroSwap = typeof microSwaps.$inferSelect;
 export type GreenhouseEntry = typeof greenhouseEntries.$inferSelect;
 export type PublishRequest = typeof publishRequests.$inferSelect;
 export type RequestMessage = typeof requestMessages.$inferSelect;
@@ -543,3 +604,7 @@ export type PromptPotluckItem = typeof promptPotluckItems.$inferSelect;
 export type IdeaDrop = typeof ideaDrops.$inferSelect;
 export type QuietRead = typeof quietReads.$inferSelect;
 export type WritingSnapshot = typeof writingSnapshots.$inferSelect;
+export type CafeQuestion = typeof cafeQuestions.$inferSelect;
+export type CafeResponse = typeof cafeResponses.$inferSelect;
+export type CircleMicroPrompt = typeof circleMicroPrompts.$inferSelect;
+export type CircleMicroResponse = typeof circleMicroResponses.$inferSelect;

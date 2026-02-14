@@ -212,234 +212,260 @@ function TopicReplies({ topicId }: { topicId: string }) {
   );
 }
 
-export function TablesRoom({ onBack }: { onBack: () => void }) {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
-  const [showNewForm, setShowNewForm] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newBody, setNewBody] = useState("");
-  const [newCategory, setNewCategory] = useState<string>("general");
-  const queryClient = useQueryClient();
+type CafeQuestionData = {
+  id: string;
+  question: string;
+  createdAt: string;
+  responseCount: number;
+};
 
-  const { data: topics = [], isLoading } = useQuery<TableTopic[]>({
-    queryKey: ["/api/tables"],
+type CafeResponseData = {
+  id: string;
+  questionId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  userName: string | null;
+};
+
+function PastQuestionResponses({ questionId }: { questionId: string }) {
+  const { data: responses = [], isLoading } = useQuery<CafeResponseData[]>({
+    queryKey: ["/api/cafe/questions", questionId, "responses"],
     queryFn: async () => {
-      const res = await fetch("/api/tables", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch topics");
+      const res = await fetch(`/api/cafe/questions/${questionId}/responses`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch responses");
       return res.json();
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: { title: string; body: string; category: string }) => {
-      const res = await fetch("/api/tables", {
+  if (isLoading) return <ListSkeleton count={2} />;
+
+  if (responses.length === 0) {
+    return <p className="font-serif text-sm text-white/40 italic py-2">No one answered this one yet.</p>;
+  }
+
+  return (
+    <div className="space-y-2 py-2">
+      {responses.map((r) => (
+        <div key={r.id} className="flex items-start gap-2.5" data-testid={`past-response-${r.id}`}>
+          <div className="w-5 h-5 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400/60 font-mono text-[7px] uppercase flex-shrink-0 mt-0.5">
+            {r.userName?.[0] || "?"}
+          </div>
+          <div className="min-w-0">
+            <p className="font-serif text-sm text-white/65 leading-relaxed">{r.content}</p>
+            <span className="font-mono text-[8px] text-white/35">{r.userName} · {timeAgo(r.createdAt)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TablesRoom({ onBack }: { onBack: () => void }) {
+  const [responseContent, setResponseContent] = useState("");
+  const [expandedPast, setExpandedPast] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: todayQuestion, isLoading: loadingToday } = useQuery<CafeQuestionData>({
+    queryKey: ["/api/cafe/today"],
+    queryFn: async () => {
+      const res = await fetch("/api/cafe/today", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch today's question");
+      return res.json();
+    },
+  });
+
+  const { data: todayResponses = [], isLoading: loadingResponses } = useQuery<CafeResponseData[]>({
+    queryKey: ["/api/cafe/questions", todayQuestion?.id, "responses"],
+    queryFn: async () => {
+      const res = await fetch(`/api/cafe/questions/${todayQuestion!.id}/responses`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch responses");
+      return res.json();
+    },
+    enabled: !!todayQuestion?.id,
+  });
+
+  const { data: pastQuestions = [] } = useQuery<CafeQuestionData[]>({
+    queryKey: ["/api/cafe/past"],
+    queryFn: async () => {
+      const res = await fetch("/api/cafe/past", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch past questions");
+      return res.json();
+    },
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(`/api/cafe/questions/${todayQuestion!.id}/responses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(data),
+        body: JSON.stringify({ content }),
       });
-      if (!res.ok) throw new Error("Failed to create topic");
+      if (!res.ok) throw new Error("Failed to submit response");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
-      setShowNewForm(false);
-      setNewTitle("");
-      setNewBody("");
-      setNewCategory("general");
+      queryClient.invalidateQueries({ queryKey: ["/api/cafe/questions", todayQuestion?.id, "responses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cafe/today"] });
+      setResponseContent("");
     },
   });
 
-  const handleCreateTopic = () => {
-    if (!newTitle.trim() || !newBody.trim()) return;
-    createMutation.mutate({ title: newTitle.trim(), body: newBody.trim(), category: newCategory });
+  const handleSubmit = () => {
+    const trimmed = responseContent.trim();
+    if (!trimmed || !todayQuestion) return;
+    submitMutation.mutate(trimmed);
   };
 
-  const filteredTopics = topics
-    .filter((t) => activeCategory === "all" || t.category === activeCategory)
-    .sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
-    });
-
   return (
-    <div className="max-w-3xl mx-auto" data-testid="tables-room">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-2xl mx-auto" data-testid="tables-room">
+      <div className="flex items-center justify-between mb-10">
         <BackButton onBack={onBack} />
         <div className="flex items-center gap-3">
-          <Users size={16} className="text-white/55" />
-          <h2 className="text-xl font-display font-light italic text-white/80">Tables</h2>
+          <Feather size={16} className="text-amber-400/50" />
+          <h2 className="text-xl font-display font-light italic text-white/80">The Café</h2>
         </div>
-        <motion.button
-          onClick={() => setShowNewForm(!showNewForm)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
-          data-testid="button-new-topic"
-        >
-          <Plus size={13} />
-          New Topic
-        </motion.button>
+        <div className="w-16" />
       </div>
 
-      <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
-        Pull up a chair and join the conversation. Share thoughts on craft, swap inspiration, ask for feedback, or simply chat with fellow writers.
-      </p>
-
-      <AnimatePresence>
-        {showNewForm && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden mb-6"
+      {loadingToday ? (
+        <div className="animate-pulse space-y-4 py-8">
+          <div className="h-6 w-3/4 bg-white/[0.06] rounded-lg mx-auto" />
+          <div className="h-4 w-1/2 bg-white/[0.06] rounded-lg mx-auto" />
+        </div>
+      ) : todayQuestion ? (
+        <div className="text-center mb-10">
+          <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-amber-400/50 mb-4" data-testid="label-today">Today's Question</p>
+          <h3
+            className="text-2xl md:text-3xl font-display font-light italic text-white/85 leading-snug max-w-lg mx-auto mb-8"
+            data-testid="text-today-question"
           >
-            <div className="border border-white/[0.15] rounded-xl p-5 space-y-4 bg-white/[0.05]" data-testid="new-topic-form">
+            "{todayQuestion.question}"
+          </h3>
+
+          <div className="max-w-md mx-auto mb-8">
+            <div className="flex gap-2">
               <input
                 type="text"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Give your topic a name..."
-                className="w-full bg-transparent border-b border-white/[0.20] pb-2 text-lg font-display font-light italic text-white/80 placeholder:text-white/45 focus:outline-none focus:border-white/20 transition-colors"
-                data-testid="input-topic-title"
+                value={responseContent}
+                onChange={(e) => setResponseContent(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+                placeholder="Pull up a chair..."
+                maxLength={280}
+                className="flex-grow bg-white/[0.04] border border-white/[0.12] rounded-lg px-4 py-2.5 text-sm font-serif text-white/75 placeholder:text-white/35 focus:outline-none focus:border-amber-500/30 transition-colors"
+                data-testid="input-cafe-response"
               />
-              <textarea
-                value={newBody}
-                onChange={(e) => setNewBody(e.target.value)}
-                placeholder="Share your thoughts, questions, or ideas with the community..."
-                rows={4}
-                className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
-                data-testid="input-topic-body"
-              />
-              <div className="flex items-center justify-between">
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/55 mr-1">Category</label>
-                <select
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="bg-transparent text-white/50 font-mono text-[9px] uppercase tracking-widest border border-white/[0.20] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
-                  data-testid="select-topic-category"
-                >
-                  {TABLE_CATEGORIES.map((c) => (
-                    <option key={c} value={c} className="bg-[#0b101a]">{c}</option>
-                  ))}
-                </select>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowNewForm(false)}
-                    className="px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-colors"
-                    data-testid="button-cancel-topic"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCreateTopic}
-                    disabled={!newTitle.trim() || !newBody.trim() || createMutation.isPending}
-                    className="px-5 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/20 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    data-testid="button-submit-topic"
-                  >
-                    Post
-                  </button>
-                </div>
-              </div>
+              <motion.button
+                onClick={handleSubmit}
+                disabled={!responseContent.trim() || submitMutation.isPending}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 hover:border-amber-500/30 rounded-lg font-mono text-[9px] uppercase tracking-widest text-amber-400/70 hover:text-amber-300 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                data-testid="button-cafe-share"
+              >
+                <Send size={13} />
+              </motion.button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-6">
-        <CategoryPill label="All" active={activeCategory === "all"} onClick={() => setActiveCategory("all")} testId="filter-tables-all" />
-        {TABLE_CATEGORIES.map((c) => (
-          <CategoryPill key={c} label={c} active={activeCategory === c} onClick={() => setActiveCategory(c)} testId={`filter-tables-${c}`} />
-        ))}
-      </div>
-
-      {isLoading && <ListSkeleton count={4} />}
-
-      {!isLoading && filteredTopics.length === 0 && (
-        <div className="border border-dashed border-white/[0.15] rounded-2xl p-16 text-center space-y-4">
-          <MessageSquare size={32} className="mx-auto text-white/30" />
-          <h3 className="text-xl font-display font-light italic text-white/60">No discussions yet</h3>
-          <p className="font-serif text-sm text-white/55 max-w-sm mx-auto leading-relaxed">
-            This is where writers gather to talk — about craft, about life, about the strange joy of finding the right word. Start a thread and pull up a chair.
-          </p>
-          <button
-            onClick={() => setShowNewForm(true)}
-            className="inline-flex items-center gap-2 mt-2 px-5 py-2.5 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
-            data-testid="button-start-first-topic"
-          >
-            <Plus size={13} />
-            Start the First Conversation
-          </button>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        {filteredTopics.map((topic, i) => {
-          const isExpanded = expandedTopic === topic.id;
-          return (
-            <motion.div
-              key={topic.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03, duration: 0.3 }}
-              data-testid={`topic-card-${topic.id}`}
-            >
-              <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
-                isExpanded
-                  ? "border-white/25 bg-white/[0.025]"
-                  : "border-white/[0.15] hover:border-white/[0.15] bg-white/[0.04]"
-              }`}>
-                <button
-                  onClick={() => setExpandedTopic(isExpanded ? null : topic.id)}
-                  className="w-full text-left p-4 md:p-5"
-                  data-testid={`button-expand-topic-${topic.id}`}
+          {loadingResponses ? (
+            <ListSkeleton count={3} />
+          ) : todayResponses.length > 0 ? (
+            <div className="space-y-3 max-w-lg mx-auto text-left">
+              {todayResponses.map((r, i) => (
+                <motion.div
+                  key={r.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04, duration: 0.25 }}
+                  className="flex items-start gap-3"
+                  data-testid={`cafe-response-${r.id}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex-grow min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {topic.isPinned && <span className="text-amber-400/50 text-[9px] font-mono uppercase tracking-widest">pinned</span>}
-                        <h3 className="text-base font-display font-light truncate text-white/80 italic">{topic.title}</h3>
-                      </div>
-                      <div className="flex items-center gap-3 text-white/55">
-                        <span className="font-mono text-[10px]">{topic.authorName}</span>
-                        <span className="font-mono text-[9px]">{timeAgo(topic.updatedAt || topic.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="px-2 py-0.5 rounded-full border border-white/[0.20] font-mono text-[8px] uppercase tracking-widest text-white/55" data-testid={`badge-category-${topic.id}`}>
-                        {topic.category}
-                      </span>
-                      <div className="flex items-center gap-1 text-white/55">
-                        <MessageSquare size={11} />
-                        <span className="font-mono text-[9px]" data-testid={`text-reply-count-${topic.id}`}>{topic.replyCount}</span>
-                      </div>
-                      <ChevronDown size={13} className={`text-white/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                  <div className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/15 flex items-center justify-center text-amber-400/60 font-mono text-[8px] uppercase flex-shrink-0 mt-0.5">
+                    {r.userName?.[0] || "?"}
+                  </div>
+                  <div className="min-w-0 flex-grow">
+                    <p className="font-serif text-sm text-white/65 leading-relaxed">{r.content}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="font-mono text-[9px] text-white/35">{r.userName}</span>
+                      <span className="font-mono text-[8px] text-white/25">·</span>
+                      <span className="font-mono text-[8px] text-white/30">{timeAgo(r.createdAt)}</span>
                     </div>
                   </div>
-                </button>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <p className="font-serif text-sm text-white/40 italic" data-testid="text-no-responses">
+              No one's answered yet — be the first to pull up a chair.
+            </p>
+          )}
+        </div>
+      ) : null}
 
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="overflow-hidden"
+      {pastQuestions.length > 0 && (
+        <>
+          <div className="border-t border-white/[0.08] my-10" />
+          <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 mb-5" data-testid="label-past">Past Questions</p>
+          <div className="space-y-2">
+            {pastQuestions.map((q, i) => {
+              const isExpanded = expandedPast === q.id;
+              return (
+                <motion.div
+                  key={q.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.25 }}
+                  data-testid={`past-question-${q.id}`}
+                >
+                  <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${
+                    isExpanded
+                      ? "border-white/15 bg-white/[0.025]"
+                      : "border-white/[0.08] hover:border-white/[0.12] bg-white/[0.02]"
+                  }`}>
+                    <button
+                      onClick={() => setExpandedPast(isExpanded ? null : q.id)}
+                      className="w-full text-left p-4"
+                      data-testid={`button-expand-past-${q.id}`}
                     >
-                      <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 border-t border-white/[0.15]">
-                        <p className="font-serif text-sm text-white/60 leading-relaxed pt-4" data-testid={`text-topic-body-${topic.id}`}>{topic.body}</p>
-                        <TopicReplies topicId={topic.id} />
+                      <div className="flex items-center gap-3">
+                        <div className="flex-grow min-w-0">
+                          <p className="font-display font-light italic text-sm text-white/60 truncate">"{q.question}"</p>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <div className="flex items-center gap-1 text-white/35">
+                            <MessageSquare size={10} />
+                            <span className="font-mono text-[9px]" data-testid={`text-past-count-${q.id}`}>{q.responseCount}</span>
+                          </div>
+                          <span className="font-mono text-[8px] text-white/25">{timeAgo(q.createdAt)}</span>
+                          <ChevronDown size={12} className={`text-white/30 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                        </div>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 border-t border-white/[0.08]">
+                            <PastQuestionResponses questionId={q.id} />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -985,7 +1011,233 @@ export function WorkshopRoom({ onBack }: { onBack: () => void }) {
   );
 }
 
+type MicroSwapItem = {
+  id: string;
+  userId: string;
+  fragment: string;
+  genre: string | null;
+  matchedWithId: string | null;
+  response: string | null;
+  partnerResponse: string | null;
+  status: string;
+  createdAt: string;
+  partnerFragment?: string;
+  partnerName?: string;
+};
+
+function MicroSwapSection() {
+  const [fragment, setFragment] = useState("");
+  const [genre, setGenre] = useState("");
+  const [responseText, setResponseText] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: microSwaps = [], isLoading } = useQuery<MicroSwapItem[]>({
+    queryKey: ["/api/micro-swaps"],
+    queryFn: async () => {
+      const res = await fetch("/api/micro-swaps", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch micro-swaps");
+      return res.json();
+    },
+    refetchInterval: 5000,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { fragment: string; genre?: string }) => {
+      const res = await fetch("/api/micro-swaps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to create micro-swap");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/micro-swaps"] });
+      setFragment("");
+      setGenre("");
+    },
+  });
+
+  const respondMutation = useMutation({
+    mutationFn: async ({ id, response }: { id: string; response: string }) => {
+      const res = await fetch(`/api/micro-swaps/${id}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ response }),
+      });
+      if (!res.ok) throw new Error("Failed to respond");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/micro-swaps"] });
+      setResponseText("");
+    },
+  });
+
+  const handleCreate = () => {
+    if (!fragment.trim()) return;
+    const data: { fragment: string; genre?: string } = { fragment: fragment.trim() };
+    if (genre.trim()) data.genre = genre.trim();
+    createMutation.mutate(data);
+  };
+
+  const handleRespond = (id: string) => {
+    if (!responseText.trim()) return;
+    respondMutation.mutate({ id, response: responseText.trim() });
+  };
+
+  const activeSwap = microSwaps.find((s) => s.status === "waiting" || s.status === "matched");
+  const completedSwaps = microSwaps.filter((s) => s.status === "completed");
+
+  if (isLoading) return <ListSkeleton count={2} />;
+
+  if (!activeSwap) {
+    return (
+      <div className="space-y-4" data-testid="micro-swap-create">
+        <textarea
+          value={fragment}
+          onChange={(e) => setFragment(e.target.value)}
+          placeholder="A paragraph, an opening line, a rough thought..."
+          rows={3}
+          className="w-full bg-white/[0.04] border border-amber-500/15 rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/40 focus:outline-none focus:border-amber-500/30 transition-colors resize-none"
+          data-testid="input-micro-fragment"
+        />
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            placeholder="Genre (optional)"
+            className="flex-grow bg-white/[0.04] border border-white/[0.12] rounded-lg px-3 py-2 text-xs font-mono text-white/60 placeholder:text-white/35 focus:outline-none focus:border-white/25 transition-colors"
+            data-testid="input-micro-genre"
+          />
+          <motion.button
+            onClick={handleCreate}
+            disabled={!fragment.trim() || createMutation.isPending}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="px-5 py-2 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-500/40 rounded-full font-mono text-[9px] uppercase tracking-widest text-amber-300/80 hover:text-amber-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            data-testid="button-send-fragment"
+          >
+            <Send size={12} className="inline mr-1.5 -mt-0.5" />
+            Send into the garden
+          </motion.button>
+        </div>
+
+        {completedSwaps.length > 0 && (
+          <div className="pt-4 space-y-3">
+            <p className="font-mono text-[9px] uppercase tracking-widest text-white/40">Past exchanges</p>
+            {completedSwaps.slice(0, 3).map((s) => (
+              <div key={s.id} className="border border-white/[0.08] rounded-xl p-4 bg-white/[0.02] space-y-3" data-testid={`micro-swap-completed-${s.id}`}>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="font-mono text-[8px] uppercase tracking-widest text-white/35 mb-1">Your fragment</p>
+                    <p className="font-serif text-xs text-white/50 leading-relaxed">{s.fragment}</p>
+                    {s.partnerResponse && (
+                      <div className="mt-2 pl-3 border-l border-white/[0.1]">
+                        <p className="font-mono text-[8px] uppercase tracking-widest text-white/30 mb-0.5">Their response</p>
+                        <p className="font-serif text-xs text-white/45 italic">{s.partnerResponse}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-mono text-[8px] uppercase tracking-widest text-white/35 mb-1">{s.partnerName || "Partner"}'s fragment</p>
+                    <p className="font-serif text-xs text-white/50 leading-relaxed">{s.partnerFragment}</p>
+                    {s.response && (
+                      <div className="mt-2 pl-3 border-l border-white/[0.1]">
+                        <p className="font-mono text-[8px] uppercase tracking-widest text-white/30 mb-0.5">Your response</p>
+                        <p className="font-serif text-xs text-white/45 italic">{s.response}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (activeSwap.status === "waiting") {
+    return (
+      <div className="space-y-4" data-testid="micro-swap-waiting">
+        <div className="border border-amber-500/15 rounded-xl p-5 bg-amber-500/[0.03]">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-amber-400/50 animate-pulse" />
+            <p className="font-mono text-[10px] uppercase tracking-widest text-amber-400/60">Waiting for a partner...</p>
+          </div>
+          <p className="font-serif text-sm text-white/60 leading-relaxed">{activeSwap.fragment}</p>
+          {activeSwap.genre && (
+            <p className="font-mono text-[9px] text-white/40 mt-2">{activeSwap.genre}</p>
+          )}
+        </div>
+        <p className="font-serif text-xs text-white/40 text-center italic">Your fragment is drifting through the garden, looking for someone to meet.</p>
+      </div>
+    );
+  }
+
+  if (activeSwap.status === "matched" && !activeSwap.response) {
+    return (
+      <div className="space-y-4" data-testid="micro-swap-respond">
+        <div className="border border-amber-500/20 rounded-xl p-5 bg-amber-500/[0.04]">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-amber-400/60">A stranger's fragment</p>
+            {activeSwap.partnerName && (
+              <span className="font-mono text-[9px] text-white/40">{activeSwap.partnerName}</span>
+            )}
+          </div>
+          <p className="font-serif text-sm text-white/70 leading-relaxed italic" data-testid="text-partner-fragment">{activeSwap.partnerFragment}</p>
+        </div>
+        <div>
+          <p className="font-display text-sm italic text-white/50 mb-2">What do you notice?</p>
+          <textarea
+            value={responseText}
+            onChange={(e) => setResponseText(e.target.value)}
+            placeholder="A sentence or two — what catches your attention?"
+            rows={2}
+            className="w-full bg-white/[0.04] border border-white/[0.15] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/40 focus:outline-none focus:border-amber-500/25 transition-colors resize-none"
+            data-testid="input-micro-response"
+          />
+          <div className="flex justify-end mt-2">
+            <motion.button
+              onClick={() => handleRespond(activeSwap.id)}
+              disabled={!responseText.trim() || respondMutation.isPending}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-5 py-2 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-500/40 rounded-full font-mono text-[9px] uppercase tracking-widest text-amber-300/80 hover:text-amber-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              data-testid="button-submit-micro-response"
+            >
+              Send
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeSwap.status === "matched" && activeSwap.response) {
+    return (
+      <div className="space-y-4" data-testid="micro-swap-awaiting-partner">
+        <div className="border border-amber-500/15 rounded-xl p-5 bg-amber-500/[0.03]">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-amber-400/50 animate-pulse" />
+            <p className="font-mono text-[10px] uppercase tracking-widest text-amber-400/60">Waiting for partner's response...</p>
+          </div>
+          <p className="font-serif text-xs text-white/50 mb-2">You wrote:</p>
+          <p className="font-serif text-sm text-white/60 leading-relaxed italic">{activeSwap.response}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export function SwapRoom({ onBack }: { onBack: () => void }) {
+  const [swapView, setSwapView] = useState<"quick" | "full">("quick");
   const [activeStatus, setActiveStatus] = useState<string>("all");
   const [showOfferForm, setShowOfferForm] = useState(false);
   const [selectedWritingId, setSelectedWritingId] = useState<string>("");
@@ -1119,18 +1371,54 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
           <ArrowLeftRight size={16} className="text-white/55" />
           <h2 className="text-xl font-display font-light italic text-white/80">Swap</h2>
         </div>
-        <motion.button
-          onClick={() => setShowOfferForm(!showOfferForm)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
-          data-testid="button-offer-swap"
-        >
-          <Plus size={13} />
-          Offer a Swap
-        </motion.button>
+        {swapView === "full" ? (
+          <motion.button
+            onClick={() => setShowOfferForm(!showOfferForm)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-amber-500/30 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] transition-all"
+            data-testid="button-offer-swap"
+          >
+            <Plus size={13} />
+            Offer a Swap
+          </motion.button>
+        ) : <div />}
       </div>
 
+      <div className="flex gap-1 mb-6 p-1 bg-white/[0.03] border border-white/[0.08] rounded-full w-fit" data-testid="swap-view-toggle">
+        <button
+          onClick={() => setSwapView("quick")}
+          className={`px-4 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all ${
+            swapView === "quick"
+              ? "bg-amber-500/15 border border-amber-500/25 text-amber-300/80"
+              : "text-white/50 hover:text-white/70 border border-transparent"
+          }`}
+          data-testid="button-view-quick"
+        >
+          Quick Exchange
+        </button>
+        <button
+          onClick={() => setSwapView("full")}
+          className={`px-4 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all ${
+            swapView === "full"
+              ? "bg-white/[0.08] border border-white/20 text-white/80"
+              : "text-white/50 hover:text-white/70 border border-transparent"
+          }`}
+          data-testid="button-view-full"
+        >
+          Full Swap
+        </button>
+      </div>
+
+      {swapView === "quick" ? (
+        <div>
+          <p className="font-serif text-sm text-white/50 leading-relaxed mb-5 max-w-xl">
+            Drop a fragment — a paragraph, an opening line, a rough thought. Get matched with a stranger's fragment. Write back what you notice.
+          </p>
+          <MicroSwapSection />
+        </div>
+      ) : (
+      <>
       <p className="font-serif text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
         Find a reading partner. Offer one of your pieces, get matched with another writer, and exchange thoughtful feedback. Every swap is a gift — someone reading your work with real attention.
       </p>
@@ -1378,6 +1666,8 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
           </motion.div>
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }
