@@ -1,0 +1,63 @@
+Here's every gap I can think of — things that don't properly exist right now, that I'd genuinely spend money on as a working writer:
+
+***
+
+**1. A submission tracker that isn't a spreadsheet.**
+
+Every writer I know tracks submissions in a Google Sheet or an Excel file. Where I sent what, when, what the response window is, whether I've heard back, whether the piece is still out or available. Duotrope exists but it's clunky and its data is increasingly unreliable. Submittable tracks individual journals but not your full portfolio across all of them. What I'd pay for: a clean tool where I log every submission, it tracks response times, alerts me when a journal has exceeded their stated window, and shows me at a glance which pieces are out, which are free, and what my acceptance rate actually is. If this lived inside the same platform where I write, so I could submit a piece from my Desk and it automatically logged the submission — that's worth £5/month on its own.
+
+**2. Simultaneous submission management.**
+
+Most journals allow simultaneous submissions but require you to withdraw if a piece is accepted elsewhere. Managing this manually is a nightmare. You accept somewhere, then you have to remember every other place you sent that poem, log into each portal, and withdraw. A tool that lets me mark a piece as "accepted" and automatically generates withdrawal messages (or even sends them) for everywhere else it's pending — nobody has built that well. It's a tiny, specific, enormously valuable automation.
+
+**3. A "where should I send this" recommendation engine.**
+
+I've written a poem. It's about landscape and grief, it's 40 lines, it's fairly experimental. Where do I send it? Right now the answer involves hours of reading journal archives, checking Duotrope filters, asking on Twitter, and guessing. What I'd pay for: a tool that reads my piece (or lets me tag its genre, tone, length, and themes) and recommends 5-10 journals that publish work like it, based on actual past publication data. Not just genre matching — *voice* matching. "This journal published three pieces with a similar register in the last year." That's a research task that currently eats hours of my life per piece.
+
+**4. Manuscript formatting that doesn't require Word.**
+
+I write in clean, minimal editors. Every journal wants a .docx in Shunn standard manuscript format — 12pt Times New Roman, double-spaced, header with name and title, page numbers, word count. Every single time I have to open Word, reformat, double-check the header, export. It's 15-20 minutes of soul-destroying busywork per submission. A one-click "export as standard manuscript" from the writing tool I actually use is worth paying for. Bonus: if it can generate the specific format quirks individual journals ask for (some want no name on the manuscript, some want it on every page, some want a separate cover page).
+
+**5. Cover letter generation.**
+
+Not AI-written. But a template system that auto-fills the basics: my name, the piece title, the word count, the genre, my publication credits, and the specific journal's name and editor. Every cover letter is 80% identical. The 20% that differs — why I'm sending to this specific journal — I'd write myself. But the boilerplate assembly is another piece of friction that adds up across dozens of submissions. A tool that stores my bio, my credits, and generates a draft cover letter per journal would save me hundreds of small, annoying minutes per year.
+
+**6. Publication credit management.**
+
+Once you start getting published, you need to maintain a list of credits for bios, grant applications, and query letters. "Work has appeared in X, Y, and Z." This list changes constantly. Some credits expire in relevance. Some journals fold. Some you want to lead with, some you bury. A living, managed list of publication credits — sortable by date, prestige, genre — that I can export as a formatted bio in different lengths (one-line, short paragraph, full CV) is something I currently maintain by hand in a Notes file. It's not glamorous but it's genuinely useful and nobody's built it.
+
+**7. A rights tracker.**
+
+When a journal publishes my poem, they typically acquire first serial rights for a period — sometimes 90 days, sometimes a year, sometimes it's vague. After that, rights revert to me and I can republish or include it in a collection. Tracking which pieces have reverted, which are still under rights, and when I'm free to re-use them is critical and entirely manual right now. A tool that logs the rights terms from each publication and alerts me when a piece reverts is something I'd pay for, especially when assembling a manuscript for a chapbook or collection.
+
+**8. A legitimate first publication credit.**
+
+This is the cruelest gap. To get published, you need credits. To get credits, you need to be published. The very first acceptance is the hardest one. If this platform's Gallery offered a genuine, editorially curated publication credit — with an ISSN, professional presentation, and enough reputation that I could put it in a cover letter to another journal without embarrassment — that first credit alone would be worth the entire platform to an emerging writer. Most writers would pay more than they'd admit for a credible first publication.
+
+**9. A manuscript assembly tool for chapbooks/collections.**
+
+I have 30 poems. I want to turn them into a chapbook manuscript to send to contests and presses. The work of ordering them, creating sections, writing an acknowledgements page, formatting the whole thing as a single document with proper pagination — it's genuinely hard and there's no tool for it. I do it in Word, manually, rearranging poems by dragging pages around. A tool that lets me pull pieces from my desk, arrange them in sequence, preview the flow, and export as a properly formatted chapbook manuscript (with table of contents, acknowledgements auto-generated from my publication credits) is something I would pay real money for. £20-30 one-off, or part of a subscription.
+
+**10. Contest/prize deadline calendar personalised to my work.**
+
+There are hundreds of writing contests and prizes. Most of them I'm not eligible for, not interested in, or not suited to. What I'd pay for: a calendar that knows my genre, my location, my career stage, and my publication history, and surfaces only the contests and prizes I should actually consider. "You write poetry and you're UK-based and emerging — here are the 12 contests worth entering this quarter." Curated, not comprehensive. Quality over completeness. The Rattle Prize, the Bridport, the National Poetry Competition — I know those. It's the 50 smaller, less-known ones that I keep missing that hurt.
+
+**11. An honest, private analytics dashboard for my writing practice.**
+
+Not engagement metrics. Not reader counts. Just: how often am I writing? How many pieces have I finished vs abandoned? What's my average time from seed to ready? What genres am I writing most? What's gathering dust? This isn't about productivity culture — it's about self-knowledge. I'd want to look at it quarterly, not daily. A quiet mirror that shows me what I've actually been doing versus what I think I've been doing. Most writers have no idea how much they actually write. The data would be sobering and useful.
+
+**12. Editing marketplace — not developmental, just copyediting.**
+
+Before I submit a piece to a journal, I want someone to catch the typos, the inconsistent tense shifts, the comma splice I keep making. Not a full developmental edit. Just a sharp pair of eyes. Copyeditors for literary work exist but finding one is word-of-mouth and expensive. A marketplace where vetted copyeditors offer per-piece rates (£5 for a poem, £15 for a short story, £30 for an essay) would fill a gap. Writers would use this before submissions, before contest entries, before anything where a typo could cost them.
+
+**13. Reading fees that go to writers.**
+
+This one's structural. Most contests charge £10-25 entry fees. That money goes to the press or the prize fund. What if a platform charged a small reading fee (£2-3) for editorial consideration, and that fee went directly into a pool that paid the writers whose work gets selected? The writer pays for guaranteed editorial attention; the money funds other writers' publication payments. That's a closed economy that aligns everyone's incentives. Controversial, but I'd pay £3 for a guaranteed read with a human response over a free submission that disappears into a queue of 2,000.
+
+**14. The "what happens after acceptance" guide.**
+
+Nobody tells you what happens after a journal accepts your work. Do I need to sign a contract? What rights am I granting? Is the payment on publication or on acceptance? Can I ask for edits? What if they want to change my title? This is terrifying the first five times and merely annoying the next twenty. A built-in guide or flow that walks you through post-acceptance — contract review basics, rights explainer, payment timeline, what to expect — would be enormously reassuring for emerging writers and useful even for experienced ones dealing with unfamiliar publishers.
+
+***
+
+**The pattern across all of these:** the market is full of tools for *writing* and full of tools for *reading published work*, but almost nothing exists for the brutal middle — the administrative, logistical, emotional labour of getting your writing from your desk into the world. That's the gap. The entire submission-to-publication pipeline is held together with spreadsheets, email threads, Twitter advice, and anxiety. Any platform that systematically addressed even half of these would have a paying customer base of every serious writer who's ever lost track of where they sent a poem.

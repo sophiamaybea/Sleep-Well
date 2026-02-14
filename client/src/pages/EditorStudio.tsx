@@ -5,7 +5,7 @@ import {
   ArrowLeft, Search, Plus, Send, BookOpen,
   Inbox, FileText, Layers, Eye, Leaf, MessageCircle,
   ChevronDown, ChevronRight, Trash2, Edit3, Clock,
-  CheckCircle, XCircle, GripVertical, X, Sparkles, Flag, Crown
+  CheckCircle, XCircle, GripVertical, X, Sparkles, Flag, Crown, Users
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -229,6 +229,8 @@ function FlaggedTab() {
   const queryClient = useQueryClient();
   const [respondingId, setRespondingId] = useState<string | null>(null);
   const [responseText, setResponseText] = useState("");
+  const [respondMode, setRespondMode] = useState<"respond" | "close">("respond");
+  const [showFlagWriter, setShowFlagWriter] = useState<string | null>(null);
 
   const { data: flaggedQueue = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/editor/flagged-queue"],
@@ -293,7 +295,7 @@ function FlaggedTab() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-grow">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className="font-serif text-xs text-white/50">{item.authorName || "Unknown"}</span>
+                  <button onClick={() => setShowFlagWriter(item.authorId)} className="font-serif text-xs text-amber-300/50 hover:text-amber-300/80 underline decoration-dotted underline-offset-2 transition-colors">{item.authorName || "Unknown"}</button>
                   <span className="px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 text-violet-300">
                     {item.genre || "untagged"}
                   </span>
@@ -317,6 +319,7 @@ function FlaggedTab() {
                     {item.editorResponse}
                   </p>
                 )}
+                <NotesPanel writingId={item.writingId} />
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {!item.seenAt && (
@@ -349,25 +352,37 @@ function FlaggedTab() {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-3 pt-3 border-t border-white/5 flex gap-2">
-                    <input
-                      type="text"
-                      value={responseText}
-                      onChange={e => setResponseText(e.target.value)}
-                      placeholder="This stayed with me... / Keep tending this one..."
-                      className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-violet-500/30 transition-colors"
-                      data-testid={`input-respond-${item.id}`}
-                    />
-                    <button
-                      onClick={() => {
-                        if (!responseText.trim()) return;
-                        respond.mutate({ id: item.id, response: responseText.trim() });
-                      }}
-                      disabled={!responseText.trim() || respond.isPending}
-                      className="px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-all disabled:opacity-50"
-                    >
-                      <Send size={12} />
-                    </button>
+                  <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
+                    <div className="flex gap-1">
+                      <button onClick={() => setRespondMode("respond")}
+                        className={`px-2.5 py-1 rounded font-mono text-[8px] uppercase tracking-widest transition-all ${respondMode === "respond" ? "bg-violet-500/15 text-violet-300 border border-violet-500/20" : "text-white/30 border border-transparent hover:text-white/50"}`}>
+                        Respond
+                      </button>
+                      <button onClick={() => setRespondMode("close")}
+                        className={`px-2.5 py-1 rounded font-mono text-[8px] uppercase tracking-widest transition-all ${respondMode === "close" ? "bg-rose-500/15 text-rose-300 border border-rose-500/20" : "text-white/30 border border-transparent hover:text-white/50"}`}>
+                        Close Flag
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={responseText}
+                        onChange={e => setResponseText(e.target.value)}
+                        placeholder={respondMode === "close" ? "Read it. Not for this season, but keep writing..." : "This stayed with me... / Keep tending this one..."}
+                        className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-violet-500/30 transition-colors"
+                        data-testid={`input-respond-${item.id}`}
+                      />
+                      <button
+                        onClick={() => {
+                          if (!responseText.trim()) return;
+                          respond.mutate({ id: item.id, response: (respondMode === "close" ? "[Closed] " : "") + responseText.trim() });
+                        }}
+                        disabled={!responseText.trim() || respond.isPending}
+                        className={`px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border transition-all disabled:opacity-50 ${respondMode === "close" ? "border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20" : "border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20"}`}
+                      >
+                        <Send size={12} />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -375,6 +390,7 @@ function FlaggedTab() {
           </div>
         ))
       )}
+      {showFlagWriter && <WriterProfileModal authorId={showFlagWriter} onClose={() => setShowFlagWriter(null)} />}
     </motion.div>
   );
 }
@@ -382,10 +398,12 @@ function FlaggedTab() {
 function OverviewTab() {
   const queryClient = useQueryClient();
   const [showWalkForm, setShowWalkForm] = useState(false);
+  const [showWalkQueue, setShowWalkQueue] = useState(false);
   const [walkTitle, setWalkTitle] = useState("");
   const [walkDesc, setWalkDesc] = useState("");
   const [walkStart, setWalkStart] = useState("");
   const [walkEnd, setWalkEnd] = useState("");
+  const [walkFlagLimit, setWalkFlagLimit] = useState(3);
 
   const { data: overview, isLoading } = useQuery<any>({
     queryKey: ["/api/editor/overview"],
@@ -398,6 +416,17 @@ function OverviewTab() {
       if (!res.ok) return null;
       return res.json();
     },
+  });
+
+  const { data: walkQueue } = useQuery<{ walk: any; stream: any[]; flags: any[] }>({
+    queryKey: ["/api/editors-walk", activeWalk?.id, "queue"],
+    queryFn: async () => {
+      if (!activeWalk?.id) return { walk: null, stream: [], flags: [] };
+      const res = await fetch(`/api/editors-walk/${activeWalk.id}/queue`, { credentials: "include" });
+      if (!res.ok) return { walk: null, stream: [], flags: [] };
+      return res.json();
+    },
+    enabled: !!activeWalk?.id && showWalkQueue,
   });
 
   const cards = [
@@ -454,14 +483,29 @@ function OverviewTab() {
         </div>
         {activeWalk && (
           <div className="rounded-xl border border-violet-500/15 bg-violet-950/[0.06] p-4 mb-4">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-2 h-2 rounded-full bg-violet-400/60 animate-pulse" />
-              <span className="font-mono text-[9px] uppercase tracking-widest text-violet-300/60">Active Now</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-violet-400/60 animate-pulse" />
+                <span className="font-mono text-[9px] uppercase tracking-widest text-violet-300/60">Active Walk</span>
+              </div>
+              <button
+                onClick={() => setShowWalkQueue(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-violet-500/20 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-all"
+                data-testid="button-start-reading"
+              >
+                <BookOpen size={12} /> Reading Queue
+              </button>
             </div>
             <p className="font-serif text-sm text-white/70">{activeWalk.title}</p>
-            <p className="font-mono text-[8px] text-white/35 mt-1">
-              Ends {new Date(activeWalk.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            </p>
+            {activeWalk.description && <p className="font-serif text-xs text-white/35 mt-1">{activeWalk.description}</p>}
+            <div className="flex items-center gap-4 mt-2">
+              <p className="font-mono text-[8px] text-white/35">
+                {new Date(activeWalk.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — {new Date(activeWalk.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+              <p className="font-mono text-[8px] text-violet-300/40">
+                Flag limit: {activeWalk.flagLimit} per writer
+              </p>
+            </div>
           </div>
         )}
         {showWalkForm && (
@@ -482,6 +526,16 @@ function OverviewTab() {
                   className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-mono text-xs text-white/60 focus:border-violet-500/30 focus:outline-none" />
               </div>
             </div>
+            <div>
+              <label className="font-mono text-[8px] text-white/35 uppercase tracking-widest">Flag Limit Per Writer</label>
+              <select value={walkFlagLimit} onChange={e => setWalkFlagLimit(parseInt(e.target.value))}
+                className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-mono text-xs text-white/60 focus:border-violet-500/30 focus:outline-none">
+                <option value="1">1 flag</option>
+                <option value="2">2 flags</option>
+                <option value="3">3 flags (default)</option>
+                <option value="5">5 flags</option>
+              </select>
+            </div>
             <button
               onClick={async () => {
                 if (!walkTitle || !walkStart || !walkEnd) return;
@@ -489,10 +543,10 @@ function OverviewTab() {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   credentials: "include",
-                  body: JSON.stringify({ title: walkTitle, description: walkDesc, startsAt: new Date(walkStart).toISOString(), endsAt: new Date(walkEnd).toISOString() }),
+                  body: JSON.stringify({ title: walkTitle, description: walkDesc, startsAt: new Date(walkStart).toISOString(), endsAt: new Date(walkEnd).toISOString(), flagLimit: walkFlagLimit }),
                 });
                 setShowWalkForm(false);
-                setWalkTitle(""); setWalkDesc(""); setWalkStart(""); setWalkEnd("");
+                setWalkTitle(""); setWalkDesc(""); setWalkStart(""); setWalkEnd(""); setWalkFlagLimit(3);
                 queryClient.invalidateQueries({ queryKey: ["/api/editors-walk/active"] });
               }}
               className="w-full py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest bg-violet-500/10 border border-violet-500/20 text-violet-300/70 hover:bg-violet-500/15 transition-all"
@@ -503,7 +557,218 @@ function OverviewTab() {
           </div>
         )}
       </div>
+      {showWalkQueue && activeWalk && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowWalkQueue(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#0f1520] border border-violet-500/15 rounded-2xl p-6 w-full max-w-3xl mx-4 max-h-[85vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="font-display text-lg text-violet-200 italic">{activeWalk.title}</h3>
+                <p className="font-mono text-[9px] text-violet-300/40 uppercase tracking-widest mt-1">Reading Queue</p>
+              </div>
+              <button onClick={() => setShowWalkQueue(false)} className="p-2 text-white/30 hover:text-white/60">
+                <X size={16} />
+              </button>
+            </div>
+
+            {walkQueue?.flags && walkQueue.flags.length > 0 && (
+              <div className="mb-6">
+                <h4 className="font-mono text-[9px] uppercase tracking-widest text-amber-300/50 mb-3 flex items-center gap-2">
+                  <Flag size={12} /> Flagged Pieces ({walkQueue.flags.length})
+                </h4>
+                <div className="space-y-2">
+                  {walkQueue.flags.map((item: any) => (
+                    <div key={item.id} className="bg-white/[0.03] border border-violet-500/10 rounded-lg p-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                          <span className="font-display text-sm font-light italic text-amber-200/80">{item.writingTitle || "Untitled"}</span>
+                          {item.isPaidFlag && (
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                              <Crown size={8} className="text-amber-300/60" />
+                              <span className="font-mono text-[6px] uppercase tracking-widest text-amber-300/60">Priority</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-serif text-[11px] text-white/35">{item.authorName || "Unknown"} · {item.genre}</p>
+                      </div>
+                      {item.seenAt ? (
+                        <span className="font-mono text-[7px] text-emerald-300/40">Read</span>
+                      ) : (
+                        <span className="font-mono text-[7px] text-amber-300/40">Unread</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <h4 className="font-mono text-[9px] uppercase tracking-widest text-emerald-300/50 mb-3 flex items-center gap-2">
+                <Leaf size={12} /> Ready Pieces ({walkQueue?.stream?.length || 0})
+              </h4>
+              {walkQueue?.stream && walkQueue.stream.length > 0 ? (
+                <div className="space-y-2">
+                  {walkQueue.stream.map((piece: any) => (
+                    <div key={piece.id} className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="font-display text-sm font-light italic text-amber-200/80">{piece.title || "Untitled"}</span>
+                        <span className="px-1.5 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest border border-white/10 text-white/30">{piece.genre}</span>
+                      </div>
+                      <p className="font-serif text-[11px] text-white/35">{piece.authorName || "Unknown"}</p>
+                      {piece.content && <p className="text-[11px] font-serif text-white/25 line-clamp-1 mt-1">{stripHtmlForExcerpt(piece.content)}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center py-6 font-serif text-xs text-white/25">No ready pieces in the garden right now.</p>
+              )}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-white/[0.06] text-center">
+              <p className="font-mono text-[8px] text-white/20">
+                {(walkQueue?.stream?.length || 0) + (walkQueue?.flags?.length || 0)} pieces to read · Walk ends {new Date(activeWalk.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
+  );
+}
+
+function NotesPanel({ writingId }: { writingId: string }) {
+  const queryClient = useQueryClient();
+  const [noteText, setNoteText] = useState("");
+  
+  const { data: notes = [] } = useQuery<any[]>({
+    queryKey: ["/api/editor/notes", writingId],
+    queryFn: async () => {
+      const res = await fetch(`/api/editor/notes/${writingId}`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const createNote = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await apiRequest("POST", "/api/editor/notes", { writingId, content });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editor/notes", writingId] });
+      setNoteText("");
+    },
+  });
+
+  const deleteNote = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/editor/notes/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editor/notes", writingId] });
+    },
+  });
+
+  return (
+    <div className="mt-3 pt-3 border-t border-white/5 space-y-2" data-testid={`notes-panel-${writingId}`}>
+      <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">Editorial Notes</span>
+      {notes.map((note: any) => (
+        <div key={note.id} className="flex items-start gap-2 bg-white/[0.03] rounded-lg p-2.5 group">
+          <div className="flex-grow">
+            <p className="text-xs font-serif text-amber-100/60">{note.content}</p>
+            <p className="font-mono text-[7px] text-white/20 mt-1">{note.editorName || "You"} · {timeAgo(note.createdAt)}</p>
+          </div>
+          <button onClick={() => deleteNote.mutate(note.id)} className="p-1 text-white/10 hover:text-rose-300 opacity-0 group-hover:opacity-100 transition-all">
+            <X size={10} />
+          </button>
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={noteText}
+          onChange={e => setNoteText(e.target.value)}
+          placeholder="Leave a note... (Strong opening, watch this writer...)"
+          className="flex-grow px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500/30"
+          onKeyDown={e => { if (e.key === "Enter" && noteText.trim()) createNote.mutate(noteText.trim()); }}
+          data-testid={`input-note-${writingId}`}
+        />
+        <button
+          onClick={() => { if (noteText.trim()) createNote.mutate(noteText.trim()); }}
+          disabled={!noteText.trim()}
+          className="px-2.5 py-1.5 rounded-lg border border-amber-500/20 text-amber-300/60 hover:text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-30"
+          data-testid={`btn-add-note-${writingId}`}
+        >
+          <Plus size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WriterProfileModal({ authorId, onClose }: { authorId: string; onClose: () => void }) {
+  const { data: profile } = useQuery<{ writer: any; writings: any[] }>({
+    queryKey: ["/api/editor/writer-profile", authorId],
+    queryFn: async () => {
+      const res = await fetch(`/api/editor/writer-profile/${authorId}`, { credentials: "include" });
+      if (!res.ok) return { writer: null, writings: [] };
+      return res.json();
+    },
+    enabled: !!authorId,
+  });
+
+  const stageOrder: Record<string, number> = { bloom: 0, ready_to_show: 1, growing: 2, seed: 3, raw_seed: 4, dormant: 5 };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-[#0f1520] border border-white/10 rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-display text-lg text-amber-200 italic">
+              {profile?.writer ? `${profile.writer.firstName || ""} ${profile.writer.lastName || ""}`.trim() || "Writer" : "Loading..."}
+            </h3>
+            {profile?.writer?.bio && <p className="text-xs font-serif text-white/40 mt-1">{profile.writer.bio}</p>}
+          </div>
+          <button onClick={onClose} className="p-2 text-white/30 hover:text-white/60">
+            <X size={16} />
+          </button>
+        </div>
+        <div className="space-y-2">
+          {profile?.writings
+            ?.sort((a: any, b: any) => (stageOrder[a.readiness] ?? 99) - (stageOrder[b.readiness] ?? 99))
+            .map((w: any) => (
+            <div key={w.id} className="bg-white/[0.03] rounded-lg p-3" data-testid={`writer-piece-${w.id}`}>
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h4 className="font-display text-sm font-light italic text-amber-200/80">{w.title || "Untitled"}</h4>
+                <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest border ${
+                  w.readiness === "ready_to_show" ? "border-pink-500/20 text-pink-300" :
+                  w.readiness === "growing" ? "border-emerald-500/20 text-emerald-300" :
+                  w.readiness === "dormant" ? "border-violet-500/20 text-violet-300" :
+                  "border-white/10 text-white/40"
+                }`}>
+                  {(w.readiness || "raw_seed").replace(/_/g, " ")}
+                </span>
+                <span className="font-mono text-[7px] text-white/25">{w.genre}</span>
+              </div>
+              {w.content && <p className="text-xs font-serif text-white/35 line-clamp-2">{stripHtmlForExcerpt(w.content)}</p>}
+              <p className="font-mono text-[7px] text-white/15 mt-1">{timeAgo(w.updatedAt)}</p>
+            </div>
+          ))}
+          {(!profile?.writings || profile.writings.length === 0) && (
+            <p className="text-center py-8 font-serif text-sm text-white/25">No writings found.</p>
+          )}
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -518,6 +783,9 @@ function GardenStreamTab() {
   const [ghFolder, setGhFolder] = useState("");
   const [ghPriority, setGhPriority] = useState("medium");
   const [ghNote, setGhNote] = useState("");
+  const [showNotes, setShowNotes] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [showWriterProfile, setShowWriterProfile] = useState<string | null>(null);
 
   const { data: stream = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/editor/garden-stream", genre, readiness, search, quiet],
@@ -545,6 +813,12 @@ function GardenStreamTab() {
       setGhFolder("");
       setGhPriority("medium");
       setGhNote("");
+    },
+  });
+
+  const sendWhisper = useMutation({
+    mutationFn: async (writingId: string) => {
+      await apiRequest("POST", `/api/editor/flags/${writingId}/seen`);
     },
   });
 
@@ -632,7 +906,7 @@ function GardenStreamTab() {
                       </span>
                     </div>
                     <p className="text-xs font-serif text-white/40 mb-2">
-                      by {piece.authorName || piece.author?.username || "Unknown"} · {timeAgo(piece.createdAt)}
+                      by <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); setShowWriterProfile(piece.authorId || (piece as any).author_id); }} className="text-amber-300/50 hover:text-amber-300/80 underline decoration-dotted underline-offset-2 transition-colors cursor-pointer" data-testid={`link-author-${piece.id}`}>{piece.authorName || piece.author?.username || "Unknown"}</span> · {timeAgo(piece.createdAt)}
                     </p>
                     {(piece.tags || []).length > 0 && (
                       <div className="flex gap-1 mb-2">
@@ -662,15 +936,40 @@ function GardenStreamTab() {
                   >
                     <div className="px-5 pb-5 border-t border-white/5 pt-4">
                       <div className="font-serif text-sm text-amber-100/70 leading-relaxed mb-4 max-h-64 overflow-y-auto" dangerouslySetInnerHTML={{ __html: piece.content }} />
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={(e) => { e.stopPropagation(); setShowAddModal(piece.id); }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all"
                           data-testid="btn-add-greenhouse"
                         >
-                          <Plus size={12} /> Add to Greenhouse
+                          <Plus size={12} /> Greenhouse
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowNotes(showNotes === piece.id ? null : piece.id); }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
+                          data-testid={`btn-notes-${piece.id}`}
+                        >
+                          <Edit3 size={12} /> Notes
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowWriterProfile(piece.authorId || (piece as any).author_id); }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
+                          data-testid={`btn-writer-${piece.id}`}
+                        >
+                          <Eye size={12} /> Writer
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); sendWhisper.mutate(piece.id); }}
+                          disabled={sendWhisper.isPending}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-violet-500/15 text-violet-300/50 hover:text-violet-300/80 transition-all"
+                          data-testid={`btn-whisper-${piece.id}`}
+                        >
+                          <Sparkles size={12} /> Whisper
                         </button>
                       </div>
+                      {showNotes === piece.id && (
+                        <NotesPanel writingId={piece.id} />
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -745,6 +1044,9 @@ function GardenStreamTab() {
           ))}
         </div>
       )}
+      {showWriterProfile && (
+        <WriterProfileModal authorId={showWriterProfile} onClose={() => setShowWriterProfile(null)} />
+      )}
     </motion.div>
   );
 }
@@ -760,6 +1062,11 @@ function GreenhouseTab() {
   const [reqDate, setReqDate] = useState("");
   const [reqNote, setReqNote] = useState("");
   const [reqRights, setReqRights] = useState("");
+  const [viewMode, setViewMode] = useState<"mine" | "all">("mine");
+  const [showHandoff, setShowHandoff] = useState<string | null>(null);
+  const [handoffEditorId, setHandoffEditorId] = useState("");
+  const [handoffNote, setHandoffNote] = useState("");
+  const [expandedNotes, setExpandedNotes] = useState<string | null>(null);
 
   const { data: issuesList = [] } = useQuery<any[]>({
     queryKey: ["/api/editor/issues"],
@@ -802,7 +1109,38 @@ function GreenhouseTab() {
     },
   });
 
-  const grouped = (entries as any[]).reduce((acc: Record<string, any[]>, entry) => {
+  const { data: allEntries = [] } = useQuery<any[]>({
+    queryKey: ["/api/editor/greenhouse/all"],
+    queryFn: async () => {
+      const res = await fetch("/api/editor/greenhouse/all", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: viewMode === "all",
+  });
+
+  const { data: editorsList = [] } = useQuery<any[]>({
+    queryKey: ["/api/editor/editors-list"],
+    queryFn: async () => {
+      const res = await fetch("/api/editor/editors-list", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const handoff = useMutation({
+    mutationFn: async ({ writingId, targetEditorId, note }: { writingId: string; targetEditorId: string; note?: string }) => {
+      await apiRequest("POST", "/api/editor/handoff", { writingId, targetEditorId, note });
+    },
+    onSuccess: () => {
+      setShowHandoff(null);
+      setHandoffEditorId("");
+      setHandoffNote("");
+    },
+  });
+
+  const displayEntries = viewMode === "all" ? allEntries : entries;
+  const grouped = (displayEntries as any[]).reduce((acc: Record<string, any[]>, entry) => {
     const folder = entry.themeFolder || "Unsorted";
     if (!acc[folder]) acc[folder] = [];
     acc[folder].push(entry);
@@ -824,7 +1162,17 @@ function GreenhouseTab() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      {entries.length === 0 ? (
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={() => setViewMode("mine")}
+          className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${viewMode === "mine" ? "border-amber-500/30 bg-amber-500/10 text-amber-300" : "border-white/10 text-white/40 hover:text-white/60"}`}>
+          My Greenhouse
+        </button>
+        <button onClick={() => setViewMode("all")}
+          className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${viewMode === "all" ? "border-amber-500/30 bg-amber-500/10 text-amber-300" : "border-white/10 text-white/40 hover:text-white/60"}`}>
+          All Editors
+        </button>
+      </div>
+      {displayEntries.length === 0 ? (
         <p className="text-center py-12 font-serif text-white/40 text-sm">No pieces in the greenhouse yet. Add pieces from the Garden Stream.</p>
       ) : (
         Object.entries(grouped).map(([folder, items]) => (
@@ -848,10 +1196,19 @@ function GreenhouseTab() {
                           {stageLabels[entry.stage] || entry.stage}
                         </span>
                       </div>
-                      <p className="text-xs font-serif text-white/40">by {entry.authorName || entry.writing?.authorName || "Unknown"}</p>
+                      <p className="text-xs font-serif text-white/40">by {entry.authorName || entry.writing?.authorName || "Unknown"}
+                        {viewMode === "all" && entry.editorName && (
+                          <span className="font-mono text-[7px] text-violet-300/40 ml-2">saved by {entry.editorName}</span>
+                        )}
+                      </p>
                       {entry.internalNote && (
                         <p className="text-xs font-serif text-white/30 mt-1 italic">"{entry.internalNote}"</p>
                       )}
+                      <button onClick={() => setExpandedNotes(expandedNotes === entry.writingId ? null : entry.writingId)}
+                        className="font-mono text-[7px] text-white/25 hover:text-amber-300/50 transition-colors mt-1 flex items-center gap-1">
+                        <Edit3 size={8} /> {expandedNotes === entry.writingId ? "hide notes" : "notes"}
+                      </button>
+                      {expandedNotes === entry.writingId && <NotesPanel writingId={entry.writingId} />}
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <select
@@ -877,6 +1234,13 @@ function GreenhouseTab() {
                         title="Remove"
                       >
                         <Trash2 size={12} />
+                      </button>
+                      <button
+                        onClick={() => setShowHandoff(entry.id)}
+                        className="p-1.5 rounded-lg border border-white/10 text-white/30 hover:text-violet-300 hover:border-violet-500/20 transition-all"
+                        title="Show to another editor"
+                      >
+                        <Send size={12} className="rotate-45" />
                       </button>
                     </div>
                   </div>
@@ -964,6 +1328,46 @@ function GreenhouseTab() {
           </motion.div>
         </div>
       )}
+      {showHandoff && (() => {
+        const entry = displayEntries.find((e: any) => e.id === showHandoff);
+        if (!entry) return null;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowHandoff(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-[#0f1520] border border-white/10 rounded-2xl p-6 w-full max-w-sm mx-4"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="font-display text-base text-amber-200 italic mb-3">Show to another editor</h3>
+              <p className="text-xs font-serif text-white/40 mb-4">"{entry.writingTitle || "Untitled"}"</p>
+              <div className="space-y-3">
+                <select value={handoffEditorId} onChange={e => setHandoffEditorId(e.target.value)}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 focus:outline-none focus:border-amber-500/30">
+                  <option value="">Select editor...</option>
+                  {editorsList.map((ed: any) => (
+                    <option key={ed.id} value={ed.id}>{ed.firstName || ""} {ed.lastName || ""}</option>
+                  ))}
+                </select>
+                <input value={handoffNote} onChange={e => setHandoffNote(e.target.value)}
+                  placeholder="Quick note (optional)"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500/30" />
+                <div className="flex gap-2">
+                  <button onClick={() => setShowHandoff(null)}
+                    className="flex-1 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all">
+                    Cancel
+                  </button>
+                  <button onClick={() => { if (handoffEditorId) handoff.mutate({ writingId: entry.writingId, targetEditorId: handoffEditorId, note: handoffNote || undefined }); }}
+                    disabled={!handoffEditorId || handoff.isPending}
+                    className="flex-1 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-all disabled:opacity-50">
+                    {handoff.isPending ? "Sending..." : "Send"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        );
+      })()}
     </motion.div>
   );
 }

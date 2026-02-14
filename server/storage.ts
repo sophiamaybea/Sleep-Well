@@ -326,10 +326,20 @@ export interface IStorage {
   respondToFlag(flagId: string, editorId: string, response: string): Promise<EditorialFlag | null>;
   getMyFlags(authorId: string): Promise<(EditorialFlag & { writingTitle: string })[]>;
 
+  // Writer Profile for Editor
+  getWriterProfileForEditor(authorId: string): Promise<Writing[]>;
+
+  // Editors List
+  getEditors(): Promise<{ id: string; firstName: string | null; lastName: string | null }[]>;
+
+  // All Greenhouse
+  getAllGreenhouseEntries(): Promise<(GreenhouseEntry & { writingTitle: string; authorName: string | null; authorId: string; editorName: string | null })[]>;
+
   // Editors Walk
   getActiveEditorsWalk(): Promise<EditorsWalk | null>;
   getEditorsWalks(): Promise<EditorsWalk[]>;
   createEditorsWalk(editorId: string, data: { title: string; description?: string; startsAt: Date; endsAt: Date; flagLimit?: number }): Promise<EditorsWalk>;
+  getEditorsWalkById(id: string): Promise<EditorsWalk | null>;
 
   // First Reader
   createFirstReaderDrop(authorId: string, data: { content: string; genre?: string }): Promise<FirstReaderDrop>;
@@ -2459,6 +2469,43 @@ export class DatabaseStorage implements IStorage {
   async addToReadingShelf(userId: string, data: { bookTitle: string; author?: string; reaction: string }): Promise<ReadingShelfEntry> {
     const [entry] = await db.insert(readingShelfEntries).values({ userId, ...data }).returning();
     return entry;
+  }
+
+  async getWriterProfileForEditor(authorId: string): Promise<Writing[]> {
+    return await db.select().from(writings).where(eq(writings.authorId, authorId)).orderBy(desc(writings.updatedAt));
+  }
+
+  async getEditors(): Promise<{ id: string; firstName: string | null; lastName: string | null }[]> {
+    return await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(eq(users.role, "editor"));
+  }
+
+  async getAllGreenhouseEntries(): Promise<(GreenhouseEntry & { writingTitle: string; authorName: string | null; authorId: string; editorName: string | null })[]> {
+    const results = await db
+      .select({
+        id: greenhouseEntries.id,
+        writingId: greenhouseEntries.writingId,
+        editorId: greenhouseEntries.editorId,
+        issueId: greenhouseEntries.issueId,
+        themeFolder: greenhouseEntries.themeFolder,
+        priority: greenhouseEntries.priority,
+        internalNote: greenhouseEntries.internalNote,
+        stage: greenhouseEntries.stage,
+        createdAt: greenhouseEntries.createdAt,
+        writingTitle: writings.title,
+        authorId: writings.authorId,
+        authorName: users.firstName,
+        editorName: sql<string | null>`(SELECT first_name FROM users WHERE id = ${greenhouseEntries.editorId})`,
+      })
+      .from(greenhouseEntries)
+      .innerJoin(writings, eq(greenhouseEntries.writingId, writings.id))
+      .innerJoin(users, eq(writings.authorId, users.id))
+      .orderBy(desc(greenhouseEntries.createdAt));
+    return results as any;
+  }
+
+  async getEditorsWalkById(id: string): Promise<EditorsWalk | null> {
+    const [walk] = await db.select().from(editorsWalks).where(eq(editorsWalks.id, id));
+    return walk || null;
   }
 
   // === STRUGGLE SIGNALS ===

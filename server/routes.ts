@@ -1970,6 +1970,12 @@ export async function registerRoutes(
     try {
       const flag = await storage.markFlagSeen(req.params.id, req.user.claims.sub);
       if (!flag) return res.status(404).json({ message: "Flag not found" });
+      await storage.createNotification(flag.authorId, {
+        type: "editor_paused",
+        actorId: req.user.claims.sub,
+        message: "An editor paused on your piece",
+        writingId: flag.writingId,
+      });
       res.json(flag);
     } catch (error) {
       res.status(500).json({ message: "Failed to mark flag as seen" });
@@ -1982,6 +1988,12 @@ export async function registerRoutes(
       if (!response || typeof response !== "string") return res.status(400).json({ message: "response is required" });
       const flag = await storage.respondToFlag(req.params.id, req.user.claims.sub, response);
       if (!flag) return res.status(404).json({ message: "Flag not found" });
+      await storage.createNotification(flag.authorId, {
+        type: "flag_response",
+        actorId: req.user.claims.sub,
+        message: response,
+        writingId: flag.writingId,
+      });
       res.json(flag);
     } catch (error) {
       res.status(500).json({ message: "Failed to respond to flag" });
@@ -2161,6 +2173,65 @@ export async function registerRoutes(
       res.json(signals);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch signals" });
+    }
+  });
+
+  app.get("/api/editor/writer-profile/:authorId", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const writings = await storage.getWriterProfileForEditor(req.params.authorId);
+      const user = await storage.getUser(req.params.authorId);
+      res.json({ 
+        writer: user ? { id: user.id, firstName: user.firstName, lastName: user.lastName, bio: user.bio, profileImageUrl: user.profileImageUrl } : null,
+        writings 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch writer profile" });
+    }
+  });
+
+  app.post("/api/editor/handoff", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const { writingId, targetEditorId, note } = req.body;
+      if (!writingId || !targetEditorId) return res.status(400).json({ message: "writingId and targetEditorId required" });
+      await storage.createNotification(targetEditorId, {
+        type: "editor_handoff",
+        actorId: req.user.claims.sub,
+        message: note || "An editor wants you to look at this piece",
+        writingId,
+      });
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create handoff" });
+    }
+  });
+
+  app.get("/api/editor/editors-list", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const editors = await storage.getEditors();
+      res.json(editors.filter((e: any) => e.id !== req.user.claims.sub));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch editors" });
+    }
+  });
+
+  app.get("/api/editor/greenhouse/all", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const entries = await storage.getAllGreenhouseEntries();
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch all greenhouse entries" });
+    }
+  });
+
+  app.get("/api/editors-walk/:id/queue", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const walk = await storage.getEditorsWalkById(req.params.id);
+      if (!walk) return res.status(404).json({ message: "Walk not found" });
+      const stream = await storage.getEditorGardenStream({ readiness: "ready_to_show" });
+      const flags = await storage.getFlaggedQueue();
+      res.json({ walk, stream, flags });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch walk queue" });
     }
   });
 
