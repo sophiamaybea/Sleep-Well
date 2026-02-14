@@ -129,7 +129,7 @@ ${bodyContent}
 
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(!open)} className={btnClass} data-testid="button-export">
+      <button onClick={() => setOpen(!open)} className={btnClass} title="Export as TXT, Markdown, DOCX, or PDF" data-testid="button-export">
         <Download size={compact ? 13 : 11} />
         {!compact && "Export"}
       </button>

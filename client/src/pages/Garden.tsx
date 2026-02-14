@@ -437,6 +437,24 @@ function PublishInvitations() {
   );
 }
 
+function DeskResonanceCount({ writingId }: { writingId: string }) {
+  const { data: resonances = [] } = useQuery<any[]>({
+    queryKey: ["/api/resonances", writingId],
+    queryFn: async () => {
+      const res = await fetch(`/api/resonances/${writingId}`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+  if (resonances.length === 0) return null;
+  return (
+    <span className="flex items-center gap-1 font-mono text-[8px] text-emerald-400/50" data-testid={`resonance-count-${writingId}`} title={`${resonances.length} resonance${resonances.length === 1 ? '' : 's'}`}>
+      <Heart size={9} />
+      {resonances.length}
+    </span>
+  );
+}
+
 function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating, myFlags, flagMutation, userTier }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
@@ -694,6 +712,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                       )}
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0 text-white/50">
+                      {vis === "garden" && <DeskResonanceCount writingId={w.id} />}
                       <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">{w.genre}</span>
                       <span className="font-mono text-[9px]">{timeAgo(w.updatedAt)}</span>
                       <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
@@ -1286,6 +1305,24 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
 
 type FeedWriting = Writing & { authorName: string | null };
 
+function MarginaliaCount({ writingId }: { writingId: string }) {
+  const { data: notes = [] } = useQuery<any[]>({
+    queryKey: ["/api/marginalia", writingId],
+    queryFn: async () => {
+      const res = await fetch(`/api/marginalia/${writingId}`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+  if (notes.length === 0) return null;
+  return (
+    <span className="flex items-center gap-1 font-mono text-[8px] text-white/35" data-testid={`marginalia-count-${writingId}`}>
+      <MessageCircle size={10} />
+      {notes.length}
+    </span>
+  );
+}
+
 function QuietReadButton({ writingId }: { writingId: string }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery<{ hasRead: boolean }>({
@@ -1727,6 +1764,7 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                       <span className="w-px h-3 bg-white/[0.06]" />
                       <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                       <ResonanceBar writingId={piece.id} compact />
+                      <MarginaliaCount writingId={piece.id} />
                     </div>
                   )}
                 </div>
@@ -2383,6 +2421,10 @@ function CirclesView() {
   const queryClient = useQueryClient();
   const [expandedCircle, setExpandedCircle] = useState<string | null>(null);
   const [selectedWritingId, setSelectedWritingId] = useState<string>("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newCircleName, setNewCircleName] = useState("");
+  const [newCircleDescription, setNewCircleDescription] = useState("");
+  const [newCircleTheme, setNewCircleTheme] = useState("");
 
   const { data: circles = [] } = useQuery<any[]>({
     queryKey: ["/api/circles"],
@@ -2392,6 +2434,24 @@ function CirclesView() {
   const { data: writings = [] } = useQuery<any[]>({
     queryKey: ["/api/writings"],
     queryFn: async () => { const r = await fetch("/api/writings", { credentials: "include" }); return r.ok ? r.json() : []; },
+  });
+
+  const createCircleMutation = useMutation({
+    mutationFn: async (data: { name: string; description?: string; theme?: string }) => {
+      const r = await fetch("/api/circles", {
+        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.message); }
+      return r.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/circles"] });
+      setShowCreateForm(false);
+      setNewCircleName("");
+      setNewCircleDescription("");
+      setNewCircleTheme("");
+    },
   });
 
   const joinMutation = useMutation({
@@ -2424,6 +2484,89 @@ function CirclesView() {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] text-white/60 font-mono text-[10px] uppercase tracking-widest hover:text-white/80 hover:border-white/15 hover:bg-white/[0.06] transition-all"
+          data-testid="button-create-circle"
+        >
+          <Plus size={12} />
+          Create Circle
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {showCreateForm && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="border border-white/[0.06] rounded-xl p-4 space-y-3 bg-white/[0.02]" data-testid="form-create-circle">
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1 block">Name</label>
+                <input
+                  type="text"
+                  value={newCircleName}
+                  onChange={(e) => setNewCircleName(e.target.value)}
+                  placeholder="Circle name"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 font-serif focus:outline-none focus:border-white/20 transition-colors"
+                  data-testid="input-circle-name"
+                />
+              </div>
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1 block">Description (optional)</label>
+                <textarea
+                  value={newCircleDescription}
+                  onChange={(e) => setNewCircleDescription(e.target.value)}
+                  placeholder="What is this circle about?"
+                  rows={2}
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 font-serif focus:outline-none focus:border-white/20 transition-colors resize-none"
+                  data-testid="input-circle-description"
+                />
+              </div>
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1 block">Theme (optional)</label>
+                <input
+                  type="text"
+                  value={newCircleTheme}
+                  onChange={(e) => setNewCircleTheme(e.target.value)}
+                  placeholder="e.g. poetry, memoir, craft"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 font-serif focus:outline-none focus:border-white/20 transition-colors"
+                  data-testid="input-circle-theme"
+                />
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    if (!newCircleName.trim()) return;
+                    createCircleMutation.mutate({
+                      name: newCircleName.trim(),
+                      description: newCircleDescription.trim() || undefined,
+                      theme: newCircleTheme.trim() || undefined,
+                    });
+                  }}
+                  disabled={!newCircleName.trim() || createCircleMutation.isPending}
+                  className="px-4 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400/80 font-mono text-[10px] uppercase tracking-wider hover:bg-emerald-500/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  data-testid="button-submit-circle"
+                >
+                  {createCircleMutation.isPending ? "Creating..." : "Create"}
+                </button>
+                <button
+                  onClick={() => { setShowCreateForm(false); setNewCircleName(""); setNewCircleDescription(""); setNewCircleTheme(""); }}
+                  className="px-3 py-1.5 rounded-lg text-white/40 font-mono text-[10px] uppercase tracking-wider hover:text-white/60 transition-colors"
+                  data-testid="button-cancel-circle"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {circles.map((c: any) => {
         const isFull = (c.memberCount || 0) >= (c.maxMembers || 5);
         const isExpanded = expandedCircle === c.id;
@@ -2887,7 +3030,7 @@ export default function Garden() {
               </a>
 
               <div className="flex flex-col items-center">
-                {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setProfileUserId(null); }} />}
+                {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setActiveRoom(null); setProfileUserId(null); }} />}
                 {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/55">Writing</span>}
                 {!isEditing && gardenPulse && gardenPulse.activeWriters > 0 && (
                   <div className="flex flex-col items-center gap-0.5 mt-1.5" data-testid="garden-pulse">
@@ -3028,7 +3171,7 @@ export default function Garden() {
 
             {!isEditing && (
               <div className="mt-2 -mb-1">
-                <RoomsStrip activeRoom={activeRoom} onSelectRoom={(r) => { setActiveRoom(r); if (r) setActiveZone("desk"); }} />
+                <RoomsStrip activeRoom={activeRoom} onSelectRoom={(r) => { setActiveRoom(r); }} />
               </div>
             )}
           </div>

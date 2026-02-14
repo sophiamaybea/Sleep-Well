@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine, FileCheck, Sparkles, Clock, Award, Send, ShieldOff, Globe, Lightbulb, ExternalLink, MapPin, Trash2, X, Heart, Crown } from "lucide-react";
 import { ContentRenderer } from "./RichEditor";
+import { Toast } from "./GardenUI";
 
 function ListSkeleton({ count = 4 }: { count?: number }) {
   return (
@@ -266,6 +267,7 @@ function PastQuestionResponses({ questionId }: { questionId: string }) {
 export function TablesRoom({ onBack }: { onBack: () => void }) {
   const [responseContent, setResponseContent] = useState("");
   const [expandedPast, setExpandedPast] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: todayQuestion, isLoading: loadingToday } = useQuery<CafeQuestionData>({
@@ -311,6 +313,7 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
       queryClient.invalidateQueries({ queryKey: ["/api/cafe/questions", todayQuestion?.id, "responses"] });
       queryClient.invalidateQueries({ queryKey: ["/api/cafe/today"] });
       setResponseContent("");
+      setToast("Posted!");
     },
   });
 
@@ -468,6 +471,14 @@ export function TablesRoom({ onBack }: { onBack: () => void }) {
           </div>
         </>
       )}
+
+      <AnimatePresence>
+        {toast && (
+          <div data-testid="toast-success">
+            <Toast message={toast} type="success" onClose={() => setToast(null)} />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -2993,6 +3004,7 @@ export function FirstReaderRoom({ onBack }: { onBack: () => void }) {
   const [dropContent, setDropContent] = useState("");
   const [dropGenre, setDropGenre] = useState("poetry");
   const [responseInputs, setResponseInputs] = useState<Record<string, { alive: string; striking: string; suggestion: string }>>({});
+  const [toast, setToast] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: drops = [], isLoading: loadingDrops } = useQuery<any[]>({
@@ -3031,6 +3043,7 @@ export function FirstReaderRoom({ onBack }: { onBack: () => void }) {
       queryClient.invalidateQueries({ queryKey: ["/api/first-reader/mine"] });
       setDropContent("");
       setReaderView("mine");
+      setToast("Dropped in First Reader!");
     },
   });
 
@@ -3197,6 +3210,14 @@ export function FirstReaderRoom({ onBack }: { onBack: () => void }) {
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {toast && (
+          <div data-testid="toast-success">
+            <Toast message={toast} type="success" onClose={() => setToast(null)} />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -3205,6 +3226,7 @@ export function ReadingShelfRoom({ onBack }: { onBack: () => void }) {
   const [bookTitle, setBookTitle] = useState("");
   const [bookAuthor, setBookAuthor] = useState("");
   const [bookReaction, setBookReaction] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: shelfEntries = [], isLoading } = useQuery<any[]>({
@@ -3232,6 +3254,7 @@ export function ReadingShelfRoom({ onBack }: { onBack: () => void }) {
       setBookTitle("");
       setBookAuthor("");
       setBookReaction("");
+      setToast("Shared on the shelf!");
     },
   });
 
@@ -3299,6 +3322,14 @@ export function ReadingShelfRoom({ onBack }: { onBack: () => void }) {
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {toast && (
+          <div data-testid="toast-success">
+            <Toast message={toast} type="success" onClose={() => setToast(null)} />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

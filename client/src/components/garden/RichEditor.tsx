@@ -291,22 +291,34 @@ export function ContentRenderer({ content, className = "", maxLength }: { conten
 
   if (!isHtml) {
     const text = maxLength ? content.slice(0, maxLength) : content;
+    const lines = text.split("\n");
     return (
-      <p className={className}>
-        {text}
+      <div className={className}>
+        {lines.map((line, i) => (
+          <span key={i}>
+            {line}
+            {i < lines.length - 1 && <br />}
+          </span>
+        ))}
         {maxLength && content.length > maxLength && <span className="text-white/50 italic"> ...continues</span>}
-      </p>
+      </div>
     );
   }
 
   if (maxLength) {
-    const plain = stripHtml(content);
+    const plain = stripHtmlPreserveBreaks(content);
     const truncated = plain.slice(0, maxLength);
+    const lines = truncated.split("\n");
     return (
-      <p className={className}>
-        {truncated}
+      <div className={className}>
+        {lines.map((line, i) => (
+          <span key={i}>
+            {line}
+            {i < lines.length - 1 && <br />}
+          </span>
+        ))}
         {plain.length > maxLength && <span className="text-white/50 italic"> ...continues</span>}
-      </p>
+      </div>
     );
   }
 
@@ -316,6 +328,21 @@ export function ContentRenderer({ content, className = "", maxLength }: { conten
       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
     />
   );
+}
+
+function stripHtmlPreserveBreaks(html: string): string {
+  return html
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/?(p|div|h[1-6]|li|blockquote)[^>]*>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export function wordCountFromContent(content: string): number {

@@ -171,10 +171,10 @@ export default function PlantingFlow({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg z-[101] max-h-[80vh] overflow-y-auto"
+            className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg z-[101] max-h-[80vh] flex flex-col"
           >
-            <div className="bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl shadow-black/40">
-              <div className="p-6 pb-4 border-b border-white/[0.06] flex items-center justify-between">
+            <div className="bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl shadow-black/40 flex flex-col max-h-[80vh]">
+              <div className="p-5 pb-3 border-b border-white/[0.06] flex items-center justify-between flex-shrink-0">
                 <div>
                   <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/25 mb-1">
                     {step === "visibility" ? "Step 1 of 3 — Where" : step === "readiness" ? "Step 2 of 3 — How Ready" : "Step 3 of 3 — Confirm"}
@@ -195,7 +195,7 @@ export default function PlantingFlow({
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-5 overflow-y-auto flex-1">
                 <AnimatePresence mode="wait">
                   {step === "visibility" && (
                     <motion.div
@@ -204,7 +204,7 @@ export default function PlantingFlow({
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                       transition={{ duration: 0.25 }}
-                      className="space-y-3"
+                      className="space-y-2"
                     >
                       {visibilityOptions.map((opt) => {
                         const isSelected = visibility === opt.id;
@@ -215,7 +215,7 @@ export default function PlantingFlow({
                             onClick={() => setVisibility(opt.id)}
                             whileHover={{ scale: 1.01, y: -1 }}
                             whileTap={{ scale: 0.995 }}
-                            className={`w-full text-left rounded-xl border p-5 transition-all duration-300 group ${
+                            className={`w-full text-left rounded-xl border p-3.5 transition-all duration-300 group ${
                               isSelected
                                 ? `${colors.borderActive} ${colors.bg}`
                                 : `${colors.border} bg-white/[0.01] hover:bg-white/[0.03]`
@@ -223,15 +223,15 @@ export default function PlantingFlow({
                             style={isSelected ? { boxShadow: `0 0 30px ${colors.glow}` } : {}}
                             data-testid={`planting-visibility-${opt.id}`}
                           >
-                            <div className="flex items-start gap-4">
-                              <div className={`flex-shrink-0 w-10 h-10 rounded-full border ${isSelected ? colors.borderActive : colors.border} flex items-center justify-center ${colors.text} ${isSelected ? "opacity-100" : "opacity-40 group-hover:opacity-70"} transition-opacity`}>
+                            <div className="flex items-center gap-3">
+                              <div className={`flex-shrink-0 w-9 h-9 rounded-full border ${isSelected ? colors.borderActive : colors.border} flex items-center justify-center ${colors.text} ${isSelected ? "opacity-100" : "opacity-40 group-hover:opacity-70"} transition-opacity`}>
                                 {opt.icon}
                               </div>
                               <div className="flex-grow min-w-0">
-                                <h3 className={`text-base font-display font-light ${isSelected ? "text-white/90" : "text-white/60 group-hover:text-white/80"} transition-colors`}>
+                                <h3 className={`text-sm font-display font-light ${isSelected ? "text-white/90" : "text-white/60 group-hover:text-white/80"} transition-colors`}>
                                   {opt.label}
                                 </h3>
-                                <p className={`text-sm font-serif mt-1 leading-relaxed ${isSelected ? "text-white/45" : "text-white/25"} transition-colors`}>
+                                <p className={`text-xs font-serif mt-0.5 leading-snug ${isSelected ? "text-white/45" : "text-white/25"} transition-colors`}>
                                   {opt.description}
                                 </p>
                               </div>
@@ -239,7 +239,7 @@ export default function PlantingFlow({
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
-                                  className={`flex-shrink-0 w-5 h-5 rounded-full ${colors.bg} border ${colors.borderActive} flex items-center justify-center mt-0.5`}
+                                  className={`flex-shrink-0 w-5 h-5 rounded-full ${colors.bg} border ${colors.borderActive} flex items-center justify-center`}
                                 >
                                   <div className={`w-2 h-2 rounded-full bg-current ${colors.text}`} />
                                 </motion.div>
@@ -248,19 +248,6 @@ export default function PlantingFlow({
                           </motion.button>
                         );
                       })}
-
-                      <div className="pt-4 flex justify-end">
-                        <motion.button
-                          onClick={() => setStep("readiness")}
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                          className="flex items-center gap-2 px-6 py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all group"
-                          data-testid="button-next-readiness"
-                        >
-                          Continue
-                          <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                        </motion.button>
-                      </div>
                     </motion.div>
                   )}
 
@@ -271,7 +258,7 @@ export default function PlantingFlow({
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                       transition={{ duration: 0.25 }}
-                      className="space-y-3"
+                      className="space-y-2"
                     >
                       {readinessOptions.map((opt) => {
                         const isSelected = readiness === opt.id;
@@ -282,7 +269,7 @@ export default function PlantingFlow({
                             onClick={() => setReadiness(opt.id)}
                             whileHover={{ scale: 1.01, y: -1 }}
                             whileTap={{ scale: 0.995 }}
-                            className={`w-full text-left rounded-xl border p-5 transition-all duration-300 group ${
+                            className={`w-full text-left rounded-xl border p-3.5 transition-all duration-300 group ${
                               isSelected
                                 ? `${colors.borderActive} ${colors.bg}`
                                 : `${colors.border} bg-white/[0.01] hover:bg-white/[0.03]`
@@ -290,15 +277,15 @@ export default function PlantingFlow({
                             style={isSelected ? { boxShadow: `0 0 30px ${colors.glow}` } : {}}
                             data-testid={`planting-readiness-${opt.id}`}
                           >
-                            <div className="flex items-start gap-4">
-                              <div className={`flex-shrink-0 w-10 h-10 rounded-full border ${isSelected ? colors.borderActive : colors.border} flex items-center justify-center ${colors.text} ${isSelected ? "opacity-100" : "opacity-40 group-hover:opacity-70"} transition-opacity`}>
+                            <div className="flex items-center gap-3">
+                              <div className={`flex-shrink-0 w-9 h-9 rounded-full border ${isSelected ? colors.borderActive : colors.border} flex items-center justify-center ${colors.text} ${isSelected ? "opacity-100" : "opacity-40 group-hover:opacity-70"} transition-opacity`}>
                                 {opt.icon}
                               </div>
                               <div className="flex-grow min-w-0">
-                                <h3 className={`text-base font-display font-light ${isSelected ? "text-white/90" : "text-white/60 group-hover:text-white/80"} transition-colors`}>
+                                <h3 className={`text-sm font-display font-light ${isSelected ? "text-white/90" : "text-white/60 group-hover:text-white/80"} transition-colors`}>
                                   {opt.label}
                                 </h3>
-                                <p className={`text-sm font-serif mt-1 leading-relaxed ${isSelected ? "text-white/45" : "text-white/25"} transition-colors`}>
+                                <p className={`text-xs font-serif mt-0.5 leading-snug ${isSelected ? "text-white/45" : "text-white/25"} transition-colors`}>
                                   {opt.description}
                                 </p>
                               </div>
@@ -306,7 +293,7 @@ export default function PlantingFlow({
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
-                                  className={`flex-shrink-0 w-5 h-5 rounded-full ${colors.bg} border ${colors.borderActive} flex items-center justify-center mt-0.5`}
+                                  className={`flex-shrink-0 w-5 h-5 rounded-full ${colors.bg} border ${colors.borderActive} flex items-center justify-center`}
                                 >
                                   <div className={`w-2 h-2 rounded-full bg-current ${colors.text}`} />
                                 </motion.div>
@@ -315,26 +302,6 @@ export default function PlantingFlow({
                           </motion.button>
                         );
                       })}
-
-                      <div className="pt-4 flex justify-between">
-                        <button
-                          onClick={() => setStep("visibility")}
-                          className="font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors px-3 py-2"
-                          data-testid="button-back-visibility"
-                        >
-                          Back
-                        </button>
-                        <motion.button
-                          onClick={() => setStep("confirm")}
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                          className="flex items-center gap-2 px-6 py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all group"
-                          data-testid="button-next-confirm"
-                        >
-                          Continue
-                          <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                        </motion.button>
-                      </div>
                     </motion.div>
                   )}
 
@@ -420,32 +387,49 @@ export default function PlantingFlow({
                         </div>
                       )}
 
-                      <div className="pt-2 flex justify-between">
-                        <button
-                          onClick={() => setStep("readiness")}
-                          className="font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors px-3 py-2"
-                          data-testid="button-back-readiness"
-                        >
-                          Back
-                        </button>
-                        <motion.button
-                          onClick={handleConfirm}
-                          whileHover={{ scale: 1.05, boxShadow: `0 0 40px ${colorMap[selectedVisibility.color].glow}` }}
-                          whileTap={{ scale: 0.97 }}
-                          className={`flex items-center gap-2 px-8 py-3 ${colorMap[selectedVisibility.color].bg} border ${colorMap[selectedVisibility.color].borderActive} rounded-full font-mono text-[10px] uppercase tracking-widest ${colorMap[selectedVisibility.color].text} hover:text-white transition-all group`}
-                          data-testid="button-plant-confirm"
-                        >
-                          <Sparkles size={14} className="group-hover:rotate-12 transition-transform" />
-                          {visibility === "personal" ? "Save to Garden" : visibility === "circle" ? "Share with Circle" : "Plant in Gallery"}
-                        </motion.button>
-                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              <div className="px-6 pb-5">
-                <div className="flex gap-1.5 justify-center">
+              <div className="flex-shrink-0 border-t border-white/[0.06] px-5 py-4">
+                <div className="flex justify-between items-center">
+                  {step === "visibility" ? (
+                    <div />
+                  ) : (
+                    <button
+                      onClick={() => setStep(step === "confirm" ? "readiness" : "visibility")}
+                      className="font-mono text-[10px] uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors px-3 py-2"
+                      data-testid={step === "confirm" ? "button-back-readiness" : "button-back-visibility"}
+                    >
+                      Back
+                    </button>
+                  )}
+                  {step === "confirm" ? (
+                    <motion.button
+                      onClick={handleConfirm}
+                      whileHover={{ scale: 1.05, boxShadow: `0 0 40px ${colorMap[selectedVisibility.color].glow}` }}
+                      whileTap={{ scale: 0.97 }}
+                      className={`flex items-center gap-2 px-8 py-3 ${colorMap[selectedVisibility.color].bg} border ${colorMap[selectedVisibility.color].borderActive} rounded-full font-mono text-[10px] uppercase tracking-widest ${colorMap[selectedVisibility.color].text} hover:text-white transition-all group`}
+                      data-testid="button-plant-confirm"
+                    >
+                      <Sparkles size={14} className="group-hover:rotate-12 transition-transform" />
+                      {visibility === "personal" ? "Save to Garden" : visibility === "circle" ? "Share with Circle" : "Plant in Gallery"}
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      onClick={() => setStep(step === "visibility" ? "readiness" : "confirm")}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-full font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white transition-all group"
+                      data-testid={step === "visibility" ? "button-next-readiness" : "button-next-confirm"}
+                    >
+                      Continue
+                      <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                    </motion.button>
+                  )}
+                </div>
+                <div className="flex gap-1.5 justify-center mt-3">
                   {["visibility", "readiness", "confirm"].map((s, i) => (
                     <div
                       key={s}
