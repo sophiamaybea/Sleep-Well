@@ -1,0 +1,63 @@
+## Reading Experience Evaluation: The Page Gallery Journal
+
+I spent time exploring every section of this site purely as a reader — someone who just wants to discover and read writing. Here's my honest assessment.
+
+***
+
+### What Works Beautifully
+
+**The concept is magnetic.** The whole idea of a journal where editors come to *you* rather than the other way around is immediately compelling. The Garden/Gallery metaphor (Seed → Sprout → Bloom) is intuitive and poetic — it makes you want to explore. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/)
+
+**The Gallery listing page is well-structured.** The search bar, genre filter buttons (Poetry, Fiction, Essay, Fragment, Other), and the clean listing of pieces with title, genre tag, and author name make browsing straightforward. It's the most functional, reader-friendly page on the site. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/gallery)
+
+**The reading view for individual pieces is atmospheric.** Large serif typography, generous spacing, dark background — it creates an intimate, focused reading environment. The "BACK TO GALLERY" link and genre label at the top are clear. The author name links to a writer profile, which is a nice touch. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/gallery)
+
+**The Reading Room tab in the Garden** (with daily nudges, writing café prompts, and "Today's Letter") is a genuinely inviting space that makes the community feel alive. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+***
+
+### Navigation & Usability Problems
+
+**1. Scrolling is fundamentally broken in several places.** This is the single biggest issue. When reading "I PROBABLY L*VE YOU," I could not scroll past the first visible portion of the poem — the text was cut off at the bottom and no amount of scrolling revealed the rest. The full poem exists in the page (I verified this), but a reader physically cannot scroll to read it. That's a dealbreaker for a reading journal. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/gallery)
+
+**2. The homepage scroll-reveal intro is too slow and unclear.** I scrolled repeatedly and watched tiny stars appear, but nothing else happened for a long time. The "SKIP" button is there but visually subtle. A first-time reader might leave before ever reaching the actual content. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/)
+
+**3. The About page has severe contrast issues.** The text is extremely dark gray on a near-black background — nearly invisible. I could barely make out "The Two Doors" and "The Gallery" headings, and the body text was essentially unreadable on screen. The content itself (which I could extract from the DOM) is excellent, but readers will never see it. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/about)
+
+**4. The hamburger menu is too sparse.** It only offers "Read the Journal" and "About" — no way to get back to the homepage logo isn't obviously clickable, and there's no link to the Garden or any sense of where you are in the site. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/about)
+
+**5. Genre filters don't work correctly.** When I selected "FICTION," the four poetry pieces remained visible instead of being filtered out. Only when I combined the filter with a search did it behave correctly. Additionally, the "ALL" button gets cut off/hidden to the left of the horizontally scrolling filter row, making it hard to reset. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/gallery)
+
+**6. Writer profile data is inconsistent.** Nix Carlson's profile shows "0 PIECES" and "No published writings yet" despite having 4 published poems in the Gallery. A reader clicking through from a poem to learn about the writer hits a dead end. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/writer/nix_carlson)
+
+**7. Page load times are slow.** Every page navigation shows a blank white screen for 3-4 seconds before content appears. For a reading-focused site, this breaks the flow.
+
+***
+
+### What Would Make It Better (From a Reader's Perspective)
+
+1. **Fix the scroll lock on reading views immediately.** This is the #1 priority — readers literally cannot finish reading a piece.
+
+2. **Increase text contrast on the About page.** Aim for WCAG AA compliance (at least 4.5:1 contrast ratio). The beautiful writing about the philosophy deserves to be seen.
+
+3. **Add a "next piece" / "previous piece" navigation** at the bottom of each reading view. Once I finish a poem, I want to flow into the next one without going back to the list.
+
+4. **Expand the hamburger menu** to include: Home, The Gallery, About, and ideally a "Discover" or "What's New" link. Give readers a clear sitemap.
+
+5. **Let me skip the homepage intro entirely on return visits** (cookie/localStorage). The starfield is lovely once; it's an obstacle on every subsequent visit.
+
+6. **Add reading-time estimates** or word counts to the gallery listing so I know if I'm clicking into a 30-second fragment or a 10-minute essay.
+
+7. **Fix the genre filters** so they actually filter. And make the "ALL" button visible without horizontal scrolling.
+
+8. **Populate writer profiles** with their published gallery pieces. The link from poem → author → "no work yet" is confusing and makes the site feel broken.
+
+9. **Add a "Featured" or "Editor's Pick" marker** to highlight standout pieces in the gallery — especially helpful as the collection grows.
+
+10. **Consider a reading-mode toggle** (light/dark) for accessibility and different reading preferences. The all-dark aesthetic is moody but can cause eye strain during longer reading sessions.
+
+***
+
+### Summary
+
+The vision and voice of The Page Gallery Journal are striking — it's one of the more thoughtfully conceived literary platforms I've encountered. The metaphor is consistent, the tone is confident, and the writing it hosts is genuine. But right now, the reading experience is undermined by scroll-locking bugs, near-invisible text on key pages, and navigation that makes it hard to move fluidly between pieces. The bones are strong; it needs a focused pass on the functional reading experience.
