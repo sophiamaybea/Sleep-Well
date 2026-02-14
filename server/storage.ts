@@ -475,7 +475,7 @@ export class DatabaseStorage implements IStorage {
   async getPublishedWritings(): Promise<(Writing & { authorName: string | null })[]> {
     const results = await db.select({
       ...this.writingSelectFields(),
-      authorName: users.firstName,
+      authorName: sql<string>`TRIM(CONCAT(${users.firstName}, ' ', COALESCE(${users.lastName}, '')))`.as("authorName"),
     }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
       .where(eq(writings.isPublished, true)).orderBy(desc(writings.publishedAt));
     return results;
@@ -486,7 +486,7 @@ export class DatabaseStorage implements IStorage {
     if (genre) conditions.push(eq(writings.genre, genre));
     const results = await db.select({
       ...this.writingSelectFields(),
-      authorName: users.firstName,
+      authorName: sql<string>`TRIM(CONCAT(${users.firstName}, ' ', COALESCE(${users.lastName}, '')))`.as("authorName"),
     }).from(writings).leftJoin(users, eq(writings.authorId, users.id))
       .where(and(...conditions, or(ilike(writings.title, `%${query}%`), ilike(writings.content, `%${query}%`))))
       .orderBy(desc(writings.publishedAt));
