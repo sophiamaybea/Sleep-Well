@@ -253,13 +253,13 @@ function TabNav({ active, onChange }: { active: SubTab; onChange: (t: SubTab) =>
   ];
 
   return (
-    <div className="flex justify-center mb-8">
-      <div className="inline-flex gap-1 p-1.5 rounded-full border border-amber-800/15 bg-amber-950/15 backdrop-blur-xl">
+    <div className="flex justify-center mb-8 overflow-x-auto scrollbar-hide -mx-4 px-4">
+      <div className="inline-flex gap-1 p-1.5 rounded-full border border-amber-800/15 bg-amber-950/15 backdrop-blur-xl flex-shrink-0">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => onChange(t.id)}
-            className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full font-mono text-[9px] uppercase tracking-[0.18em] transition-all ${
+            className={`relative flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full font-mono text-[9px] uppercase tracking-[0.18em] transition-all whitespace-nowrap ${
               active === t.id ? "text-white/90" : "text-white/40 hover:text-white/60"
             }`}
             data-testid={`subtab-${t.id}`}
@@ -1754,7 +1754,7 @@ export default function SubmissionsZone({ userTier }: { userTier: "free" | "paid
   };
 
   return (
-    <div className="max-w-3xl mx-auto" data-testid="submissions-zone">
+    <div className="max-w-3xl mx-auto overflow-x-hidden" data-testid="submissions-zone">
       <div className="text-center mb-6">
         <h2 className="font-display text-xl font-light italic text-white/80 mb-1">Career Tools</h2>
         <p className="font-serif text-xs text-white/40">Track submissions, manage credits, and stay organized.</p>

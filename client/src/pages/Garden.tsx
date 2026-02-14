@@ -14,6 +14,7 @@ import {
   Flag, ExternalLink, Camera, Crown, RotateCcw, Settings, GraduationCap
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useAccessibility } from "@/hooks/use-accessibility";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
@@ -473,6 +474,27 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   const [showArchived, setShowArchived] = useState(false);
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
+  const emptyDraftCount = writings.filter(w => {
+    const title = (w.title || "").trim();
+    const content = w.content.includes("<") ? stripHtml(w.content).trim() : (w.content || "").trim();
+    const isUntitled = title === "" || title.toLowerCase() === "untitled";
+    return isUntitled && content === "";
+  }).length;
+
+  const cleanupMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", "/api/writings/bulk/empty");
+      return res.json();
+    },
+    onSuccess: (data: { deleted: number }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
+      toast({ title: `Cleaned up ${data.deleted} empty ${data.deleted === 1 ? "draft" : "drafts"}` });
+    },
+    onError: () => {
+      toast({ title: "Failed to clean up drafts", variant: "destructive" });
+    },
+  });
+
   const readinessKey = (w: Writing) => w.readiness || "raw_seed";
 
   const allTags = Array.from(new Set(writings.flatMap(w => (w as any).tags || [])));
@@ -529,9 +551,23 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             <Feather size={16} className="text-amber-400/50" />
             <h2 className="font-display text-xl font-light italic text-white/70">Your Desk</h2>
           </div>
-          <p className="text-xs font-serif text-white/40 ml-6">
-            {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
-          </p>
+          <div className="flex items-center gap-3 ml-6">
+            <p className="text-xs font-serif text-white/40">
+              {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
+            </p>
+            {emptyDraftCount > 0 && (
+              <button
+                onClick={() => cleanupMutation.mutate()}
+                disabled={cleanupMutation.isPending}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/30 hover:text-red-300/60 border border-white/[0.06] hover:border-red-400/20 bg-white/[0.02] hover:bg-red-950/10 transition-all"
+                data-testid="button-cleanup-drafts"
+                title={`Remove ${emptyDraftCount} empty untitled ${emptyDraftCount === 1 ? "draft" : "drafts"}`}
+              >
+                <Trash2 size={9} />
+                {cleanupMutation.isPending ? "Cleaning..." : `${emptyDraftCount} empty`}
+              </button>
+            )}
+          </div>
         </div>
         <motion.button
           onClick={onCreateNew}
@@ -1488,7 +1524,67 @@ function CuratedOpportunitiesBanner() {
 
 type DailyLetterPiece = Writing & { authorName: string | null; authorImage: string | null };
 
-function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) => void }) {
+function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; onGoToWorkshop: () => void }) {
+  const { data: todayQuestion } = useQuery<{ id: string; question: string } | null>({
+    queryKey: ["/api/cafe/today"],
+    queryFn: async () => {
+      const res = await fetch("/api/cafe/today", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  const { data: promptOfDay } = useQuery<{ id: string; title: string; prompt: string } | null>({
+    queryKey: ["/api/workshop/prompt-of-day"],
+    queryFn: async () => {
+      const res = await fetch("/api/workshop/prompt-of-day", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  if (!todayQuestion && !promptOfDay) return null;
+
+  return (
+    <div className="mb-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3" data-testid="daily-nudge">
+      <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30">Daily Nudge</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {todayQuestion && (
+          <button
+            onClick={onGoToCafe}
+            className="text-left p-3 rounded-xl border border-amber-500/10 bg-amber-500/[0.03] hover:bg-amber-500/[0.06] transition-all group"
+            data-testid="nudge-cafe"
+          >
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-amber-400/50 flex items-center gap-1.5 mb-1.5">
+              <Compass size={10} />
+              The Cafe
+            </span>
+            <p className="font-display text-sm font-light italic text-white/60 group-hover:text-white/75 transition-colors leading-snug line-clamp-2">
+              "{todayQuestion.question}"
+            </p>
+          </button>
+        )}
+        {promptOfDay && (
+          <button
+            onClick={onGoToWorkshop}
+            className="text-left p-3 rounded-xl border border-emerald-500/10 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.06] transition-all group"
+            data-testid="nudge-workshop"
+          >
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-emerald-400/50 flex items-center gap-1.5 mb-1.5">
+              <Feather size={10} />
+              Workshop
+            </span>
+            <p className="font-serif text-sm text-white/55 group-hover:text-white/70 transition-colors leading-snug line-clamp-2">
+              {promptOfDay.title || promptOfDay.prompt}
+            </p>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userId: string) => void; onGoToRoom?: (room: ActiveRoom) => void }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [dailyLetterExpanded, setDailyLetterExpanded] = useState(false);
   const [page, setPage] = useState(1);
@@ -1575,6 +1671,11 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
         </div>
         <p className="font-serif text-xs text-white/35 italic">Letters from gardens you tend, and new voices growing nearby</p>
       </div>
+
+      <DailyNudge
+        onGoToCafe={() => onGoToRoom?.("tables")}
+        onGoToWorkshop={() => onGoToRoom?.("workshop")}
+      />
 
       {dailyLetter && (
         <div className="mb-10" data-testid="daily-letter-card">
@@ -1765,6 +1866,14 @@ function ReadingRoomZone({ onViewProfile }: { onViewProfile?: (userId: string) =
                       <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                       <ResonanceBar writingId={piece.id} compact />
                       <MarginaliaCount writingId={piece.id} />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setExpandedId(piece.id); }}
+                        className="flex items-center gap-1 font-mono text-[8px] text-white/30 hover:text-white/50 transition-colors"
+                        data-testid={`button-respond-${piece.id}`}
+                      >
+                        <MessageCircle size={9} />
+                        respond
+                      </button>
                     </div>
                   )}
                 </div>
@@ -3030,7 +3139,7 @@ export default function Garden() {
               </a>
 
               <div className="flex flex-col items-center">
-                {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setActiveRoom(null); setProfileUserId(null); }} />}
+                {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setActiveRoom(null); setProfileUserId(null); window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }} />}
                 {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/55">Writing</span>}
                 {!isEditing && gardenPulse && gardenPulse.activeWriters > 0 && (
                   <div className="flex flex-col items-center gap-0.5 mt-1.5" data-testid="garden-pulse">
@@ -3179,7 +3288,7 @@ export default function Garden() {
 
             {!isEditing && (
               <div className="mt-2 -mb-1">
-                <RoomsStrip activeRoom={activeRoom} onSelectRoom={(r) => { setActiveRoom(r); }} />
+                <RoomsStrip activeRoom={activeRoom} onSelectRoom={(r) => { setActiveRoom(r); window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }} />
               </div>
             )}
           </div>
@@ -3252,13 +3361,14 @@ export default function Garden() {
               </p>
             </div>
           )}
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={activeRoom ? `room-${activeRoom}` : (isEditing ? `editor-${activeWriting?.id}` : activeZone)}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              style={{ minHeight: "50vh" }}
             >
               {activeRoom === "tables" ? (
                 <TablesRoom onBack={() => setActiveRoom(null)} />
@@ -3294,7 +3404,7 @@ export default function Garden() {
                   userTier={userTier}
                 />
               ) : activeZone === "reading-room" ? (
-                <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} />
+                <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} onGoToRoom={(room) => setActiveRoom(room)} />
               ) : activeZone === "submissions" ? (
                 <SubmissionsZone userTier={userTier as "free" | "paid"} />
               ) : (

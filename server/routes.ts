@@ -137,6 +137,17 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/writings/bulk/empty", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const count = await storage.deleteEmptyWritings(userId);
+      res.json({ deleted: count });
+    } catch (error) {
+      console.error("Error cleaning up empty drafts:", error);
+      res.status(500).json({ message: "Failed to clean up drafts" });
+    }
+  });
+
   // === GALLERY ===
   app.get("/api/gallery", async (req, res) => {
     try {

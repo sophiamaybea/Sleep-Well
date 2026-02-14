@@ -665,3 +665,12 @@
 .garden-light ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.18);
 }
+
+/* ─── Scrollbar hide utility ─── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -66,6 +66,7 @@ export interface IStorage {
   createWriting(authorId: string, writing: InsertWriting): Promise<Writing>;
   updateWriting(id: string, authorId: string, writing: UpdateWriting): Promise<Writing | undefined>;
   deleteWriting(id: string, authorId: string): Promise<boolean>;
+  deleteEmptyWritings(authorId: string): Promise<number>;
   getPublishedWritings(): Promise<(Writing & { authorName: string | null })[]>;
   publishWriting(id: string): Promise<Writing | undefined>;
   unpublishWriting(id: string): Promise<Writing | undefined>;
@@ -440,6 +441,23 @@ export class DatabaseStorage implements IStorage {
   async deleteWriting(id: string, authorId: string): Promise<boolean> {
     const result = await db.delete(writings).where(and(eq(writings.id, id), eq(writings.authorId, authorId))).returning();
     return result.length > 0;
+  }
+
+  async deleteEmptyWritings(authorId: string): Promise<number> {
+    const allWritings = await db.select().from(writings).where(eq(writings.authorId, authorId));
+    const emptyIds = allWritings
+      .filter(w => {
+        const title = (w.title || "").trim();
+        const content = (w.content || "").replace(/<[^>]*>/g, "").trim();
+        const isUntitled = title === "" || title.toLowerCase() === "untitled";
+        return isUntitled && content === "";
+      })
+      .map(w => w.id);
+    if (emptyIds.length === 0) return 0;
+    for (const id of emptyIds) {
+      await db.delete(writings).where(and(eq(writings.id, id), eq(writings.authorId, authorId)));
+    }
+    return emptyIds.length;
   }
 
   private writingSelectFields() {
