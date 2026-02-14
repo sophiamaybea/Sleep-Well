@@ -386,6 +386,12 @@ export interface IStorage {
     avgDaysToReady: number | null;
     dormantPieces: number;
     recentActivity: number;
+    acceptanceRate: number | null;
+    writingStreak: number;
+    longestPiece: { title: string; wordCount: number } | null;
+    fastestGrowth: { title: string; days: number } | null;
+    totalWordCount: number;
+    weeklyGoalProgress: { current: number; target: number } | null;
   }>;
 }
 
@@ -1136,6 +1142,7 @@ export class DatabaseStorage implements IStorage {
       id: swapRequests.id, requesterId: swapRequests.requesterId, writingId: swapRequests.writingId,
       genre: swapRequests.genre, note: swapRequests.note, status: swapRequests.status,
       matchedWithId: swapRequests.matchedWithId, matchedWritingId: swapRequests.matchedWritingId,
+      preferredLength: swapRequests.preferredLength, feedbackStyle: swapRequests.feedbackStyle,
       createdAt: swapRequests.createdAt,
       requesterName: users.firstName,
       writingTitle: writings.title,
@@ -2677,6 +2684,12 @@ export class DatabaseStorage implements IStorage {
     avgDaysToReady: number | null;
     dormantPieces: number;
     recentActivity: number;
+    acceptanceRate: number | null;
+    writingStreak: number;
+    longestPiece: { title: string; wordCount: number } | null;
+    fastestGrowth: { title: string; days: number } | null;
+    totalWordCount: number;
+    weeklyGoalProgress: { current: number; target: number } | null;
   }> {
     const [totalRow] = await db.select({ cnt: count() }).from(writings).where(eq(writings.authorId, userId));
     const totalPieces = Number(totalRow?.cnt ?? 0);
@@ -2709,7 +2722,85 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(writings.authorId, userId), sql`${writings.updatedAt} > NOW() - INTERVAL '7 days'`));
     const recentActivity = Number(recentRow?.cnt ?? 0);
 
-    return { totalPieces, byStage, byGenre, writingFrequency, avgDaysToReady, dormantPieces, recentActivity };
+    const subStats = await db.execute(
+      sql`SELECT 
+        COUNT(*) FILTER (WHERE status IN ('accepted', 'rejected')) as completed,
+        COUNT(*) FILTER (WHERE status = 'accepted') as accepted
+      FROM submissions WHERE user_id = ${userId}`
+    );
+    const subRow = (subStats.rows as any[])[0];
+    const completedSubs = Number(subRow?.completed ?? 0);
+    const acceptedSubs = Number(subRow?.accepted ?? 0);
+    const acceptanceRate = completedSubs > 0 ? Math.round((acceptedSubs / completedSubs) * 100) : null;
+
+    const streakRows = await db.execute(
+      sql`SELECT DISTINCT DATE(updated_at) as d FROM writings WHERE author_id = ${userId} ORDER BY d DESC`
+    );
+    let writingStreak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dates = (streakRows.rows as any[]).map((r: any) => {
+      const dt = new Date(r.d);
+      dt.setHours(0, 0, 0, 0);
+      return dt.getTime();
+    });
+    let checkDate = today.getTime();
+    for (const d of dates) {
+      if (d === checkDate) {
+        writingStreak++;
+        checkDate -= 86400000;
+      } else if (d < checkDate) {
+        break;
+      }
+    }
+
+    const allWritings = await db.select({
+      title: writings.title,
+      content: writings.content,
+      readiness: writings.readiness,
+      createdAt: writings.createdAt,
+      updatedAt: writings.updatedAt,
+    }).from(writings).where(eq(writings.authorId, userId));
+
+    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "");
+    let longestPiece: { title: string; wordCount: number } | null = null;
+    let totalWordCount = 0;
+    let fastestGrowth: { title: string; days: number } | null = null;
+
+    for (const w of allWritings) {
+      const plainText = stripHtml(w.content || "");
+      const wc = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+      totalWordCount += wc;
+
+      if (!longestPiece || wc > longestPiece.wordCount) {
+        longestPiece = { title: w.title, wordCount: wc };
+      }
+
+      if (w.readiness === "ready_to_show" && w.createdAt && w.updatedAt) {
+        const days = Math.max(1, Math.round((new Date(w.updatedAt).getTime() - new Date(w.createdAt).getTime()) / 86400000));
+        if (!fastestGrowth || days < fastestGrowth.days) {
+          fastestGrowth = { title: w.title, days };
+        }
+      }
+    }
+
+    if (longestPiece && longestPiece.wordCount === 0) longestPiece = null;
+
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+
+    let weeklyWords = 0;
+    for (const w of allWritings) {
+      if (w.updatedAt && new Date(w.updatedAt).getTime() >= weekStart.getTime()) {
+        const plainText = stripHtml(w.content || "");
+        const wc = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+        weeklyWords += wc;
+      }
+    }
+    const weeklyGoalProgress = { current: weeklyWords, target: 5000 };
+
+    return { totalPieces, byStage, byGenre, writingFrequency, avgDaysToReady, dormantPieces, recentActivity, acceptanceRate, writingStreak, longestPiece, fastestGrowth, totalWordCount, weeklyGoalProgress };
   }
 }
 

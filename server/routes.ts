@@ -1369,7 +1369,13 @@ export async function registerRoutes(
     try {
       const parsed = insertGreenhouseEntrySchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.addToGreenhouse(req.user.claims.sub, parsed.data);
+      const entry = await storage.addToGreenhouse(req.user.claims.sub, {
+        writingId: parsed.data.writingId,
+        issueId: parsed.data.issueId ?? undefined,
+        themeFolder: parsed.data.themeFolder ?? undefined,
+        priority: parsed.data.priority ?? undefined,
+        internalNote: parsed.data.internalNote ?? undefined,
+      });
       res.status(201).json(entry);
     } catch (error) {
       res.status(500).json({ message: "Failed to add to greenhouse" });
@@ -1421,7 +1427,15 @@ export async function registerRoutes(
     try {
       const parsed = insertPublishRequestSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const request = await storage.createPublishRequest(req.user.claims.sub, parsed.data);
+      const request = await storage.createPublishRequest(req.user.claims.sub, {
+        writingId: parsed.data.writingId,
+        authorId: req.body.authorId,
+        issueId: parsed.data.issueId ?? undefined,
+        editorNote: parsed.data.editorNote ?? undefined,
+        proposedDate: parsed.data.proposedDate ?? undefined,
+        rightsDuration: parsed.data.rightsDuration ?? undefined,
+        payment: parsed.data.payment ?? undefined,
+      });
       res.status(201).json(request);
     } catch (error) {
       res.status(500).json({ message: "Failed to create publish request" });
@@ -1680,7 +1694,12 @@ export async function registerRoutes(
     try {
       const parsed = insertCircleCelebrationSchema.safeParse({ ...req.body, circleId: req.params.circleId });
       if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createCircleCelebration(req.user.claims.sub, parsed.data);
+      const item = await storage.createCircleCelebration(req.user.claims.sub, {
+        circleId: parsed.data.circleId,
+        type: parsed.data.type,
+        message: parsed.data.message ?? undefined,
+        value: parsed.data.value ?? undefined,
+      });
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to create celebration" });
@@ -1732,7 +1751,17 @@ export async function registerRoutes(
     try {
       const parsed = insertOpportunitySchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createOpportunity(req.user.claims.sub, parsed.data);
+      const item = await storage.createOpportunity(req.user.claims.sub, {
+        title: parsed.data.title,
+        link: parsed.data.link ?? undefined,
+        outlet: parsed.data.outlet ?? undefined,
+        deadline: parsed.data.deadline ?? undefined,
+        payRate: parsed.data.payRate ?? undefined,
+        responseTime: parsed.data.responseTime ?? undefined,
+        vibe: parsed.data.vibe ?? undefined,
+        genres: parsed.data.genres ?? undefined,
+        notes: parsed.data.notes ?? undefined,
+      });
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to create opportunity" });
@@ -1983,7 +2012,7 @@ export async function registerRoutes(
     try {
       const activeCount = await storage.getActiveWriterCount();
       const summary = await storage.getGardenSummary();
-      res.json({ activeWriters: activeCount, ...summary });
+      res.json({ ...summary, activeWriters: activeCount });
     } catch (error) {
       console.error("Error fetching garden pulse:", error);
       res.status(500).json({ message: "Failed to fetch garden pulse" });

@@ -5,7 +5,7 @@ import {
   Send, Plus, Trash2, Edit3, Check, X, Copy, Diamond,
   Clock, FileText, Award, BarChart3, BookOpen,
   ChevronDown, ExternalLink, AlertCircle, Sparkles,
-  Lock, TrendingUp, Calendar, User
+  Lock, TrendingUp, Calendar, User, Flame, Trophy, Target
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -77,6 +77,12 @@ type AnalyticsData = {
   writingFrequency: { month: string; count: number }[];
   byStage: Record<string, number>;
   byGenre: Record<string, number>;
+  acceptanceRate: number | null;
+  writingStreak: number;
+  longestPiece: { title: string; wordCount: number } | null;
+  fastestGrowth: { title: string; days: number } | null;
+  totalWordCount: number;
+  weeklyGoalProgress: { current: number; target: number } | null;
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -121,34 +127,116 @@ function copyToClipboard(text: string) {
   toast({ title: "Copied to clipboard" });
 }
 
+const CULTIVATOR_FEATURES = [
+  {
+    icon: <Send size={16} />,
+    title: "Submission Tracker",
+    desc: "Log every submission, track response times, and manage your pipeline from pending to accepted.",
+  },
+  {
+    icon: <Award size={16} />,
+    title: "Publication Credits",
+    desc: "Keep a living record of your publications with rights tracking, prestige ratings, and reversion dates.",
+  },
+  {
+    icon: <FileText size={16} />,
+    title: "Cover Letter Templates",
+    desc: "Build reusable templates with smart variable substitution — piece title, word count, credits, all filled in automatically.",
+  },
+  {
+    icon: <BarChart3 size={16} />,
+    title: "Writing Analytics",
+    desc: "See your writing streak, acceptance rate, personal records, frequency charts, and weekly word-count goals.",
+  },
+  {
+    icon: <User size={16} />,
+    title: "Writer Bio Manager",
+    desc: "Maintain multiple bio lengths with one-click copy — always ready when a journal asks for your bio.",
+  },
+  {
+    icon: <Sparkles size={16} />,
+    title: "More Cultivator Perks",
+    desc: "Manual version snapshots, priority editorial flags with guaranteed response, and smart swap matching.",
+  },
+];
+
 function UpgradeGate({ children }: { children: React.ReactNode }) {
+  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
+
   return (
     <div className="relative">
-      <div className="filter blur-[6px] pointer-events-none select-none opacity-50">
+      <div className="filter blur-[8px] pointer-events-none select-none opacity-30 max-h-[200px] overflow-hidden">
         {children}
       </div>
-      <div className="absolute inset-0 flex items-center justify-center z-10">
+      <div className="relative z-10 -mt-12">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center px-8 py-10 rounded-2xl border border-amber-500/20 bg-[#0b101a]/90 backdrop-blur-xl"
-          style={{ boxShadow: "0 0 60px rgba(245, 158, 11, 0.08), 0 0 120px rgba(245, 158, 11, 0.04)" }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="rounded-2xl border border-amber-500/15 bg-gradient-to-b from-[#0b101a] via-[#0d1420] to-[#0b101a] overflow-hidden"
+          style={{ boxShadow: "0 0 80px rgba(245, 158, 11, 0.06), 0 0 160px rgba(245, 158, 11, 0.03)" }}
         >
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4">
-            <Lock size={20} className="text-amber-400/70" />
+          <div className="text-center pt-10 pb-6 px-6">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-5"
+              style={{ boxShadow: "0 0 30px rgba(245, 158, 11, 0.15)" }}
+            >
+              <Diamond size={22} className="text-amber-400/80" />
+            </motion.div>
+            <h3 className="font-display text-2xl italic text-white/90 mb-2" data-testid="text-upgrade-title">
+              Cultivator
+            </h3>
+            <p className="font-serif text-sm text-white/45 max-w-sm mx-auto leading-relaxed">
+              Everything you need to take your writing from the garden to the world.
+            </p>
           </div>
-          <h3 className="font-display text-xl italic text-white/85 mb-2" data-testid="text-upgrade-title">
-            Unlock your Writer's Career Tools
-          </h3>
-          <p className="font-serif text-sm text-white/50 max-w-xs mx-auto mb-6">
-            Track submissions, manage credits, generate cover letters, and see your writing analytics.
-          </p>
-          <button
-            className="px-6 py-2.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 hover:border-amber-500/40 font-mono text-[10px] uppercase tracking-[0.2em] text-amber-300/90 hover:text-amber-200 transition-all"
-            data-testid="button-upgrade"
-          >
-            Upgrade to Paid
-          </button>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-6 pb-6">
+            {CULTIVATOR_FEATURES.map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + i * 0.08 }}
+                onMouseEnter={() => setHoveredFeature(i)}
+                onMouseLeave={() => setHoveredFeature(null)}
+                className={`rounded-xl border p-4 transition-all duration-300 cursor-default ${
+                  hoveredFeature === i
+                    ? "border-amber-500/25 bg-amber-500/[0.04]"
+                    : "border-white/[0.06] bg-white/[0.02]"
+                }`}
+                data-testid={`feature-card-${i}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 transition-colors duration-300 ${
+                    hoveredFeature === i ? "text-amber-400/70" : "text-white/25"
+                  }`}>
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/70 mb-1">{feature.title}</h4>
+                    <p className="font-serif text-[11px] text-white/40 leading-relaxed">{feature.desc}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="border-t border-white/[0.06] px-6 py-6 text-center">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="px-8 py-3 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 hover:border-amber-500/40 font-mono text-[10px] uppercase tracking-[0.2em] text-amber-300/90 hover:text-amber-200 transition-all"
+              style={{ boxShadow: "0 0 20px rgba(245, 158, 11, 0.1)" }}
+              data-testid="button-upgrade"
+            >
+              Become a Cultivator
+            </motion.button>
+            <p className="font-serif text-[10px] text-white/25 mt-3 italic">Support the garden. Grow your career.</p>
+          </div>
         </motion.div>
       </div>
     </div>
@@ -1439,10 +1527,47 @@ function AnalyticsTab() {
     other: "bg-white/30",
   };
 
+  const acceptanceRateVal = analytics.acceptanceRate ?? 0;
+  const acceptanceArc = (acceptanceRateVal / 100) * 283;
+
+  const weeklyProgress = analytics.weeklyGoalProgress;
+  const weeklyPct = weeklyProgress ? Math.min(100, (weeklyProgress.current / weeklyProgress.target) * 100) : 0;
+
+  const formatNumber = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+
+  const getMotivationalLine = (pct: number) => {
+    if (pct >= 100) return "Goal reached — extraordinary week.";
+    if (pct >= 80) return "Almost there — keep the momentum.";
+    if (pct >= 50) return "Halfway through — steady rhythm.";
+    if (pct >= 25) return "Good start — every word counts.";
+    return "The week is young — begin anywhere.";
+  };
+
   const statCards = [
     { label: "Total Pieces", value: analytics.totalPieces, icon: <BookOpen size={14} className="text-white/25" /> },
-    { label: "Avg Days Seed→Ready", value: analytics.avgDaysToReady ?? "—", icon: <TrendingUp size={14} className="text-white/25" /> },
-    { label: "Dormant", value: analytics.dormantPieces, icon: <Clock size={14} className="text-white/25" /> },
+    {
+      label: "Acceptance Rate",
+      value: analytics.acceptanceRate !== null ? `${analytics.acceptanceRate}%` : "—",
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 100 100" className="mx-auto">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+          <circle
+            cx="50" cy="50" r="45" fill="none"
+            stroke="rgba(245,158,11,0.5)" strokeWidth="6"
+            strokeDasharray={`${acceptanceArc} 283`}
+            strokeLinecap="round"
+            transform="rotate(-90 50 50)"
+            style={{ transition: "stroke-dasharray 0.6s ease" }}
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Writing Streak",
+      value: `${analytics.writingStreak}d`,
+      icon: <Flame size={14} className={analytics.writingStreak > 0 ? "text-amber-400/70" : "text-white/25"} />,
+      highlight: analytics.writingStreak > 0,
+    },
     { label: "Active (7d)", value: analytics.recentActivity, icon: <Sparkles size={14} className="text-amber-400/30" /> },
   ];
 
@@ -1450,13 +1575,92 @@ function AnalyticsTab() {
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {statCards.map((s) => (
-          <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center" data-testid={`analytics-stat-${s.label.toLowerCase().replace(/\s+/g, "-")}`}>
+          <div
+            key={s.label}
+            className={`rounded-xl border p-3 text-center ${
+              (s as any).highlight
+                ? "border-amber-500/20 bg-amber-500/[0.04]"
+                : "border-white/[0.06] bg-white/[0.02]"
+            }`}
+            data-testid={`analytics-stat-${s.label.toLowerCase().replace(/\s+/g, "-")}`}
+          >
             <div className="flex justify-center mb-1.5">{s.icon}</div>
             <div className="font-display text-xl font-light text-white/80">{s.value}</div>
             <div className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/30 mt-1">{s.label}</div>
           </div>
         ))}
       </div>
+
+      <div>
+        <h4 className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30 mb-3">Personal Records</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4" data-testid="analytics-longest-piece">
+            <div className="flex items-center gap-2 mb-2">
+              <BookOpen size={13} className="text-white/25" />
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/30">Longest Piece</span>
+            </div>
+            {analytics.longestPiece ? (
+              <>
+                <p className="font-serif text-sm text-white/65 truncate">{analytics.longestPiece.title}</p>
+                <p className="font-display text-lg text-white/80 mt-0.5">{formatNumber(analytics.longestPiece.wordCount)} <span className="font-mono text-[8px] text-white/30">words</span></p>
+              </>
+            ) : (
+              <p className="font-serif text-sm text-white/30 italic">No pieces yet</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4" data-testid="analytics-fastest-growth">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp size={13} className="text-white/25" />
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/30">Fastest Growth</span>
+            </div>
+            {analytics.fastestGrowth ? (
+              <>
+                <p className="font-serif text-sm text-white/65 truncate">{analytics.fastestGrowth.title}</p>
+                <p className="font-display text-lg text-white/80 mt-0.5">{analytics.fastestGrowth.days} <span className="font-mono text-[8px] text-white/30">days seed→ready</span></p>
+              </>
+            ) : (
+              <p className="font-serif text-sm text-white/30 italic">No ready pieces yet</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4" data-testid="analytics-total-words">
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy size={13} className="text-white/25" />
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/30">Total Words</span>
+            </div>
+            <p className="font-display text-2xl font-light text-white/80">{formatNumber(analytics.totalWordCount)}</p>
+            <p className="font-serif text-xs text-white/30 mt-0.5">across all writings</p>
+          </div>
+        </div>
+      </div>
+
+      {weeklyProgress && (
+        <div data-testid="analytics-weekly-goal">
+          <h4 className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30 mb-3">Weekly Goal</h4>
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Target size={13} className="text-amber-400/50" />
+                <span className="font-mono text-[9px] text-white/50">
+                  {formatNumber(weeklyProgress.current)} / {formatNumber(weeklyProgress.target)} words this week
+                </span>
+              </div>
+              <span className="font-display text-sm text-white/60">{Math.round(weeklyPct)}%</span>
+            </div>
+            <div className="h-3 bg-white/[0.04] rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${weeklyPct}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-full rounded-full bg-amber-400/50"
+                style={weeklyPct >= 80 ? { boxShadow: "0 0 12px rgba(245, 158, 11, 0.3)" } : undefined}
+              />
+            </div>
+            <p className="font-serif text-xs text-white/35 italic mt-2">{getMotivationalLine(weeklyPct)}</p>
+          </div>
+        </div>
+      )}
 
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -1558,7 +1762,7 @@ export default function SubmissionsZone({ userTier }: { userTier: "free" | "paid
 
       <TabNav active={activeTab} onChange={setActiveTab} />
 
-      {false ? (
+      {userTier === "free" ? (
         <UpgradeGate>{renderContent()}</UpgradeGate>
       ) : (
         <AnimatePresence mode="wait">

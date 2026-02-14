@@ -11,7 +11,7 @@ import {
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
   TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send,
-  Flag, ExternalLink, Camera, Crown
+  Flag, ExternalLink, Camera, Crown, RotateCcw
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
 import { toast } from "@/hooks/use-toast";
@@ -808,12 +808,74 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                           {readiness === "ready_to_show" && (() => {
                             const existingFlag = myFlags.find((f: any) => f.writingId === w.id);
                             if (existingFlag) {
+                              const stepIndex = existingFlag.status === "flagged" ? 0 : existingFlag.status === "seen" ? 1 : 2;
+                              const steps = ["Flagged", "Seen", "Responded"];
+                              if (existingFlag.isPaidFlag) {
+                                return (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="w-full mt-2 rounded-xl border border-violet-500/15 bg-violet-500/[0.03] p-3"
+                                    data-testid={`flag-card-${w.id}`}
+                                  >
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-widest text-violet-300/70">
+                                        <Flag size={10} />
+                                        {existingFlag.status === "flagged" ? "Flagged for editors" :
+                                         existingFlag.status === "seen" ? "An editor paused here" :
+                                         "Editor responded"}
+                                      </div>
+                                      <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                                        <Crown size={8} className="text-amber-400/80" />
+                                        <span className="font-mono text-[7px] uppercase tracking-widest text-amber-300/80">Guaranteed read</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-0 my-2">
+                                      {steps.map((step, i) => (
+                                        <div key={step} className="flex items-center">
+                                          <div className="flex flex-col items-center gap-1">
+                                            <div
+                                              className={`w-[6px] h-[6px] rounded-full ${
+                                                i < stepIndex ? "bg-violet-400/60" :
+                                                i === stepIndex ? "bg-violet-400/60 ring-2 ring-violet-400/30" :
+                                                "bg-white/15"
+                                              }`}
+                                            />
+                                            <span className={`font-mono text-[6px] uppercase tracking-wider ${
+                                              i <= stepIndex ? "text-violet-300/60" : "text-white/20"
+                                            }`}>{step}</span>
+                                          </div>
+                                          {i < steps.length - 1 && (
+                                            <div className={`w-[16px] h-[2px] mb-3 mx-0.5 ${
+                                              i < stepIndex ? "bg-violet-400/30" : "bg-white/10"
+                                            }`} />
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                                      <span className="font-mono text-[7px] text-white/30">Flagged {timeAgo(existingFlag.createdAt)}</span>
+                                      {existingFlag.seenAt && (
+                                        <span className="font-mono text-[7px] text-white/30">Seen {timeAgo(existingFlag.seenAt)}</span>
+                                      )}
+                                    </div>
+                                    {existingFlag.editorResponse && (
+                                      <div className="mt-2 px-2 py-1.5 rounded-lg bg-violet-500/[0.05] border border-violet-500/10">
+                                        <p className="font-serif text-[10px] text-violet-200/50 italic leading-relaxed">
+                                          "{existingFlag.editorResponse.length > 80 ? existingFlag.editorResponse.slice(0, 80) + "…" : existingFlag.editorResponse}"
+                                        </p>
+                                      </div>
+                                    )}
+                                  </motion.div>
+                                );
+                              }
                               return (
                                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 bg-violet-500/5 text-violet-300/70">
                                   <Flag size={10} />
                                   {existingFlag.status === "flagged" ? "Flagged for editors" : 
                                    existingFlag.status === "seen" ? "An editor paused here" : 
                                    "Editor responded"}
+                                  <span className="text-[7px] text-white/25 normal-case tracking-normal ml-1">{timeAgo(existingFlag.createdAt)}</span>
                                 </div>
                               );
                             }
@@ -838,6 +900,65 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           );
         })}
       </div>
+
+      {myFlags.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-8 rounded-xl border border-violet-500/10 bg-violet-500/[0.02] p-4"
+          data-testid="flag-summary-section"
+        >
+          <h3 className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-300/50 mb-3 flex items-center gap-2">
+            <Flag size={12} />
+            Your Editorial Flags
+          </h3>
+          <div className="space-y-3">
+            {myFlags.map((flag: any) => {
+              const stepIndex = flag.status === "flagged" ? 0 : flag.status === "seen" ? 1 : 2;
+              const steps = ["Flagged", "Seen", "Responded"];
+              return (
+                <div key={flag.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-violet-500/10 bg-violet-500/[0.02]" data-testid={`flag-summary-${flag.id}`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="font-serif text-[11px] text-white/60 truncate">{flag.writingTitle}</span>
+                      {flag.isPaidFlag && (
+                        <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 shrink-0">
+                          <Crown size={7} className="text-amber-400/80" />
+                          <span className="font-mono text-[6px] uppercase tracking-widest text-amber-300/80">Paid</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-0">
+                      {steps.map((step, i) => (
+                        <div key={step} className="flex items-center">
+                          <div className="flex flex-col items-center gap-0.5">
+                            <div
+                              className={`w-[6px] h-[6px] rounded-full ${
+                                i < stepIndex ? "bg-violet-400/60" :
+                                i === stepIndex ? "bg-violet-400/60 ring-2 ring-violet-400/30" :
+                                "bg-white/15"
+                              }`}
+                            />
+                            <span className={`font-mono text-[5px] uppercase tracking-wider ${
+                              i <= stepIndex ? "text-violet-300/60" : "text-white/20"
+                            }`}>{step}</span>
+                          </div>
+                          {i < steps.length - 1 && (
+                            <div className={`w-[16px] h-[2px] mb-2 mx-0.5 ${
+                              i < stepIndex ? "bg-violet-400/30" : "bg-white/10"
+                            }`} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <span className="font-mono text-[7px] text-white/25 shrink-0">{timeAgo(flag.createdAt)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
@@ -1046,9 +1167,10 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="mt-3 space-y-0 relative pl-4 border-l border-white/[0.06]">
+                <div className="mt-3 space-y-0 relative pl-4" style={{ borderLeft: 'none' }}>
+                  <div className="absolute left-0 top-0 bottom-0 w-px" style={{ background: 'linear-gradient(to bottom, rgba(52, 211, 153, 0.2), transparent)' }} />
                   <div className="relative py-2" data-testid="snapshot-current">
-                    <div className="absolute -left-[17px] top-3 w-2 h-2 rounded-full bg-emerald-400/60 ring-2 ring-emerald-400/20" />
+                    <div className="absolute -left-[17px] top-3 w-2 h-2 rounded-full bg-emerald-400/60 ring-2 ring-emerald-400/20 animate-pulse" />
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-400/70">Current</span>
                       <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[editStage] || "border-white/10 text-white/40"}`}>
@@ -1062,25 +1184,31 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                     <p className="py-2 font-serif text-[11px] text-white/25 italic">No snapshots yet. Snapshots are saved when you change the readiness stage.</p>
                   )}
 
-                  {snapshots.map((snap) => (
+                  {snapshots.map((snap, i) => {
+                    const compareCount = i === 0 ? wordCount(editContent) : snapshots[i - 1].wordCount;
+                    const diff = compareCount - snap.wordCount;
+                    return (
                     <button
                       key={snap.id}
                       onClick={() => setPreviewSnapshot(snap)}
                       className="relative w-full text-left py-2 group/snap hover:bg-white/[0.02] rounded-r-lg px-2 -ml-2 transition-colors"
                       data-testid={`snapshot-${snap.id}`}
                     >
-                      <div className="absolute -left-[15px] top-3.5 w-1.5 h-1.5 rounded-full bg-white/20 group-hover/snap:bg-white/40 transition-colors" />
+                      <div className={`absolute -left-[15px] top-3.5 w-1.5 h-1.5 rounded-full transition-colors ${(snap as any).isManual ? "bg-amber-400/40 group-hover/snap:bg-amber-400/60" : "bg-white/20 group-hover/snap:bg-white/40"}`} />
                       <div className="flex items-center gap-2">
                         <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[snap.readiness] || "border-white/10 text-white/40"}`}>
                           {snap.readiness === "raw_seed" ? "Seed" : snap.readiness === "growing" ? "Growing" : snap.readiness === "ready_to_show" ? "Ready" : "Dormant"}
                         </span>
                         <span className="font-mono text-[8px] text-white/25">{snap.wordCount} words</span>
+                        {diff > 0 && <span className="font-mono text-[8px] text-emerald-400/50">+{diff}</span>}
+                        {diff < 0 && <span className="font-mono text-[8px] text-rose-400/50">{diff}</span>}
                         <span className="font-mono text-[8px] text-white/20">{timeAgo(snap.createdAt)}</span>
                         {(snap as any).isManual && <span className="font-mono text-[7px] uppercase tracking-widest text-amber-300/50 ml-2">manual</span>}
                       </div>
                       {(snap as any).snapshotNote && <p className="font-mono text-[8px] text-white/35 mt-0.5 italic">"{(snap as any).snapshotNote}"</p>}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -1112,13 +1240,29 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                     <span className="font-mono text-[9px] text-white/30">{previewSnapshot.wordCount} words</span>
                     <span className="font-mono text-[9px] text-white/25">{timeAgo(previewSnapshot.createdAt)}</span>
                   </div>
-                  <button
-                    onClick={() => setPreviewSnapshot(null)}
-                    className="p-1.5 text-white/40 hover:text-white/70 transition-colors"
-                    data-testid="btn-close-preview"
-                  >
-                    <X size={16} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setEditTitle(previewSnapshot.title);
+                        setEditContent(previewSnapshot.content);
+                        setEditStage(previewSnapshot.readiness);
+                        toast({ title: `Restored to snapshot from ${timeAgo(previewSnapshot.createdAt)}` });
+                        setPreviewSnapshot(null);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/25 font-mono text-[9px] uppercase tracking-widest text-amber-300/80 hover:text-amber-200 transition-all flex items-center gap-1.5"
+                      data-testid="btn-restore-snapshot"
+                    >
+                      <RotateCcw size={11} />
+                      Restore this version
+                    </button>
+                    <button
+                      onClick={() => setPreviewSnapshot(null)}
+                      className="p-1.5 text-white/40 hover:text-white/70 transition-colors"
+                      data-testid="btn-close-preview"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
                 <div className="p-6 overflow-y-auto">
                   <h3 className="font-display text-xl font-light italic text-white/70 mb-4">{previewSnapshot.title || "Untitled"}</h3>

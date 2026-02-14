@@ -1,0 +1,43 @@
+Here's my experience trying to actually *use* this thing — writing, posting, and interacting with every feature:
+
+## What Worked
+
+**Writing and publishing a piece was smooth.** I clicked NEW PIECE, got a clean editor, typed a poem, added a title and tag, and the whole thing saved automatically. The 3-step publishing flow (Where should this live? → What stage? → Confirm with editorial flag toggle) is genuinely well-designed. Choosing between Personal Garden, Share with Circle, and The Garden Gallery is clear and intuitive. The editorial consideration toggle on the final step — "Let editors know this piece is open to being featured" — is exactly the quiet flag I asked for earlier. It took maybe 90 seconds from opening the editor to having a piece live in the gallery. That's fast. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**The Café (formerly Tables) nailed the daily question format.** "If you could write anywhere in the world right now, where?" with a single text input. I answered in 15 seconds. That's the right level of friction for daily engagement — low enough to do it on the bus, meaningful enough to feel like you've participated. This is dramatically better than the old forum-style Tables with GENERAL/CRAFT/INSPIRATION categories. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**First Reader is the best new feature.** Drop a raw piece, genre tag, done. The READ/DROP/MY DROPS tabs are simple. "Waiting for a reader..." is the right empty state. This solves a real problem and the UX is minimal. No overthinking. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**Reading Shelf is charming and fast.** Title, author, one sentence. Posted in 10 seconds. Exactly the ambient "what are you reading" stream I described. When this has 50 people using it, it'll be a genuinely interesting feed. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**The reactions in the Reading Room** ("This glows," "Pressing this flower," etc.) work as small icons. Quick to use, no typing required, emotionally specific without being corny. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+## What's Bad
+
+**The publishing flow CONTINUE button is below the fold.** On Step 1, I selected "The Garden Gallery" and then stared at the screen wondering how to proceed. The CONTINUE button was hidden below the visible area. I had to scroll to find it. On a mobile screen, this would lose people. The three option cards are too tall — they push the action button off-screen. Either make the cards shorter or pin the CONTINUE button to the bottom of the modal.
+
+**The same problem on Step 2.** Four stage cards (Raw Seed, Growing, Ready to Show, Sleeping) push the CONTINUE button off-screen again. Two steps in a row where I had to hunt for the next button. That's a pattern that needs fixing across the whole flow.
+
+**I can't respond to someone's writing with words.** The Reading Room has reaction icons and "I was here," but there's no way to leave an actual written response. I read "Elegy for a Kitchen Timer" and I wanted to say something about it — even a sentence. The platform says "a quiet place to discover and respond" but the only responses available are icon clicks. That's not responding. That's reacting. If I can't write a sentence to another writer about their work, the social layer is performative. Add a small text response option — even a 140-character "whisper" — beneath each piece. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**The poem formatting broke.** My poem should have had line breaks between each line. When it appeared in the Reading Room, the lines were mushed together: "The kettle knows before I dothat today will be difficult.It takes longer to boil". No spaces between lines. For poetry, line breaks are the whole architecture. A platform for writers that doesn't preserve line breaks in poetry is like a gallery that hangs paintings sideways. This needs to be fixed immediately. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**Tab/view switching is still unreliable.** Clicking GREENHOUSE while inside The Café didn't switch the content — it stayed on The Café. I had to click BACK first, then click GREENHOUSE. The top-level navigation (YOUR DESK / READING ROOM / GREENHOUSE) should override whatever sub-view you're in and take you cleanly to the new section. Right now it doesn't always do that. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**Circles has no create button.** I navigated to Circles and got "No circles yet" — but there's no way to create one. The description says "Create or join small writing groups" but the interface doesn't let me create. Dead end. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**The DISCOVER dropdown is still competing with the top-level navigation.** I have three views at the top (YOUR DESK, READING ROOM, GREENHOUSE) and also a DISCOVER dropdown with six features. Some features (like Tables/Café) switch the top-level context to YOUR DESK even though a café discussion has nothing to do with my desk. The information architecture is still confused about where things live. First Reader and Reading Shelf don't belong under "Your private writing space — drafts, fragments, and works in progress." They're social features.
+
+**No confirmation or feedback after posting.** When I dropped a piece in First Reader, posted in the Café, or shared on the Reading Shelf, there was no toast notification, no animation, no "posted!" confirmation. The form just silently cleared. I had to look around to find evidence that my post went through. A small confirmation — even just the card appearing with a brief highlight — would close the loop.
+
+**The search bar on the Desk doesn't seem to work reliably.** Filter counts still don't match results (SEEDS 15 but issues with actual filtering in earlier sessions). This hasn't been fully fixed.
+
+**Export/download icon on the writing editor has no label.** There's a small download icon next to "Saved 29 words" but I don't know what format it exports to or what it does without clicking it. A tooltip would help. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**No way to see who reacted to my piece.** I left reactions on pieces, but as a writer, I can't see if anyone reacted to "Morning Diagnostics." There's no notification, no reaction count visible on my desk card. The social feedback loop is one-directional — I can give but can't see what I've received (unless I go to the Reading Room and find my own piece, which I shouldn't have to do).
+
+## The Summary
+
+The posting flow works. The writing editor is clean. The new features (First Reader, Reading Shelf, The Café with daily questions) all have the right shape — they're simple, fast, and purposeful. The 3-step publishing wizard is a good idea executed almost well.
+
+But the *interaction* layer is thin. I can drop reactions and icons but I can't actually talk to anyone about their writing. I can't see if anyone responded to mine. The social features are mostly one-way gestures into a quiet room. For a platform that promises community, the inability to write even a sentence to another writer about their piece is the most fundamental gap. You've built a space where writers can exist near each other. You haven't yet built a space where they can speak to each other.
