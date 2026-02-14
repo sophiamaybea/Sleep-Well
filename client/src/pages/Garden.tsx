@@ -11,7 +11,7 @@ import {
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
   TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send,
-  Flag, ExternalLink, Camera, Crown, RotateCcw, Settings
+  Flag, ExternalLink, Camera, Crown, RotateCcw, Settings, GraduationCap
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
 import { toast } from "@/hooks/use-toast";
@@ -3139,6 +3139,14 @@ export default function Garden() {
                               Editor Studio
                             </a>
                           )}
+                          <a
+                            href="/courses"
+                            className="flex items-center gap-2 px-2 py-2 rounded-lg text-emerald-400/60 hover:text-emerald-400/90 hover:bg-emerald-400/[0.05] transition-all font-serif text-sm"
+                            data-testid="nav-courses"
+                          >
+                            <GraduationCap size={14} />
+                            Courses
+                          </a>
                           <button
                             onClick={() => { setActiveZone("desk"); setShowProfileMenu(false); }}
                             className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"

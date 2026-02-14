@@ -49,6 +49,8 @@ import {
   submissions, publicationCredits, coverLetterTemplates, writerBios,
   type Submission, type PublicationCredit, type CoverLetterTemplate, type WriterBio,
   type InsertSubmission, type InsertPublicationCredit,
+  courses, courseLessons, userCourseAccess, lessonProgress,
+  type Course, type CourseLesson, type UserCourseAccess, type LessonProgress,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -393,6 +395,18 @@ export interface IStorage {
     totalWordCount: number;
     weeklyGoalProgress: { current: number; target: number } | null;
   }>;
+
+  // Courses
+  getCourses(): Promise<(Course & { lessonCount: number })[]>;
+  getCourse(id: string): Promise<(Course & { lessonCount: number }) | undefined>;
+  getCourseLessons(courseId: string): Promise<CourseLesson[]>;
+  getCourseLesson(lessonId: string): Promise<CourseLesson | undefined>;
+  hasUserCourseAccess(userId: string, courseId: string): Promise<boolean>;
+  grantCourseAccess(userId: string, courseId: string, accessType?: string): Promise<UserCourseAccess>;
+  getUserCourseAccesses(userId: string): Promise<UserCourseAccess[]>;
+  markLessonComplete(userId: string, lessonId: string, courseId: string): Promise<LessonProgress>;
+  unmarkLessonComplete(userId: string, lessonId: string): Promise<boolean>;
+  getLessonProgress(userId: string, courseId: string): Promise<LessonProgress[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2801,6 +2815,68 @@ export class DatabaseStorage implements IStorage {
     const weeklyGoalProgress = { current: weeklyWords, target: 5000 };
 
     return { totalPieces, byStage, byGenre, writingFrequency, avgDaysToReady, dormantPieces, recentActivity, acceptanceRate, writingStreak, longestPiece, fastestGrowth, totalWordCount, weeklyGoalProgress };
+  }
+
+  // === COURSES ===
+  async getCourses(): Promise<(Course & { lessonCount: number })[]> {
+    const allCourses = await db.select().from(courses).where(eq(courses.isPublished, true)).orderBy(asc(courses.sortOrder));
+    const result: (Course & { lessonCount: number })[] = [];
+    for (const c of allCourses) {
+      const [lc] = await db.select({ count: count() }).from(courseLessons).where(eq(courseLessons.courseId, c.id));
+      result.push({ ...c, lessonCount: lc?.count ?? 0 });
+    }
+    return result;
+  }
+
+  async getCourse(id: string): Promise<(Course & { lessonCount: number }) | undefined> {
+    const [c] = await db.select().from(courses).where(eq(courses.id, id));
+    if (!c) return undefined;
+    const [lc] = await db.select({ count: count() }).from(courseLessons).where(eq(courseLessons.courseId, c.id));
+    return { ...c, lessonCount: lc?.count ?? 0 };
+  }
+
+  async getCourseLessons(courseId: string): Promise<CourseLesson[]> {
+    return await db.select().from(courseLessons).where(eq(courseLessons.courseId, courseId)).orderBy(asc(courseLessons.sortOrder));
+  }
+
+  async getCourseLesson(lessonId: string): Promise<CourseLesson | undefined> {
+    const [l] = await db.select().from(courseLessons).where(eq(courseLessons.id, lessonId));
+    return l || undefined;
+  }
+
+  async hasUserCourseAccess(userId: string, courseId: string): Promise<boolean> {
+    const [access] = await db.select().from(userCourseAccess).where(and(eq(userCourseAccess.userId, userId), eq(userCourseAccess.courseId, courseId)));
+    return !!access;
+  }
+
+  async grantCourseAccess(userId: string, courseId: string, accessType: string = "purchased"): Promise<UserCourseAccess> {
+    const existing = await this.hasUserCourseAccess(userId, courseId);
+    if (existing) {
+      const [a] = await db.select().from(userCourseAccess).where(and(eq(userCourseAccess.userId, userId), eq(userCourseAccess.courseId, courseId)));
+      return a;
+    }
+    const [a] = await db.insert(userCourseAccess).values({ userId, courseId, accessType }).returning();
+    return a;
+  }
+
+  async getUserCourseAccesses(userId: string): Promise<UserCourseAccess[]> {
+    return await db.select().from(userCourseAccess).where(eq(userCourseAccess.userId, userId));
+  }
+
+  async markLessonComplete(userId: string, lessonId: string, courseId: string): Promise<LessonProgress> {
+    const [existing] = await db.select().from(lessonProgress).where(and(eq(lessonProgress.userId, userId), eq(lessonProgress.lessonId, lessonId)));
+    if (existing) return existing;
+    const [p] = await db.insert(lessonProgress).values({ userId, lessonId, courseId }).returning();
+    return p;
+  }
+
+  async unmarkLessonComplete(userId: string, lessonId: string): Promise<boolean> {
+    const result = await db.delete(lessonProgress).where(and(eq(lessonProgress.userId, userId), eq(lessonProgress.lessonId, lessonId)));
+    return true;
+  }
+
+  async getLessonProgress(userId: string, courseId: string): Promise<LessonProgress[]> {
+    return await db.select().from(lessonProgress).where(and(eq(lessonProgress.userId, userId), eq(lessonProgress.courseId, courseId)));
   }
 }
 

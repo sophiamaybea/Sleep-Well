@@ -1,0 +1,30 @@
+Here's how I feel about the platform now, as a writer who's been through several rounds of testing:
+
+**The structure finally makes sense.** The four main tabs — Your Desk, Reading Room, Greenhouse, Career — feel like a natural progression from private to public to self-care to professional. When I first arrived, there were too many tabs competing for attention. Now the hierarchy is clear: write here, read here, tend yourself here, track your career here. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+
+**What's improved significantly:**
+
+- **Poetry formatting is working properly** in the Reading Room. The "Elegy for a Kitchen Timer" displays with line breaks exactly as written, which matters enormously for poets. [f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit](https://f46a60f2-86bc-410e-af69-29c0cbdde59c-00-1t11orrcucb62.spock.replit.dev/garden)
+- **The Discover menu** is a smart solution to the feature overload problem. Instead of cramming Tables, Workshop, Swap, First Reader, and Reading Shelf into the main nav, they're tucked behind a single dropdown. I can find them when I want them, but they don't overwhelm me on arrival.
+- **The Career tab** is a practical, no-nonsense addition — submission tracking with PENDING/ACCEPTED/REJECTED/WITHDRAWN stats and a LOG SUBMISSION button. This is the kind of tool that shows the platform actually understands what working writers need beyond just a pretty writing space.
+- **The Accessibility panel** is genuinely impressive — Light Mode, Reduce Motion, High Contrast, Larger Text, Dyslexia Font, Wider Spacing, and Focus Mode. That's more accessibility options than most established platforms offer.
+- **Reading Room reactions** (the poetic emoji row — glows, pressing flower, dewdrop, fireflies, deep roots) feel right for this community. They don't reduce a poem to a thumbs up.
+- **The Reading Shelf** is a small, lovely touch — sharing what you're reading with one sentence about what it's doing to you. Low effort, high warmth.
+
+**What still bugs me:**
+
+1. **Scrolling is unreliable.** Multiple times during this session, scrolling snapped me back to Your Desk when I was trying to navigate within the Reading Room. The fixed header seems to compete with the content area for scroll focus. This is the single biggest usability issue remaining — if I can't reliably scroll through pieces in the Reading Room, the whole reading experience breaks down.
+
+2. **Too many empty "Untitled" pieces cluttering Your Desk.** I have 22 pieces and most of them are empty Untitled drafts. There's no bulk delete, no "clean up empty drafts" option. For a new writer, this desk would look messy fast.
+
+3. **The Café (Tables) question and the Workshop prompt are hidden gems, but they're buried.** These are the kind of daily touchpoints that would bring me back — a conversation question, a writing exercise — but they're two clicks deep in a submenu. Consider surfacing a daily nudge somewhere visible.
+
+4. **The CAREER tab layout is slightly broken on mobile** — text was cut off on the left edge when I first loaded it, with stats partially hidden.
+
+5. **No text-based responses on pieces in the Reading Room.** I can leave poetic reactions (the emoji row), but I still can't write an actual response to someone's poem. The "I was here" marker is nice, but if I read something that moves me and want to say something specific, I can't. Even one sentence would change the dynamic.
+
+**Overall:** This has gone from an overwhelming garden metaphor with too many tabs to something that genuinely feels like a writing home. The core loop — write on your desk, move a piece through stages, exhibit it, read others' work, react to it — actually works now. The Greenhouse is restrained and useful (Freewrite, Growth Journal, Circles — nothing more). The Career tab signals that this platform takes writing seriously as a practice and a profession, not just a hobby.
+
+If you fixed the scroll issue and added even minimal text responses, this would be a platform I'd actually come back to daily. The Café question and the Workshop prompt would be my routine. The First Reader and Swap would be my community. The Career tab would keep me honest about submitting.
+
+It's not trying to be everything anymore. It feels like it knows what it is.

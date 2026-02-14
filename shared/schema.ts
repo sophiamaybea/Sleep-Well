@@ -755,3 +755,53 @@ export type PublicationCredit = typeof publicationCredits.$inferSelect;
 export type InsertPublicationCredit = z.infer<typeof insertPublicationCreditSchema>;
 export type CoverLetterTemplate = typeof coverLetterTemplates.$inferSelect;
 export type WriterBio = typeof writerBios.$inferSelect;
+
+// === COURSES ===
+
+export const courses = pgTable("courses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  instructor: text("instructor").notNull(),
+  genre: text("genre").notNull().default("craft"),
+  price: integer("price").notNull().default(0),
+  includedInCultivator: boolean("included_in_cultivator").notNull().default(true),
+  isPublished: boolean("is_published").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const courseLessons = pgTable("course_lessons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  title: text("title").notNull(),
+  content: text("content").notNull().default(""),
+  writingPrompt: text("writing_prompt"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userCourseAccess = pgTable("user_course_access", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  accessType: text("access_type").notNull().default("purchased"),
+  grantedAt: timestamp("granted_at").defaultNow(),
+});
+
+export const lessonProgress = pgTable("lesson_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  lessonId: varchar("lesson_id").notNull().references(() => courseLessons.id),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
+export const insertCourseSchema = createInsertSchema(courses).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCourseLessonSchema = createInsertSchema(courseLessons).omit({ id: true, createdAt: true });
+
+export type Course = typeof courses.$inferSelect;
+export type CourseLesson = typeof courseLessons.$inferSelect;
+export type UserCourseAccess = typeof userCourseAccess.$inferSelect;
+export type LessonProgress = typeof lessonProgress.$inferSelect;
