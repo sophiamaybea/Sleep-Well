@@ -181,6 +181,7 @@ export const rootInfluences = pgTable("root_influences", {
 export const gardenPresence = pgTable("garden_presence", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
+  zone: text("zone").notNull().default("desk"),
   lastSeen: timestamp("last_seen").defaultNow(),
 });
 
@@ -873,3 +874,23 @@ export const insertChallengeEntrySchema = createInsertSchema(challengeEntries).o
 export type Challenge = typeof challenges.$inferSelect;
 export type ChallengeEntry = typeof challengeEntries.$inferSelect;
 export type ChallengeVote = typeof challengeVotes.$inferSelect;
+
+export const pauseStones = pgTable("pause_stones", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const gardenSeasons = pgTable("garden_seasons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  theme: text("theme").notNull(),
+  description: text("description").notNull(),
+  startsAt: timestamp("starts_at").notNull(),
+  endsAt: timestamp("ends_at").notNull(),
+  isActive: boolean("is_active").notNull().default(false),
+});
+
+export type PauseStone = typeof pauseStones.$inferSelect;
+export type GardenSeason = typeof gardenSeasons.$inferSelect;

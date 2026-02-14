@@ -2888,5 +2888,131 @@ export async function registerRoutes(
     }
   });
 
+  // === PAUSE STONES ===
+  app.post("/api/writings/:id/pause-stone", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stone = await storage.addPauseStone(req.params.id, userId);
+      res.status(201).json(stone);
+    } catch (error) {
+      console.error("Error adding pause stone:", error);
+      res.status(500).json({ message: "Failed to add pause stone" });
+    }
+  });
+
+  app.get("/api/writings/:id/pause-stones", async (req: any, res) => {
+    try {
+      const count = await storage.getPauseStoneCount(req.params.id);
+      const hasPlaced = req.user?.claims?.sub ? await storage.hasUserPausedStone(req.params.id, req.user.claims.sub) : false;
+      res.json({ count, hasPlaced });
+    } catch (error) {
+      console.error("Error fetching pause stones:", error);
+      res.status(500).json({ message: "Failed to fetch pause stones" });
+    }
+  });
+
+  app.post("/api/writings/pause-stone-counts", async (req, res) => {
+    try {
+      const { writingIds } = req.body;
+      if (!Array.isArray(writingIds)) return res.status(400).json({ message: "writingIds array required" });
+      const counts = await storage.getPauseStoneCounts(writingIds);
+      res.json(counts);
+    } catch (error) {
+      console.error("Error fetching pause stone counts:", error);
+      res.status(500).json({ message: "Failed to fetch pause stone counts" });
+    }
+  });
+
+  // === COMPOST ENHANCEMENTS ===
+  app.post("/api/writings/:id/compost", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const entries = await storage.compostWriting(req.params.id, userId);
+      res.json({ fragments: entries.length, entries });
+    } catch (error: any) {
+      console.error("Error composting writing:", error);
+      res.status(400).json({ message: error.message || "Failed to compost writing" });
+    }
+  });
+
+  app.get("/api/compost/pile", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const pile = await storage.getCompostPile(limit);
+      res.json(pile);
+    } catch (error) {
+      console.error("Error fetching compost pile:", error);
+      res.status(500).json({ message: "Failed to fetch compost pile" });
+    }
+  });
+
+  app.get("/api/compost/stats", async (req, res) => {
+    try {
+      const stats = await storage.getCompostStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching compost stats:", error);
+      res.status(500).json({ message: "Failed to fetch compost stats" });
+    }
+  });
+
+  app.post("/api/compost/:id/recycle", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const entry = await storage.recycleCompostEntry(userId, req.params.id);
+      if (!entry) return res.status(404).json({ message: "Not found" });
+      res.json(entry);
+    } catch (error) {
+      console.error("Error recycling compost entry:", error);
+      res.status(500).json({ message: "Failed to recycle compost entry" });
+    }
+  });
+
+  // === GARDEN PRESENCE ===
+  app.post("/api/garden/presence", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const zone = req.body.zone || "desk";
+      await storage.updatePresenceWithZone(userId, zone);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error updating garden presence:", error);
+      res.status(500).json({ message: "Failed to update presence" });
+    }
+  });
+
+  app.get("/api/garden/presence", async (req, res) => {
+    try {
+      const total = await storage.getActivePresence();
+      const byZone = await storage.getActivePresenceByZone();
+      res.json({ total, byZone });
+    } catch (error) {
+      console.error("Error fetching garden presence:", error);
+      res.status(500).json({ message: "Failed to fetch presence" });
+    }
+  });
+
+  // === GARDEN SEASONS ===
+  app.get("/api/garden/season", async (req, res) => {
+    try {
+      const season = await storage.getCurrentSeason();
+      res.json(season);
+    } catch (error) {
+      console.error("Error fetching current season:", error);
+      res.status(500).json({ message: "Failed to fetch current season" });
+    }
+  });
+
+  // === LIVE PROMPT COUNTS ===
+  app.get("/api/community/live-counts", async (req, res) => {
+    try {
+      const counts = await storage.getLivePromptCounts();
+      res.json(counts);
+    } catch (error) {
+      console.error("Error fetching live counts:", error);
+      res.status(500).json({ message: "Failed to fetch live counts" });
+    }
+  });
+
   return httpServer;
 }

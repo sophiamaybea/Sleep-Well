@@ -28,7 +28,180 @@ import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
 type Zone = "desk" | "reading-room" | "greenhouse" | "submissions";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
-type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | null;
+type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
+
+function BloomCelebration({ onComplete }: { onComplete: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const petalColors = [
+      "rgba(244, 114, 182, 0.8)",
+      "rgba(251, 191, 36, 0.7)",
+      "rgba(167, 139, 250, 0.7)",
+      "rgba(52, 211, 153, 0.6)",
+      "rgba(248, 113, 113, 0.6)",
+      "rgba(196, 162, 77, 0.8)",
+      "rgba(253, 224, 71, 0.5)",
+      "rgba(147, 197, 253, 0.5)",
+    ];
+
+    type Petal = {
+      x: number; y: number; vx: number; vy: number;
+      rotation: number; rotSpeed: number; size: number;
+      color: string; opacity: number; shape: "petal" | "leaf" | "dot";
+      drift: number; driftSpeed: number;
+    };
+
+    const petals: Petal[] = Array.from({ length: 60 }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 3;
+      const shape = Math.random() < 0.5 ? "petal" : Math.random() < 0.7 ? "leaf" : "dot";
+      return {
+        x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+        y: canvas.height / 2 + (Math.random() - 0.5) * 100,
+        vx: Math.cos(angle) * speed * 1.5,
+        vy: Math.sin(angle) * speed - 2 - Math.random() * 3,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.08,
+        size: 4 + Math.random() * 10,
+        color: petalColors[Math.floor(Math.random() * petalColors.length)],
+        opacity: 0.8 + Math.random() * 0.2,
+        shape,
+        drift: Math.random() * Math.PI * 2,
+        driftSpeed: 0.01 + Math.random() * 0.02,
+      };
+    });
+
+    let frame = 0;
+    const maxFrames = 180;
+    let animId: number;
+
+    const drawPetal = (p: Petal) => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.globalAlpha = p.opacity;
+
+      if (p.shape === "petal") {
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size);
+        ctx.bezierCurveTo(p.size * 0.6, -p.size * 0.6, p.size * 0.4, p.size * 0.3, 0, p.size * 0.5);
+        ctx.bezierCurveTo(-p.size * 0.4, p.size * 0.3, -p.size * 0.6, -p.size * 0.6, 0, -p.size);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      } else if (p.shape === "leaf") {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.size * 0.3, p.size, 0, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size);
+        ctx.lineTo(0, p.size);
+        ctx.strokeStyle = "rgba(255,255,255,0.15)";
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      frame++;
+
+      if (frame < 30) {
+        const glowOpacity = Math.sin((frame / 30) * Math.PI) * 0.15;
+        const gradient = ctx.createRadialGradient(
+          canvas.width / 2, canvas.height / 2, 0,
+          canvas.width / 2, canvas.height / 2, 300
+        );
+        gradient.addColorStop(0, `rgba(196, 162, 77, ${glowOpacity})`);
+        gradient.addColorStop(0.5, `rgba(52, 211, 153, ${glowOpacity * 0.5})`);
+        gradient.addColorStop(1, "transparent");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      const fadeStart = maxFrames - 40;
+      petals.forEach((p) => {
+        p.x += p.vx + Math.sin(p.drift) * 0.3;
+        p.y += p.vy;
+        p.vy += 0.03;
+        p.vx *= 0.995;
+        p.rotation += p.rotSpeed;
+        p.drift += p.driftSpeed;
+        if (frame > fadeStart) {
+          p.opacity *= 0.96;
+        }
+        drawPetal(p);
+      });
+
+      if (frame < maxFrames) {
+        animId = requestAnimationFrame(animate);
+      } else {
+        onComplete();
+      }
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [onComplete]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] pointer-events-none"
+    >
+      <canvas ref={canvasRef} className="absolute inset-0" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        <div className="text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 15 }}
+            className="text-5xl mb-3"
+          >
+            <Flower2 size={48} className="text-amber-300/80 mx-auto" />
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="font-display text-2xl text-white/80 italic"
+          >
+            Your piece has bloomed
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.0 }}
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 mt-2"
+          >
+            Ready to show the world
+          </motion.p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 const stageColors: Record<string, string> = {
   raw_seed: "border-amber-500/30 text-amber-400/80",
@@ -1033,9 +1206,12 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [tagInput, setTagInput] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showCompostConfirm, setShowCompostConfirm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [previewSnapshot, setPreviewSnapshot] = useState<WritingSnapshot | null>(null);
+  const [showBloomCelebration, setShowBloomCelebration] = useState(false);
   const hasMounted = useRef(false);
+  const prevStageRef = useRef(writing.readiness || "raw_seed");
 
   const { data: snapshots = [] } = useQuery<WritingSnapshot[]>({
     queryKey: [`/api/writings/${writing.id}/snapshots`],
@@ -1071,6 +1247,12 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
 
   return (
     <div className="max-w-3xl mx-auto">
+      <AnimatePresence>
+        {showBloomCelebration && (
+          <BloomCelebration onComplete={() => setShowBloomCelebration(false)} />
+        )}
+      </AnimatePresence>
+
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => { doSave(); onBack(); }}
@@ -1088,6 +1270,14 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           </span>
           <span className="font-mono text-[9px] tracking-widest text-white/50">{wordCount(editContent)} words</span>
           <ExportMenu title={editTitle} content={editContent} compact writingId={writing.id} />
+          <button
+            onClick={() => setShowCompostConfirm(true)}
+            className="p-1.5 text-white/50 hover:text-amber-400/70 transition-colors"
+            title="Compost — return this piece to the communal soil"
+            data-testid="button-compost"
+          >
+            <Leaf size={14} />
+          </button>
           <button
             onClick={() => setShowDeleteConfirm(true)}
             className="p-1.5 text-white/50 hover:text-red-400/70 transition-colors"
@@ -1117,6 +1307,46 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showCompostConfirm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-6 overflow-hidden"
+          >
+            <div className="border border-amber-500/20 bg-amber-950/10 rounded-lg p-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Leaf size={16} className="text-amber-400/60" />
+                <p className="font-display text-base text-amber-200/70 italic">Return to the soil?</p>
+              </div>
+              <p className="font-serif text-xs text-white/45 leading-relaxed">
+                Composting dissolves this piece into fragments that drift into the communal compost pile.
+                Other writers can visit and find sparks in what you've let go. The original will be removed from your garden.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setShowCompostConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white" data-testid="button-cancel-compost">Keep</button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await apiRequest("POST", `/api/writings/${writing.id}/compost`);
+                      toast({ title: "Composted", description: "Your piece has been returned to the communal soil." });
+                      onBack();
+                    } catch (e) {
+                      toast({ title: "Error", description: "Failed to compost", variant: "destructive" });
+                    }
+                  }}
+                  className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest bg-amber-500/15 text-amber-300/80 rounded-full hover:bg-amber-500/25 border border-amber-500/20"
+                  data-testid="button-confirm-compost"
+                >
+                  Compost
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="space-y-6">
         <input
           type="text"
@@ -1137,7 +1367,13 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             ] as const).map((s) => (
               <button
                 key={s.id}
-                onClick={() => setEditStage(s.id)}
+                onClick={() => {
+                  const prev = editStage;
+                  setEditStage(s.id);
+                  if (s.id === "ready_to_show" && prev !== "ready_to_show") {
+                    setShowBloomCelebration(true);
+                  }
+                }}
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                   editStage === s.id
                     ? `${stageColors[s.id]} ${stageAccent[s.id]}`
@@ -1359,6 +1595,50 @@ function MarginaliaCount({ writingId }: { writingId: string }) {
   );
 }
 
+function PauseStoneButton({ writingId }: { writingId: string }) {
+  const queryClient = useQueryClient();
+  const { data } = useQuery<{ count: number; hasPaused: boolean }>({
+    queryKey: ["/api/pause-stones", writingId],
+    queryFn: async () => {
+      const res = await fetch(`/api/writings/${writingId}/pause-stones`, { credentials: "include" });
+      if (!res.ok) return { count: 0, hasPaused: false };
+      return res.json();
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/writings/${writingId}/pause-stone`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pause-stones", writingId] });
+    },
+  });
+
+  const count = data?.count || 0;
+  const hasPaused = data?.hasPaused || false;
+
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); if (!hasPaused) mutation.mutate(); }}
+      className={`flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-widest transition-all group/stone ${
+        hasPaused
+          ? "text-amber-400/60 cursor-default"
+          : "text-white/30 hover:text-amber-400/60 cursor-pointer"
+      }`}
+      disabled={hasPaused}
+      title={hasPaused ? "You paused here" : "Leave a stone — 'someone paused here'"}
+      data-testid={`pause-stone-${writingId}`}
+    >
+      <span className="relative">
+        <svg width="12" height="10" viewBox="0 0 12 10" className={`transition-all ${hasPaused ? "text-amber-400/60" : "text-white/25 group-hover/stone:text-amber-400/40"}`}>
+          <ellipse cx="6" cy="6" rx="5.5" ry="3.5" fill="currentColor" opacity="0.6" />
+          <ellipse cx="6" cy="5" rx="4.5" ry="3" fill="currentColor" />
+        </svg>
+      </span>
+      {count > 0 && <span>{count}</span>}
+    </button>
+  );
+}
+
 function QuietReadButton({ writingId }: { writingId: string }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery<{ hasRead: boolean }>({
@@ -1543,6 +1823,16 @@ function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; on
     },
   });
 
+  const { data: liveCounts } = useQuery<{ cafeResponses: number; workshopResponses: number }>({
+    queryKey: ["/api/community/live-counts"],
+    queryFn: async () => {
+      const res = await fetch("/api/community/live-counts", { credentials: "include" });
+      if (!res.ok) return { cafeResponses: 0, workshopResponses: 0 };
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
+
   if (!todayQuestion && !promptOfDay) return null;
 
   return (
@@ -1562,6 +1852,15 @@ function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; on
             <p className="font-display text-sm font-light italic text-white/60 group-hover:text-white/75 transition-colors leading-snug line-clamp-2">
               "{todayQuestion.question}"
             </p>
+            {liveCounts && liveCounts.cafeResponses > 0 && (
+              <div className="flex items-center gap-1.5 mt-2">
+                <span className="relative flex h-1 w-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400/40" />
+                  <span className="relative inline-flex rounded-full h-1 w-1 bg-amber-400/60" />
+                </span>
+                <span className="font-mono text-[8px] text-amber-400/40">{liveCounts.cafeResponses} writing today</span>
+              </div>
+            )}
           </button>
         )}
         {promptOfDay && (
@@ -1577,6 +1876,15 @@ function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; on
             <p className="font-serif text-sm text-white/55 group-hover:text-white/70 transition-colors leading-snug line-clamp-2">
               {promptOfDay.title || promptOfDay.prompt}
             </p>
+            {liveCounts && liveCounts.workshopResponses > 0 && (
+              <div className="flex items-center gap-1.5 mt-2">
+                <span className="relative flex h-1 w-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400/40" />
+                  <span className="relative inline-flex rounded-full h-1 w-1 bg-emerald-400/60" />
+                </span>
+                <span className="font-mono text-[8px] text-emerald-400/40">{liveCounts.workshopResponses} writing today</span>
+              </div>
+            )}
           </button>
         )}
       </div>
@@ -1866,6 +2174,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                       <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                       <ResonanceBar writingId={piece.id} compact />
                       <MarginaliaCount writingId={piece.id} />
+                      <PauseStoneButton writingId={piece.id} />
                       <button
                         onClick={(e) => { e.stopPropagation(); setExpandedId(piece.id); }}
                         className="flex items-center gap-1 font-mono text-[8px] text-white/30 hover:text-white/50 transition-colors"
@@ -1891,6 +2200,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <QuietReadButton writingId={piece.id} />
+                            <PauseStoneButton writingId={piece.id} />
                             <span className="w-px h-3 bg-white/[0.06]" />
                             <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                             <span className="font-mono text-[8px] text-white/30">{wordCount(piece.content)} words</span>
@@ -1931,6 +2241,7 @@ const greenhouseTools = [
   { id: "freewrite" as const, label: "Freewrite", desc: "A typewriter with optional timer — pure flow writing with timed sessions to build your practice.", icon: <PenLine size={20} />, color: "warmGray" },
   { id: "growth-journal" as const, label: "Growth Journal", desc: "A private space to reflect on your writing journey — celebrate progress, note struggles, track what you're learning", icon: <NotebookPen size={20} />, color: "emerald" },
   { id: "circles" as const, label: "Circles", desc: "Create or join small writing groups for ongoing conversation and mutual support", icon: <Users size={20} />, color: "indigo" },
+  { id: "compost" as const, label: "The Compost Pile", desc: "Browse fragments from composted writings — one person's abandoned darling becomes another's spark", icon: <Leaf size={20} />, color: "amber" },
 ];
 
 const toolColorMap: Record<string, { border: string; text: string; bg: string; glow: string }> = {
@@ -1998,6 +2309,108 @@ function GreenhouseZone() {
   );
 }
 
+function CompostPileView() {
+  const queryClient = useQueryClient();
+  const { data: compostPile = [], isLoading } = useQuery<{ id: string; content: string; createdAt: string; isRecycled: boolean }[]>({
+    queryKey: ["/api/compost/pile"],
+    queryFn: async () => {
+      const res = await fetch("/api/compost/pile", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const { data: stats } = useQuery<{ totalFragments: number; todayFragments: number }>({
+    queryKey: ["/api/compost/stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/compost/stats", { credentials: "include" });
+      if (!res.ok) return { totalFragments: 0, todayFragments: 0 };
+      return res.json();
+    },
+  });
+
+  const recycleMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("POST", `/api/compost/${id}/recycle`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/compost/pile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/compost/stats"] });
+      toast({ title: "Fragment gathered", description: "This fragment has been picked from the compost pile." });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="mt-8 space-y-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="animate-pulse h-16 bg-white/[0.03] rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8 space-y-6">
+      {stats && (
+        <div className="flex items-center gap-6 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Total fragments</span>
+            <span className="font-mono text-sm text-amber-400/60">{stats.totalFragments}</span>
+          </div>
+          {stats.todayFragments > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Today's compost</span>
+              <span className="font-mono text-sm text-amber-400/60">{stats.todayFragments}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {compostPile.length === 0 ? (
+        <div className="border border-dashed border-amber-700/15 rounded-3xl p-16 text-center space-y-4">
+          <Leaf size={32} className="mx-auto text-amber-500/20" />
+          <h3 className="text-xl font-display font-light italic text-white/50">The compost pile is empty</h3>
+          <p className="font-serif text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
+            When writers compost pieces they're letting go of, fragments of language drift here.
+            One person's abandoned darling becomes another's spark.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {compostPile.map((fragment, i) => (
+            <motion.div
+              key={fragment.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03, duration: 0.3 }}
+              className="group/fragment relative rounded-xl border border-amber-500/10 bg-amber-950/[0.04] p-5 hover:border-amber-500/20 hover:bg-amber-950/[0.08] transition-all"
+            >
+              <p className="font-serif text-sm text-white/50 italic leading-relaxed pr-8">
+                "{fragment.content}"
+              </p>
+              <div className="flex items-center justify-between mt-3">
+                <span className="font-mono text-[8px] text-white/20">
+                  {new Date(fragment.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+                {!fragment.isRecycled && (
+                  <button
+                    onClick={() => recycleMutation.mutate(fragment.id)}
+                    className="flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-widest text-amber-400/40 hover:text-amber-300/70 transition-colors opacity-0 group-hover/fragment:opacity-100"
+                    title="Pick this fragment — save it to spark new work"
+                    data-testid={`recycle-fragment-${fragment.id}`}
+                  >
+                    <Sparkles size={10} />
+                    Gather this spark
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool>; onBack: () => void }) {
   const toolInfo = greenhouseTools.find(t => t.id === tool)!;
 
@@ -2005,6 +2418,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
     "freewrite": <FreewriteView />,
     "growth-journal": <GrowthJournalView />,
     "circles": <CirclesView />,
+    "compost": <CompostPileView />,
   };
 
   return (
@@ -2996,6 +3410,21 @@ export default function Garden() {
     refetchInterval: 60000,
   });
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const sendHeartbeat = () => {
+      fetch("/api/garden/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ zone: activeZone }),
+      }).catch(() => {});
+    };
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, activeZone]);
+
   const { data: struggleSignals } = useQuery<{ dormantThisWeek: number; movedBackward: number; revisitedSeeds: number }>({
     queryKey: ["/api/struggle-signals"],
     queryFn: async () => {
@@ -3036,6 +3465,16 @@ export default function Garden() {
     },
   });
 
+  const { data: currentSeason } = useQuery<{ name: string; theme: string; description: string } | null>({
+    queryKey: ["/api/garden/season"],
+    queryFn: async () => {
+      const res = await fetch("/api/garden/season", { credentials: "include" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data || null;
+    },
+  });
+
   const flagMutation = useMutation({
     mutationFn: async (writingId: string) => {
       const res = await fetch("/api/editorial-flags", {
@@ -3060,11 +3499,19 @@ export default function Garden() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const sendHeartbeat = () => { fetch("/api/presence", { method: "POST", credentials: "include" }).catch(() => {}); };
+    const sendHeartbeat = () => {
+      fetch("/api/presence", { method: "POST", credentials: "include" }).catch(() => {});
+      fetch("/api/garden/presence", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ zone: activeZone }),
+      }).catch(() => {});
+    };
     sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 5 * 60 * 1000);
+    const interval = setInterval(sendHeartbeat, 30000);
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, activeZone]);
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -3176,7 +3623,7 @@ export default function Garden() {
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400/60" />
                       </span>
                       <span className="font-mono text-[9px] text-white/30">
-                        {gardenPulse.activeWriters} {gardenPulse.activeWriters === 1 ? "writer" : "writers"} in the garden right now
+                        {gardenPulse.activeWriters} {gardenPulse.activeWriters === 1 ? "writer" : "writers"} in the garden
                       </span>
                     </div>
                     {(gardenPulse.newSeeds > 0 || gardenPulse.bloomedPieces > 0) && (
@@ -3380,6 +3827,13 @@ export default function Garden() {
         </AnimatePresence>
 
         <main className="pt-8 pb-24 px-6" onClick={() => { showProfileMenu && setShowProfileMenu(false); }}>
+          {currentSeason && !isEditing && (
+            <div className="mb-6 rounded-2xl border border-emerald-500/10 bg-emerald-950/[0.04] p-4 text-center max-w-5xl mx-auto" data-testid="season-banner">
+              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-emerald-400/40">{currentSeason.theme}</span>
+              <p className="font-display text-sm font-light italic text-white/50 mt-1">{currentSeason.name}</p>
+              {currentSeason.description && <p className="font-serif text-[11px] text-white/30 mt-1 max-w-md mx-auto leading-relaxed">{currentSeason.description}</p>}
+            </div>
+          )}
           {activeWalk && (
             <div className="mb-6 rounded-2xl border border-violet-500/15 bg-violet-950/[0.08] p-5 text-center max-w-5xl mx-auto" data-testid="editors-walk-banner">
               <div className="flex items-center justify-center gap-2 mb-2">

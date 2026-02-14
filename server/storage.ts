@@ -55,6 +55,8 @@ import {
   courseExerciseResponses, type CourseExerciseResponse,
   challenges, challengeEntries, challengeVotes,
   type Challenge, type ChallengeEntry, type ChallengeVote,
+  pauseStones, type PauseStone,
+  gardenSeasons, type GardenSeason,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -435,6 +437,30 @@ export interface IStorage {
   voteChallengeEntry(voterId: string, challengeId: string, entryId: string): Promise<ChallengeVote>;
   unvoteChallengeEntry(voterId: string, challengeId: string, entryId: string): Promise<boolean>;
   getUserChallengeVotes(userId: string, challengeId: string): Promise<string[]>;
+
+  // Pause Stones
+  addPauseStone(writingId: string, userId: string): Promise<PauseStone>;
+  getPauseStoneCount(writingId: string): Promise<number>;
+  getPauseStoneCounts(writingIds: string[]): Promise<Record<string, number>>;
+  hasUserPausedStone(writingId: string, userId: string): Promise<boolean>;
+
+  // Compost Enhancements
+  getCompostPile(limit?: number): Promise<{ id: string; content: string; createdAt: Date | null }[]>;
+  getCompostStats(): Promise<{ totalFragments: number; todayFragments: number }>;
+  compostWriting(writingId: string, userId: string): Promise<CompostEntry[]>;
+
+  // Garden Presence (enhanced)
+  updatePresenceWithZone(userId: string, zone: string): Promise<void>;
+  getActivePresence(minutesAgo?: number): Promise<number>;
+  getActivePresenceByZone(): Promise<{ zone: string; count: number }[]>;
+
+  // Garden Seasons
+  getCurrentSeason(): Promise<GardenSeason | null>;
+  getAllSeasons(): Promise<GardenSeason[]>;
+  createSeason(data: { name: string; theme: string; description: string; startsAt: Date; endsAt: Date; isActive?: boolean }): Promise<GardenSeason>;
+
+  // Live Prompt Counts
+  getLivePromptCounts(): Promise<{ cafeResponses: number; workshopResponses: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3088,6 +3114,135 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return { response: updated, writingId: writing.id };
+  }
+
+  // === PAUSE STONES ===
+  async addPauseStone(writingId: string, userId: string): Promise<PauseStone> {
+    const [existing] = await db.select().from(pauseStones).where(and(eq(pauseStones.writingId, writingId), eq(pauseStones.userId, userId)));
+    if (existing) return existing;
+    const [created] = await db.insert(pauseStones).values({ writingId, userId }).returning();
+    return created;
+  }
+
+  async getPauseStoneCount(writingId: string): Promise<number> {
+    const [result] = await db.select({ count: count() }).from(pauseStones).where(eq(pauseStones.writingId, writingId));
+    return result?.count || 0;
+  }
+
+  async getPauseStoneCounts(writingIds: string[]): Promise<Record<string, number>> {
+    if (writingIds.length === 0) return {};
+    const rows = await db.select({ writingId: pauseStones.writingId, count: count() })
+      .from(pauseStones)
+      .where(inArray(pauseStones.writingId, writingIds))
+      .groupBy(pauseStones.writingId);
+    const result: Record<string, number> = {};
+    for (const id of writingIds) result[id] = 0;
+    for (const row of rows) result[row.writingId] = Number(row.count);
+    return result;
+  }
+
+  async hasUserPausedStone(writingId: string, userId: string): Promise<boolean> {
+    const [existing] = await db.select().from(pauseStones).where(and(eq(pauseStones.writingId, writingId), eq(pauseStones.userId, userId)));
+    return !!existing;
+  }
+
+  // === COMPOST ENHANCEMENTS ===
+  async getCompostPile(limit: number = 50): Promise<{ id: string; content: string; createdAt: Date | null }[]> {
+    const rows = await db.select({ id: compostEntries.id, content: compostEntries.content, createdAt: compostEntries.createdAt })
+      .from(compostEntries)
+      .where(eq(compostEntries.isRecycled, false))
+      .orderBy(desc(compostEntries.createdAt))
+      .limit(limit);
+    return rows;
+  }
+
+  async getCompostStats(): Promise<{ totalFragments: number; todayFragments: number }> {
+    const [totalResult] = await db.select({ count: count() }).from(compostEntries);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const [todayResult] = await db.select({ count: count() }).from(compostEntries)
+      .where(sql`${compostEntries.createdAt} >= ${todayStart}`);
+    return { totalFragments: totalResult?.count || 0, todayFragments: todayResult?.count || 0 };
+  }
+
+  async compostWriting(writingId: string, userId: string): Promise<CompostEntry[]> {
+    const writing = await this.getWriting(writingId);
+    if (!writing || writing.authorId !== userId) throw new Error("Writing not found");
+
+    const plainText = writing.content.replace(/<[^>]*>/g, "").trim();
+    if (!plainText) throw new Error("Writing has no content to compost");
+
+    const sentences = plainText.split(/(?<=[.!?])\s+|(?:\r?\n){2,}/).filter(s => s.trim().length > 10);
+    if (sentences.length === 0) throw new Error("Writing has no meaningful fragments to compost");
+
+    const fragmentCount = Math.min(Math.max(3, Math.floor(Math.random() * 5) + 3), sentences.length);
+    const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+    const fragments = shuffled.slice(0, fragmentCount);
+
+    const entries: CompostEntry[] = [];
+    for (const fragment of fragments) {
+      const [entry] = await db.insert(compostEntries).values({
+        userId,
+        content: fragment.trim(),
+        sourceWritingId: writingId,
+      }).returning();
+      entries.push(entry);
+    }
+
+    await db.delete(writings).where(and(eq(writings.id, writingId), eq(writings.authorId, userId)));
+    return entries;
+  }
+
+  // === GARDEN PRESENCE (ENHANCED) ===
+  async updatePresenceWithZone(userId: string, zone: string): Promise<void> {
+    const [existing] = await db.select().from(gardenPresence).where(eq(gardenPresence.userId, userId));
+    if (existing) {
+      await db.update(gardenPresence).set({ lastSeen: new Date(), zone }).where(eq(gardenPresence.userId, userId));
+    } else {
+      await db.insert(gardenPresence).values({ userId, lastSeen: new Date(), zone });
+    }
+  }
+
+  async getActivePresence(minutesAgo: number = 5): Promise<number> {
+    const cutoff = new Date(Date.now() - minutesAgo * 60 * 1000);
+    const [result] = await db.select({ count: count() }).from(gardenPresence)
+      .where(sql`${gardenPresence.lastSeen} > ${cutoff}`);
+    return result?.count || 0;
+  }
+
+  async getActivePresenceByZone(): Promise<{ zone: string; count: number }[]> {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const rows = await db.select({ zone: gardenPresence.zone, count: count() })
+      .from(gardenPresence)
+      .where(sql`${gardenPresence.lastSeen} > ${fiveMinutesAgo}`)
+      .groupBy(gardenPresence.zone);
+    return rows.map(r => ({ zone: r.zone, count: Number(r.count) }));
+  }
+
+  // === GARDEN SEASONS ===
+  async getCurrentSeason(): Promise<GardenSeason | null> {
+    const [season] = await db.select().from(gardenSeasons).where(eq(gardenSeasons.isActive, true)).limit(1);
+    return season || null;
+  }
+
+  async getAllSeasons(): Promise<GardenSeason[]> {
+    return await db.select().from(gardenSeasons).orderBy(desc(gardenSeasons.startsAt));
+  }
+
+  async createSeason(data: { name: string; theme: string; description: string; startsAt: Date; endsAt: Date; isActive?: boolean }): Promise<GardenSeason> {
+    const [created] = await db.insert(gardenSeasons).values(data).returning();
+    return created;
+  }
+
+  // === LIVE PROMPT COUNTS ===
+  async getLivePromptCounts(): Promise<{ cafeResponses: number; workshopResponses: number }> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const [cafeResult] = await db.select({ count: count() }).from(cafeResponses)
+      .where(sql`${cafeResponses.createdAt} >= ${todayStart}`);
+    const [workshopResult] = await db.select({ count: count() }).from(workshopResponses)
+      .where(sql`${workshopResponses.createdAt} >= ${todayStart}`);
+    return { cafeResponses: cafeResult?.count || 0, workshopResponses: workshopResult?.count || 0 };
   }
 }
 
