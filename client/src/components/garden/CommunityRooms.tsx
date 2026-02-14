@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine, FileCheck, Sparkles, Clock, Award, Send, ShieldOff, Globe, Lightbulb, ExternalLink, MapPin, Trash2, X, Heart } from "lucide-react";
+import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine, FileCheck, Sparkles, Clock, Award, Send, ShieldOff, Globe, Lightbulb, ExternalLink, MapPin, Trash2, X, Heart, Crown } from "lucide-react";
 import { ContentRenderer } from "./RichEditor";
 
 function ListSkeleton({ count = 4 }: { count?: number }) {
@@ -96,6 +96,8 @@ type SwapRequest = {
   requesterName: string;
   writingTitle: string;
   matchedName: string | null;
+  preferredLength?: string | null;
+  feedbackStyle?: string | null;
 };
 
 type Writing = {
@@ -1250,7 +1252,19 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
   const [feedbackStrengths, setFeedbackStrengths] = useState("");
   const [feedbackSuggestions, setFeedbackSuggestions] = useState("");
   const [feedbackFavoriteLines, setFeedbackFavoriteLines] = useState("");
+  const [preferredLength, setPreferredLength] = useState("any");
+  const [feedbackStyle, setFeedbackStyle] = useState("any");
   const queryClient = useQueryClient();
+
+  const { data: tierData } = useQuery<{ tier: string }>({
+    queryKey: ["/api/user/tier"],
+    queryFn: async () => {
+      const res = await fetch("/api/user/tier", { credentials: "include" });
+      if (!res.ok) return { tier: "free" };
+      return res.json();
+    },
+  });
+  const isPaid = tierData?.tier === "paid";
 
   const { data: swaps = [], isLoading } = useQuery<SwapRequest[]>({
     queryKey: ["/api/swaps"],
@@ -1271,7 +1285,7 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { writingId: string; genre?: string; note?: string }) => {
+    mutationFn: async (data: { writingId: string; genre?: string; note?: string; preferredLength?: string; feedbackStyle?: string }) => {
       const res = await fetch("/api/swaps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1287,6 +1301,8 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
       setSelectedWritingId("");
       setSwapGenre("");
       setSwapNote("");
+      setPreferredLength("any");
+      setFeedbackStyle("any");
     },
   });
 
@@ -1331,9 +1347,11 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
 
   const handleCreateSwap = () => {
     if (!selectedWritingId) return;
-    const data: { writingId: string; genre?: string; note?: string } = { writingId: selectedWritingId };
+    const data: { writingId: string; genre?: string; note?: string; preferredLength?: string; feedbackStyle?: string } = { writingId: selectedWritingId };
     if (swapGenre.trim()) data.genre = swapGenre.trim();
     if (swapNote.trim()) data.note = swapNote.trim();
+    if (isPaid && preferredLength !== "any") data.preferredLength = preferredLength;
+    if (isPaid && feedbackStyle !== "any") data.feedbackStyle = feedbackStyle;
     createMutation.mutate(data);
   };
 
@@ -1462,6 +1480,48 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                 className="w-full bg-white/[0.05] border border-white/[0.20] rounded-lg px-3 py-2.5 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 transition-colors resize-none"
                 data-testid="input-swap-note"
               />
+              {!isPaid && (
+                <p className="font-mono text-[8px] text-amber-300/30 mt-2 flex items-center gap-1">
+                  <Crown size={8} />
+                  Cultivator members get smart matching by genre, length & feedback style
+                </p>
+              )}
+              {isPaid && (
+                <div className="space-y-3 pt-2 border-t border-amber-500/10">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Crown size={10} className="text-amber-300/50" />
+                    <span className="font-mono text-[8px] uppercase tracking-widest text-amber-300/50">Smart matching</span>
+                  </div>
+                  <div>
+                    <label className="font-mono text-[8px] text-white/35 uppercase tracking-widest">Preferred length</label>
+                    <select
+                      value={preferredLength}
+                      onChange={e => setPreferredLength(e.target.value)}
+                      className="w-full mt-1 bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-sm text-white/60 focus:border-amber-500/30 focus:outline-none"
+                      data-testid="select-preferred-length"
+                    >
+                      <option value="any">Any length</option>
+                      <option value="short">Short (under 1,000 words)</option>
+                      <option value="medium">Medium (1,000–5,000 words)</option>
+                      <option value="long">Long (5,000+ words)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-mono text-[8px] text-white/35 uppercase tracking-widest">Feedback style</label>
+                    <select
+                      value={feedbackStyle}
+                      onChange={e => setFeedbackStyle(e.target.value)}
+                      className="w-full mt-1 bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 font-serif text-sm text-white/60 focus:border-amber-500/30 focus:outline-none"
+                      data-testid="select-feedback-style"
+                    >
+                      <option value="any">Any style</option>
+                      <option value="line_level">Line-level honesty</option>
+                      <option value="big_picture">Big picture / does this land?</option>
+                      <option value="gentle">Gentle encouragement</option>
+                    </select>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowOfferForm(false)}
@@ -1537,6 +1597,20 @@ export function SwapRoom({ onBack }: { onBack: () => void }) {
                     </div>
                     {swap.note && (
                       <p className="font-serif text-sm text-white/50 leading-relaxed" data-testid={`text-swap-note-${swap.id}`}>{swap.note}</p>
+                    )}
+                    {((swap.preferredLength && swap.preferredLength !== "any") || (swap.feedbackStyle && swap.feedbackStyle !== "any")) && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {(swap.preferredLength && swap.preferredLength !== "any") && (
+                          <span className="font-mono text-[7px] uppercase tracking-widest text-amber-300/40 border border-amber-500/10 px-1.5 py-0.5 rounded-full">
+                            {swap.preferredLength === "short" ? "< 1k words" : swap.preferredLength === "medium" ? "1-5k words" : "5k+ words"}
+                          </span>
+                        )}
+                        {(swap.feedbackStyle && swap.feedbackStyle !== "any") && (
+                          <span className="font-mono text-[7px] uppercase tracking-widest text-amber-300/40 border border-amber-500/10 px-1.5 py-0.5 rounded-full">
+                            {swap.feedbackStyle === "line_level" ? "line-level" : swap.feedbackStyle === "big_picture" ? "big picture" : "gentle"}
+                          </span>
+                        )}
+                      </div>
                     )}
                     {swap.status === "matched" && swap.matchedName && (
                       <div className="mt-3 p-3 bg-emerald-500/[0.04] border border-emerald-500/10 rounded-lg">

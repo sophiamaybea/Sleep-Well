@@ -187,7 +187,8 @@ export interface IStorage {
 
   // Swap (beta reading exchange)
   getSwapRequests(status?: string): Promise<(SwapRequest & { requesterName: string | null; writingTitle: string; matchedName: string | null })[]>;
-  createSwapRequest(userId: string, data: { writingId: string; genre?: string; note?: string }): Promise<SwapRequest>;
+  createSwapRequest(userId: string, data: { writingId: string; genre?: string; note?: string; preferredLength?: string; feedbackStyle?: string }): Promise<SwapRequest>;
+  findSmartSwapMatch(requestId: string): Promise<SwapRequest | null>;
   matchSwap(requestId: string, userId: string, writingId: string): Promise<SwapRequest | undefined>;
   getSwapFeedback(swapId: string): Promise<SwapFeedbackEntry[]>;
   createSwapFeedback(userId: string, data: { swapId: string; toUserId: string; strengths: string; suggestions: string; favoriteLines?: string }): Promise<SwapFeedbackEntry>;
@@ -288,7 +289,9 @@ export interface IStorage {
 
   // Version Snapshots
   getSnapshots(writingId: string): Promise<WritingSnapshot[]>;
-  createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number }): Promise<WritingSnapshot>;
+  createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number; snapshotNote?: string; isManual?: boolean }): Promise<WritingSnapshot>;
+  getUserTier(userId: string): Promise<string>;
+  setUserTier(userId: string, tier: string): Promise<void>;
 
   // Daily Letter
   getDailyLetter(userId: string): Promise<(Writing & { authorName: string | null; authorImage: string | null }) | null>;
@@ -312,7 +315,7 @@ export interface IStorage {
   getPublicGarden(userId: string): Promise<{ user: User; writings: (Writing & { resonanceCount: number })[]; tenderCount: number; tendingCount: number; lastPublicAt: Date | null } | null>;
 
   // Editorial Flags
-  createEditorialFlag(authorId: string, writingId: string): Promise<EditorialFlag>;
+  createEditorialFlag(authorId: string, writingId: string, isPaidFlag?: boolean): Promise<EditorialFlag>;
   getActiveFlag(authorId: string): Promise<EditorialFlag | null>;
   getActiveFlagCount(authorId: string): Promise<number>;
   getFlaggedQueue(): Promise<(EditorialFlag & { writingTitle: string; authorName: string | null; genre: string })[]>;
@@ -1094,9 +1097,51 @@ export class DatabaseStorage implements IStorage {
     return enriched;
   }
 
-  async createSwapRequest(userId: string, data: { writingId: string; genre?: string; note?: string }): Promise<SwapRequest> {
+  async createSwapRequest(userId: string, data: { writingId: string; genre?: string; note?: string; preferredLength?: string; feedbackStyle?: string }): Promise<SwapRequest> {
     const [request] = await db.insert(swapRequests).values({ requesterId: userId, ...data }).returning();
     return request;
+  }
+
+  async findSmartSwapMatch(requestId: string): Promise<SwapRequest | null> {
+    const [request] = await db.select().from(swapRequests).where(eq(swapRequests.id, requestId));
+    if (!request) return null;
+
+    let conditions = [
+      eq(swapRequests.status, "open"),
+      sql`${swapRequests.requesterId} != ${request.requesterId}`,
+      sql`${swapRequests.id} != ${requestId}`,
+    ];
+
+    if (request.genre && request.genre !== "any") {
+      conditions.push(
+        or(eq(swapRequests.genre, request.genre), eq(swapRequests.genre, "any"))!
+      );
+    }
+    if (request.preferredLength && request.preferredLength !== "any") {
+      conditions.push(
+        or(
+          eq(swapRequests.preferredLength, request.preferredLength),
+          sql`${swapRequests.preferredLength} IS NULL`,
+          eq(swapRequests.preferredLength, "any")
+        )!
+      );
+    }
+    if (request.feedbackStyle && request.feedbackStyle !== "any") {
+      conditions.push(
+        or(
+          eq(swapRequests.feedbackStyle, request.feedbackStyle),
+          sql`${swapRequests.feedbackStyle} IS NULL`,
+          eq(swapRequests.feedbackStyle, "any")
+        )!
+      );
+    }
+
+    const matches = await db.select().from(swapRequests)
+      .where(and(...conditions))
+      .orderBy(swapRequests.createdAt)
+      .limit(1);
+
+    return matches[0] || null;
   }
 
   async matchSwap(requestId: string, userId: string, writingId: string): Promise<SwapRequest | undefined> {
@@ -1920,9 +1965,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(writingSnapshots.createdAt));
   }
 
-  async createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number }): Promise<WritingSnapshot> {
+  async createSnapshot(data: { writingId: string; title: string; content: string; readiness: string; wordCount: number; snapshotNote?: string; isManual?: boolean }): Promise<WritingSnapshot> {
     const [snapshot] = await db.insert(writingSnapshots).values(data).returning();
     return snapshot;
+  }
+
+  async getUserTier(userId: string): Promise<string> {
+    const user = await this.getUser(userId);
+    return user?.tier || "free";
+  }
+
+  async setUserTier(userId: string, tier: string): Promise<void> {
+    await db.update(users).set({ tier, updatedAt: new Date() }).where(eq(users.id, userId));
   }
 
   // === DAILY LETTER ===
@@ -2202,8 +2256,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // === EDITORIAL FLAGS ===
-  async createEditorialFlag(authorId: string, writingId: string): Promise<EditorialFlag> {
-    const [flag] = await db.insert(editorialFlags).values({ writingId, authorId }).returning();
+  async createEditorialFlag(authorId: string, writingId: string, isPaidFlag: boolean = false): Promise<EditorialFlag> {
+    const [flag] = await db.insert(editorialFlags).values({ writingId, authorId, isPaidFlag }).returning();
     return flag;
   }
 

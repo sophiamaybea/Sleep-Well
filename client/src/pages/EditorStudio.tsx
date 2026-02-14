@@ -5,7 +5,7 @@ import {
   ArrowLeft, Search, Plus, Send, BookOpen,
   Inbox, FileText, Layers, Eye, Leaf, MessageCircle,
   ChevronDown, ChevronRight, Trash2, Edit3, Clock,
-  CheckCircle, XCircle, GripVertical, X, Sparkles, Flag
+  CheckCircle, XCircle, GripVertical, X, Sparkles, Flag, Crown
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -280,7 +280,11 @@ function FlaggedTab() {
           <p className="font-serif text-sm text-white/40">No flagged pieces waiting. Writers haven't raised any flags yet.</p>
         </div>
       ) : (
-        flaggedQueue.map((item: any) => (
+        [...flaggedQueue].sort((a: any, b: any) => {
+          if (a.isPaidFlag && !b.isPaidFlag) return -1;
+          if (!a.isPaidFlag && b.isPaidFlag) return 1;
+          return 0;
+        }).map((item: any) => (
           <div
             key={item.id}
             data-testid={`flagged-card-${item.id}`}
@@ -293,12 +297,21 @@ function FlaggedTab() {
                   <span className="px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 text-violet-300">
                     {item.genre || "untagged"}
                   </span>
+                  {item.isPaidFlag && (
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                      <Crown size={9} className="text-amber-300/60" />
+                      <span className="font-mono text-[7px] uppercase tracking-widest text-amber-300/60">Guaranteed read</span>
+                    </div>
+                  )}
                 </div>
                 <h3 className="font-display text-base font-light italic text-amber-200/90 mb-1">{item.writingTitle || "Untitled"}</h3>
                 <p className="font-mono text-[9px] text-violet-300/50">
                   <Flag size={10} className="inline mr-1" />
                   Flagged {timeAgo(item.createdAt)}
                 </p>
+                {item.isPaidFlag && !item.editorResponse && (
+                  <p className="font-mono text-[7px] text-amber-300/40 mt-1">This writer's cultivator membership includes a guaranteed response</p>
+                )}
                 {item.editorResponse && (
                   <p className="font-serif text-xs text-white/40 italic mt-2 pl-3 border-l-2 border-violet-500/20">
                     {item.editorResponse}

@@ -11,7 +11,7 @@ import {
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
   TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send,
-  Flag, ExternalLink
+  Flag, ExternalLink, Camera, Crown
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
 import { toast } from "@/hooks/use-toast";
@@ -433,7 +433,7 @@ function PublishInvitations() {
   );
 }
 
-function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating, myFlags, flagMutation }: {
+function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating, myFlags, flagMutation, userTier }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
   onCreateNew: () => void;
@@ -442,7 +442,9 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   isCreating: boolean;
   myFlags: any[];
   flagMutation: any;
+  userTier: string;
 }) {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -770,6 +772,35 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                               {(w as any).isPublicGarden ? "Public" : "Make Public"}
                             </button>
                           </div>
+                          {userTier === "paid" ? (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const note = prompt("Optional note for this snapshot:");
+                              const res = await fetch(`/api/writings/${w.id}/snapshot`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                credentials: "include",
+                                body: JSON.stringify({ note: note || undefined }),
+                              });
+                              if (res.ok) {
+                                queryClient.invalidateQueries({ queryKey: [`/api/writings/${w.id}/snapshots`] });
+                                toast({ title: "Snapshot saved", description: note ? `"${note}"` : "Current state preserved" });
+                              }
+                            }}
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border border-white/[0.06] text-white/30 hover:text-amber-300/60 hover:border-amber-500/20"
+                            data-testid={`button-snapshot-${w.id}`}
+                          >
+                            <Camera size={10} />
+                            Save this state
+                          </button>
+                          ) : (
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest text-amber-300/25">
+                            <Camera size={10} />
+                            <Crown size={8} />
+                            Snapshots
+                          </span>
+                          )}
                           {readiness === "ready_to_show" && (() => {
                             const existingFlag = myFlags.find((f: any) => f.writingId === w.id);
                             if (existingFlag) {
@@ -1041,7 +1072,9 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                         </span>
                         <span className="font-mono text-[8px] text-white/25">{snap.wordCount} words</span>
                         <span className="font-mono text-[8px] text-white/20">{timeAgo(snap.createdAt)}</span>
+                        {(snap as any).isManual && <span className="font-mono text-[7px] uppercase tracking-widest text-amber-300/50 ml-2">manual</span>}
                       </div>
+                      {(snap as any).snapshotNote && <p className="font-mono text-[8px] text-white/35 mt-0.5 italic">"{(snap as any).snapshotNote}"</p>}
                     </button>
                   ))}
                 </div>
@@ -2530,6 +2563,17 @@ export default function Garden() {
     refetchInterval: 60000,
   });
 
+  const { data: tierData } = useQuery<{ tier: string }>({
+    queryKey: ["/api/user/tier"],
+    queryFn: async () => {
+      const res = await fetch("/api/user/tier", { credentials: "include" });
+      if (!res.ok) return { tier: "free" };
+      return res.json();
+    },
+    enabled: !!user,
+  });
+  const userTier = tierData?.tier || "free";
+
   const { data: myFlags = [] } = useQuery<any[]>({
     queryKey: ["/api/editorial-flags/mine"],
     queryFn: async () => {
@@ -2727,6 +2771,12 @@ export default function Garden() {
                             <div>
                               <p className="font-display text-sm text-white/85 italic">{user?.firstName} {user?.lastName}</p>
                               <p className="font-mono text-[8px] text-white/50 uppercase tracking-widest">{user?.role === "editor" ? "Editor" : "Writer"}</p>
+                              {userTier === "paid" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest border border-amber-500/20 bg-amber-500/5 text-amber-300/60">
+                                  <Crown size={9} />
+                                  Cultivator
+                                </span>
+                              )}
                             </div>
                           </div>
                           <a
@@ -2906,6 +2956,7 @@ export default function Garden() {
                   isCreating={createMutation.isPending}
                   myFlags={myFlags}
                   flagMutation={flagMutation}
+                  userTier={userTier}
                 />
               ) : activeZone === "reading-room" ? (
                 <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} />

@@ -33,6 +33,8 @@ export const writingSnapshots = pgTable("writing_snapshots", {
   content: text("content").notNull(),
   readiness: text("readiness").notNull(),
   wordCount: integer("word_count").notNull().default(0),
+  snapshotNote: text("snapshot_note"),
+  isManual: boolean("is_manual").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -228,6 +230,8 @@ export const swapRequests = pgTable("swap_requests", {
   writingId: varchar("writing_id").notNull().references(() => writings.id),
   genre: text("genre").notNull().default("any"),
   note: text("note"),
+  preferredLength: text("preferred_length"),
+  feedbackStyle: text("feedback_style"),
   status: text("status").notNull().default("open"),
   matchedWithId: varchar("matched_with_id").references(() => users.id),
   matchedWritingId: varchar("matched_writing_id").references(() => writings.id),
@@ -475,6 +479,7 @@ export const editorialFlags = pgTable("editorial_flags", {
   writingId: varchar("writing_id").notNull().references(() => writings.id),
   authorId: varchar("author_id").notNull().references(() => users.id),
   status: text("status").notNull().default("flagged"),
+  isPaidFlag: boolean("is_paid_flag").notNull().default(false),
   seenByEditorId: varchar("seen_by_editor_id").references(() => users.id),
   seenAt: timestamp("seen_at"),
   editorResponse: text("editor_response"),
@@ -523,7 +528,10 @@ export const insertTableTopicSchema = createInsertSchema(tableTopics).omit({ id:
 export const insertTableReplySchema = createInsertSchema(tableReplies).omit({ id: true, authorId: true, createdAt: true });
 export const insertWorkshopExerciseSchema = createInsertSchema(workshopExercises).omit({ id: true, createdById: true, createdAt: true });
 export const insertWorkshopResponseSchema = createInsertSchema(workshopResponses).omit({ id: true, authorId: true, createdAt: true });
-export const insertSwapRequestSchema = createInsertSchema(swapRequests).omit({ id: true, requesterId: true, status: true, matchedWithId: true, matchedWritingId: true, createdAt: true });
+export const insertSwapRequestSchema = createInsertSchema(swapRequests).omit({ id: true, requesterId: true, status: true, matchedWithId: true, matchedWritingId: true, createdAt: true }).extend({
+  preferredLength: z.enum(["short", "medium", "long", "any"]).optional(),
+  feedbackStyle: z.enum(["line_level", "big_picture", "gentle", "any"]).optional(),
+});
 export const insertSwapFeedbackSchema = createInsertSchema(swapFeedback).omit({ id: true, fromUserId: true, createdAt: true });
 export const insertMicroSwapSchema = createInsertSchema(microSwaps).omit({ id: true, userId: true, matchedWithId: true, response: true, partnerResponse: true, status: true, createdAt: true });
 export const insertGreenhouseEntrySchema = createInsertSchema(greenhouseEntries).omit({ id: true, editorId: true, stage: true, createdAt: true });

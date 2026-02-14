@@ -1104,7 +1104,13 @@ export async function registerRoutes(
       const userId = req.user.claims.sub;
       const parsed = insertSwapRequestSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const swap = await storage.createSwapRequest(userId, { writingId: parsed.data.writingId, genre: parsed.data.genre, note: parsed.data.note ?? undefined });
+      const swap = await storage.createSwapRequest(userId, {
+        writingId: parsed.data.writingId,
+        genre: parsed.data.genre,
+        note: parsed.data.note ?? undefined,
+        preferredLength: parsed.data.preferredLength ?? undefined,
+        feedbackStyle: parsed.data.feedbackStyle ?? undefined,
+      });
       res.status(201).json(swap);
     } catch (error) {
       console.error("Error creating swap request:", error);
@@ -1930,7 +1936,9 @@ export async function registerRoutes(
         return res.status(400).json({ message: walk ? `You can flag up to ${flagLimit} pieces during the Editors Walk` : "You can only flag one piece at a time" });
       }
 
-      const flag = await storage.createEditorialFlag(userId, writingId);
+      const tier = await storage.getUserTier(userId);
+      const isPaidFlag = tier === "paid";
+      const flag = await storage.createEditorialFlag(userId, writingId, isPaidFlag);
       res.status(201).json(flag);
     } catch (error) {
       console.error("Error creating editorial flag:", error);
@@ -2011,6 +2019,60 @@ export async function registerRoutes(
       res.status(201).json(walk);
     } catch (error) {
       res.status(500).json({ message: "Failed to create walk" });
+    }
+  });
+
+  // === TIER MANAGEMENT ===
+  app.get("/api/user/tier", isAuthenticated, async (req: any, res) => {
+    try {
+      const tier = await storage.getUserTier(req.user.claims.sub);
+      res.json({ tier });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tier" });
+    }
+  });
+
+  // === MANUAL SNAPSHOTS ===
+  app.post("/api/writings/:id/snapshot", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const tier = await storage.getUserTier(userId);
+      if (tier !== "paid") return res.status(403).json({ message: "Manual snapshots are a Cultivator feature" });
+      const writing = await storage.getWriting(req.params.id);
+      if (!writing) return res.status(404).json({ message: "Writing not found" });
+      if (writing.authorId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+      const { note } = req.body;
+      const wordCount = (writing.content || "").replace(/<[^>]+>/g, "").trim().split(/\s+/).filter(Boolean).length;
+      const snapshot = await storage.createSnapshot({
+        writingId: writing.id,
+        title: writing.title,
+        content: writing.content,
+        readiness: writing.readiness,
+        wordCount,
+        snapshotNote: note || undefined,
+        isManual: true,
+      });
+      res.status(201).json(snapshot);
+    } catch (error) {
+      console.error("Error creating manual snapshot:", error);
+      res.status(500).json({ message: "Failed to create snapshot" });
+    }
+  });
+
+  // === SMART SWAP MATCHING ===
+  app.post("/api/swaps/:id/smart-match", isAuthenticated, async (req: any, res) => {
+    try {
+      const tier = await storage.getUserTier(req.user.claims.sub);
+      if (tier !== "paid") return res.status(403).json({ message: "Smart matching is a Cultivator feature" });
+      const match = await storage.findSmartSwapMatch(req.params.id);
+      if (!match) return res.json({ match: null, message: "No compatible matches found yet" });
+
+      const writing = await storage.getWriting(match.writingId);
+      res.json({ match, writingTitle: writing?.title });
+    } catch (error) {
+      console.error("Error finding smart match:", error);
+      res.status(500).json({ message: "Failed to find match" });
     }
   });
 
