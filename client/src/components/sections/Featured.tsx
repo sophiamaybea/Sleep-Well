@@ -26,29 +26,43 @@ export default function Featured() {
   const pieceCount = gallery.length;
 
   return (
-    <Section id="featured" className="bg-transparent text-primary py-32">
-      <div className="max-w-4xl mx-auto w-full px-6 space-y-16">
+    <Section id="featured" className="bg-transparent text-primary py-40 relative">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(196,162,77,0.04) 0%, transparent 55%)" }} />
+
+      <div className="max-w-4xl mx-auto w-full px-6 space-y-16 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0, y: 40, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           viewport={{ once: true }}
           className="text-center space-y-6"
         >
-          <span className="font-mono text-[10px] tracking-[0.4em] text-amber-200/25 block uppercase">
+          <motion.span
+            className="font-mono text-[10px] tracking-[0.4em] text-amber-200/25 block uppercase"
+            initial={{ opacity: 0, letterSpacing: "0.2em" }}
+            whileInView={{ opacity: 1, letterSpacing: "0.4em" }}
+            transition={{ duration: 1.2 }}
+            viewport={{ once: true }}
+          >
             The Gallery
-          </span>
+          </motion.span>
           <h2 className="text-5xl md:text-6xl font-display font-light tracking-tight">
             Read the Journal
           </h2>
           <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto leading-relaxed">
             Found in the Gardens. Chosen because they wouldn't let go.
           </p>
-          <div className="flex items-center justify-center gap-4 pt-2">
+          <motion.div
+            className="flex items-center justify-center gap-4 pt-2"
+            initial={{ opacity: 0, scaleX: 0 }}
+            whileInView={{ opacity: 1, scaleX: 1 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            viewport={{ once: true }}
+          >
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />
             <div className="w-1.5 h-1.5 rotate-45 border border-amber-600/20" />
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-600/20" />
-          </div>
+          </motion.div>
         </motion.div>
 
         <motion.div

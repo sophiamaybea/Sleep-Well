@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
@@ -327,30 +327,35 @@ export default function Gallery() {
                   return (
                     <motion.button
                       key={item.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.06, duration: 0.5 }}
-                      viewport={{ once: true }}
+                      initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+                      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{
+                        delay: Math.min(i * 0.08, 0.4),
+                        duration: 0.7,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      viewport={{ once: true, margin: "-30px" }}
                       onClick={() => setSelectedPiece(item)}
-                      className="w-full text-left py-7 border-b border-white/[0.06] group cursor-pointer hover:bg-white/[0.02] transition-colors px-4 -mx-4 rounded"
+                      className="w-full text-left py-8 border-b border-white/[0.06] group cursor-pointer hover:bg-white/[0.015] transition-all duration-500 px-6 -mx-6 rounded-sm"
                       data-testid={`button-piece-${item.id}`}
+                      whileHover={{ x: 4 }}
                     >
                       <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-2 min-w-0">
-                          <h3 className="text-2xl md:text-3xl font-display font-light tracking-tight text-white/75 group-hover:text-white transition-colors duration-300 italic truncate">
+                        <div className="space-y-3 min-w-0">
+                          <h3 className="text-2xl md:text-3xl font-display font-light tracking-tight text-white/75 group-hover:text-white transition-colors duration-500 italic truncate">
                             {item.title}
                           </h3>
                           <div className="flex items-center gap-4">
-                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25">
+                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25 group-hover:text-amber-200/40 transition-colors duration-500">
                               {item.genre}
                             </span>
                             {item.authorName && (
-                              <span className="font-serif text-[12px] italic text-white/25">
+                              <span className="font-serif text-[12px] italic text-white/25 group-hover:text-white/35 transition-colors duration-500">
                                 {item.authorName}
                               </span>
                             )}
                             <span className="font-mono text-[9px] text-white/20" data-testid={`text-reading-time-${item.id}`}>
-                              {readingTime} min read
+                              {readingTime} min
                             </span>
                             {item.publishedAt && (
                               <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
@@ -359,7 +364,7 @@ export default function Gallery() {
                             )}
                           </div>
                         </div>
-                        <ChevronRight size={18} className="text-white/15 group-hover:text-amber-200/50 group-hover:translate-x-1 transition-all duration-300 mt-2 flex-shrink-0" />
+                        <ChevronRight size={18} className="text-white/10 group-hover:text-amber-200/50 group-hover:translate-x-2 transition-all duration-500 mt-2 flex-shrink-0" />
                       </div>
                     </motion.button>
                   );
@@ -391,187 +396,251 @@ export default function Gallery() {
 
       <AnimatePresence>
         {selectedPiece && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className={`fixed inset-0 z-50 overflow-y-auto ${lightMode ? "bg-[#f0eeea]" : "bg-black"}`}
-            data-lenis-prevent
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            <div className="relative">
-              <div className={`sticky top-0 z-10 backdrop-blur-sm flex items-center justify-between px-6 md:px-12 py-6 ${lightMode ? "bg-[#f0eeea]/80" : "bg-black/80"}`}>
-                <button
-                  onClick={() => setSelectedPiece(null)}
-                  className={`flex items-center gap-2 transition-colors font-mono text-xs uppercase tracking-widest group ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/30 hover:text-white/60"}`}
-                  data-testid="button-close-piece"
-                >
-                  <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                  Back to Gallery
-                </button>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setLightMode(!lightMode)}
-                    className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-500 hover:text-stone-700 hover:bg-stone-200/50" : "text-white/30 hover:text-white/60 hover:bg-white/10"}`}
-                    data-testid="button-reading-mode-toggle"
-                    title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-                  >
-                    {lightMode ? <Moon size={16} /> : <Sun size={16} />}
-                  </button>
-                  <span className={`font-mono text-[9px] uppercase tracking-[0.25em] ${lightMode ? "text-stone-400" : "text-white/15"}`}>
-                    {selectedPiece.genre}
-                  </span>
-                  {selectedPiece.publishedAt && (
-                    <span className={`font-mono text-[8px] uppercase tracking-widest hidden sm:inline ${lightMode ? "text-stone-300" : "text-white/10"}`}>
-                      {new Date(selectedPiece.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-center px-6 md:px-12 pb-24 pt-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
-                  className="w-full max-w-2xl"
-                >
-                  <div className="mb-16 space-y-6">
-                    <motion.h1
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3, duration: 0.7 }}
-                      className={`text-4xl md:text-6xl font-display font-light tracking-tight italic leading-tight ${lightMode ? "text-stone-800" : "text-white/90"}`}
-                    >
-                      {selectedPiece.title}
-                    </motion.h1>
-                    {selectedPiece.authorName && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.5 }}
-                      >
-                        <Link
-                          href={selectedPiece.authorId ? `/writer/${selectedPiece.authorId}` : "#"}
-                          className={`font-serif text-sm italic transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/25 hover:text-white/45"}`}
-                          data-testid="link-piece-author"
-                        >
-                          by {selectedPiece.authorName}
-                        </Link>
-                      </motion.div>
-                    )}
-                    <motion.div
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{ delay: 0.6, duration: 0.8 }}
-                      className={`h-px w-24 bg-gradient-to-r origin-left ${lightMode ? "from-stone-300 to-transparent" : "from-white/15 to-transparent"}`}
-                    />
-                  </div>
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7, duration: 0.8 }}
-                    className={`font-serif text-[18px] md:text-[20px] leading-[2.4] ${lightMode ? "text-stone-600" : "text-white/60"}`}
-                  >
-                    <ContentRenderer content={selectedPiece.content} />
-                  </motion.div>
-
-                  {selectedPiece.authorBio && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.9, duration: 0.6 }}
-                      className={`mt-20 pt-8 border-t ${lightMode ? "border-stone-200" : "border-white/[0.06]"}`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${lightMode ? "bg-stone-200 text-stone-500" : "bg-white/[0.06] text-white/25"}`}>
-                          <span className="font-display text-sm italic">
-                            {selectedPiece.authorName?.charAt(0) || "?"}
-                          </span>
-                        </div>
-                        <div className="space-y-2 min-w-0">
-                          <div className="flex items-center gap-3">
-                            <span className={`font-display text-sm italic ${lightMode ? "text-stone-700" : "text-white/60"}`}>
-                              {selectedPiece.authorName}
-                            </span>
-                            {selectedPiece.authorId && (
-                              <Link
-                                href={`/writer/${selectedPiece.authorId}`}
-                                className={`font-mono text-[8px] uppercase tracking-widest transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/20 hover:text-white/40"}`}
-                                data-testid="link-author-profile-from-bio"
-                              >
-                                View Profile
-                              </Link>
-                            )}
-                          </div>
-                          <p className={`font-serif text-[13px] leading-relaxed ${lightMode ? "text-stone-500" : "text-white/35"}`}>
-                            {selectedPiece.authorBio}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1, duration: 0.6 }}
-                    className={`mt-12 pt-8 border-t flex items-center justify-between ${lightMode ? "border-stone-200" : "border-white/[0.04]"}`}
-                  >
-                    <p className={`font-serif text-[11px] italic ${lightMode ? "text-stone-400" : "text-white/15"}`}>
-                      This piece grew in The Garden.
-                    </p>
-                    {selectedPiece.authorId && (
-                      <Link
-                        href={`/writer/${selectedPiece.authorId}`}
-                        className={`font-mono text-[9px] uppercase tracking-widest transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/15 hover:text-white/40"}`}
-                        data-testid="link-piece-writer-profile"
-                      >
-                        Visit Writer
-                      </Link>
-                    )}
-                  </motion.div>
-
-                  <div className={`mt-12 pt-8 border-t flex items-center justify-between gap-4 ${lightMode ? "border-stone-200" : "border-white/[0.04]"}`}>
-                    {prevPiece ? (
-                      <button
-                        onClick={() => setSelectedPiece(prevPiece)}
-                        className={`flex items-center gap-3 group text-left max-w-[45%] transition-colors ${lightMode ? "text-stone-400 hover:text-stone-700" : "text-white/25 hover:text-white/60"}`}
-                        data-testid="button-prev-piece"
-                      >
-                        <ChevronLeft size={16} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
-                        <div className="min-w-0">
-                          <span className="font-mono text-[8px] uppercase tracking-widest block mb-1">Previous</span>
-                          <span className="font-display text-sm italic truncate block">{prevPiece.title}</span>
-                        </div>
-                      </button>
-                    ) : (
-                      <div />
-                    )}
-                    {nextPiece ? (
-                      <button
-                        onClick={() => setSelectedPiece(nextPiece)}
-                        className={`flex items-center gap-3 group text-right max-w-[45%] transition-colors ${lightMode ? "text-stone-400 hover:text-stone-700" : "text-white/25 hover:text-white/60"}`}
-                        data-testid="button-next-piece"
-                      >
-                        <div className="min-w-0">
-                          <span className="font-mono text-[8px] uppercase tracking-widest block mb-1">Next</span>
-                          <span className="font-display text-sm italic truncate block">{nextPiece.title}</span>
-                        </div>
-                        <ChevronRight size={16} className="flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    ) : (
-                      <div />
-                    )}
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
+          <ReadingView
+            piece={selectedPiece}
+            lightMode={lightMode}
+            setLightMode={setLightMode}
+            onClose={() => setSelectedPiece(null)}
+            prevPiece={prevPiece}
+            nextPiece={nextPiece}
+            onNavigate={setSelectedPiece}
+          />
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextPiece, onNavigate }: {
+  piece: GalleryItem;
+  lightMode: boolean;
+  setLightMode: (v: boolean) => void;
+  onClose: () => void;
+  prevPiece: GalleryItem | null;
+  nextPiece: GalleryItem | null;
+  onNavigate: (p: GalleryItem) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ container: scrollRef });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const progressWidth = useTransform(smoothProgress, [0, 1], ["0%", "100%"]);
+  const readingTime = getReadingTime(piece.content);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [piece.id]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className={`fixed inset-0 z-50 transition-colors duration-700 ${lightMode ? "bg-[#f0eeea]" : "bg-[#060a10]"}`}
+      data-lenis-prevent
+    >
+      <motion.div
+        className={`fixed top-0 left-0 right-0 h-[2px] z-[60] origin-left ${lightMode ? "bg-stone-400/40" : "bg-white/20"}`}
+        style={{ width: progressWidth }}
+      />
+
+      <div
+        ref={scrollRef}
+        className="absolute inset-0 overflow-y-auto"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ delay: 0.3, duration: 1.2, ease: "easeOut" }}
+          style={{
+            background: lightMode
+              ? "radial-gradient(ellipse at center, rgba(240,238,234,1) 0%, transparent 70%)"
+              : "radial-gradient(ellipse at center, rgba(6,10,16,1) 0%, transparent 70%)"
+          }}
+        />
+
+        <div className="relative">
+          <div className={`sticky top-0 z-10 backdrop-blur-md border-b transition-colors duration-700 ${lightMode ? "bg-[#f0eeea]/90 border-stone-200/50" : "bg-[#060a10]/90 border-white/[0.04]"}`}>
+            <div className="flex items-center justify-between px-6 md:px-12 py-4">
+              <button
+                onClick={onClose}
+                className={`flex items-center gap-2 transition-colors font-mono text-xs uppercase tracking-widest group ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/30 hover:text-white/60"}`}
+                data-testid="button-close-piece"
+              >
+                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                Back
+              </button>
+              <div className="flex items-center gap-4">
+                <span className={`font-mono text-[8px] uppercase tracking-widest ${lightMode ? "text-stone-400" : "text-white/20"}`}>
+                  {readingTime} min
+                </span>
+                <button
+                  onClick={() => setLightMode(!lightMode)}
+                  className={`p-2 rounded-full transition-all duration-500 ${lightMode ? "text-stone-500 hover:text-stone-700 hover:bg-stone-200/50" : "text-white/30 hover:text-white/60 hover:bg-white/10"}`}
+                  data-testid="button-reading-mode-toggle"
+                  title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
+                >
+                  {lightMode ? <Moon size={14} /> : <Sun size={14} />}
+                </button>
+                <span className={`font-mono text-[9px] uppercase tracking-[0.25em] ${lightMode ? "text-stone-400" : "text-white/15"}`}>
+                  {piece.genre}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center px-6 md:px-12 pb-32 pt-16 md:pt-24">
+            <div className="w-full max-w-2xl">
+              <motion.div
+                className="mb-20 space-y-6 text-center"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <motion.span
+                  className={`font-mono text-[8px] uppercase tracking-[0.4em] block ${lightMode ? "text-stone-400" : "text-amber-200/25"}`}
+                  initial={{ opacity: 0, letterSpacing: "0.2em" }}
+                  animate={{ opacity: 1, letterSpacing: "0.4em" }}
+                  transition={{ delay: 0.4, duration: 1 }}
+                >
+                  {piece.genre}
+                </motion.span>
+                <motion.h1
+                  className={`text-4xl md:text-6xl lg:text-7xl font-display font-light tracking-tight italic leading-[1.1] ${lightMode ? "text-stone-800" : "text-white/90"}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {piece.title}
+                </motion.h1>
+                {piece.authorName && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6, duration: 0.6 }}
+                  >
+                    <Link
+                      href={piece.authorId ? `/writer/${piece.authorId}` : "#"}
+                      className={`font-serif text-sm italic transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/25 hover:text-white/45"}`}
+                      data-testid="link-piece-author"
+                    >
+                      by {piece.authorName}
+                    </Link>
+                  </motion.div>
+                )}
+                <motion.div
+                  className="flex items-center justify-center gap-4 pt-4"
+                  initial={{ opacity: 0, scaleX: 0 }}
+                  animate={{ opacity: 1, scaleX: 1 }}
+                  transition={{ delay: 0.7, duration: 1 }}
+                >
+                  <div className={`h-px w-16 bg-gradient-to-r from-transparent ${lightMode ? "to-stone-300" : "to-amber-600/20"}`} />
+                  <div className={`w-1 h-1 rotate-45 border ${lightMode ? "border-stone-300" : "border-amber-600/20"}`} />
+                  <div className={`h-px w-16 bg-gradient-to-l from-transparent ${lightMode ? "to-stone-300" : "to-amber-600/20"}`} />
+                </motion.div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+                className={`font-serif text-[18px] md:text-[20px] leading-[2.4] ${lightMode ? "text-stone-600" : "text-white/60"}`}
+              >
+                <ContentRenderer content={piece.content} />
+              </motion.div>
+
+              {piece.authorBio && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  transition={{ duration: 0.8 }}
+                  viewport={{ once: true }}
+                  className={`mt-24 pt-8 border-t ${lightMode ? "border-stone-200" : "border-white/[0.06]"}`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${lightMode ? "bg-stone-200 text-stone-500" : "bg-white/[0.06] text-white/25"}`}>
+                      <span className="font-display text-base italic">
+                        {piece.authorName?.charAt(0) || "?"}
+                      </span>
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <span className={`font-display text-sm italic ${lightMode ? "text-stone-700" : "text-white/60"}`}>
+                          {piece.authorName}
+                        </span>
+                        {piece.authorId && (
+                          <Link
+                            href={`/writer/${piece.authorId}`}
+                            className={`font-mono text-[8px] uppercase tracking-widest transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/20 hover:text-white/40"}`}
+                            data-testid="link-author-profile-from-bio"
+                          >
+                            View Profile
+                          </Link>
+                        )}
+                      </div>
+                      <p className={`font-serif text-[13px] leading-relaxed ${lightMode ? "text-stone-500" : "text-white/35"}`}>
+                        {piece.authorBio}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className={`mt-16 pt-8 border-t flex items-center justify-between ${lightMode ? "border-stone-200" : "border-white/[0.04]"}`}
+              >
+                <p className={`font-serif text-[11px] italic ${lightMode ? "text-stone-400" : "text-white/15"}`}>
+                  This piece grew in The Garden.
+                </p>
+                {piece.authorId && (
+                  <Link
+                    href={`/writer/${piece.authorId}`}
+                    className={`font-mono text-[9px] uppercase tracking-widest transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/15 hover:text-white/40"}`}
+                    data-testid="link-piece-writer-profile"
+                  >
+                    Visit Writer
+                  </Link>
+                )}
+              </motion.div>
+
+              <div className={`mt-12 pt-8 border-t flex items-center justify-between gap-4 ${lightMode ? "border-stone-200" : "border-white/[0.04]"}`}>
+                {prevPiece ? (
+                  <button
+                    onClick={() => onNavigate(prevPiece)}
+                    className={`flex items-center gap-3 group text-left max-w-[45%] transition-colors ${lightMode ? "text-stone-400 hover:text-stone-700" : "text-white/25 hover:text-white/60"}`}
+                    data-testid="button-prev-piece"
+                  >
+                    <ChevronLeft size={16} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
+                    <div className="min-w-0">
+                      <span className="font-mono text-[8px] uppercase tracking-widest block mb-1">Previous</span>
+                      <span className="font-display text-sm italic truncate block">{prevPiece.title}</span>
+                    </div>
+                  </button>
+                ) : <div />}
+                {nextPiece ? (
+                  <button
+                    onClick={() => onNavigate(nextPiece)}
+                    className={`flex items-center gap-3 group text-right max-w-[45%] transition-colors ${lightMode ? "text-stone-400 hover:text-stone-700" : "text-white/25 hover:text-white/60"}`}
+                    data-testid="button-next-piece"
+                  >
+                    <div className="min-w-0">
+                      <span className="font-mono text-[8px] uppercase tracking-widest block mb-1">Next</span>
+                      <span className="font-display text-sm italic truncate block">{nextPiece.title}</span>
+                    </div>
+                    <ChevronRight size={16} className="flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                ) : <div />}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

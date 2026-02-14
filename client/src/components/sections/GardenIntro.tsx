@@ -168,13 +168,15 @@ export default function GardenIntro() {
   ];
 
   return (
-    <section id="garden-intro" className="relative py-32 overflow-hidden" data-testid="section-garden-intro">
+    <section id="garden-intro" className="relative py-40 overflow-hidden" data-testid="section-garden-intro">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(52,211,153,0.03) 0%, transparent 60%)" }} />
+
       <div className="max-w-5xl mx-auto w-full px-6 relative">
         <div className="text-center space-y-10 relative z-10">
           <motion.span
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 0.4 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, letterSpacing: "0.15em" }}
+            whileInView={{ opacity: 0.4, letterSpacing: "0.3em" }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             viewport={{ once: true }}
             className="font-mono text-xs tracking-[0.3em] block uppercase"
           >
@@ -182,9 +184,9 @@ export default function GardenIntro() {
           </motion.span>
 
           <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             viewport={{ once: true }}
             className="text-5xl md:text-7xl font-display font-light tracking-tight italic"
             data-testid="heading-garden-intro"
@@ -194,10 +196,10 @@ export default function GardenIntro() {
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
+            whileInView={{ opacity: 0.7, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             viewport={{ once: true }}
-            className="text-lg md:text-xl font-serif font-light leading-relaxed max-w-2xl mx-auto opacity-70"
+            className="text-lg md:text-xl font-serif font-light leading-relaxed max-w-2xl mx-auto"
           >
             Every writer gets a private garden — a quiet place to plant ideas,
             tend to drafts, and let your words grow at their own pace.
