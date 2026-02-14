@@ -1762,7 +1762,7 @@ export default function SubmissionsZone({ userTier }: { userTier: "free" | "paid
 
       <TabNav active={activeTab} onChange={setActiveTab} />
 
-      {userTier === "free" ? (
+      {false ? (
         <UpgradeGate>{renderContent()}</UpgradeGate>
       ) : (
         <AnimatePresence mode="wait">

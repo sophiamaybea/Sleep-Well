@@ -7,6 +7,7 @@ export interface AccessibilitySettings {
   dyslexiaFont: boolean;
   widerSpacing: boolean;
   focusMode: boolean;
+  gardenLight: boolean;
 }
 
 const defaultSettings: AccessibilitySettings = {
@@ -16,6 +17,7 @@ const defaultSettings: AccessibilitySettings = {
   dyslexiaFont: false,
   widerSpacing: false,
   focusMode: false,
+  gardenLight: false,
 };
 
 const STORAGE_KEY = "page-gallery-a11y";
