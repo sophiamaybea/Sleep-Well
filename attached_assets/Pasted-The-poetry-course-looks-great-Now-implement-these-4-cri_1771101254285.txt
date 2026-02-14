@@ -1,0 +1,11 @@
+The poetry course looks great. Now implement these 4 critical improvements to the Courses/Craft Studies system, all in one pass:
+
+#2 — INSTRUCTOR ATTRIBUTION: Change the author on ALL courses from "The Page Gallery" to named instructors. The Architecture of the Line should show "by Sophia Maye" (which it may already). The Metaphor Mastery Engine should show "by Sophia Maye". The Writer's Problem-Solver Workbook should show "by Sophia Maye". Update the database author field. Also, in the course detail header area, add a small instructor bio line beneath the author name: "Sophia Maye — poet, editor, and founder of The Page Gallery Journal" in a subtle, editorial style.
+
+#3 — PRICING TRANSPARENCY: On the Craft Studies landing page, add a small, elegant section below the subtitle that explains pricing. Something like: "Courses are available individually or included with your plan. Seed members receive one course free. Cultivator members receive all courses." Use the same quiet, lowercase editorial typography as the rest of the site. This should feel like a margin note, not a pricing table.
+
+#4 — READING LIST IN LESSONS: In the Courses.tsx lesson view, add a "Suggested Reading" collapsible section at the bottom of each lesson (before the navigation buttons), styled like the other collapsible sections. For the Architecture of the Line course lessons, populate this with 2-3 poetry references per lesson (e.g., Lesson 2 "The Line as Unit of Thought" could reference: William Carlos Williams, C.D. Wright, Claudia Rankine). For other courses, add placeholder references. Use the same bordered left-bar collapsible style.
+
+#5 — COURSE EXERCISE TEXTAREA UPGRADE: The plain textarea in course exercises needs to be poetry-friendly. Add CSS to the exercise textarea that uses a monospace or proportional font with proper line-height, preserves whitespace/line breaks visually (white-space: pre-wrap), and has a minimum height of 200px. Add a small note above the textarea: "Line breaks and spacing are preserved exactly as you type them." This is critical for poets.
+
+Do all four. Show me when done.
