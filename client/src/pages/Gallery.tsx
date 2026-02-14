@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowLeft, Search, BookOpen, X, ChevronRight } from "lucide-react";
-import { ContentRenderer } from "@/components/garden/RichEditor";
+import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon } from "lucide-react";
+import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
 
 const frameImg = "/images/gold-frame.png";
@@ -20,10 +20,29 @@ interface GalleryItem {
 
 const genreFilters = ["all", "poetry", "fiction", "essay", "fragment", "other"];
 
+function getReadingTime(content: string): number {
+  const text = stripHtml(content);
+  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+  return Math.max(1, Math.ceil(wordCount / 200));
+}
+
 export default function Gallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeGenre, setActiveGenre] = useState("all");
   const [selectedPiece, setSelectedPiece] = useState<GalleryItem | null>(null);
+  const [lightMode, setLightMode] = useState(() => {
+    try {
+      return localStorage.getItem("gallery-reading-mode") === "light";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("gallery-reading-mode", lightMode ? "light" : "dark");
+    } catch {}
+  }, [lightMode]);
 
   const { data: gallery = [], isLoading } = useQuery<GalleryItem[]>({
     queryKey: ["/api/gallery", searchQuery, activeGenre],
@@ -37,6 +56,10 @@ export default function Gallery() {
       return res.json();
     },
   });
+
+  const selectedIndex = selectedPiece ? gallery.findIndex(g => g.id === selectedPiece.id) : -1;
+  const prevPiece = selectedIndex > 0 ? gallery[selectedIndex - 1] : null;
+  const nextPiece = selectedIndex >= 0 && selectedIndex < gallery.length - 1 ? gallery[selectedIndex + 1] : null;
 
   return (
     <div className="min-h-screen bg-[#0b101a] text-white selection:bg-secondary selection:text-background relative">
@@ -90,21 +113,34 @@ export default function Gallery() {
                 data-testid="input-gallery-search"
               />
             </div>
-            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-              {genreFilters.map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setActiveGenre(g)}
-                  className={`px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all ${
-                    activeGenre === g
-                      ? "bg-amber-600/15 border border-amber-600/30 text-amber-200/80"
-                      : "border border-white/[0.06] text-white/35 hover:text-white/55 hover:border-white/15"
-                  }`}
-                  data-testid={`button-genre-${g}`}
-                >
-                  {g}
-                </button>
-              ))}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setActiveGenre("all")}
+                className={`px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all flex-shrink-0 ${
+                  activeGenre === "all"
+                    ? "bg-amber-600/15 border border-amber-600/30 text-amber-200/80"
+                    : "border border-white/[0.06] text-white/35 hover:text-white/55 hover:border-white/15"
+                }`}
+                data-testid="button-genre-all"
+              >
+                all
+              </button>
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+                {genreFilters.filter(g => g !== "all").map((g) => (
+                  <button
+                    key={g}
+                    onClick={() => setActiveGenre(g)}
+                    className={`px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all ${
+                      activeGenre === g
+                        ? "bg-amber-600/15 border border-amber-600/30 text-amber-200/80"
+                        : "border border-white/[0.06] text-white/35 hover:text-white/55 hover:border-white/15"
+                    }`}
+                    data-testid={`button-genre-${g}`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
             </div>
           </motion.div>
 
@@ -123,42 +159,48 @@ export default function Gallery() {
           ) : gallery.length > 0 ? (
             <div className="max-w-3xl mx-auto">
               <div className="border-t border-white/[0.06]">
-                {gallery.map((item, i) => (
-                  <motion.button
-                    key={item.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.5 }}
-                    viewport={{ once: true }}
-                    onClick={() => setSelectedPiece(item)}
-                    className="w-full text-left py-7 border-b border-white/[0.06] group cursor-pointer hover:bg-white/[0.02] transition-colors px-4 -mx-4 rounded"
-                    data-testid={`button-piece-${item.id}`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-2 min-w-0">
-                        <h3 className="text-2xl md:text-3xl font-display font-light tracking-tight text-white/75 group-hover:text-white transition-colors duration-300 italic truncate">
-                          {item.title}
-                        </h3>
-                        <div className="flex items-center gap-4">
-                          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25">
-                            {item.genre}
-                          </span>
-                          {item.authorName && (
-                            <span className="font-serif text-[12px] italic text-white/25">
-                              {item.authorName}
+                {gallery.map((item, i) => {
+                  const readingTime = getReadingTime(item.content);
+                  return (
+                    <motion.button
+                      key={item.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06, duration: 0.5 }}
+                      viewport={{ once: true }}
+                      onClick={() => setSelectedPiece(item)}
+                      className="w-full text-left py-7 border-b border-white/[0.06] group cursor-pointer hover:bg-white/[0.02] transition-colors px-4 -mx-4 rounded"
+                      data-testid={`button-piece-${item.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-2 min-w-0">
+                          <h3 className="text-2xl md:text-3xl font-display font-light tracking-tight text-white/75 group-hover:text-white transition-colors duration-300 italic truncate">
+                            {item.title}
+                          </h3>
+                          <div className="flex items-center gap-4">
+                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25">
+                              {item.genre}
                             </span>
-                          )}
-                          {item.publishedAt && (
-                            <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
-                              {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                            {item.authorName && (
+                              <span className="font-serif text-[12px] italic text-white/25">
+                                {item.authorName}
+                              </span>
+                            )}
+                            <span className="font-mono text-[9px] text-white/20" data-testid={`text-reading-time-${item.id}`}>
+                              {readingTime} min read
                             </span>
-                          )}
+                            {item.publishedAt && (
+                              <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
+                                {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <ChevronRight size={18} className="text-white/15 group-hover:text-amber-200/50 group-hover:translate-x-1 transition-all duration-300 mt-2 flex-shrink-0" />
                       </div>
-                      <ChevronRight size={18} className="text-white/15 group-hover:text-amber-200/50 group-hover:translate-x-1 transition-all duration-300 mt-2 flex-shrink-0" />
-                    </div>
-                  </motion.button>
-                ))}
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -191,25 +233,34 @@ export default function Gallery() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-50 bg-black"
-            style={{ overflowY: "auto", WebkitOverflowScrolling: "touch" }}
+            className={`fixed inset-0 z-50 overflow-y-auto ${lightMode ? "bg-[#f0eeea]" : "bg-black"}`}
+            data-lenis-prevent
+            style={{ WebkitOverflowScrolling: "touch" }}
           >
             <div className="relative">
-              <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm flex items-center justify-between px-6 md:px-12 py-6">
+              <div className={`sticky top-0 z-10 backdrop-blur-sm flex items-center justify-between px-6 md:px-12 py-6 ${lightMode ? "bg-[#f0eeea]/80" : "bg-black/80"}`}>
                 <button
                   onClick={() => setSelectedPiece(null)}
-                  className="flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors font-mono text-xs uppercase tracking-widest group"
+                  className={`flex items-center gap-2 transition-colors font-mono text-xs uppercase tracking-widest group ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/30 hover:text-white/60"}`}
                   data-testid="button-close-piece"
                 >
                   <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                   Back to Gallery
                 </button>
                 <div className="flex items-center gap-4">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/15">
+                  <button
+                    onClick={() => setLightMode(!lightMode)}
+                    className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-500 hover:text-stone-700 hover:bg-stone-200/50" : "text-white/30 hover:text-white/60 hover:bg-white/10"}`}
+                    data-testid="button-reading-mode-toggle"
+                    title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
+                  >
+                    {lightMode ? <Moon size={16} /> : <Sun size={16} />}
+                  </button>
+                  <span className={`font-mono text-[9px] uppercase tracking-[0.25em] ${lightMode ? "text-stone-400" : "text-white/15"}`}>
                     {selectedPiece.genre}
                   </span>
                   {selectedPiece.publishedAt && (
-                    <span className="font-mono text-[8px] text-white/10 uppercase tracking-widest hidden sm:inline">
+                    <span className={`font-mono text-[8px] uppercase tracking-widest hidden sm:inline ${lightMode ? "text-stone-300" : "text-white/10"}`}>
                       {new Date(selectedPiece.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                     </span>
                   )}
@@ -228,7 +279,7 @@ export default function Gallery() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3, duration: 0.7 }}
-                      className="text-4xl md:text-6xl font-display font-light tracking-tight text-white/90 italic leading-tight"
+                      className={`text-4xl md:text-6xl font-display font-light tracking-tight italic leading-tight ${lightMode ? "text-stone-800" : "text-white/90"}`}
                     >
                       {selectedPiece.title}
                     </motion.h1>
@@ -240,7 +291,7 @@ export default function Gallery() {
                       >
                         <Link
                           href={selectedPiece.authorId ? `/writer/${selectedPiece.authorId}` : "#"}
-                          className="font-serif text-sm italic text-white/25 hover:text-white/45 transition-colors"
+                          className={`font-serif text-sm italic transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/25 hover:text-white/45"}`}
                           data-testid="link-piece-author"
                         >
                           by {selectedPiece.authorName}
@@ -251,7 +302,7 @@ export default function Gallery() {
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ delay: 0.6, duration: 0.8 }}
-                      className="h-px w-24 bg-gradient-to-r from-white/15 to-transparent origin-left"
+                      className={`h-px w-24 bg-gradient-to-r origin-left ${lightMode ? "from-stone-300 to-transparent" : "from-white/15 to-transparent"}`}
                     />
                   </div>
 
@@ -259,7 +310,7 @@ export default function Gallery() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.7, duration: 0.8 }}
-                    className="font-serif text-[18px] md:text-[20px] leading-[2.4] text-white/60"
+                    className={`font-serif text-[18px] md:text-[20px] leading-[2.4] ${lightMode ? "text-stone-600" : "text-white/60"}`}
                   >
                     <ContentRenderer content={selectedPiece.content} />
                   </motion.div>
@@ -268,21 +319,54 @@ export default function Gallery() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1, duration: 0.6 }}
-                    className="mt-20 pt-8 border-t border-white/[0.04] flex items-center justify-between"
+                    className={`mt-20 pt-8 border-t flex items-center justify-between ${lightMode ? "border-stone-200" : "border-white/[0.04]"}`}
                   >
-                    <p className="font-serif text-[11px] italic text-white/15">
+                    <p className={`font-serif text-[11px] italic ${lightMode ? "text-stone-400" : "text-white/15"}`}>
                       This piece grew in The Garden.
                     </p>
                     {selectedPiece.authorId && (
                       <Link
                         href={`/writer/${selectedPiece.authorId}`}
-                        className="font-mono text-[9px] uppercase tracking-widest text-white/15 hover:text-white/40 transition-colors"
+                        className={`font-mono text-[9px] uppercase tracking-widest transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/15 hover:text-white/40"}`}
                         data-testid="link-piece-writer-profile"
                       >
                         Visit Writer
                       </Link>
                     )}
                   </motion.div>
+
+                  <div className={`mt-12 pt-8 border-t flex items-center justify-between gap-4 ${lightMode ? "border-stone-200" : "border-white/[0.04]"}`}>
+                    {prevPiece ? (
+                      <button
+                        onClick={() => setSelectedPiece(prevPiece)}
+                        className={`flex items-center gap-3 group text-left max-w-[45%] transition-colors ${lightMode ? "text-stone-400 hover:text-stone-700" : "text-white/25 hover:text-white/60"}`}
+                        data-testid="button-prev-piece"
+                      >
+                        <ChevronLeft size={16} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
+                        <div className="min-w-0">
+                          <span className="font-mono text-[8px] uppercase tracking-widest block mb-1">Previous</span>
+                          <span className="font-display text-sm italic truncate block">{prevPiece.title}</span>
+                        </div>
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+                    {nextPiece ? (
+                      <button
+                        onClick={() => setSelectedPiece(nextPiece)}
+                        className={`flex items-center gap-3 group text-right max-w-[45%] transition-colors ${lightMode ? "text-stone-400 hover:text-stone-700" : "text-white/25 hover:text-white/60"}`}
+                        data-testid="button-next-piece"
+                      >
+                        <div className="min-w-0">
+                          <span className="font-mono text-[8px] uppercase tracking-widest block mb-1">Next</span>
+                          <span className="font-display text-sm italic truncate block">{nextPiece.title}</span>
+                        </div>
+                        <ChevronRight size={16} className="flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+                  </div>
                 </motion.div>
               </div>
             </div>

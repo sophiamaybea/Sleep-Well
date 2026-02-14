@@ -157,6 +157,12 @@ export async function registerRoutes(
         return res.json(results);
       }
       const published = await storage.getPublishedWritings();
+      if (genre && typeof genre === "string") {
+        const filtered = published.filter(
+          (p: any) => p.genre && p.genre.toLowerCase() === genre.toLowerCase()
+        );
+        return res.json(filtered);
+      }
       res.json(published);
     } catch (error) {
       console.error("Error fetching gallery:", error);

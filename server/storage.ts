@@ -1332,7 +1332,7 @@ export class DatabaseStorage implements IStorage {
     if (!user) return null;
 
     const gardenWritings = await db.select().from(writings)
-      .where(and(eq(writings.authorId, userId), eq(writings.visibility, "garden")))
+      .where(and(eq(writings.authorId, userId), or(eq(writings.visibility, "garden"), eq(writings.isPublished, true))))
       .orderBy(desc(writings.updatedAt));
 
     const writingsWithResonance: (Writing & { resonanceCount: number })[] = [];

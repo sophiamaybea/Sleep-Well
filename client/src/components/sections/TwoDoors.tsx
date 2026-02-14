@@ -63,7 +63,7 @@ export default function TwoDoors() {
           <span className="font-mono text-xs tracking-[0.3em] opacity-40 block uppercase">
             01 — Choose Your Path
           </span>
-          <h2 className="text-5xl md:text-7xl font-display italic font-light tracking-tight">
+          <h2 className="text-5xl md:text-7xl font-display italic font-light tracking-tight text-white">
             {content.twoDoors.title}
           </h2>
         </div>
@@ -94,12 +94,12 @@ export default function TwoDoors() {
                       >
                         {door.subtitle}
                       </motion.span>
-                      <h3 className="text-4xl md:text-5xl font-display font-light group-hover:text-white transition-colors duration-300">
+                      <h3 className="text-4xl md:text-5xl font-display font-light text-white/90 group-hover:text-white transition-colors duration-300">
                         {door.title}
                       </h3>
                     </div>
 
-                    <p className="text-lg md:text-xl opacity-70 leading-relaxed font-serif font-light group-hover:opacity-95 transition-opacity duration-500">
+                    <p className="text-lg md:text-xl opacity-90 text-white/90 leading-relaxed font-serif font-light group-hover:opacity-100 transition-opacity duration-500">
                       {door.description}
                     </p>
 
@@ -111,7 +111,7 @@ export default function TwoDoors() {
                           whileInView={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
                           viewport={{ once: true }}
-                          className="flex gap-4 items-start text-sm font-mono opacity-60 group-hover:opacity-90 transition-opacity duration-300"
+                          className="flex gap-4 items-start text-sm font-mono opacity-80 text-white/80 group-hover:opacity-100 transition-opacity duration-300"
                           whileHover={{ x: 8, opacity: 1 }}
                         >
                           <motion.span

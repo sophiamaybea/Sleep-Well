@@ -21,6 +21,9 @@ export default function StarTitle() {
   const starsRef = useRef<Star[]>([]);
   const rafRef = useRef(0);
   const progressRef = useRef(0);
+  const [isReturning] = useState(() => {
+    try { return !!localStorage.getItem("pgj-visited"); } catch { return false; }
+  });
 
   const { scrollYProgress } = useScroll({
     target: wrapRef,
@@ -159,12 +162,35 @@ export default function StarTitle() {
   const handleSkip = () => {
     const el = wrapRef.current;
     if (!el) return;
+    try { localStorage.setItem("pgj-visited", "true"); } catch {}
     const bottom = el.offsetTop + el.offsetHeight;
     window.scrollTo({ top: bottom - window.innerHeight * 0.2, behavior: "smooth" });
   };
 
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const handleScrollMark = () => {
+      const rect = el.getBoundingClientRect();
+      const totalH = el.offsetHeight;
+      const scrolled = -rect.top;
+      if (scrolled > totalH * 0.5) {
+        try { localStorage.setItem("pgj-visited", "true"); } catch {}
+      }
+    };
+    window.addEventListener("scroll", handleScrollMark, { passive: true });
+    return () => window.removeEventListener("scroll", handleScrollMark);
+  }, []);
+
+  useEffect(() => {
+    if (isReturning) {
+      const timer = setTimeout(() => handleSkip(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isReturning]);
+
   return (
-    <div ref={wrapRef} className="h-[220vh] w-full relative mb-[-20vh]">
+    <div ref={wrapRef} className={`${isReturning ? 'h-[80vh]' : 'h-[220vh]'} w-full relative mb-[-20vh]`}>
       <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
         <motion.div
