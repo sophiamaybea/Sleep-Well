@@ -2661,6 +2661,102 @@ export async function registerRoutes(
     }
   });
 
+  // === COURSE RATINGS ===
+  app.get("/api/courses/:courseId/ratings", async (req: any, res) => {
+    try {
+      const ratings = await storage.getCourseRatings(req.params.courseId);
+      const avg = await storage.getCourseAverageRating(req.params.courseId);
+      res.json({ ratings, average: avg.average, count: avg.count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch ratings" });
+    }
+  });
+
+  app.get("/api/courses/:courseId/my-rating", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const rating = await storage.getUserCourseRating(userId, req.params.courseId);
+      res.json(rating);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch your rating" });
+    }
+  });
+
+  app.post("/api/courses/:courseId/ratings", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { rating, review } = req.body;
+      if (!rating || rating < 1 || rating > 5) return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      const hasAccess = await storage.hasUserCourseAccess(userId, req.params.courseId);
+      const user = await storage.getUser(userId);
+      const isCultivator = user?.tier === "cultivator";
+      const course = await storage.getCourse(req.params.courseId);
+      if (!course) return res.status(404).json({ message: "Course not found" });
+      if (!hasAccess && !(isCultivator && course.includedInCultivator)) {
+        return res.status(403).json({ message: "You must have access to the course to rate it" });
+      }
+      const result = await storage.upsertCourseRating(userId, req.params.courseId, rating, review);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save rating" });
+    }
+  });
+
+  // === EXERCISE RESPONSES ===
+  async function verifyCourseAccess(userId: string, courseId: string, lessonId: string): Promise<{ ok: boolean; message?: string }> {
+    const course = await storage.getCourse(courseId);
+    if (!course) return { ok: false, message: "Course not found" };
+    const lesson = await storage.getCourseLesson(lessonId);
+    if (!lesson || lesson.courseId !== courseId) return { ok: false, message: "Lesson not found in this course" };
+    const purchased = await storage.hasUserCourseAccess(userId, courseId);
+    const user = await storage.getUser(userId);
+    const isCultivator = user?.tier === "cultivator";
+    if (!purchased && !(isCultivator && course.includedInCultivator)) {
+      return { ok: false, message: "You don't have access to this course" };
+    }
+    return { ok: true };
+  }
+
+  app.get("/api/courses/:courseId/lessons/:lessonId/exercise", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const access = await verifyCourseAccess(userId, req.params.courseId, req.params.lessonId);
+      if (!access.ok) return res.status(403).json({ message: access.message });
+      const response = await storage.getExerciseResponse(userId, req.params.lessonId);
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch exercise response" });
+    }
+  });
+
+  app.post("/api/courses/:courseId/lessons/:lessonId/exercise", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const access = await verifyCourseAccess(userId, req.params.courseId, req.params.lessonId);
+      if (!access.ok) return res.status(403).json({ message: access.message });
+      const { content } = req.body;
+      if (typeof content !== "string") return res.status(400).json({ message: "Content is required" });
+      const result = await storage.saveExerciseResponse(userId, req.params.courseId, req.params.lessonId, content);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save exercise response" });
+    }
+  });
+
+  app.post("/api/courses/:courseId/lessons/:lessonId/save-to-garden", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const access = await verifyCourseAccess(userId, req.params.courseId, req.params.lessonId);
+      if (!access.ok) return res.status(403).json({ message: access.message });
+      const { title } = req.body;
+      if (!title || typeof title !== "string") return res.status(400).json({ message: "Title is required" });
+      const result = await storage.saveExerciseToGarden(userId, req.params.courseId, req.params.lessonId, title);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to save to garden" });
+    }
+  });
+
   // === CHALLENGES ===
   app.get("/api/challenges", async (_req, res) => {
     try {

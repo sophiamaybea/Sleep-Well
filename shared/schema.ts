@@ -798,13 +798,39 @@ export const lessonProgress = pgTable("lesson_progress", {
   completedAt: timestamp("completed_at").defaultNow(),
 });
 
+export const courseRatings = pgTable("course_ratings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  rating: integer("rating").notNull(),
+  review: text("review"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const courseExerciseResponses = pgTable("course_exercise_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  lessonId: varchar("lesson_id").notNull().references(() => courseLessons.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull().default(""),
+  savedToGarden: boolean("saved_to_garden").notNull().default(false),
+  gardenWritingId: varchar("garden_writing_id").references(() => writings.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertCourseSchema = createInsertSchema(courses).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCourseLessonSchema = createInsertSchema(courseLessons).omit({ id: true, createdAt: true });
+export const insertCourseRatingSchema = createInsertSchema(courseRatings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertExerciseResponseSchema = createInsertSchema(courseExerciseResponses).omit({ id: true, createdAt: true, updatedAt: true });
 
 export type Course = typeof courses.$inferSelect;
 export type CourseLesson = typeof courseLessons.$inferSelect;
 export type UserCourseAccess = typeof userCourseAccess.$inferSelect;
 export type LessonProgress = typeof lessonProgress.$inferSelect;
+export type CourseRating = typeof courseRatings.$inferSelect;
+export type CourseExerciseResponse = typeof courseExerciseResponses.$inferSelect;
 
 export const challenges = pgTable("challenges", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

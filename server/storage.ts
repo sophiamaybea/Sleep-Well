@@ -51,6 +51,8 @@ import {
   type InsertSubmission, type InsertPublicationCredit,
   courses, courseLessons, userCourseAccess, lessonProgress,
   type Course, type CourseLesson, type UserCourseAccess, type LessonProgress,
+  courseRatings, type CourseRating,
+  courseExerciseResponses, type CourseExerciseResponse,
   challenges, challengeEntries, challengeVotes,
   type Challenge, type ChallengeEntry, type ChallengeVote,
 } from "@shared/schema";
@@ -410,6 +412,17 @@ export interface IStorage {
   markLessonComplete(userId: string, lessonId: string, courseId: string): Promise<LessonProgress>;
   unmarkLessonComplete(userId: string, lessonId: string): Promise<boolean>;
   getLessonProgress(userId: string, courseId: string): Promise<LessonProgress[]>;
+
+  // Course Ratings
+  upsertCourseRating(userId: string, courseId: string, rating: number, review?: string): Promise<CourseRating>;
+  getCourseRatings(courseId: string): Promise<(CourseRating & { userName: string | null; userImage: string | null })[]>;
+  getUserCourseRating(userId: string, courseId: string): Promise<CourseRating | null>;
+  getCourseAverageRating(courseId: string): Promise<{ average: number; count: number }>;
+
+  // Exercise Responses
+  saveExerciseResponse(userId: string, courseId: string, lessonId: string, content: string): Promise<CourseExerciseResponse>;
+  getExerciseResponse(userId: string, lessonId: string): Promise<CourseExerciseResponse | null>;
+  saveExerciseToGarden(userId: string, courseId: string, lessonId: string, title: string): Promise<{ response: CourseExerciseResponse; writingId: string }>;
 
   // Challenges
   getChallenges(): Promise<(Challenge & { entryCount: number; creatorName: string | null })[]>;
@@ -2995,6 +3008,86 @@ export class DatabaseStorage implements IStorage {
   async getUserChallengeVotes(userId: string, challengeId: string): Promise<string[]> {
     const rows = await db.select({ entryId: challengeVotes.entryId }).from(challengeVotes).where(and(eq(challengeVotes.voterId, userId), eq(challengeVotes.challengeId, challengeId)));
     return rows.map(r => r.entryId);
+  }
+
+  // === COURSE RATINGS ===
+  async upsertCourseRating(userId: string, courseId: string, rating: number, review?: string): Promise<CourseRating> {
+    const [existing] = await db.select().from(courseRatings).where(and(eq(courseRatings.userId, userId), eq(courseRatings.courseId, courseId)));
+    if (existing) {
+      const [updated] = await db.update(courseRatings).set({ rating, review, updatedAt: new Date() }).where(eq(courseRatings.id, existing.id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(courseRatings).values({ userId, courseId, rating, review }).returning();
+    return created;
+  }
+
+  async getCourseRatings(courseId: string): Promise<(CourseRating & { userName: string | null; userImage: string | null })[]> {
+    const rows = await db
+      .select({
+        rating: courseRatings,
+        userName: sql<string | null>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, ${users.firstName})`.as("user_name"),
+        userImage: users.profileImageUrl,
+      })
+      .from(courseRatings)
+      .leftJoin(users, eq(courseRatings.userId, users.id))
+      .where(eq(courseRatings.courseId, courseId))
+      .orderBy(desc(courseRatings.createdAt));
+    return rows.map(r => ({ ...r.rating, userName: r.userName, userImage: r.userImage }));
+  }
+
+  async getUserCourseRating(userId: string, courseId: string): Promise<CourseRating | null> {
+    const [r] = await db.select().from(courseRatings).where(and(eq(courseRatings.userId, userId), eq(courseRatings.courseId, courseId)));
+    return r || null;
+  }
+
+  async getCourseAverageRating(courseId: string): Promise<{ average: number; count: number }> {
+    const [result] = await db
+      .select({
+        avg: sql<number>`COALESCE(AVG(${courseRatings.rating}), 0)`,
+        cnt: sql<number>`COUNT(*)`,
+      })
+      .from(courseRatings)
+      .where(eq(courseRatings.courseId, courseId));
+    return { average: Number(result.avg), count: Number(result.cnt) };
+  }
+
+  // === EXERCISE RESPONSES ===
+  async saveExerciseResponse(userId: string, courseId: string, lessonId: string, content: string): Promise<CourseExerciseResponse> {
+    const [existing] = await db.select().from(courseExerciseResponses).where(and(eq(courseExerciseResponses.userId, userId), eq(courseExerciseResponses.lessonId, lessonId)));
+    if (existing) {
+      const [updated] = await db.update(courseExerciseResponses).set({ content, updatedAt: new Date() }).where(eq(courseExerciseResponses.id, existing.id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(courseExerciseResponses).values({ userId, courseId, lessonId, content }).returning();
+    return created;
+  }
+
+  async getExerciseResponse(userId: string, lessonId: string): Promise<CourseExerciseResponse | null> {
+    const [r] = await db.select().from(courseExerciseResponses).where(and(eq(courseExerciseResponses.userId, userId), eq(courseExerciseResponses.lessonId, lessonId)));
+    return r || null;
+  }
+
+  async saveExerciseToGarden(userId: string, courseId: string, lessonId: string, title: string): Promise<{ response: CourseExerciseResponse; writingId: string }> {
+    const response = await this.getExerciseResponse(userId, lessonId);
+    if (!response || !response.content.trim()) throw new Error("No exercise response to save");
+
+    const lesson = await this.getCourseLesson(lessonId);
+    const course = await this.getCourse(courseId);
+
+    const writing = await this.createWriting(userId, {
+      title,
+      content: response.content,
+      genre: course?.genre || "craft",
+      stage: "seed",
+      tags: [`course:${course?.title || courseId}`, `lesson:${lesson?.title || lessonId}`],
+    });
+
+    const [updated] = await db.update(courseExerciseResponses)
+      .set({ savedToGarden: true, gardenWritingId: writing.id, updatedAt: new Date() })
+      .where(eq(courseExerciseResponses.id, response.id))
+      .returning();
+
+    return { response: updated, writingId: writing.id };
   }
 }
 
