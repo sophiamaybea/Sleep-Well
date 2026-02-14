@@ -805,3 +805,45 @@ export type Course = typeof courses.$inferSelect;
 export type CourseLesson = typeof courseLessons.$inferSelect;
 export type UserCourseAccess = typeof userCourseAccess.$inferSelect;
 export type LessonProgress = typeof lessonProgress.$inferSelect;
+
+export const challenges = pgTable("challenges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  prompt: text("prompt").notNull(),
+  genre: text("genre"),
+  wordLimit: integer("word_limit"),
+  status: text("status").notNull().default("upcoming"),
+  startsAt: timestamp("starts_at").notNull(),
+  endsAt: timestamp("ends_at").notNull(),
+  votingEndsAt: timestamp("voting_ends_at"),
+  createdBy: varchar("created_by").references(() => users.id),
+  prize: text("prize"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const challengeEntries = pgTable("challenge_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  challengeId: varchar("challenge_id").notNull().references(() => challenges.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").references(() => writings.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  status: text("status").notNull().default("submitted"),
+});
+
+export const challengeVotes = pgTable("challenge_votes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  challengeId: varchar("challenge_id").notNull().references(() => challenges.id),
+  entryId: varchar("entry_id").notNull().references(() => challengeEntries.id),
+  voterId: varchar("voter_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertChallengeSchema = createInsertSchema(challenges).omit({ id: true, createdAt: true });
+export const insertChallengeEntrySchema = createInsertSchema(challengeEntries).omit({ id: true, submittedAt: true, status: true });
+
+export type Challenge = typeof challenges.$inferSelect;
+export type ChallengeEntry = typeof challengeEntries.$inferSelect;
+export type ChallengeVote = typeof challengeVotes.$inferSelect;

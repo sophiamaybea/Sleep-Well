@@ -51,6 +51,8 @@ import {
   type InsertSubmission, type InsertPublicationCredit,
   courses, courseLessons, userCourseAccess, lessonProgress,
   type Course, type CourseLesson, type UserCourseAccess, type LessonProgress,
+  challenges, challengeEntries, challengeVotes,
+  type Challenge, type ChallengeEntry, type ChallengeVote,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -408,6 +410,18 @@ export interface IStorage {
   markLessonComplete(userId: string, lessonId: string, courseId: string): Promise<LessonProgress>;
   unmarkLessonComplete(userId: string, lessonId: string): Promise<boolean>;
   getLessonProgress(userId: string, courseId: string): Promise<LessonProgress[]>;
+
+  // Challenges
+  getChallenges(): Promise<(Challenge & { entryCount: number; creatorName: string | null })[]>;
+  getChallenge(id: string): Promise<(Challenge & { entryCount: number; creatorName: string | null }) | undefined>;
+  createChallenge(data: { title: string; description: string; prompt: string; genre?: string; wordLimit?: number; startsAt: Date; endsAt: Date; votingEndsAt?: Date; createdBy?: string; prize?: string }): Promise<Challenge>;
+  getChallengeEntries(challengeId: string): Promise<(ChallengeEntry & { authorName: string | null; authorImage: string | null; voteCount: number })[]>;
+  submitChallengeEntry(authorId: string, data: { challengeId: string; writingId?: string; title: string; content: string }): Promise<ChallengeEntry>;
+  withdrawChallengeEntry(authorId: string, entryId: string): Promise<boolean>;
+  getUserChallengeEntry(userId: string, challengeId: string): Promise<ChallengeEntry | null>;
+  voteChallengeEntry(voterId: string, challengeId: string, entryId: string): Promise<ChallengeVote>;
+  unvoteChallengeEntry(voterId: string, challengeId: string, entryId: string): Promise<boolean>;
+  getUserChallengeVotes(userId: string, challengeId: string): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2897,6 +2911,90 @@ export class DatabaseStorage implements IStorage {
 
   async getLessonProgress(userId: string, courseId: string): Promise<LessonProgress[]> {
     return await db.select().from(lessonProgress).where(and(eq(lessonProgress.userId, userId), eq(lessonProgress.courseId, courseId)));
+  }
+
+  async getChallenges(): Promise<(Challenge & { entryCount: number; creatorName: string | null })[]> {
+    const rows = await db
+      .select({
+        challenge: challenges,
+        entryCount: sql<number>`(SELECT count(*) FROM challenge_entries WHERE challenge_id = ${challenges.id})`.as("entry_count"),
+        creatorName: sql<string | null>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, ${users.firstName})`.as("creator_name"),
+      })
+      .from(challenges)
+      .leftJoin(users, eq(challenges.createdBy, users.id))
+      .orderBy(desc(challenges.startsAt));
+    return rows.map(r => ({ ...r.challenge, entryCount: Number(r.entryCount), creatorName: r.creatorName }));
+  }
+
+  async getChallenge(id: string): Promise<(Challenge & { entryCount: number; creatorName: string | null }) | undefined> {
+    const [row] = await db
+      .select({
+        challenge: challenges,
+        entryCount: sql<number>`(SELECT count(*) FROM challenge_entries WHERE challenge_id = ${challenges.id})`.as("entry_count"),
+        creatorName: sql<string | null>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, ${users.firstName})`.as("creator_name"),
+      })
+      .from(challenges)
+      .leftJoin(users, eq(challenges.createdBy, users.id))
+      .where(eq(challenges.id, id));
+    if (!row) return undefined;
+    return { ...row.challenge, entryCount: Number(row.entryCount), creatorName: row.creatorName };
+  }
+
+  async createChallenge(data: { title: string; description: string; prompt: string; genre?: string; wordLimit?: number; startsAt: Date; endsAt: Date; votingEndsAt?: Date; createdBy?: string; prize?: string }): Promise<Challenge> {
+    const [c] = await db.insert(challenges).values(data).returning();
+    return c;
+  }
+
+  async getChallengeEntries(challengeId: string): Promise<(ChallengeEntry & { authorName: string | null; authorImage: string | null; voteCount: number })[]> {
+    const rows = await db
+      .select({
+        entry: challengeEntries,
+        authorName: sql<string | null>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, ${users.firstName})`.as("author_name"),
+        authorImage: users.profileImageUrl,
+        voteCount: sql<number>`(SELECT count(*) FROM challenge_votes WHERE entry_id = ${challengeEntries.id})`.as("vote_count"),
+      })
+      .from(challengeEntries)
+      .leftJoin(users, eq(challengeEntries.authorId, users.id))
+      .where(eq(challengeEntries.challengeId, challengeId))
+      .orderBy(desc(sql`(SELECT count(*) FROM challenge_votes WHERE entry_id = ${challengeEntries.id})`));
+    return rows.map(r => ({ ...r.entry, authorName: r.authorName, authorImage: r.authorImage, voteCount: Number(r.voteCount) }));
+  }
+
+  async submitChallengeEntry(authorId: string, data: { challengeId: string; writingId?: string; title: string; content: string }): Promise<ChallengeEntry> {
+    const existing = await this.getUserChallengeEntry(authorId, data.challengeId);
+    if (existing) throw new Error("You already have an entry in this challenge");
+    const [e] = await db.insert(challengeEntries).values({ ...data, authorId }).returning();
+    return e;
+  }
+
+  async withdrawChallengeEntry(authorId: string, entryId: string): Promise<boolean> {
+    await db.delete(challengeVotes).where(eq(challengeVotes.entryId, entryId));
+    await db.delete(challengeEntries).where(and(eq(challengeEntries.id, entryId), eq(challengeEntries.authorId, authorId)));
+    return true;
+  }
+
+  async getUserChallengeEntry(userId: string, challengeId: string): Promise<ChallengeEntry | null> {
+    const [e] = await db.select().from(challengeEntries).where(and(eq(challengeEntries.authorId, userId), eq(challengeEntries.challengeId, challengeId)));
+    return e || null;
+  }
+
+  async voteChallengeEntry(voterId: string, challengeId: string, entryId: string): Promise<ChallengeVote> {
+    const [existing] = await db.select().from(challengeVotes).where(and(eq(challengeVotes.voterId, voterId), eq(challengeVotes.entryId, entryId)));
+    if (existing) throw new Error("Already voted for this entry");
+    const [entry] = await db.select().from(challengeEntries).where(eq(challengeEntries.id, entryId));
+    if (entry && entry.authorId === voterId) throw new Error("Cannot vote for your own entry");
+    const [v] = await db.insert(challengeVotes).values({ challengeId, entryId, voterId }).returning();
+    return v;
+  }
+
+  async unvoteChallengeEntry(voterId: string, challengeId: string, entryId: string): Promise<boolean> {
+    await db.delete(challengeVotes).where(and(eq(challengeVotes.voterId, voterId), eq(challengeVotes.entryId, entryId)));
+    return true;
+  }
+
+  async getUserChallengeVotes(userId: string, challengeId: string): Promise<string[]> {
+    const rows = await db.select({ entryId: challengeVotes.entryId }).from(challengeVotes).where(and(eq(challengeVotes.voterId, userId), eq(challengeVotes.challengeId, challengeId)));
+    return rows.map(r => r.entryId);
   }
 }
 
