@@ -59,15 +59,6 @@ export default function TwoDoors() {
   return (
     <Section id="two-doors" className="bg-transparent text-primary py-32">
       <div className="space-y-24 max-w-7xl w-full mx-auto px-6">
-        <div className="text-center space-y-6">
-          <span className="font-mono text-xs tracking-[0.3em] opacity-40 block uppercase">
-            01 — Choose Your Path
-          </span>
-          <h2 className="text-5xl md:text-7xl font-display italic font-light tracking-tight text-white">
-            {content.twoDoors.title}
-          </h2>
-        </div>
-
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 relative" style={{ perspective: "1000px" }}>
           <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-white/10 to-transparent hidden lg:block" />
 
