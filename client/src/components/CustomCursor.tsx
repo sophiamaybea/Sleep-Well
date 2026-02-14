@@ -23,7 +23,7 @@ export default function CustomCursor() {
 
   useEffect(() => {
     const updateRing = () => {
-      const lerp = 0.35;
+      const lerp = 0.55;
       ringPos.current.x += (pos.current.x - ringPos.current.x) * lerp;
       ringPos.current.y += (pos.current.y - ringPos.current.y) * lerp;
 
@@ -77,15 +77,15 @@ export default function CustomCursor() {
     };
   }, [handleMouseMove, handleMouseOver]);
 
-  const ringSize = isHovering ? 64 : 36;
+  const ringSize = isHovering ? 48 : 32;
 
-  const dotColor = isLightMode ? "rgba(0, 0, 0, 0.9)" : "rgba(255, 255, 255, 0.85)";
+  const dotColor = isLightMode ? "rgba(0, 0, 0, 1)" : "rgba(255, 255, 255, 1)";
   const ringBorder = isLightMode
-    ? (isHovering ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.25)")
-    : (isHovering ? "rgba(255, 255, 255, 0.35)" : "rgba(255, 255, 255, 0.2)");
+    ? (isHovering ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.35)")
+    : (isHovering ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 255, 255, 0.3)");
   const ringBg = isLightMode
-    ? (isHovering ? "rgba(0, 0, 0, 0.08)" : "transparent")
-    : (isHovering ? "rgba(255, 255, 255, 0.08)" : "transparent");
+    ? (isHovering ? "rgba(0, 0, 0, 0.06)" : "transparent")
+    : (isHovering ? "rgba(255, 255, 255, 0.06)" : "transparent");
 
   return (
     <>
@@ -107,7 +107,7 @@ export default function CustomCursor() {
           marginTop: -ringSize / 2,
           opacity: isVisible ? 1 : 0,
           transform: `translate3d(${pos.current.x}px, ${pos.current.y}px, 0)`,
-          transition: "width 0.2s, height 0.2s, margin 0.2s, opacity 0.15s",
+          transition: "width 0.12s, height 0.12s, margin 0.12s, opacity 0.1s",
           willChange: "transform",
         }}
       >
@@ -115,10 +115,10 @@ export default function CustomCursor() {
           className="w-full h-full rounded-full"
           style={{
             borderStyle: "solid",
-            borderWidth: isHovering ? 1.5 : 1,
+            borderWidth: isHovering ? 2 : 1.5,
             borderColor: ringBorder,
             backgroundColor: ringBg,
-            transition: "border-color 0.2s, border-width 0.2s, background-color 0.2s",
+            transition: "border-color 0.12s, border-width 0.12s, background-color 0.12s",
           }}
         />
       </div>
@@ -127,15 +127,15 @@ export default function CustomCursor() {
         ref={dotRef}
         className="fixed top-0 left-0 pointer-events-none z-[10000] hidden md:block rounded-full"
         style={{
-          width: 6,
-          height: 6,
-          marginLeft: -3,
-          marginTop: -3,
+          width: 10,
+          height: 10,
+          marginLeft: -5,
+          marginTop: -5,
           opacity: isVisible ? 1 : 0,
           backgroundColor: dotColor,
           transform: `translate3d(${pos.current.x}px, ${pos.current.y}px, 0)`,
-          scale: isHovering ? "0.5" : isPressed ? "0.7" : "1",
-          transition: "opacity 0.15s, scale 0.15s, background-color 0.2s",
+          scale: isHovering ? "0.6" : isPressed ? "0.8" : "1",
+          transition: "opacity 0.1s, scale 0.1s, background-color 0.12s",
           willChange: "transform",
         }}
       />
