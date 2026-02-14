@@ -412,7 +412,7 @@ function OverviewTab() {
   const { data: activeWalk } = useQuery({
     queryKey: ["/api/editors-walk/active"],
     queryFn: async () => {
-      const res = await fetch("/api/editors-walk/active");
+      const res = await fetch("/api/editors-walk/active", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },

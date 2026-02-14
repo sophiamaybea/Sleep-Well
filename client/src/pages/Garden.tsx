@@ -1266,7 +1266,7 @@ function CuratedOpportunitiesBanner() {
   const { data: opps = [] } = useQuery<any[]>({
     queryKey: ["/api/curated-opportunities"],
     queryFn: async () => {
-      const res = await fetch("/api/curated-opportunities");
+      const res = await fetch("/api/curated-opportunities", { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
@@ -2607,7 +2607,7 @@ export default function Garden() {
   const { data: activeWalk } = useQuery<any>({
     queryKey: ["/api/editors-walk/active"],
     queryFn: async () => {
-      const res = await fetch("/api/editors-walk/active");
+      const res = await fetch("/api/editors-walk/active", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
