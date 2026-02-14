@@ -1,9 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useLocation } from "wouter";
 
 export default function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [location] = useLocation();
+
+  const isGarden = location === "/garden" || location.startsWith("/garden");
 
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
@@ -69,6 +73,14 @@ export default function CustomCursor() {
 
   const ringSize = isHovering ? 64 : 36;
 
+  const dotColor = isGarden ? "rgba(0, 0, 0, 0.9)" : "rgba(255, 255, 255, 0.85)";
+  const ringBorder = isGarden
+    ? (isHovering ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.25)")
+    : (isHovering ? "rgba(255, 255, 255, 0.35)" : "rgba(255, 255, 255, 0.2)");
+  const ringBg = isGarden
+    ? (isHovering ? "rgba(0, 0, 0, 0.08)" : "transparent")
+    : (isHovering ? "rgba(255, 255, 255, 0.08)" : "transparent");
+
   return (
     <>
       {isVisible && (
@@ -98,8 +110,8 @@ export default function CustomCursor() {
           style={{
             borderStyle: "solid",
             borderWidth: isHovering ? 1.5 : 1,
-            borderColor: isHovering ? "rgba(255, 255, 255, 0.35)" : "rgba(255, 255, 255, 0.2)",
-            backgroundColor: isHovering ? "rgba(255, 255, 255, 0.08)" : "transparent",
+            borderColor: ringBorder,
+            backgroundColor: ringBg,
             transition: "border-color 0.2s, border-width 0.2s, background-color 0.2s",
           }}
         />
@@ -114,10 +126,10 @@ export default function CustomCursor() {
           marginLeft: -3,
           marginTop: -3,
           opacity: isVisible ? 1 : 0,
-          backgroundColor: "rgba(255, 255, 255, 0.85)",
+          backgroundColor: dotColor,
           transform: `translate3d(${pos.current.x}px, ${pos.current.y}px, 0)`,
           scale: isHovering ? "0.5" : isPressed ? "0.7" : "1",
-          transition: "opacity 0.15s, scale 0.15s",
+          transition: "opacity 0.15s, scale 0.15s, background-color 0.2s",
           willChange: "transform",
         }}
       />
