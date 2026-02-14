@@ -224,6 +224,20 @@ const stageGlow: Record<string, string> = {
   dormant: "rgba(139, 92, 246, 0.15)",
 };
 
+const stageCardBg: Record<string, string> = {
+  raw_seed: "bg-gradient-to-br from-amber-950/15 via-emerald-950/10 to-emerald-950/8",
+  growing: "bg-gradient-to-br from-emerald-950/15 via-teal-950/12 to-emerald-950/8",
+  ready_to_show: "bg-gradient-to-br from-pink-950/12 via-emerald-950/10 to-amber-950/8",
+  dormant: "bg-gradient-to-br from-violet-950/10 via-slate-950/10 to-emerald-950/8",
+};
+
+const stageCardBorder: Record<string, string> = {
+  raw_seed: "border-amber-800/20 hover:border-amber-600/30",
+  growing: "border-emerald-800/20 hover:border-emerald-600/30",
+  ready_to_show: "border-pink-800/20 hover:border-pink-600/30",
+  dormant: "border-violet-800/15 hover:border-violet-600/20",
+};
+
 const genreOptions = ["poetry", "fiction", "essay", "fragment", "other"];
 
 function NightGardenAtmosphere() {
@@ -322,10 +336,10 @@ function BloomIcon({ className }: { className?: string }) {
 }
 
 const stageIcons: Record<string, React.ReactNode> = {
-  raw_seed: <SeedIcon className="w-4 h-4" />,
-  growing: <SproutIcon className="w-4 h-4" />,
-  ready_to_show: <BloomIcon className="w-4 h-4" />,
-  dormant: <Moon size={16} />,
+  raw_seed: <SeedIcon className="w-[18px] h-[18px]" />,
+  growing: <SproutIcon className="w-[18px] h-[18px]" />,
+  ready_to_show: <BloomIcon className="w-[18px] h-[18px]" />,
+  dormant: <Moon size={18} />,
 };
 
 function Skeleton({ className = "" }: { className?: string }) {
@@ -875,14 +889,14 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                 className={`relative rounded-2xl border overflow-hidden transition-all duration-300 ${
                   isExpanded
                     ? `${stageColors[readiness]?.split(" ")[0] || "border-white/25"} bg-emerald-950/20`
-                    : "border-emerald-800/15 hover:border-emerald-700/25 bg-emerald-950/10"
+                    : `${stageCardBorder[readiness] || "border-emerald-800/15 hover:border-emerald-700/25"} ${stageCardBg[readiness] || "bg-emerald-950/10"}`
                 } ${readiness === "dormant" ? "opacity-75" : ""}`}
               >
-                {isExpanded && (
-                  <div className="absolute inset-0 pointer-events-none" style={{
-                    background: `linear-gradient(135deg, ${stageGlow[readiness] || "transparent"} 0%, transparent 50%)`,
-                  }} />
-                )}
+                <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{
+                  background: isExpanded
+                    ? `linear-gradient(135deg, ${stageGlow[readiness] || "transparent"} 0%, transparent 50%)`
+                    : `radial-gradient(ellipse at 80% 0%, ${stageGlow[readiness]?.replace("0.15", "0.06") || "transparent"} 0%, transparent 60%)`,
+                }} />
 
                 <button
                   onClick={() => setExpandedCard(isExpanded ? null : w.id)}
@@ -890,7 +904,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                   data-testid={`button-expand-${w.id}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex-shrink-0 w-7 h-7 rounded-full border flex items-center justify-center ${stageColors[readiness] || "border-white/20 text-white/50"} ${stageAccent[readiness] || ""}`}>
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center ${stageColors[readiness] || "border-white/20 text-white/50"} ${stageAccent[readiness] || ""}`}>
                       {stageIcons[readiness] || stageIcons.raw_seed}
                     </div>
                     <div className="flex-grow min-w-0">
