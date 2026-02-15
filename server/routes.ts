@@ -3110,13 +3110,18 @@ export async function registerRoutes(
       const allExhibits = await storage.getExhibits();
       const userId = req.user?.claims?.sub;
       if (userId) {
-        const withPurchase = await Promise.all(allExhibits.map(async (exhibit) => {
+        const withStatus = await Promise.all(allExhibits.map(async (exhibit) => {
           const purchased = await storage.hasExhibitPurchase(userId, exhibit.id);
-          return { ...exhibit, purchased };
+          const progress = await storage.getExhibitProgress(userId, exhibit.id);
+          let status: "locked" | "available" | "in_progress" | "completed" = exhibit.price > 0 && !purchased ? "locked" : "available";
+          if (progress) {
+            status = progress.completedAt ? "completed" : "in_progress";
+          }
+          return { ...exhibit, purchased, status, currentScreen: progress?.currentScreen || null };
         }));
-        return res.json(withPurchase);
+        return res.json(withStatus);
       }
-      res.json(allExhibits.map(e => ({ ...e, purchased: false })));
+      res.json(allExhibits.map(e => ({ ...e, purchased: false, status: e.price > 0 ? "locked" : "available", currentScreen: null })));
     } catch (error) {
       console.error("Error fetching exhibits:", error);
       res.status(500).json({ message: "Failed to fetch exhibits" });

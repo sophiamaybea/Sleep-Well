@@ -4,6 +4,9 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { db } from "./db";
+import { exhibits } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const app = express();
 const httpServer = createServer(app);
@@ -114,10 +117,21 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
+  async function seedExhibits() {
+    const existing = await db.select().from(exhibits).where(eq(exhibits.slug, "metaphor-as-migration"));
+    if (existing.length === 0) {
+      await db.insert(exhibits).values({
+        title: "Metaphor as Migration",
+        slug: "metaphor-as-migration",
+        subtitle: "What moves through you when you let an image travel",
+        price: 0,
+        isPublished: true,
+      });
+      log("Seeded exhibit: Metaphor as Migration");
+    }
+  }
+  await seedExhibits().catch(err => console.error("Seed exhibits failed:", err));
+
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {
