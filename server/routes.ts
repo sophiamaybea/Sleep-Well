@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, BorderStyle } from "docx";
+import { randomUUID } from "crypto";
 import { storage } from "./storage";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import {
@@ -42,6 +43,17 @@ async function isEditor(req: any, res: any, next: any) {
   const editor = await storage.isEditor(req.user.claims.sub);
   if (!editor) {
     return res.status(403).json({ message: "Editor access required" });
+  }
+  next();
+}
+
+async function isEditorInChief(req: any, res: any, next: any) {
+  if (!req.user?.claims?.sub) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  const eic = await storage.isEditorInChief(req.user.claims.sub);
+  if (!eic) {
+    return res.status(403).json({ message: "Editor-in-Chief access required" });
   }
   next();
 }
@@ -3011,6 +3023,90 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching live counts:", error);
       res.status(500).json({ message: "Failed to fetch live counts" });
+    }
+  });
+
+  // === EDITOR-IN-CHIEF (EIC) ===
+  app.post("/api/eic/invite-editor", isEditorInChief, async (req: any, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ message: "Email is required" });
+      const token = randomUUID();
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const invitation = await storage.createEditorInvitation({
+        email,
+        token,
+        invitedBy: req.user.claims.sub,
+        expiresAt,
+      });
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error creating editor invitation:", error);
+      res.status(500).json({ message: "Failed to create invitation" });
+    }
+  });
+
+  app.get("/api/eic/invitations", isEditorInChief, async (req: any, res) => {
+    try {
+      const invitations = await storage.getEditorInvitations();
+      res.json(invitations);
+    } catch (error) {
+      console.error("Error fetching invitations:", error);
+      res.status(500).json({ message: "Failed to fetch invitations" });
+    }
+  });
+
+  app.get("/api/eic/editors", isEditorInChief, async (req: any, res) => {
+    try {
+      const editors = await storage.getEditors();
+      res.json(editors);
+    } catch (error) {
+      console.error("Error fetching editors:", error);
+      res.status(500).json({ message: "Failed to fetch editors" });
+    }
+  });
+
+  app.get("/api/editor-onboarding/validate", async (req, res) => {
+    try {
+      const token = req.query.token as string;
+      if (!token) return res.status(400).json({ message: "Token is required" });
+      const invitation = await storage.getEditorInvitationByToken(token);
+      if (!invitation) return res.json({ valid: false, reason: "Invalid invitation token" });
+      if (invitation.status === "accepted") return res.json({ valid: false, reason: "This invitation has already been used" });
+      if (new Date() > invitation.expiresAt) return res.json({ valid: false, reason: "This invitation has expired" });
+      res.json({ valid: true, email: invitation.email });
+    } catch (error) {
+      console.error("Error validating token:", error);
+      res.status(500).json({ message: "Failed to validate token" });
+    }
+  });
+
+  app.post("/api/editor-onboarding/accept", isAuthenticated, async (req: any, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) return res.status(400).json({ message: "Token is required" });
+      const invitation = await storage.getEditorInvitationByToken(token);
+      if (!invitation) return res.status(404).json({ message: "Invalid invitation token" });
+      if (invitation.status === "accepted") return res.status(400).json({ message: "This invitation has already been used" });
+      if (new Date() > invitation.expiresAt) return res.status(400).json({ message: "This invitation has expired" });
+      const userId = req.user.claims.sub;
+      await storage.acceptEditorInvitation(token, userId);
+      res.json({ success: true, message: "Welcome to the Editorial Studio!" });
+    } catch (error) {
+      console.error("Error accepting invitation:", error);
+      res.status(500).json({ message: "Failed to accept invitation" });
+    }
+  });
+
+  app.get("/api/user/role", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json({ role: user.role, tier: user.tier });
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+      res.status(500).json({ message: "Failed to fetch user role" });
     }
   });
 

@@ -13,6 +13,8 @@ import Gallery from "@/pages/Gallery";
 import About from "@/pages/About";
 import Courses from "@/pages/Courses";
 import Challenges from "@/pages/Challenges";
+import EICDashboard from "@/pages/EICDashboard";
+import EditorOnboarding from "@/pages/EditorOnboarding";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -29,6 +31,8 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/courses" component={Courses} />
       <Route path="/challenges" component={Challenges} />
+      <Route path="/eic-dashboard" component={EICDashboard} />
+      <Route path="/editor-onboarding" component={EditorOnboarding} />
       <Route component={NotFound} />
     </Switch>
   );

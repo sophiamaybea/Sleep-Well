@@ -57,6 +57,7 @@ import {
   type Challenge, type ChallengeEntry, type ChallengeVote,
   pauseStones, type PauseStone,
   gardenSeasons, type GardenSeason,
+  editorInvitations, type EditorInvitation,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -222,6 +223,14 @@ export interface IStorage {
   getEditorialPieces(): Promise<(Writing & { authorName: string | null })[]>;
   publishWritingByEditor(writingId: string, editorNote?: string): Promise<Writing | undefined>;
 
+  // Editor Invitations (EIC)
+  isEditorInChief(userId: string): Promise<boolean>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createEditorInvitation(data: { email: string; token: string; invitedBy: string; expiresAt: Date }): Promise<EditorInvitation>;
+  getEditorInvitations(): Promise<EditorInvitation[]>;
+  getEditorInvitationByToken(token: string): Promise<EditorInvitation | undefined>;
+  acceptEditorInvitation(token: string, userId: string): Promise<void>;
+
   // Editor Studio
   isEditor(userId: string): Promise<boolean>;
   setEditorRole(userId: string, role: string): Promise<void>;
@@ -342,7 +351,7 @@ export interface IStorage {
   getWriterProfileForEditor(authorId: string): Promise<Writing[]>;
 
   // Editors List
-  getEditors(): Promise<{ id: string; firstName: string | null; lastName: string | null }[]>;
+  getEditors(): Promise<{ id: string; firstName: string | null; lastName: string | null; email: string | null; role: string | null }[]>;
 
   // All Greenhouse
   getAllGreenhouseEntries(): Promise<(GreenhouseEntry & { writingTitle: string; authorName: string | null; authorId: string; editorName: string | null })[]>;
@@ -1447,7 +1456,7 @@ export class DatabaseStorage implements IStorage {
   // === EDITOR STUDIO ===
   async isEditor(userId: string): Promise<boolean> {
     const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId));
-    return user?.role === "editor";
+    return user?.role === "editor" || user?.role === "editor_in_chief";
   }
 
   async setEditorRole(userId: string, role: string): Promise<void> {
@@ -2605,8 +2614,8 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(writings).where(eq(writings.authorId, authorId)).orderBy(desc(writings.updatedAt));
   }
 
-  async getEditors(): Promise<{ id: string; firstName: string | null; lastName: string | null }[]> {
-    return await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(eq(users.role, "editor"));
+  async getEditors(): Promise<{ id: string; firstName: string | null; lastName: string | null; email: string | null; role: string | null }[]> {
+    return await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email, role: users.role }).from(users).where(or(eq(users.role, "editor"), eq(users.role, "editor_in_chief")));
   }
 
   async getAllGreenhouseEntries(): Promise<(GreenhouseEntry & { writingTitle: string; authorName: string | null; authorId: string; editorName: string | null })[]> {
@@ -3232,6 +3241,36 @@ export class DatabaseStorage implements IStorage {
   async createSeason(data: { name: string; theme: string; description: string; startsAt: Date; endsAt: Date; isActive?: boolean }): Promise<GardenSeason> {
     const [created] = await db.insert(gardenSeasons).values(data).returning();
     return created;
+  }
+
+  // === EDITOR INVITATIONS (EIC) ===
+  async isEditorInChief(userId: string): Promise<boolean> {
+    const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId));
+    return user?.role === "editor_in_chief";
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createEditorInvitation(data: { email: string; token: string; invitedBy: string; expiresAt: Date }): Promise<EditorInvitation> {
+    const [invitation] = await db.insert(editorInvitations).values(data).returning();
+    return invitation;
+  }
+
+  async getEditorInvitations(): Promise<EditorInvitation[]> {
+    return await db.select().from(editorInvitations).orderBy(desc(editorInvitations.createdAt));
+  }
+
+  async getEditorInvitationByToken(token: string): Promise<EditorInvitation | undefined> {
+    const [invitation] = await db.select().from(editorInvitations).where(eq(editorInvitations.token, token));
+    return invitation;
+  }
+
+  async acceptEditorInvitation(token: string, userId: string): Promise<void> {
+    await db.update(editorInvitations).set({ status: "accepted", acceptedAt: new Date() }).where(eq(editorInvitations.token, token));
+    await db.update(users).set({ role: "editor", updatedAt: new Date() }).where(eq(users.id, userId));
   }
 
   // === LIVE PROMPT COUNTS ===
