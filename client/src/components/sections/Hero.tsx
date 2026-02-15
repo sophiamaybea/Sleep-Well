@@ -133,44 +133,18 @@ export default function Hero() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1.0, duration: 0.8 }}
                 viewport={{ once: true }}
-                className="max-w-xl text-lg leading-relaxed font-serif opacity-80 backdrop-blur-sm p-6 border-l-2 border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07] transition-all duration-500"
+                className="max-w-xl text-lg leading-relaxed font-serif opacity-80 backdrop-blur-sm p-6 bg-white/5 hover:bg-white/[0.07] transition-all duration-500"
               >
                 {content.hero.subtitle}
               </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ delay: 1.2, duration: 1 }}
-                viewport={{ once: true }}
-                className="flex gap-6 pt-4"
-              >
-                {content.hero.links.map((link, i) => (
-                  <MagneticLink
-                    key={i}
-                    href={link.href}
-                    className="font-mono text-sm uppercase tracking-widest border-b border-transparent hover:border-primary transition-all pb-1 hover:text-white"
-                  >
-                    {link.text}
-                  </MagneticLink>
-                ))}
-              </motion.div>
+              
             </div>
           </div>
         </div>
       </section>
 
-      <div className="relative z-10 h-32 -mb-16 pointer-events-none" aria-hidden="true">
-        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(13,30,45,0.4) 50%, rgba(13,30,45,0.6) 100%)" }} />
-        <motion.div
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
-          viewport={{ once: true }}
-          style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(52,211,153,0.04) 0%, transparent 70%)" }}
-        />
-      </div>
+      
     </>
   );
 }
