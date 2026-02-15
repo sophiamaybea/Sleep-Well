@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { content } from "@/data";
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring, useScroll } from "framer-motion";
 import StarTitle from "@/components/StarTitle";
+import collageSheet from "@assets/Untitled_design_(26)_1771134509762.png";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -64,8 +65,49 @@ function WordReveal({ text, className, delay = 0 }: { text: string; className?: 
   );
 }
 
+const creatures = [
+  { name: "frog", bgPos: "78% 8%", bgSize: "280%", size: "w-20 md:w-28 lg:w-32", crop: "aspect-square", pos: "right-[3%] md:right-[8%] top-[8%]", rotate: 8, delay: 0.8, drift: [0, -30] as [number, number] },
+  { name: "ladybug", bgPos: "10% 48%", bgSize: "320%", size: "w-16 md:w-24 lg:w-28", crop: "aspect-square", pos: "left-[2%] md:left-[5%] top-[55%]", rotate: -10, delay: 1.1, drift: [0, -45] as [number, number] },
+  { name: "mushroom", bgPos: "42% 32%", bgSize: "340%", size: "w-14 md:w-20 lg:w-24", crop: "aspect-[3/4]", pos: "right-[5%] md:right-[12%] bottom-[20%]", rotate: 6, delay: 1.4, drift: [0, -25] as [number, number] },
+  { name: "bee", bgPos: "72% 52%", bgSize: "260%", size: "w-20 md:w-28 lg:w-32", crop: "aspect-square", pos: "left-[6%] md:left-[10%] bottom-[10%]", rotate: 12, delay: 1.0, drift: [0, -50] as [number, number] },
+  { name: "apple", bgPos: "88% 88%", bgSize: "380%", size: "w-14 md:w-18 lg:w-20", crop: "aspect-square", pos: "right-[15%] md:right-[18%] top-[35%]", rotate: -5, delay: 1.3, drift: [0, -35] as [number, number] },
+  { name: "smallmush", bgPos: "8% 82%", bgSize: "420%", size: "w-10 md:w-14", crop: "aspect-[3/4]", pos: "left-[18%] md:left-[15%] top-[15%]", rotate: -14, delay: 1.6, drift: [0, -20] as [number, number] },
+  { name: "splatters", bgPos: "18% 6%", bgSize: "400%", size: "w-12 md:w-16", crop: "aspect-square", pos: "left-[30%] md:left-[25%] top-[5%]", rotate: 0, delay: 0.9, drift: [0, -40] as [number, number] },
+];
+
+function FloatingCreature({ c, scrollYProgress }: { c: typeof creatures[0]; scrollYProgress: any }) {
+  const y = useTransform(scrollYProgress, [0, 1], c.drift);
+  return (
+    <motion.div
+      className={`absolute ${c.pos} ${c.size} hidden md:block`}
+      initial={{ opacity: 0, scale: 0.4, rotate: c.rotate + 30 }}
+      animate={{ opacity: 1, scale: 1, rotate: c.rotate }}
+      transition={{ duration: 1.6, delay: c.delay, ease: [0.22, 1, 0.36, 1] }}
+      style={{ y }}
+    >
+      <div
+        className={`w-full ${c.crop}`}
+        style={{
+          backgroundImage: `url(${collageSheet})`,
+          backgroundPosition: c.bgPos,
+          backgroundSize: c.bgSize,
+          backgroundRepeat: "no-repeat",
+          filter: "drop-shadow(0 6px 20px rgba(0,0,0,0.5))",
+          mixBlendMode: "lighten",
+        }}
+      />
+    </motion.div>
+  );
+}
+
 export default function Hero() {
   const [greeting, setGreeting] = useState(getGreeting);
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
 
   useEffect(() => {
     const interval = setInterval(() => setGreeting(getGreeting()), 60000);
@@ -87,12 +129,17 @@ export default function Hero() {
   const textY = useTransform(mouseY, [-0.5, 0.5], ["2%", "-2%"]);
 
   return (
-    <>
+    <div ref={heroRef} className="relative">
       <StarTitle />
 
       <section id="hero-content" className="relative z-10 min-h-[50vh] pt-16 pb-12 px-6 md:px-12 lg:px-24">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[2]">
+          {creatures.map((c) => (
+            <FloatingCreature key={c.name} c={c} scrollYProgress={scrollYProgress} />
+          ))}
+        </div>
         <div
-          className="max-w-7xl mx-auto"
+          className="max-w-7xl mx-auto relative z-10"
           onMouseMove={handleMouseMove}
         >
           <div className="grid lg:grid-cols-12 gap-12 items-center">
@@ -145,6 +192,6 @@ export default function Hero() {
       </section>
 
       
-    </>
+    </div>
   );
 }

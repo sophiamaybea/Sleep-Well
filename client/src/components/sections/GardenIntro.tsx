@@ -1,6 +1,5 @@
-import { motion, useMotionValue, useSpring, useTransform, useScroll } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
-import collageSheet from "@assets/Untitled_design_(26)_1771134509762.png";
 
 function SeedDoodle() {
   return (
@@ -35,58 +34,6 @@ function BloomDoodle() {
       <circle cx="20" cy="20" r="3.5" fill="currentColor" />
       <path d="M16 30 Q14 26 12 28" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
     </svg>
-  );
-}
-
-const creatures = [
-  { name: "frog", bgPos: "78% 8%", bgSize: "280%", size: "w-24 md:w-32", cropH: "aspect-square", pos: "right-[2%] md:right-[6%] -top-4", rotate: 8, delay: 0, parallax: [50, -30] as [number, number] },
-  { name: "ladybug", bgPos: "10% 48%", bgSize: "320%", size: "w-22 md:w-28", cropH: "aspect-square", pos: "left-[1%] md:left-[3%] top-[42%]", rotate: -12, delay: 0.15, parallax: [40, -50] as [number, number] },
-  { name: "mushroom", bgPos: "42% 32%", bgSize: "340%", size: "w-18 md:w-22", cropH: "aspect-[3/4]", pos: "right-[6%] md:right-[10%] top-[52%]", rotate: 5, delay: 0.3, parallax: [30, -20] as [number, number] },
-  { name: "bee", bgPos: "72% 52%", bgSize: "260%", size: "w-26 md:w-32", cropH: "aspect-square", pos: "left-[3%] md:left-[6%] bottom-[18%]", rotate: 10, delay: 0.1, parallax: [60, -40] as [number, number] },
-  { name: "apple", bgPos: "88% 88%", bgSize: "380%", size: "w-16 md:w-20", cropH: "aspect-square", pos: "right-[4%] md:right-[7%] bottom-[6%]", rotate: -6, delay: 0.25, parallax: [20, -60] as [number, number] },
-  { name: "smallmush", bgPos: "8% 82%", bgSize: "420%", size: "w-12 md:w-14", cropH: "aspect-[3/4]", pos: "left-[14%] md:left-[18%] top-[10%]", rotate: -15, delay: 0.4, parallax: [70, -20] as [number, number] },
-  { name: "splatters", bgPos: "18% 6%", bgSize: "400%", size: "w-14 md:w-16", cropH: "aspect-square", pos: "left-[28%] md:left-[22%] -top-2", rotate: 0, delay: 0.2, parallax: [45, -35] as [number, number] },
-];
-
-function CreatureSprite({ creature, scrollYProgress }: { creature: typeof creatures[0]; scrollYProgress: any }) {
-  const yOffset = useTransform(scrollYProgress, [0, 1], creature.parallax);
-
-  return (
-    <motion.div
-      className={`absolute ${creature.pos} ${creature.size}`}
-      initial={{ opacity: 0, scale: 0.5, rotate: creature.rotate + 25 }}
-      whileInView={{ opacity: 0.9, scale: 1, rotate: creature.rotate }}
-      transition={{ duration: 1.4, delay: creature.delay, ease: [0.22, 1, 0.36, 1] }}
-      viewport={{ once: true, margin: "-80px" }}
-      style={{ y: yOffset }}
-    >
-      <div
-        className={`w-full ${creature.cropH} rounded-lg`}
-        style={{
-          backgroundImage: `url(${collageSheet})`,
-          backgroundPosition: creature.bgPos,
-          backgroundSize: creature.bgSize,
-          backgroundRepeat: "no-repeat",
-          filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.4))",
-          mixBlendMode: "lighten",
-        }}
-      />
-    </motion.div>
-  );
-}
-
-function CollageCreatures({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | null> }) {
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
-      {creatures.map((c) => (
-        <CreatureSprite key={c.name} creature={c} scrollYProgress={scrollYProgress} />
-      ))}
-    </div>
   );
 }
 
@@ -202,7 +149,6 @@ function MagneticLink({ href, children, className, testId }: { href: string; chi
 }
 
 export default function GardenIntro() {
-  const sectionRef = useRef<HTMLElement>(null);
   const stages = [
     {
       stage: "Seed",
@@ -222,10 +168,8 @@ export default function GardenIntro() {
   ];
 
   return (
-    <section ref={sectionRef} id="garden-intro" className="relative pt-24 pb-40 overflow-hidden" data-testid="section-garden-intro">
+    <section id="garden-intro" className="relative pt-24 pb-40 overflow-hidden" data-testid="section-garden-intro">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 10%, rgba(52,211,153,0.05) 0%, transparent 50%)" }} />
-
-      <CollageCreatures sectionRef={sectionRef} />
 
       <div className="max-w-5xl mx-auto w-full px-6 relative">
         <div className="text-center space-y-10 relative z-10">
