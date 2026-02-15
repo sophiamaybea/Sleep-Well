@@ -64,34 +64,65 @@ function Prose({ children }: { children: React.ReactNode }) {
   );
 }
 
+function RevealBlock({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), delay * 1000);
+    return () => clearTimeout(t);
+  }, [delay]);
+  return (
+    <div style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1)" }}>
+      {children}
+    </div>
+  );
+}
+
+function RevealProse({ paragraphs, gap = 0.8, startDelay = 0 }: { paragraphs: (string | React.ReactNode)[]; gap?: number; startDelay?: number }) {
+  return (
+    <Prose>
+      {paragraphs.map((p, i) => (
+        <RevealBlock key={i} delay={startDelay + i * gap}>
+          {typeof p === "string" ? <p className={i > 0 ? "mt-6" : ""}>{p}</p> : <div className={i > 0 ? "mt-6" : ""}>{p}</div>}
+        </RevealBlock>
+      ))}
+    </Prose>
+  );
+}
+
 function ScreenEntrance({ onContinue }: { onContinue: () => void }) {
+  const paragraphs = [
+    "You are standing in a narrow corridor. The walls are the color of wet ink.",
+    "Somewhere ahead, a metaphor is waiting to show you what it knows.",
+    <>You did not come here to learn definitions. You came here because something in your writing has been staying too still {"\u2014"} circling the same comparisons, reaching for the same safe distances.</>,
+    "A metaphor is not a decoration. It is a migration.",
+    "The image leaves one thing and arrives at another, and in the crossing, both are changed.",
+    "Today, we practice letting the image move.",
+  ];
+  const totalRevealTime = paragraphs.length * 0.8;
   return (
     <motion.div {...FADE}>
-      <Prose>
-        <p>You are standing in a narrow corridor. The walls are the color of wet ink.</p>
-        <p className="mt-6">Somewhere ahead, a metaphor is waiting to show you what it knows.</p>
-        <p className="mt-6">You did not come here to learn definitions. You came here because something in your writing has been staying too still {"\u2014"} circling the same comparisons, reaching for the same safe distances.</p>
-        <p className="mt-6">A metaphor is not a decoration. It is a migration.</p>
-        <p className="mt-6">The image leaves one thing and arrives at another, and in the crossing, both are changed.</p>
-        <p className="mt-6">Today, we practice letting the image move.</p>
-      </Prose>
-      <ContinueButton onClick={onContinue} delay={3} />
+      <RevealProse paragraphs={paragraphs} />
+      <ContinueButton onClick={onContinue} delay={totalRevealTime + 1} />
     </motion.div>
   );
 }
 
 function ScreenCraftInsight1({ onContinue }: { onContinue: () => void }) {
+  const paragraphs = [
+    <>Most writing advice treats metaphor as ornamentation {"\u2014"} a way to make sentences prettier. But a metaphor is not a brooch pinned to a dress. It is the thread that pulls the fabric into shape.</>,
+    <>When you say {"\u2018"}grief is an ocean,{"\u2019"} you are not describing grief. You are teaching your body to feel it differently: as something vast, tidal, indifferent to your swimming.</>,
+    "The image does not explain. It relocates.",
+    "Every strong metaphor is a small act of transformation. You take one thing and let it travel until it touches something else, and in that touch, both are altered.",
+    <>This is what we{"\u2019"}ll practice: not finding metaphors, but following them.</>,
+  ];
+  const totalRevealTime = (paragraphs.length) * 0.8;
   return (
     <motion.div {...FADE}>
-      <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>What a Metaphor Does</h2>
-      <Prose>
-        <p>Most writing advice treats metaphor as ornamentation {"\u2014"} a way to make sentences prettier. But a metaphor is not a brooch pinned to a dress. It is the thread that pulls the fabric into shape.</p>
-        <p className="mt-6">When you say {"\u2018"}grief is an ocean,{"\u2019"} you are not describing grief. You are teaching your body to feel it differently: as something vast, tidal, indifferent to your swimming.</p>
-        <p className="mt-6">The image does not explain. It relocates.</p>
-        <p className="mt-6">Every strong metaphor is a small act of transformation. You take one thing and let it travel until it touches something else, and in that touch, both are altered.</p>
-        <p className="mt-6">This is what we{"\u2019"}ll practice: not finding metaphors, but following them.</p>
-      </Prose>
-      <ContinueButton onClick={onContinue} delay={2} />
+      <RevealBlock delay={0}>
+        <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>What a Metaphor Does</h2>
+      </RevealBlock>
+      <RevealProse paragraphs={paragraphs} startDelay={0.4} />
+      <ContinueButton onClick={onContinue} delay={totalRevealTime + 1.5} />
     </motion.div>
   );
 }
@@ -108,34 +139,41 @@ function ScreenThreshold({ onSubmit }: { onSubmit: (text: string) => void }) {
     onSubmit(value);
   };
 
+  const introParagraphs = [
+    "Before we begin, I need to know what you arrive with.",
+    <>Below is a stem. You will finish it. Don{"\u2019"}t think. Don{"\u2019"}t polish. The sentence is already true {"\u2014"} you{"\u2019"}re just finding out what it says.</>,
+  ];
+  const inputDelay = introParagraphs.length * 0.8 + 0.6;
+
   return (
     <motion.div {...FADE}>
-      <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>The Threshold</h2>
-      <Prose>
-        <p>Before we begin, I need to know what you arrive with.</p>
-        <p className="mt-6">Below is a stem. You will finish it. Don{"\u2019"}t think. Don{"\u2019"}t polish. The sentence is already true {"\u2014"} you{"\u2019"}re just finding out what it says.</p>
-      </Prose>
-      <div className="mt-10">
-        <p className="mb-2 italic" style={{ color: "#8a8278", fontFamily: "'Cormorant Garamond', serif", fontSize: "1.1rem" }}>My writing reaches for metaphor when...</p>
-        <ExhibitInput value={value} onChange={setValue} placeholder="...finish the thought" />
-        {!submitted && (
-          <button
-            data-testid="button-submit-threshold"
-            onClick={handleSubmit}
-            disabled={!value.trim()}
-            className="mt-4 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            Submit
-          </button>
-        )}
-        <AnimatePresence>
-          {mirror && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-8 pl-6 border-l-2 border-[#c4a24d]">
-              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#c4a24d", fontStyle: "italic" }}>{mirror}</p>
-            </motion.div>
+      <RevealBlock delay={0}>
+        <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>The Threshold</h2>
+      </RevealBlock>
+      <RevealProse paragraphs={introParagraphs} startDelay={0.4} />
+      <RevealBlock delay={inputDelay}>
+        <div className="mt-10">
+          <p className="mb-2 italic" style={{ color: "#8a8278", fontFamily: "'Cormorant Garamond', serif", fontSize: "1.1rem" }}>My writing reaches for metaphor when...</p>
+          <ExhibitInput value={value} onChange={setValue} placeholder="...finish the thought" />
+          {!submitted && (
+            <button
+              data-testid="button-submit-threshold"
+              onClick={handleSubmit}
+              disabled={!value.trim()}
+              className="mt-4 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Submit
+            </button>
           )}
-        </AnimatePresence>
-      </div>
+          <AnimatePresence>
+            {mirror && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-8 pl-6 border-l-2 border-[#c4a24d]">
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#c4a24d", fontStyle: "italic" }}>{mirror}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </RevealBlock>
     </motion.div>
   );
 }
@@ -154,58 +192,73 @@ function ScreenSyntaxBloom({ onSubmit }: { onSubmit: (moss: string, ivy: string,
     onSubmit(moss, ivy, wildflower);
   };
 
+  const introParagraphs = [
+    <>Sentences are organisms. Some sprawl like ivy, covering every surface. Some stay low, like moss {"\u2014"} barely there, but persistent. Others rise fast and fall, like wildflowers after rain.</>,
+    <>Below, you{"\u2019"}ll write three versions of the same image. I{"\u2019"}ll give you a seed: the image of someone waiting.</>,
+    "Write it three ways:",
+  ];
+  const instructionsDelay = introParagraphs.length * 0.8 + 0.8;
+
   return (
     <motion.div {...FADE}>
-      <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>Syntax Bloom</h2>
-      <Prose>
-        <p>Sentences are organisms. Some sprawl like ivy, covering every surface. Some stay low, like moss {"\u2014"} barely there, but persistent. Others rise fast and fall, like wildflowers after rain.</p>
-        <p className="mt-6">Below, you{"\u2019"}ll write three versions of the same image. I{"\u2019"}ll give you a seed: the image of someone waiting.</p>
-        <p className="mt-6">Write it three ways:</p>
-      </Prose>
-      <div className="mt-8 space-y-2">
-        <Prose><p><strong>1. MOSS</strong> {"\u2014"} A short, clipped sentence. Five words or fewer. Let it sit on the page like a held breath.</p></Prose>
-        <Prose><p><strong>2. IVY</strong> {"\u2014"} A long, winding sentence. Let it sprawl. Subordinate clauses, digressions, the whole tangled thing.</p></Prose>
-        <Prose><p><strong>3. WILDFLOWER</strong> {"\u2014"} A balanced sentence. Medium length. It rises, turns, and completes.</p></Prose>
-      </div>
-      <p className="mt-6 text-sm" style={{ color: "#8a8278" }}>Same image. Three different metabolisms.</p>
-      <div className="mt-8">
-        <ExhibitInput label="MOSS (5 words or fewer)" value={moss} onChange={setMoss} maxRows={2} />
-        <ExhibitInput label="IVY (let it sprawl)" value={ivy} onChange={setIvy} maxRows={4} />
-        <ExhibitInput label="WILDFLOWER (balanced)" value={wildflower} onChange={setWildflower} maxRows={3} />
-        {!submitted && (
-          <button
-            data-testid="button-submit-syntax-bloom"
-            onClick={handleSubmit}
-            disabled={!moss.trim() || !ivy.trim() || !wildflower.trim()}
-            className="mt-4 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            Submit
-          </button>
-        )}
-        <AnimatePresence>
-          {mirror && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-8 pl-6 border-l-2 border-[#c4a24d]">
-              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#c4a24d", fontStyle: "italic" }}>{mirror}</p>
-            </motion.div>
+      <RevealBlock delay={0}>
+        <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>Syntax Bloom</h2>
+      </RevealBlock>
+      <RevealProse paragraphs={introParagraphs} startDelay={0.4} />
+      <RevealBlock delay={instructionsDelay}>
+        <div className="mt-8 space-y-2">
+          <Prose><p><strong>1. MOSS</strong> {"\u2014"} A short, clipped sentence. Five words or fewer. Let it sit on the page like a held breath.</p></Prose>
+          <Prose><p><strong>2. IVY</strong> {"\u2014"} A long, winding sentence. Let it sprawl. Subordinate clauses, digressions, the whole tangled thing.</p></Prose>
+          <Prose><p><strong>3. WILDFLOWER</strong> {"\u2014"} A balanced sentence. Medium length. It rises, turns, and completes.</p></Prose>
+        </div>
+      </RevealBlock>
+      <RevealBlock delay={instructionsDelay + 0.8}>
+        <p className="mt-6 text-sm" style={{ color: "#8a8278" }}>Same image. Three different metabolisms.</p>
+      </RevealBlock>
+      <RevealBlock delay={instructionsDelay + 1.4}>
+        <div className="mt-8">
+          <ExhibitInput label="MOSS (5 words or fewer)" value={moss} onChange={setMoss} maxRows={2} />
+          <ExhibitInput label="IVY (let it sprawl)" value={ivy} onChange={setIvy} maxRows={4} />
+          <ExhibitInput label="WILDFLOWER (balanced)" value={wildflower} onChange={setWildflower} maxRows={3} />
+          {!submitted && (
+            <button
+              data-testid="button-submit-syntax-bloom"
+              onClick={handleSubmit}
+              disabled={!moss.trim() || !ivy.trim() || !wildflower.trim()}
+              className="mt-4 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Submit
+            </button>
           )}
-        </AnimatePresence>
-      </div>
+          <AnimatePresence>
+            {mirror && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-8 pl-6 border-l-2 border-[#c4a24d]">
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#c4a24d", fontStyle: "italic" }}>{mirror}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </RevealBlock>
     </motion.div>
   );
 }
 
 function ScreenCraftInsight2({ onContinue }: { onContinue: () => void }) {
+  const paragraphs = [
+    <>There is a kind of loyalty that kills metaphors: the insistence that they {"\u2018"}make sense.{"\u2019"}</>,
+    <>The most alive comparisons don{"\u2019"}t explain themselves. They trust the reader{"\u2019"}s body to understand before the mind catches up.</>,
+    <>{"\u2018"}Grief is an ocean{"\u2019"} works not because grief is actually like an ocean, but because your lungs already know what drowning feels like.</>,
+    "When you follow a metaphor, you are not solving a puzzle. You are agreeing to a temporary belief.",
+    <>The writer{"\u2019"}s job is not to justify the comparison {"\u2014"} it is to commit to it so fully that the reader forgets it was ever a leap.</>,
+  ];
+  const totalRevealTime = paragraphs.length * 0.8;
   return (
     <motion.div {...FADE}>
-      <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>On Fidelity</h2>
-      <Prose>
-        <p>There is a kind of loyalty that kills metaphors: the insistence that they {"\u2018"}make sense.{"\u2019"}</p>
-        <p className="mt-6">The most alive comparisons don{"\u2019"}t explain themselves. They trust the reader{"\u2019"}s body to understand before the mind catches up.</p>
-        <p className="mt-6">{"\u2018"}Grief is an ocean{"\u2019"} works not because grief is actually like an ocean, but because your lungs already know what drowning feels like.</p>
-        <p className="mt-6">When you follow a metaphor, you are not solving a puzzle. You are agreeing to a temporary belief.</p>
-        <p className="mt-6">The writer{"\u2019"}s job is not to justify the comparison {"\u2014"} it is to commit to it so fully that the reader forgets it was ever a leap.</p>
-      </Prose>
-      <ContinueButton onClick={onContinue} delay={2} />
+      <RevealBlock delay={0}>
+        <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>On Fidelity</h2>
+      </RevealBlock>
+      <RevealProse paragraphs={paragraphs} startDelay={0.4} />
+      <ContinueButton onClick={onContinue} delay={totalRevealTime + 1.5} />
     </motion.div>
   );
 }
@@ -222,36 +275,43 @@ function ScreenMigrationPath({ onSubmit }: { onSubmit: (text: string) => void })
     onSubmit(value);
   };
 
+  const paragraphs = [
+    "Now we travel.",
+    <>Write a short paragraph {"\u2014"} four to six sentences {"\u2014"} in which a metaphor begins as one thing and becomes another by the end.</>,
+    <>Don{"\u2019"}t plan. Start with an image that feels true, and let it shift. The metaphor might begin as weather and end as architecture. It might start as an animal and arrive as a memory.</>,
+    "Your job is to follow it. Not to control it.",
+    "Begin.",
+  ];
+  const inputDelay = paragraphs.length * 0.8 + 0.8;
+
   return (
     <motion.div {...FADE}>
-      <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>The Migration Path</h2>
-      <Prose>
-        <p>Now we travel.</p>
-        <p className="mt-6">Write a short paragraph {"\u2014"} four to six sentences {"\u2014"} in which a metaphor begins as one thing and becomes another by the end.</p>
-        <p className="mt-6">Don{"\u2019"}t plan. Start with an image that feels true, and let it shift. The metaphor might begin as weather and end as architecture. It might start as an animal and arrive as a memory.</p>
-        <p className="mt-6">Your job is to follow it. Not to control it.</p>
-        <p className="mt-6">Begin.</p>
-      </Prose>
-      <div className="mt-10">
-        <ExhibitInput value={value} onChange={setValue} maxRows={8} />
-        {!submitted && (
-          <button
-            data-testid="button-submit-migration"
-            onClick={handleSubmit}
-            disabled={!value.trim()}
-            className="mt-4 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            Submit
-          </button>
-        )}
-        <AnimatePresence>
-          {mirror && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-8 pl-6 border-l-2 border-[#c4a24d]">
-              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#c4a24d", fontStyle: "italic" }}>{mirror}</p>
-            </motion.div>
+      <RevealBlock delay={0}>
+        <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>The Migration Path</h2>
+      </RevealBlock>
+      <RevealProse paragraphs={paragraphs} startDelay={0.4} />
+      <RevealBlock delay={inputDelay}>
+        <div className="mt-10">
+          <ExhibitInput value={value} onChange={setValue} maxRows={8} />
+          {!submitted && (
+            <button
+              data-testid="button-submit-migration"
+              onClick={handleSubmit}
+              disabled={!value.trim()}
+              className="mt-4 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Submit
+            </button>
           )}
-        </AnimatePresence>
-      </div>
+          <AnimatePresence>
+            {mirror && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-8 pl-6 border-l-2 border-[#c4a24d]">
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#c4a24d", fontStyle: "italic" }}>{mirror}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </RevealBlock>
     </motion.div>
   );
 }
@@ -282,33 +342,42 @@ function ScreenReflections({ onSubmit }: { onSubmit: (responses: string[]) => vo
     onSubmit(values);
   };
 
+  const introParagraphs = [
+    "The exhibit is almost over. But I want to leave you with some accusations.",
+    <>They are not questions. They are statements about your writing. Your job is to respond {"\u2014"} agree, argue, or confess.</>,
+  ];
+  const challengeStartDelay = introParagraphs.length * 0.8 + 0.8;
+
   return (
     <motion.div {...FADE}>
-      <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>Before You Leave</h2>
-      <Prose>
-        <p>The exhibit is almost over. But I want to leave you with some accusations.</p>
-        <p className="mt-6">They are not questions. They are statements about your writing. Your job is to respond {"\u2014"} agree, argue, or confess.</p>
-      </Prose>
+      <RevealBlock delay={0}>
+        <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>Before You Leave</h2>
+      </RevealBlock>
+      <RevealProse paragraphs={introParagraphs} startDelay={0.4} />
       <div className="mt-10 space-y-10">
         {CHALLENGES.map((challenge, i) => (
-          <div key={i}>
-            <p className="mb-3 italic" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#e8e4df" }}>
-              {i + 1}. {"\u201C"}{challenge}{"\u201D"}
-            </p>
-            <ExhibitInput label={`Challenge ${i + 1}`} value={values[i]} onChange={(v) => update(i, v)} maxRows={3} />
-          </div>
+          <RevealBlock key={i} delay={challengeStartDelay + i * 0.6}>
+            <div>
+              <p className="mb-3 italic" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.15rem", lineHeight: "1.8", color: "#e8e4df" }}>
+                {i + 1}. {"\u201C"}{challenge}{"\u201D"}
+              </p>
+              <ExhibitInput label={`Challenge ${i + 1}`} value={values[i]} onChange={(v) => update(i, v)} maxRows={3} />
+            </div>
+          </RevealBlock>
         ))}
       </div>
-      {!submitted && (
-        <button
-          data-testid="button-submit-reflections"
-          onClick={handleSubmit}
-          disabled={!allFilled}
-          className="mt-8 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          Submit Reflections
-        </button>
-      )}
+      <RevealBlock delay={challengeStartDelay + CHALLENGES.length * 0.6 + 0.4}>
+        {!submitted && (
+          <button
+            data-testid="button-submit-reflections"
+            onClick={handleSubmit}
+            disabled={!allFilled}
+            className="mt-8 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Submit Reflections
+          </button>
+        )}
+      </RevealBlock>
     </motion.div>
   );
 }
@@ -317,40 +386,47 @@ function ScreenExit({ allComplete }: { allComplete: boolean }) {
   const [, navigate] = useLocation();
   const [showBlessing, setShowBlessing] = useState(false);
 
+  const paragraphs = [
+    "You are walking back through the corridor. The walls are still ink-dark, but the light has changed.",
+    "What you practiced here is simple: following the image instead of directing it. Trusting the metaphor to know where it needs to go.",
+    "This is not a skill you master. It is a practice you return to.",
+    "Your responses have been saved to your Garden.",
+    <>If one of them surprised you {"\u2014"} if one sentence felt more true than you expected {"\u2014"} consider sharing it in the Gallery.</>,
+    "The exhibit will be here when you need it again.",
+  ];
+  const buttonsDelay = paragraphs.length * 0.8 + 1;
+
   useEffect(() => {
     if (allComplete) {
-      const t = setTimeout(() => setShowBlessing(true), 1500);
+      const t = setTimeout(() => setShowBlessing(true), (buttonsDelay + 1.5) * 1000);
       return () => clearTimeout(t);
     }
-  }, [allComplete]);
+  }, [allComplete, buttonsDelay]);
 
   return (
     <motion.div {...FADE}>
-      <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>The Exit</h2>
-      <Prose>
-        <p>You are walking back through the corridor. The walls are still ink-dark, but the light has changed.</p>
-        <p className="mt-6">What you practiced here is simple: following the image instead of directing it. Trusting the metaphor to know where it needs to go.</p>
-        <p className="mt-6">This is not a skill you master. It is a practice you return to.</p>
-        <p className="mt-6">Your responses have been saved to your Garden.</p>
-        <p className="mt-6">If one of them surprised you {"\u2014"} if one sentence felt more true than you expected {"\u2014"} consider sharing it in the Gallery.</p>
-        <p className="mt-6">The exhibit will be here when you need it again.</p>
-      </Prose>
-      <div className="mt-12 flex gap-6 flex-wrap">
-        <button
-          data-testid="button-return-garden"
-          onClick={() => navigate("/garden")}
-          className="px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300"
-        >
-          Return to Garden
-        </button>
-        <button
-          data-testid="button-share-gallery"
-          onClick={() => navigate("/gallery")}
-          className="px-8 py-3 bg-[#c4a24d] text-[#0a0a0a] tracking-[0.15em] uppercase text-sm hover:bg-[#d4b25d] transition-all duration-300"
-        >
-          Share to Gallery
-        </button>
-      </div>
+      <RevealBlock delay={0}>
+        <h2 className="text-sm tracking-[0.3em] uppercase mb-10" style={{ color: "#c4a24d" }}>The Exit</h2>
+      </RevealBlock>
+      <RevealProse paragraphs={paragraphs} startDelay={0.4} />
+      <RevealBlock delay={buttonsDelay}>
+        <div className="mt-12 flex gap-6 flex-wrap">
+          <button
+            data-testid="button-return-garden"
+            onClick={() => navigate("/garden")}
+            className="px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300"
+          >
+            Return to Garden
+          </button>
+          <button
+            data-testid="button-share-gallery"
+            onClick={() => navigate("/gallery")}
+            className="px-8 py-3 bg-[#c4a24d] text-[#0a0a0a] tracking-[0.15em] uppercase text-sm hover:bg-[#d4b25d] transition-all duration-300"
+          >
+            Share to Gallery
+          </button>
+        </div>
+      </RevealBlock>
       <AnimatePresence>
         {showBlessing && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }} className="mt-16 pt-12 border-t border-[#1a1815]">
