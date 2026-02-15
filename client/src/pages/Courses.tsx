@@ -191,24 +191,20 @@ function CourseCatalog({ onSelectCourse }: { onSelectCourse: (id: string) => voi
         <p className="text-white/40 font-body text-sm max-w-md mx-auto leading-relaxed italic">
           Study the architecture of writing at your own pace.
         </p>
-        <p className="text-white/15 font-body text-[11px] max-w-sm mx-auto leading-relaxed mt-4 italic">
-          courses are included with your plan or available individually. seed members receive one free course. cultivator members receive all courses.
-        </p>
       </motion.div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        {courses?.map((course, i) => (
-          <CourseCard key={course.id} course={course} index={i} onSelect={onSelectCourse} />
-        ))}
-      </div>
-
-      {(!courses || courses.length === 0) && !isLoading && (
-        <div className="text-center py-20 text-white/30">
-          <Feather size={28} className="mx-auto mb-4 opacity-30" />
-          <p className="font-display text-lg italic text-white/25 mb-2">The syllabus is being written.</p>
-          <p className="font-body text-xs text-white/20">Courses will appear here when they are ready.</p>
-        </div>
-      )}
+      <motion.div
+        className="text-center py-24"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Feather size={28} className="mx-auto mb-6 text-white/15" />
+        <p className="font-display text-2xl italic text-white/35 mb-3">Coming Soon</p>
+        <p className="font-body text-sm text-white/20 max-w-sm mx-auto leading-relaxed">
+          We're preparing our first courses — guided studies in poetry, essays, and revision, written by Sophia Maye. Check back soon.
+        </p>
+      </motion.div>
     </div>
   );
 }
