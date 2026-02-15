@@ -3580,7 +3580,45 @@ export default function Garden() {
     if (plantingTarget) updateMutation.mutate({ id: plantingTarget.id, ...data });
   }
 
-  if (!authLoading && !isAuthenticated) { window.location.href = "/api/login"; return null; }
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background text-foreground relative">
+        <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center space-y-8 max-w-md"
+          >
+            <div className="w-16 h-16 mx-auto border border-white/10 rounded-full flex items-center justify-center">
+              <Feather size={24} className="text-white/30" />
+            </div>
+            <div className="space-y-3">
+              <h1 className="font-display text-3xl sm:text-4xl text-white/85 italic">The Garden</h1>
+              <p className="font-body text-sm text-white/35 leading-relaxed">
+                A quiet place to write, grow, and tend your work. Sign in to enter.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/10" />
+              <div className="w-1 h-1 rotate-45 border border-white/10" />
+              <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/10" />
+            </div>
+            <button
+              onClick={() => { window.location.href = "/api/login"; }}
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-white/[0.12] bg-white/[0.04] text-white/70 hover:text-white/90 hover:bg-white/[0.08] hover:border-white/[0.2] transition-all duration-500 font-mono text-xs uppercase tracking-[0.2em]"
+              data-testid="button-garden-login"
+            >
+              Sign in to enter
+            </button>
+            <p className="font-mono text-[9px] text-white/15 tracking-widest uppercase">
+              The Page Gallery Journal
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   if (authLoading || isLoading) {
     return (
