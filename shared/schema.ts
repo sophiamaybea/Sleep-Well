@@ -910,3 +910,68 @@ export const editorInvitations = pgTable("editor_invitations", {
 
 export const insertEditorInvitationSchema = createInsertSchema(editorInvitations).omit({ id: true, createdAt: true });
 export type EditorInvitation = typeof editorInvitations.$inferSelect;
+
+// === EXHIBITS ===
+
+export const exhibits = pgTable("exhibits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: varchar("slug").notNull().unique(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  price: integer("price").notNull().default(0),
+  isPublished: boolean("is_published").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const exhibitProgress = pgTable("exhibit_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  exhibitId: varchar("exhibit_id").notNull().references(() => exhibits.id),
+  currentScreen: integer("current_screen").notNull().default(1),
+  completedExercises: jsonb("completed_exercises").notNull().default(sql`'[]'::jsonb`),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const exhibitResponses = pgTable("exhibit_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  exhibitId: varchar("exhibit_id").notNull().references(() => exhibits.id),
+  exerciseKey: text("exercise_key").notNull(),
+  response: text("response").notNull(),
+  tags: text("tags").array().default(sql`'{}'::text[]`),
+  mirrorShown: text("mirror_shown"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const exhibitReflections = pgTable("exhibit_reflections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  exhibitId: varchar("exhibit_id").notNull().references(() => exhibits.id),
+  challengeKey: text("challenge_key").notNull(),
+  response: text("response").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const exhibitPurchases = pgTable("exhibit_purchases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  exhibitId: varchar("exhibit_id").notNull().references(() => exhibits.id),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+});
+
+export const insertExhibitSchema = createInsertSchema(exhibits).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertExhibitProgressSchema = createInsertSchema(exhibitProgress).omit({ id: true, createdAt: true });
+export const insertExhibitResponseSchema = createInsertSchema(exhibitResponses).omit({ id: true, userId: true, createdAt: true });
+export const insertExhibitReflectionSchema = createInsertSchema(exhibitReflections).omit({ id: true, userId: true, createdAt: true });
+export const insertExhibitPurchaseSchema = createInsertSchema(exhibitPurchases).omit({ id: true, userId: true, purchasedAt: true });
+
+export type Exhibit = typeof exhibits.$inferSelect;
+export type InsertExhibit = z.infer<typeof insertExhibitSchema>;
+export type ExhibitProgress = typeof exhibitProgress.$inferSelect;
+export type ExhibitResponse = typeof exhibitResponses.$inferSelect;
+export type InsertExhibitResponse = z.infer<typeof insertExhibitResponseSchema>;
+export type ExhibitReflection = typeof exhibitReflections.$inferSelect;
+export type InsertExhibitReflection = z.infer<typeof insertExhibitReflectionSchema>;
+export type ExhibitPurchase = typeof exhibitPurchases.$inferSelect;

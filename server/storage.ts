@@ -58,6 +58,9 @@ import {
   pauseStones, type PauseStone,
   gardenSeasons, type GardenSeason,
   editorInvitations, type EditorInvitation,
+  exhibits, exhibitProgress, exhibitResponses, exhibitReflections, exhibitPurchases,
+  type Exhibit, type ExhibitProgress, type ExhibitResponse, type ExhibitReflection, type ExhibitPurchase,
+  type InsertExhibitResponse, type InsertExhibitReflection,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -470,6 +473,17 @@ export interface IStorage {
 
   // Live Prompt Counts
   getLivePromptCounts(): Promise<{ cafeResponses: number; workshopResponses: number }>;
+
+  // Exhibits
+  getExhibits(): Promise<Exhibit[]>;
+  getExhibitBySlug(slug: string): Promise<Exhibit | undefined>;
+  getExhibitProgress(userId: string, exhibitId: string): Promise<ExhibitProgress | undefined>;
+  upsertExhibitProgress(userId: string, exhibitId: string, data: { currentScreen?: number; completedExercises?: any; completedAt?: Date | null }): Promise<ExhibitProgress>;
+  saveExhibitResponse(userId: string, data: InsertExhibitResponse): Promise<ExhibitResponse>;
+  getExhibitResponses(userId: string, exhibitId: string): Promise<ExhibitResponse[]>;
+  saveExhibitReflection(userId: string, data: InsertExhibitReflection): Promise<ExhibitReflection>;
+  hasExhibitPurchase(userId: string, exhibitId: string): Promise<boolean>;
+  createExhibitPurchase(userId: string, exhibitId: string): Promise<ExhibitPurchase>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3285,6 +3299,69 @@ export class DatabaseStorage implements IStorage {
     const [workshopResult] = await db.select({ count: count() }).from(workshopResponses)
       .where(sql`${workshopResponses.createdAt} >= ${todayStart}`);
     return { cafeResponses: cafeResult?.count || 0, workshopResponses: workshopResult?.count || 0 };
+  }
+
+  // === EXHIBITS ===
+  async getExhibits(): Promise<Exhibit[]> {
+    return await db.select().from(exhibits).where(eq(exhibits.isPublished, true)).orderBy(desc(exhibits.createdAt));
+  }
+
+  async getExhibitBySlug(slug: string): Promise<Exhibit | undefined> {
+    const [exhibit] = await db.select().from(exhibits).where(eq(exhibits.slug, slug));
+    return exhibit || undefined;
+  }
+
+  async getExhibitProgress(userId: string, exhibitId: string): Promise<ExhibitProgress | undefined> {
+    const [progress] = await db.select().from(exhibitProgress)
+      .where(and(eq(exhibitProgress.userId, userId), eq(exhibitProgress.exhibitId, exhibitId)));
+    return progress || undefined;
+  }
+
+  async upsertExhibitProgress(userId: string, exhibitId: string, data: { currentScreen?: number; completedExercises?: any; completedAt?: Date | null }): Promise<ExhibitProgress> {
+    const existing = await this.getExhibitProgress(userId, exhibitId);
+    if (existing) {
+      const updateData: any = {};
+      if (data.currentScreen !== undefined) updateData.currentScreen = data.currentScreen;
+      if (data.completedExercises !== undefined) updateData.completedExercises = data.completedExercises;
+      if (data.completedAt !== undefined) updateData.completedAt = data.completedAt;
+      const [updated] = await db.update(exhibitProgress).set(updateData)
+        .where(eq(exhibitProgress.id, existing.id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(exhibitProgress).values({
+      userId,
+      exhibitId,
+      currentScreen: data.currentScreen ?? 1,
+      completedExercises: data.completedExercises ?? [],
+    }).returning();
+    return created;
+  }
+
+  async saveExhibitResponse(userId: string, data: InsertExhibitResponse): Promise<ExhibitResponse> {
+    const [created] = await db.insert(exhibitResponses).values({ ...data, userId }).returning();
+    return created;
+  }
+
+  async getExhibitResponses(userId: string, exhibitId: string): Promise<ExhibitResponse[]> {
+    return await db.select().from(exhibitResponses)
+      .where(and(eq(exhibitResponses.userId, userId), eq(exhibitResponses.exhibitId, exhibitId)))
+      .orderBy(desc(exhibitResponses.createdAt));
+  }
+
+  async saveExhibitReflection(userId: string, data: InsertExhibitReflection): Promise<ExhibitReflection> {
+    const [created] = await db.insert(exhibitReflections).values({ ...data, userId }).returning();
+    return created;
+  }
+
+  async hasExhibitPurchase(userId: string, exhibitId: string): Promise<boolean> {
+    const [purchase] = await db.select().from(exhibitPurchases)
+      .where(and(eq(exhibitPurchases.userId, userId), eq(exhibitPurchases.exhibitId, exhibitId)));
+    return !!purchase;
+  }
+
+  async createExhibitPurchase(userId: string, exhibitId: string): Promise<ExhibitPurchase> {
+    const [created] = await db.insert(exhibitPurchases).values({ userId, exhibitId }).returning();
+    return created;
   }
 }
 

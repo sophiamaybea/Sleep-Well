@@ -1,0 +1,67 @@
+Build a new feature called "Exhibits" - an immersive text-only writing lesson system. This is a major new feature that transforms this literary platform into a teaching studio.
+
+## PART 1: DATABASE SCHEMA
+
+Add these tables to shared/schema.ts:
+
+1. `exhibits` table:
+- id: varchar primary key with gen_random_uuid()
+- slug: varchar unique (e.g. "metaphor-as-migration")
+- title: text not null (e.g. "Metaphor as Migration")
+- subtitle: text (e.g. "What moves through you when you let an image travel")
+- price: integer default 0 (in cents)
+- isPublished: boolean default false
+- createdAt: timestamp
+- updatedAt: timestamp
+
+2. `exhibit_progress` table:
+- id: varchar primary key
+- userId: varchar references users.id
+- exhibitId: varchar references exhibits.id
+- currentScreen: integer default 1
+- completedExercises: jsonb default '[]'
+- completedAt: timestamp (null until finished)
+- createdAt: timestamp
+
+3. `exhibit_responses` table:
+- id: varchar primary key  
+- userId: varchar references users.id
+- exhibitId: varchar references exhibits.id
+- exerciseKey: text not null (e.g. "threshold", "syntax_bloom", "migration_path")
+- response: text not null
+- tags: text array (e.g. ["breathless", "clipped"])
+- mirrorShown: text (the mirror line displayed)
+- createdAt: timestamp
+
+4. `exhibit_reflections` table:
+- id: varchar primary key
+- userId: varchar references users.id  
+- exhibitId: varchar references exhibits.id
+- challengeKey: text not null
+- response: text not null
+- createdAt: timestamp
+
+5. `exhibit_purchases` table:
+- id: varchar primary key
+- userId: varchar references users.id
+- exhibitId: varchar references exhibits.id
+- purchasedAt: timestamp
+
+Create all insert/select schemas with drizzle-zod.
+
+## PART 2: API ROUTES
+
+Add these routes to server/routes.ts:
+
+- GET /api/exhibits - list all published exhibits (with purchase status if logged in)
+- GET /api/exhibits/:slug - get single exhibit details
+- POST /api/exhibits/:slug/purchase - mark exhibit as purchased for user
+- GET /api/exhibits/:slug/progress - get user's progress
+- POST /api/exhibits/:slug/progress - update screen/completion status
+- POST /api/exhibits/:slug/responses - save exercise response
+- POST /api/exhibits/:slug/reflections - save reflection response
+- GET /api/exhibits/:slug/responses - get user's responses for this exhibit
+
+All routes except listing require authentication.
+
+Build Part 1 and Part 2 now. I'll give you the page component next.
