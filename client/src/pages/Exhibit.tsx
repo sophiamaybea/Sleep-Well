@@ -33,22 +33,26 @@ function ExhibitInput({ label, placeholder, value, onChange, maxRows }: { label?
 
 function ContinueButton({ onClick, delay = 2 }: { onClick: () => void; delay?: number }) {
   const [visible, setVisible] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setVisible(true), delay * 1000); return () => clearTimeout(t); }, [delay]);
+  useEffect(() => {
+    setVisible(false);
+    const t = setTimeout(() => setVisible(true), delay * 1000);
+    return () => clearTimeout(t);
+  }, [delay]);
   return (
-    <AnimatePresence>
+    <div className="mt-12 min-h-[60px]">
       {visible && (
         <motion.button
           data-testid="button-continue"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as unknown as [number, number, number, number] }}
           onClick={onClick}
-          className="mt-12 px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300"
+          className="px-8 py-3 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300"
         >
           Continue
         </motion.button>
       )}
-    </AnimatePresence>
+    </div>
   );
 }
 
@@ -474,7 +478,7 @@ export default function Exhibit() {
         <span className="text-xs tracking-[0.2em]" style={{ color: "#4a4540" }}>{screen} / 8</span>
       </div>
 
-      <div className="max-w-[680px] mx-auto px-6 py-24 min-h-screen flex flex-col justify-center">
+      <div className="max-w-[680px] mx-auto px-6 pt-24 pb-20 min-h-screen flex flex-col justify-center">
         <AnimatePresence mode="wait">
           {screen === 1 && <ScreenEntrance key="s1" onContinue={() => advance()} />}
           {screen === 2 && <ScreenCraftInsight1 key="s2" onContinue={() => advance()} />}
@@ -489,11 +493,21 @@ export default function Exhibit() {
 
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div
+          <button
             key={i}
-            className="w-1.5 h-1.5 rounded-full transition-all duration-500"
-            style={{ background: i + 1 === screen ? "#c4a24d" : i + 1 < screen ? "#3a3530" : "#1a1815" }}
-          />
+            data-testid={`dot-screen-${i + 1}`}
+            onClick={() => {
+              setScreen(i + 1);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="w-3 h-3 rounded-full transition-all duration-500 hover:scale-150 cursor-pointer p-0 border-0 bg-transparent flex items-center justify-center"
+            aria-label={`Go to screen ${i + 1}`}
+          >
+            <span
+              className="block w-1.5 h-1.5 rounded-full transition-all duration-500"
+              style={{ background: i + 1 === screen ? "#c4a24d" : i + 1 < screen ? "#3a3530" : "#1a1815" }}
+            />
+          </button>
         ))}
       </div>
     </div>
