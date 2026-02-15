@@ -894,3 +894,19 @@ export const gardenSeasons = pgTable("garden_seasons", {
 
 export type PauseStone = typeof pauseStones.$inferSelect;
 export type GardenSeason = typeof gardenSeasons.$inferSelect;
+
+// === EDITOR INVITATIONS ===
+
+export const editorInvitations = pgTable("editor_invitations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  invitedBy: varchar("invited_by").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"),
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedAt: timestamp("accepted_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEditorInvitationSchema = createInsertSchema(editorInvitations).omit({ id: true, createdAt: true });
+export type EditorInvitation = typeof editorInvitations.$inferSelect;

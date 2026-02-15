@@ -1,0 +1,59 @@
+I need you to implement a comprehensive Editor-in-Chief (EIC) system. Here's what needs to happen:
+
+## 1. USER ROLES
+The users table already has a `role` field. Make sure these roles exist and are enforced:
+- `writer` (default for new signups) - can access their Garden only
+- `editor` - can access Editorial Studio + their own Garden
+- `editor_in_chief` - can access everything including admin panel
+
+Update my user (sophiamaybea@gmail.com / id 40189913) to role `editor_in_chief`.
+
+## 2. EDITOR INVITATION TABLE
+Create a new `editorInvitations` table in shared/schema.ts:
+- id (uuid, primary key)
+- email (text, not null)
+- token (text, unique, not null) - crypto-secure UUID
+- invitedBy (text, references users.id)
+- status: 'pending' | 'accepted' | 'expired'
+- expiresAt (timestamp)
+- acceptedAt (timestamp, nullable)
+- createdAt (timestamp, default now)
+
+## 3. EIC ADMIN PANEL
+Create a new page at `/eic-dashboard` route (add to App.tsx):
+- Only accessible by users with role `editor_in_chief`
+- Shows list of all editors with their status
+- Has a form to invite new editors by email
+- When EIC enters an email and clicks "Send Invitation":
+  - Creates a record in editorInvitations with a unique token
+  - Generates an invitation link like: `/editor-onboarding?token=XXXXX`
+  - Displays the link so the EIC can copy and send it
+- Shows all pending/accepted/expired invitations
+
+## 4. EDITOR ONBOARDING PAGE
+Create `/editor-onboarding` route:
+- Accepts `?token=XXXXX` query param
+- Validates the token (exists, not expired, not already used)
+- If valid: shows a beautiful onboarding page explaining:
+  - What the Editorial Studio is
+  - How to browse Gardens
+  - How the Replant Request process works
+  - A "Sign in to begin" button that logs them in via Replit Auth
+- After login, their role is upgraded to `editor` and the invitation is marked as accepted
+- If token is invalid/expired: shows an error message
+
+## 5. ROLE-BASED ROUTE PROTECTION
+- `/garden` - requires authentication (any role)
+- `/editor-studio` - requires role `editor` or `editor_in_chief`
+- `/eic-dashboard` - requires role `editor_in_chief` only
+- `/editor-onboarding` - public (no auth required to view, but auth required to accept)
+
+## 6. SERVER API ROUTES
+Add these endpoints in server/routes.ts:
+- POST `/api/eic/invite-editor` - EIC only, creates invitation
+- GET `/api/eic/invitations` - EIC only, lists all invitations
+- GET `/api/editor-onboarding/validate?token=XXX` - public, validates token
+- POST `/api/editor-onboarding/accept` - authenticated, accepts invitation and upgrades role
+- GET `/api/eic/editors` - EIC only, lists all editors
+
+Make the EIC dashboard match the dark, elegant aesthetic of the rest of the site (dark backgrounds, serif fonts, gold/cream accents). Do all of this now.
