@@ -66,33 +66,33 @@ function WordReveal({ text, className, delay = 0 }: { text: string; className?: 
 }
 
 const creatures = [
-  { name: "frog", bgPos: "78% 8%", bgSize: "280%", size: "w-20 md:w-28 lg:w-32", crop: "aspect-square", pos: "right-[3%] md:right-[8%] top-[8%]", rotate: 8, delay: 0.8, drift: [0, -30] as [number, number] },
-  { name: "ladybug", bgPos: "10% 48%", bgSize: "320%", size: "w-16 md:w-24 lg:w-28", crop: "aspect-square", pos: "left-[2%] md:left-[5%] top-[55%]", rotate: -10, delay: 1.1, drift: [0, -45] as [number, number] },
-  { name: "mushroom", bgPos: "42% 32%", bgSize: "340%", size: "w-14 md:w-20 lg:w-24", crop: "aspect-[3/4]", pos: "right-[5%] md:right-[12%] bottom-[20%]", rotate: 6, delay: 1.4, drift: [0, -25] as [number, number] },
-  { name: "bee", bgPos: "72% 52%", bgSize: "260%", size: "w-20 md:w-28 lg:w-32", crop: "aspect-square", pos: "left-[6%] md:left-[10%] bottom-[10%]", rotate: 12, delay: 1.0, drift: [0, -50] as [number, number] },
-  { name: "apple", bgPos: "88% 88%", bgSize: "380%", size: "w-14 md:w-18 lg:w-20", crop: "aspect-square", pos: "right-[15%] md:right-[18%] top-[35%]", rotate: -5, delay: 1.3, drift: [0, -35] as [number, number] },
-  { name: "smallmush", bgPos: "8% 82%", bgSize: "420%", size: "w-10 md:w-14", crop: "aspect-[3/4]", pos: "left-[18%] md:left-[15%] top-[15%]", rotate: -14, delay: 1.6, drift: [0, -20] as [number, number] },
-  { name: "splatters", bgPos: "18% 6%", bgSize: "400%", size: "w-12 md:w-16", crop: "aspect-square", pos: "left-[30%] md:left-[25%] top-[5%]", rotate: 0, delay: 0.9, drift: [0, -40] as [number, number] },
+  { name: "frog", bgPos: "80% 5%", bgSize: "260%", size: 120, pos: "right-[5%] top-[5%]", rotate: 8, delay: 0.8, drift: [0, -30] as [number, number] },
+  { name: "ladybug", bgPos: "5% 50%", bgSize: "300%", size: 110, pos: "left-[3%] top-[45%]", rotate: -10, delay: 1.1, drift: [0, -45] as [number, number] },
+  { name: "mushroom", bgPos: "35% 30%", bgSize: "300%", size: 100, pos: "right-[10%] bottom-[25%]", rotate: 6, delay: 1.4, drift: [0, -25] as [number, number] },
+  { name: "bee", bgPos: "65% 52%", bgSize: "280%", size: 120, pos: "left-[8%] bottom-[12%]", rotate: 12, delay: 1.0, drift: [0, -50] as [number, number] },
+  { name: "apple", bgPos: "85% 88%", bgSize: "400%", size: 80, pos: "right-[18%] top-[40%]", rotate: -5, delay: 1.3, drift: [0, -35] as [number, number] },
+  { name: "smallmush", bgPos: "3% 78%", bgSize: "500%", size: 55, pos: "left-[15%] top-[12%]", rotate: -14, delay: 1.6, drift: [0, -20] as [number, number] },
+  { name: "splatters", bgPos: "15% 5%", bgSize: "350%", size: 70, pos: "left-[25%] top-[3%]", rotate: 0, delay: 0.9, drift: [0, -40] as [number, number] },
 ];
 
 function FloatingCreature({ c, scrollYProgress }: { c: typeof creatures[0]; scrollYProgress: any }) {
   const y = useTransform(scrollYProgress, [0, 1], c.drift);
   return (
     <motion.div
-      className={`absolute ${c.pos} ${c.size}`}
+      className={`absolute ${c.pos}`}
       initial={{ opacity: 0, scale: 0.4, rotate: c.rotate + 30 }}
-      animate={{ opacity: 0.7, scale: 1, rotate: c.rotate }}
+      animate={{ opacity: 1, scale: 1, rotate: c.rotate }}
       transition={{ duration: 1.6, delay: c.delay, ease: [0.22, 1, 0.36, 1] }}
-      style={{ y }}
+      style={{ y, width: c.size, height: c.size }}
     >
       <div
-        className={`w-full ${c.crop} rounded-lg`}
+        className="w-full h-full"
         style={{
           backgroundImage: `url(${collageSheet})`,
           backgroundPosition: c.bgPos,
           backgroundSize: c.bgSize,
           backgroundRepeat: "no-repeat",
-          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
+          mixBlendMode: "screen",
         }}
       />
     </motion.div>
