@@ -15,6 +15,7 @@ import Courses from "@/pages/Courses";
 import Challenges from "@/pages/Challenges";
 import EICDashboard from "@/pages/EICDashboard";
 import EditorOnboarding from "@/pages/EditorOnboarding";
+import SignIn from "@/pages/SignIn";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/challenges" component={Challenges} />
       <Route path="/eic-dashboard" component={EICDashboard} />
       <Route path="/editor-onboarding" component={EditorOnboarding} />
+      <Route path="/sign-in" component={SignIn} />
       <Route component={NotFound} />
     </Switch>
   );

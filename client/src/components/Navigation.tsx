@@ -99,10 +99,10 @@ export default function Navigation() {
                   </a>
                 </>
               ) : (
-                <a href="/api/login" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-login">
+                <Link href="/sign-in" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-login">
                   Enter
                   <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
-                </a>
+                </Link>
               )
             )}
           </div>
@@ -197,15 +197,15 @@ export default function Navigation() {
                     </motion.a>
                   </>
                 ) : (
-                  <motion.a 
-                    href="/api/login"
-                    initial={{ y: 20, opacity: 0 }} 
-                    animate={{ y: 0, opacity: 1 }} 
-                    transition={{ delay: 0.5 }}
-                    className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
-                  >
-                    Enter
-                  </motion.a>
+                  <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                    <Link
+                      href="/sign-in"
+                      onClick={() => setIsOpen(false)}
+                      className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
+                    >
+                      Enter
+                    </Link>
+                  </motion.div>
                 )
               )}
             </div>
