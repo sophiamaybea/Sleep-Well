@@ -1,0 +1,188 @@
+Yes! Now build the frontend. Create a new page component: client/src/pages/Exhibit.tsx
+
+This will be a text-only immersive exhibit called "Metaphor as Migration". It unfolds as 8 sequential screens that feel like walking through a gallery installation.
+
+## ROUTING
+Add route: /exhibits/:slug that renders the Exhibit component.
+
+## EXHIBIT PAGE STRUCTURE
+
+The exhibit progresses through 8 screens. User can only advance after interacting with required elements. Use framer-motion for elegant fade transitions between screens.
+
+### SCREEN 1: THE ENTRANCE
+Display this opening passage (use serif font, generous line-height, dark background):
+
+"You are standing in a narrow corridor. The walls are the color of wet ink.
+
+Somewhere ahead, a metaphor is waiting to show you what it knows.
+
+You did not come here to learn definitions. You came here because something in your writing has been staying too still — circling the same comparisons, reaching for the same safe distances.
+
+A metaphor is not a decoration. It is a migration.
+
+The image leaves one thing and arrives at another, and in the crossing, both are changed.
+
+Today, we practice letting the image move."
+
+Show a "Continue" button that fades in after 3 seconds.
+
+### SCREEN 2: CRAFT INSIGHT 1
+Display:
+
+"WHAT A METAPHOR DOES
+
+Most writing advice treats metaphor as ornamentation — a way to make sentences prettier. But a metaphor is not a brooch pinned to a dress. It is the thread that pulls the fabric into shape.
+
+When you say 'grief is an ocean,' you are not describing grief. You are teaching your body to feel it differently: as something vast, tidal, indifferent to your swimming.
+
+The image does not explain. It relocates.
+
+Every strong metaphor is a small act of transformation. You take one thing and let it travel until it touches something else, and in that touch, both are altered.
+
+This is what we'll practice: not finding metaphors, but following them."
+
+Continue button appears after 2 seconds.
+
+### SCREEN 3: EXERCISE 1 - THRESHOLD
+Display intro text:
+
+"THE THRESHOLD
+
+Before we begin, I need to know what you arrive with.
+
+Below is a stem. You will finish it. Don't think. Don't polish. The sentence is already true — you're just finding out what it says."
+
+Then show a single-line input with the stem pre-filled (non-editable):
+"My writing reaches for metaphor when..."
+
+And an editable text area for their completion.
+
+When they submit:
+- Save to database via POST /api/exhibits/:slug/responses with exerciseKey: "threshold"
+- Show one of these pre-written mirror responses based on response length:
+  - If < 10 words: "You gave me a whisper. Good. Sometimes the truest things fit in a palm."
+  - If 10-30 words: "That's honest. I can feel you reaching for something just out of frame."
+  - If > 30 words: "You gave me everything at once. There's a door in there somewhere — we'll find it."
+
+### SCREEN 4: EXERCISE 2 - SYNTAX BLOOM
+Display:
+
+"SYNTAX BLOOM
+
+Sentences are organisms. Some sprawl like ivy, covering every surface. Some stay low, like moss — barely there, but persistent. Others rise fast and fall, like wildflowers after rain.
+
+Below, you'll write three versions of the same image. I'll give you a seed: the image of someone waiting.
+
+Write it three ways:
+1. MOSS — A short, clipped sentence. Five words or fewer. Let it sit on the page like a held breath.
+2. IVY — A long, winding sentence. Let it sprawl. Subordinate clauses, digressions, the whole tangled thing.
+3. WILDFLOWER — A balanced sentence. Medium length. It rises, turns, and completes.
+
+Same image. Three different metabolisms."
+
+Show 3 labeled text areas:
+- "MOSS (5 words or fewer)"
+- "IVY (let it sprawl)"
+- "WILDFLOWER (balanced)"
+
+On submit, save each with tags ["moss"], ["ivy"], ["wildflower"] respectively.
+
+Show mirror response: "Now you know: the same image can breathe in different bodies. Keep that."
+
+### SCREEN 5: CRAFT INSIGHT 2
+Display:
+
+"ON FIDELITY
+
+There is a kind of loyalty that kills metaphors: the insistence that they 'make sense.'
+
+The most alive comparisons don't explain themselves. They trust the reader's body to understand before the mind catches up.
+
+'Grief is an ocean' works not because grief is actually like an ocean, but because your lungs already know what drowning feels like.
+
+When you follow a metaphor, you are not solving a puzzle. You are agreeing to a temporary belief.
+
+The writer's job is not to justify the comparison — it is to commit to it so fully that the reader forgets it was ever a leap."
+
+Continue button.
+
+### SCREEN 6: EXERCISE 3 - MIGRATION PATH
+Display:
+
+"THE MIGRATION PATH
+
+Now we travel.
+
+Write a short paragraph — four to six sentences — in which a metaphor begins as one thing and becomes another by the end.
+
+Don't plan. Start with an image that feels true, and let it shift. The metaphor might begin as weather and end as architecture. It might start as an animal and arrive as a memory.
+
+Your job is to follow it. Not to control it.
+
+Begin."
+
+Show a large text area.
+
+On submit, save with exerciseKey: "migration_path"
+
+Show mirror response: "You let it move. That's the whole lesson, really. The rest is just practice."
+
+### SCREEN 7: REFLECTION CHALLENGES
+Display:
+
+"BEFORE YOU LEAVE
+
+The exhibit is almost over. But I want to leave you with some accusations.
+
+They are not questions. They are statements about your writing. Your job is to respond — agree, argue, or confess."
+
+Show 5 challenge statements, each with a text area:
+
+1. "Your metaphors still believe someone is watching."
+2. "You reach for comparison when you're afraid of saying the thing directly."
+3. "There is an image you keep circling but won't name."
+4. "You protect certain metaphors from their own wildness."
+5. "You have not yet written the metaphor that scares you."
+
+Save each to exhibit_reflections with challengeKey: challenge_1 through challenge_5.
+
+### SCREEN 8: EXIT
+Display:
+
+"THE EXIT
+
+You are walking back through the corridor. The walls are still ink-dark, but the light has changed.
+
+What you practiced here is simple: following the image instead of directing it. Trusting the metaphor to know where it needs to go.
+
+This is not a skill you master. It is a practice you return to.
+
+Your responses have been saved to your Garden.
+
+If one of them surprised you — if one sentence felt more true than you expected — consider sharing it in the Gallery.
+
+The exhibit will be here when you need it again."
+
+Show two buttons:
+- "Return to Garden" (links to /garden)
+- "Share to Gallery" (opens a modal to select which response to publish)
+
+If all exercises completed, show this hidden completion reward text below:
+
+"A BLESSING FOR THE RETURNING WRITER
+
+May your metaphors be unruly.
+May they refuse your first intentions.
+May they lead you somewhere inconvenient and true.
+May you follow anyway."
+
+## STYLING
+- Dark background (#0a0a0a)
+- Off-white text (#e8e4df)
+- Serif font for body text (use the site's existing serif)
+- Generous padding (40px+) and line-height (1.8)
+- Text should feel centered, with max-width 680px
+- Transitions between screens: fade opacity over 600ms
+- Exercise inputs: dark border, no background fill, placeholder text in gray
+
+Build this complete exhibit page now.

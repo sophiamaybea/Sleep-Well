@@ -18,6 +18,7 @@ import EditorOnboarding from "@/pages/EditorOnboarding";
 import SignIn from "@/pages/SignIn";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Exhibit from "@/pages/Exhibit";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/sign-in" component={SignIn} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
+      <Route path="/exhibits/:slug" component={Exhibit} />
       <Route component={NotFound} />
     </Switch>
   );
