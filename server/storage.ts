@@ -3270,7 +3270,10 @@ export class DatabaseStorage implements IStorage {
 
   async acceptEditorInvitation(token: string, userId: string): Promise<void> {
     await db.update(editorInvitations).set({ status: "accepted", acceptedAt: new Date() }).where(eq(editorInvitations.token, token));
-    await db.update(users).set({ role: "editor", updatedAt: new Date() }).where(eq(users.id, userId));
+    const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId));
+    if (!user?.role || user.role === "writer") {
+      await db.update(users).set({ role: "editor", updatedAt: new Date() }).where(eq(users.id, userId));
+    }
   }
 
   // === LIVE PROMPT COUNTS ===
