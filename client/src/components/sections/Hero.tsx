@@ -79,21 +79,20 @@ function FloatingCreature({ c, scrollYProgress }: { c: typeof creatures[0]; scro
   const y = useTransform(scrollYProgress, [0, 1], c.drift);
   return (
     <motion.div
-      className={`absolute ${c.pos} ${c.size} hidden md:block`}
+      className={`absolute ${c.pos} ${c.size}`}
       initial={{ opacity: 0, scale: 0.4, rotate: c.rotate + 30 }}
-      animate={{ opacity: 1, scale: 1, rotate: c.rotate }}
+      animate={{ opacity: 0.7, scale: 1, rotate: c.rotate }}
       transition={{ duration: 1.6, delay: c.delay, ease: [0.22, 1, 0.36, 1] }}
       style={{ y }}
     >
       <div
-        className={`w-full ${c.crop}`}
+        className={`w-full ${c.crop} rounded-lg`}
         style={{
           backgroundImage: `url(${collageSheet})`,
           backgroundPosition: c.bgPos,
           backgroundSize: c.bgSize,
           backgroundRepeat: "no-repeat",
-          filter: "drop-shadow(0 6px 20px rgba(0,0,0,0.5))",
-          mixBlendMode: "lighten",
+          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
         }}
       />
     </motion.div>
@@ -132,12 +131,13 @@ export default function Hero() {
     <div ref={heroRef} className="relative">
       <StarTitle />
 
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[15]">
+        {creatures.map((c) => (
+          <FloatingCreature key={c.name} c={c} scrollYProgress={scrollYProgress} />
+        ))}
+      </div>
+
       <section id="hero-content" className="relative z-10 min-h-[50vh] pt-16 pb-12 px-6 md:px-12 lg:px-24">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[2]">
-          {creatures.map((c) => (
-            <FloatingCreature key={c.name} c={c} scrollYProgress={scrollYProgress} />
-          ))}
-        </div>
         <div
           className="max-w-7xl mx-auto relative z-10"
           onMouseMove={handleMouseMove}
