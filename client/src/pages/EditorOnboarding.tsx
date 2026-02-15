@@ -112,55 +112,78 @@ export default function EditorOnboarding() {
       <div className="max-w-2xl mx-auto px-6 py-20">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease }}>
           <div className="text-center mb-16">
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2, ease }} className="w-20 h-20 mx-auto mb-8 rounded-full border border-[#c4a24d]/20 flex items-center justify-center">
+              <span className="text-[#c4a24d]/60 text-3xl font-['Cormorant_Garamond',serif] italic">e</span>
+            </motion.div>
             <h1 className="font-['Cormorant_Garamond',serif] text-4xl md:text-5xl text-[#f0eeea] font-light tracking-wide mb-4" data-testid="text-onboarding-title">
               You've Been Invited
             </h1>
-            <p className="text-[#f0eeea]/50 font-['Lora',serif] text-sm">
+            <p className="text-[#f0eeea]/50 font-['Lora',serif] text-sm mb-2">
               to join The Page Gallery Journal as an Editor
+            </p>
+            <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs max-w-sm mx-auto leading-relaxed mt-4">
+              We don't accept traditional submissions. Instead, we ask editors to walk through the gardens — to discover what blooms naturally, and to tend what deserves a wider audience.
             </p>
           </div>
 
-          <div className="space-y-10 mb-16">
+          <div className="w-16 h-[1px] bg-[#c4a24d]/20 mx-auto mb-14" />
+
+          <div className="space-y-12 mb-16">
             <OnboardingSection
               number="01"
               title="The Editorial Studio"
-              description="Your private workspace for discovering literary works. Browse writers' Gardens, curate pieces for the Greenhouse, and shape issues of the journal."
+              description="Your private workspace for literary curation. The Studio gives you a panoramic view of the journal's living ecosystem — the Garden Stream of new writing, the Greenhouse where pieces are nurtured toward publication, and the Issue Builder where you shape each edition."
+              detail="Think of it as the editor's desk at the heart of a botanical library."
               delay={0.2}
             />
             <OnboardingSection
               number="02"
-              title="Browsing Gardens"
-              description="Writers cultivate their work in private Gardens, moving pieces through stages — from raw seed to bloom. When a writer opens their Garden or flags a piece 'Ready for eyes,' it becomes visible to you in the Garden Stream."
+              title="Walking Through Gardens"
+              description="Writers cultivate their work in private Gardens, tending pieces through four organic stages: raw seed, growing, ready to show, and dormant. When they open their Garden gate or raise a quiet flag — 'Ready for eyes' — their work appears in your Stream."
+              detail="You'll also get your own Garden. Editors are writers too."
               delay={0.3}
             />
             <OnboardingSection
               number="03"
-              title="The Replant Request"
-              description="Instead of traditional acceptance or rejection, you can send a Replant Request — a gentle invitation for the writer to revisit and reshape their work. This preserves the organic spirit of the journal."
+              title="The Growth Cycle"
+              description="A piece moves from seed to sprout to bloom — and sometimes back again. This isn't a pipeline; it's a living process. You might find a poem that's been quietly growing for months, or a flash piece that bloomed overnight."
               delay={0.4}
             />
             <OnboardingSection
               number="04"
-              title="Publishing"
-              description="When a piece is ready, you can move it from the Greenhouse to the Gallery — the public exhibition space where selected works are displayed in museum-style frames for the world to read."
+              title="Replant Requests"
+              description="We don't reject work here. Instead, you send a Replant Request — a thoughtful invitation for the writer to revisit, reshape, or let a piece rest. It's how we honor the creative process while guiding the journal's voice."
               delay={0.5}
+            />
+            <OnboardingSection
+              number="05"
+              title="The Gallery"
+              description="When a piece is ready, you move it from the Greenhouse to the Gallery — our public exhibition space. Each published work is displayed in a museum-style frame, given the ceremony it deserves. This is the culmination of the editorial journey."
+              delay={0.6}
             />
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease, delay: 0.6 }} className="text-center">
+          <div className="w-16 h-[1px] bg-[#c4a24d]/20 mx-auto mb-14" />
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease, delay: 0.7 }} className="text-center">
             {user ? (
               <div className="space-y-4">
                 <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm">Accepting your invitation...</p>
                 <div className="w-6 h-6 mx-auto border-2 border-[#c4a24d]/40 border-t-[#c4a24d] rounded-full animate-spin" />
               </div>
             ) : (
-              <a
-                href="/api/login"
-                className="inline-block px-10 py-4 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-xl rounded hover:bg-[#c4a24d]/30 transition-colors"
-                data-testid="link-sign-in"
-              >
-                Sign in to Begin
-              </a>
+              <div className="space-y-4">
+                <a
+                  href="/api/login"
+                  className="inline-block px-12 py-4 bg-[#c4a24d]/15 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-xl rounded hover:bg-[#c4a24d]/25 transition-all duration-500 hover:border-[#c4a24d]/50"
+                  data-testid="link-sign-in"
+                >
+                  Accept Invitation & Sign In
+                </a>
+                <p className="text-[#f0eeea]/20 font-['Lora',serif] text-xs">
+                  You'll be signed in via Replit and your editor role will be activated
+                </p>
+              </div>
             )}
             {acceptMutation.isError && (
               <p className="text-red-400/80 text-sm mt-4 font-['Lora',serif]">
@@ -174,13 +197,14 @@ export default function EditorOnboarding() {
   );
 }
 
-function OnboardingSection({ number, title, description, delay }: { number: string; title: string; description: string; delay: number }) {
+function OnboardingSection({ number, title, description, detail, delay }: { number: string; title: string; description: string; detail?: string; delay: number }) {
   return (
     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, ease, delay }} className="flex gap-6">
       <span className="text-[#c4a24d]/30 font-['Space_Mono',monospace] text-xs mt-1 shrink-0">{number}</span>
       <div>
         <h3 className="font-['Cormorant_Garamond',serif] text-xl text-[#f0eeea]/90 font-light mb-2">{title}</h3>
         <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm leading-relaxed">{description}</p>
+        {detail && <p className="text-[#c4a24d]/40 font-['Lora',serif] text-xs leading-relaxed mt-2 italic">{detail}</p>}
       </div>
     </motion.div>
   );

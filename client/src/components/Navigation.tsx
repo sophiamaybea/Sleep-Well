@@ -3,11 +3,26 @@ import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, isLoading, isAuthenticated } = useAuth();
+
+  const { data: roleData } = useQuery<{ role: string; tier: string }>({
+    queryKey: ["/api/user/role"],
+    queryFn: async () => {
+      const res = await fetch("/api/user/role", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const isEditorOrEIC = roleData?.role === "editor" || roleData?.role === "editor_in_chief";
+  const isEIC = roleData?.role === "editor_in_chief";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,6 +82,18 @@ export default function Navigation() {
                     My Garden
                     <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
                   </Link>
+                  {isEditorOrEIC && (
+                    <Link href="/editor-studio" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-editor-studio">
+                      Studio
+                      <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
+                    </Link>
+                  )}
+                  {isEIC && (
+                    <Link href="/eic-dashboard" className="text-[#c4a24d]/70 hover:text-[#c4a24d] transition-colors relative group" data-testid="nav-eic-dashboard">
+                      Command
+                      <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-[#c4a24d] transition-all duration-300 group-hover:w-full group-hover:left-0" />
+                    </Link>
+                  )}
                   <a href="/api/logout" className="text-white/40 hover:text-white/70 transition-all duration-300 text-[10px] lowercase tracking-[0.15em]" data-testid="nav-logout">
                     leave
                   </a>
@@ -145,11 +172,25 @@ export default function Navigation() {
                         My Garden
                       </Link>
                     </motion.div>
+                    {isEditorOrEIC && (
+                      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.55 }}>
+                        <Link href="/editor-studio" onClick={() => setIsOpen(false)} className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform">
+                          Editorial Studio
+                        </Link>
+                      </motion.div>
+                    )}
+                    {isEIC && (
+                      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6 }}>
+                        <Link href="/eic-dashboard" onClick={() => setIsOpen(false)} className="font-display text-3xl text-[#c4a24d]/80 hover:text-[#c4a24d] italic hover:scale-105 transition-transform">
+                          Editorial Command
+                        </Link>
+                      </motion.div>
+                    )}
                     <motion.a 
                       href="/api/logout"
                       initial={{ y: 20, opacity: 0 }} 
                       animate={{ y: 0, opacity: 1 }} 
-                      transition={{ delay: 0.6 }}
+                      transition={{ delay: 0.65 }}
                       className="font-mono text-[11px] text-white/30 hover:text-white/60 lowercase tracking-[0.15em] transition-colors"
                     >
                       leave
