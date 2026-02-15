@@ -13,6 +13,7 @@ export default function EditorOnboarding() {
   const params = new URLSearchParams(searchString);
   const token = params.get("token") || "";
   const [accepted, setAccepted] = useState(false);
+  const [acceptAttempted, setAcceptAttempted] = useState(false);
 
   const { data: validation, isLoading: validating } = useQuery<{ valid: boolean; reason?: string; email?: string }>({
     queryKey: ["/api/editor-onboarding/validate", token],
@@ -44,10 +45,11 @@ export default function EditorOnboarding() {
   });
 
   useEffect(() => {
-    if (user && validation?.valid && !accepted && !acceptMutation.isPending) {
+    if (user && validation?.valid && !accepted && !acceptAttempted) {
+      setAcceptAttempted(true);
       acceptMutation.mutate();
     }
-  }, [user, validation?.valid]);
+  }, [user, validation?.valid, accepted, acceptAttempted]);
 
   if (!token) {
     return (

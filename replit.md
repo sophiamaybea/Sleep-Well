@@ -53,7 +53,15 @@ Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and 
 - `/garden`: Authenticated user garden with 3-zone architecture.
 - `/public-garden/:userId`: Public garden page with writer's self-published pieces and shareable URL.
 - `/writer/:id`: Public writer profile.
-- `/editor-studio`: Editor-only dashboard with 6 tabs.
+- `/editor-studio`: Editor-only dashboard with 6 tabs (requires `editor` or `editor_in_chief` role).
+- `/eic-dashboard`: Editor-in-Chief admin panel for managing editors and invitations (requires `editor_in_chief` role).
+- `/editor-onboarding`: Public onboarding page for invited editors with token-based validation and role upgrade.
+
+### Role System
+- `writer` (default) — can access Garden only
+- `editor` — can access Editorial Studio + Garden
+- `editor_in_chief` — can access everything including EIC Dashboard
+- Roles are stored in `users.role` field. Editor invitations use the `editor_invitations` table with crypto-secure UUID tokens, 7-day expiry, and status tracking (pending/accepted/expired).
 
 ## External Dependencies
 - **Replit Auth:** Used for user authentication (OpenID Connect).

@@ -3030,11 +3030,16 @@ export async function registerRoutes(
   app.post("/api/eic/invite-editor", isEditorInChief, async (req: any, res) => {
     try {
       const { email } = req.body;
-      if (!email) return res.status(400).json({ message: "Email is required" });
+      if (!email || typeof email !== "string") return res.status(400).json({ message: "Email is required" });
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) return res.status(400).json({ message: "Please enter a valid email address" });
+      const existing = await storage.getEditorInvitations();
+      const duplicate = existing.find((inv) => inv.email === email.trim() && inv.status === "pending" && new Date(inv.expiresAt) > new Date());
+      if (duplicate) return res.status(400).json({ message: "An active invitation already exists for this email" });
       const token = randomUUID();
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const invitation = await storage.createEditorInvitation({
-        email,
+        email: email.trim(),
         token,
         invitedBy: req.user.claims.sub,
         expiresAt,
