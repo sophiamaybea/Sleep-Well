@@ -3605,7 +3605,7 @@ export default function Garden() {
               <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/10" />
             </div>
             <button
-              onClick={() => { window.location.href = "/api/login"; }}
+              onClick={() => { window.location.href = "/sign-in"; }}
               className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-white/[0.12] bg-white/[0.04] text-white/70 hover:text-white/90 hover:bg-white/[0.08] hover:border-white/[0.2] transition-all duration-500 font-mono text-xs uppercase tracking-[0.2em]"
               data-testid="button-garden-login"
             >

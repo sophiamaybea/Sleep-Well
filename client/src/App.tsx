@@ -27,7 +27,7 @@ import NoiseOverlay from "@/components/NoiseOverlay";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/sign-in" component={SignIn} />
       <Route path="/garden" component={Garden} />
       <Route path="/writer/:id" component={WriterProfile} />
       <Route path="/public-garden/:userId" component={PublicGarden} />
@@ -38,11 +38,11 @@ function Router() {
       <Route path="/challenges" component={Challenges} />
       <Route path="/eic-dashboard" component={EICDashboard} />
       <Route path="/editor-onboarding" component={EditorOnboarding} />
-      <Route path="/sign-in" component={SignIn} />
-        <Route path="/privacy" component={Privacy} />
-        <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
       <Route path="/exhibits" component={Exhibits} />
       <Route path="/exhibits/:slug" component={Exhibit} />
+      <Route path="/" component={Home} />
       <Route component={NotFound} />
     </Switch>
   );
