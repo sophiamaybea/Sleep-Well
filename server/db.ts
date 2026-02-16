@@ -12,3 +12,15 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
+
+// Run database migrations on startup
+export async function runMigrations() {
+  try {
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash varchar;
+    `);
+    console.log('Database migrations completed successfully');
+  } catch (error) {
+    console.error('Migration error:', error);
+  }
+}
