@@ -6,6 +6,7 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { authStorage } from "./storage";
+import bcrypt from "bcryptjs";
 
 const isReplit = !!process.env.REPL_ID;
 
@@ -140,7 +141,6 @@ export async function setupAuth(app: Express) {
         if (!user || !user.passwordHash) {
           return res.status(401).json({ message: "Invalid email or password" });
         }
-        const bcrypt = await import("bcryptjs");
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
           return res.status(401).json({ message: "Invalid email or password" });
@@ -167,7 +167,6 @@ export async function setupAuth(app: Express) {
         if (existing) {
           return res.status(409).json({ message: "Email already registered" });
         }
-        const bcrypt = await import("bcryptjs");
         const passwordHash = await bcrypt.hash(password, 12);
         const userId = crypto.randomUUID();
         await authStorage.upsertUser({
