@@ -24,3 +24,6 @@ export async function runMigrations() {
     console.error('Migration error:', error);
   }
 }
+
+// Auto-run migrations on module load
+runMigrations();
