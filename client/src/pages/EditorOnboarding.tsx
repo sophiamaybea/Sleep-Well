@@ -173,15 +173,15 @@ export default function EditorOnboarding() {
               </div>
             ) : (
               <div className="space-y-4">
-                <a
-                  href="/api/login"
+                <button
+                  onClick={() => window.location.href = "/sign-in"}
                   className="inline-block px-12 py-4 bg-[#c4a24d]/15 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-xl rounded hover:bg-[#c4a24d]/25 transition-all duration-500 hover:border-[#c4a24d]/50"
                   data-testid="link-sign-in"
                 >
                   Accept Invitation & Sign In
-                </a>
+                </button>
                 <p className="text-[#f0eeea]/20 font-['Lora',serif] text-xs">
-                  You'll be signed in via Replit and your editor role will be activated
+                  Sign in and your editor role will be activated
                 </p>
               </div>
             )}

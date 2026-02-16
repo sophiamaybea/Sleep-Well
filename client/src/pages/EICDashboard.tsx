@@ -92,9 +92,9 @@ export default function EICDashboard() {
       <div className="min-h-screen bg-[#0d1e2d] flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-[#f0eeea]/60 font-['Lora',serif] text-lg">Please sign in to continue.</p>
-          <a href="/api/login" className="inline-block px-6 py-3 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-lg rounded hover:bg-[#c4a24d]/30 transition-colors" data-testid="link-login">
+          <button onClick={() => navigate("/sign-in")} className="inline-block px-6 py-3 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-lg rounded hover:bg-[#c4a24d]/30 transition-colors" data-testid="link-login">
             Sign In
-          </a>
+          </button>
         </div>
       </div>
     );
