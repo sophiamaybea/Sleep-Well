@@ -38,6 +38,11 @@ const publishRequestResponseSchema = z.object({
 });
 
 async function isEditor(req: any, res: any, next: any) {
+    // Populate req.user from session for non-Replit auth
+  if (!req.user?.claims?.sub) {
+    const sessionUser = (req.session as any)?.user;
+    if (sessionUser) { (req as any).user = sessionUser; }
+  }
   if (!req.user?.claims?.sub) {
     return res.status(401).json({ message: "Not authenticated" });
   }
@@ -49,6 +54,11 @@ async function isEditor(req: any, res: any, next: any) {
 }
 
 async function isEditorInChief(req: any, res: any, next: any) {
+    // Populate req.user from session for non-Replit auth
+  if (!req.user?.claims?.sub) {
+    const sessionUser = (req.session as any)?.user;
+    if (sessionUser) { (req as any).user = sessionUser; }
+  }
   if (!req.user?.claims?.sub) {
     return res.status(401).json({ message: "Not authenticated" });
   }
