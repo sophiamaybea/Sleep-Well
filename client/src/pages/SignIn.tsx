@@ -4,6 +4,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import Navigation from "@/components/Navigation";
 
+const isReplit = typeof window !== "undefined" && (
+  window.location.hostname.includes("replit") ||
+  window.location.hostname.includes(".repl.") ||
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "0.0.0.0"
+);
+
 const quotes = [
   { text: "You don't submit. You don't query. You just write.", author: "The Page Gallery Journal" },
   { text: "A writer is someone for whom writing is more difficult than it is for other people.", author: "Thomas Mann" },
@@ -81,11 +88,204 @@ function InkDrop({ delay }: { delay: number }) {
   );
 }
 
+function AuthInput({ label, type = "text", value, onChange, testId, placeholder }: {
+  label: string; type?: string; value: string; onChange: (v: string) => void; testId: string; placeholder?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="block font-mono text-[10px] tracking-[0.2em] uppercase text-white/40">{label}</label>
+      <input
+        data-testid={testId}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-3 text-white/90 placeholder-white/20 font-serif text-sm focus:border-[#c4a24d]/50 focus:outline-none focus:ring-1 focus:ring-[#c4a24d]/20 transition-all duration-300 backdrop-blur-sm"
+      />
+    </div>
+  );
+}
+
+function EmailAuthForm() {
+  const { login, register, loginError, registerError, isLoggingIn, isRegistering } = useAuth();
+  const [mode, setMode] = useState<"signin" | "register">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [, navigate] = useLocation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      if (mode === "signin") {
+        await login({ email, password });
+      } else {
+        await register({ email, password, firstName, lastName });
+      }
+      navigate("/garden");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    }
+  };
+
+  const isSubmitting = isLoggingIn || isRegistering;
+  const displayError = error || (mode === "signin" ? loginError?.message : registerError?.message) || null;
+
+  return (
+    <motion.form
+      onSubmit={handleSubmit}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className="w-full max-w-sm mx-auto space-y-5"
+    >
+      <div className="flex justify-center mb-2">
+        <div className="inline-flex rounded-full border border-white/10 p-0.5 bg-white/[0.02]">
+          <button
+            type="button"
+            data-testid="button-mode-signin"
+            onClick={() => { setMode("signin"); setError(null); }}
+            className={`px-5 py-1.5 rounded-full font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 ${
+              mode === "signin" ? "bg-[#c4a24d]/20 text-[#c4a24d] border border-[#c4a24d]/30" : "text-white/40 hover:text-white/60 border border-transparent"
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            data-testid="button-mode-register"
+            onClick={() => { setMode("register"); setError(null); }}
+            className={`px-5 py-1.5 rounded-full font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 ${
+              mode === "register" ? "bg-[#c4a24d]/20 text-[#c4a24d] border border-[#c4a24d]/30" : "text-white/40 hover:text-white/60 border border-transparent"
+            }`}
+          >
+            Register
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={mode}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          {mode === "register" && (
+            <div className="grid grid-cols-2 gap-3">
+              <AuthInput label="First Name" value={firstName} onChange={setFirstName} testId="input-first-name" placeholder="Ada" />
+              <AuthInput label="Last Name" value={lastName} onChange={setLastName} testId="input-last-name" placeholder="Lovelace" />
+            </div>
+          )}
+          <AuthInput label="Email" type="email" value={email} onChange={setEmail} testId="input-email" placeholder="writer@garden.ink" />
+          <AuthInput label="Password" type="password" value={password} onChange={setPassword} testId="input-password" placeholder="••••••••" />
+        </motion.div>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {displayError && (
+          <motion.p
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="text-red-400/80 text-xs font-mono tracking-wide text-center"
+            data-testid="text-auth-error"
+          >
+            {displayError}
+          </motion.p>
+        )}
+      </AnimatePresence>
+
+      <button
+        type="submit"
+        disabled={isSubmitting || !email || !password}
+        data-testid="button-submit-auth"
+        className="w-full relative group px-8 py-3.5 rounded-full border border-white/15 hover:border-[#c4a24d]/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500 disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-[#c4a24d] transition-colors duration-500">
+          {isSubmitting ? (mode === "signin" ? "Entering..." : "Planting seeds...") : (mode === "signin" ? "Enter the Garden" : "Plant Your First Seed")}
+        </span>
+      </button>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.6, duration: 0.8 }}
+        className="font-mono text-[10px] tracking-[0.15em] text-white/20 text-center"
+      >
+        {mode === "signin" ? "Your private writing space awaits" : "Every garden begins with a single seed"}
+      </motion.p>
+    </motion.form>
+  );
+}
+
+function ReplitAuthButton() {
+  const [isHovering, setIsHovering] = useState(false);
+  const buttonScale = useSpring(isHovering ? 1.05 : 1, { stiffness: 300, damping: 20 });
+  const buttonGlow = useSpring(isHovering ? 1 : 0, { stiffness: 200, damping: 25 });
+  const glowOpacity = useTransform(buttonGlow, [0, 1], [0, 0.4]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className="space-y-6 flex flex-col items-center"
+    >
+      <motion.a
+        href="/api/login"
+        style={{ scale: buttonScale }}
+        onHoverStart={() => setIsHovering(true)}
+        onHoverEnd={() => setIsHovering(false)}
+        className="relative inline-flex items-center justify-center group"
+        data-testid="button-signin-replit"
+      >
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          style={{
+            opacity: glowOpacity,
+            background: "radial-gradient(circle, rgba(196,162,77,0.4) 0%, transparent 70%)",
+            filter: "blur(20px)",
+            transform: "scale(1.5)",
+          }}
+        />
+        <div className="relative px-12 py-4 rounded-full border border-white/15 hover:border-[#c4a24d]/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500">
+          <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-[#c4a24d] transition-colors duration-500">
+            Sign in with Replit
+          </span>
+        </div>
+        <motion.div
+          className="absolute -right-1 top-1/2 -translate-y-1/2"
+          animate={{ x: isHovering ? 4 : 0, opacity: isHovering ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-[#c4a24d]">
+            <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.div>
+      </motion.a>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.6, duration: 0.8 }}
+        className="font-mono text-[10px] tracking-[0.15em] text-white/20"
+      >
+        Your private writing space awaits
+      </motion.p>
+    </motion.div>
+  );
+}
+
 export default function SignIn() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, navigate] = useLocation();
   const [quoteIndex, setQuoteIndex] = useState(0);
-  const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -115,10 +315,6 @@ export default function SignIn() {
 
   const glowX = useSpring(useTransform(mouseX, [-0.5, 0.5], [30, 70]), { stiffness: 80, damping: 30 });
   const glowY = useSpring(useTransform(mouseY, [-0.5, 0.5], [30, 70]), { stiffness: 80, damping: 30 });
-
-  const buttonScale = useSpring(isHovering ? 1.05 : 1, { stiffness: 300, damping: 20 });
-  const buttonGlow = useSpring(isHovering ? 1 : 0, { stiffness: 200, damping: 25 });
-  const glowOpacity = useTransform(buttonGlow, [0, 1], [0, 0.4]);
 
   const currentQuote = quotes[quoteIndex];
 
@@ -229,56 +425,7 @@ export default function SignIn() {
             </AnimatePresence>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-6"
-          >
-            <motion.a
-              href="/api/login"
-              style={{ scale: buttonScale }}
-              onHoverStart={() => setIsHovering(true)}
-              onHoverEnd={() => setIsHovering(false)}
-              className="relative inline-flex items-center justify-center group"
-              data-testid="button-signin"
-            >
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  opacity: glowOpacity,
-                  background: "radial-gradient(circle, rgba(196,162,77,0.4) 0%, transparent 70%)",
-                  filter: "blur(20px)",
-                  transform: "scale(1.5)",
-                }}
-              />
-
-              <div className="relative px-12 py-4 rounded-full border border-white/15 hover:border-[#c4a24d]/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500">
-                <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-[#c4a24d] transition-colors duration-500">
-                  Sign in with Replit
-                </span>
-              </div>
-
-              <motion.div
-                className="absolute -right-1 top-1/2 -translate-y-1/2"
-                animate={{ x: isHovering ? 4 : 0, opacity: isHovering ? 1 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-[#c4a24d]">
-                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </motion.div>
-            </motion.a>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.6, duration: 0.8 }}
-              className="font-mono text-[10px] tracking-[0.15em] text-white/20"
-            >
-              Your private writing space awaits
-            </motion.p>
-          </motion.div>
+          {isReplit ? <ReplitAuthButton /> : <EmailAuthForm />}
 
           <motion.div
             initial={{ opacity: 0 }}
