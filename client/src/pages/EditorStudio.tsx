@@ -822,6 +822,18 @@ function GardenStreamTab() {
     },
   });
 
+    const publishToGallery = useMutation({
+      mutationFn: async (writingId: string) => {
+        const res = await apiRequest("POST", `/api/editorial/publish/${writingId}`);
+        return res.json();
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/gallery"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/editor/overview"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/editorial/pieces"] });
+      },
+    });
+
   const genres = ["any", "poetry", "fiction", "essay", "hybrid"];
   const readinesses = ["all", "raw_seed", "growing", "ready_to_show", "dormant"];
 
@@ -966,6 +978,14 @@ function GardenStreamTab() {
                         >
                           <Sparkles size={12} /> Whisper
                         </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); publishToGallery.mutate(piece.id); }}
+                      disabled={publishToGallery.isPending || piece.isPublished}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200 transition-all disabled:opacity-50"
+                      data-testid={`btn-publish-gallery-${piece.id}`}
+                    >
+                      <BookOpen size={12} /> {publishToGallery.isPending ? "Publishing..." : piece.isPublished ? "Published" : "Publish to Gallery"}
+                    </button>
                       </div>
                       {showNotes === piece.id && (
                         <NotesPanel writingId={piece.id} />
