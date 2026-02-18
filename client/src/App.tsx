@@ -20,6 +20,11 @@ import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Exhibit from "@/pages/Exhibit";
 import Exhibits from "@/pages/Exhibits";
+import Opportunities from "@/pages/Opportunities";
+import Commons from "@/pages/Commons";
+import HowItWorks from "@/pages/HowItWorks";
+import FieldGuide from "@/pages/FieldGuide";
+import Nursery from "@/pages/Nursery";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -42,6 +47,11 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/exhibits" component={Exhibits} />
       <Route path="/exhibits/:slug" component={Exhibit} />
+      <Route path="/opportunities" component={Opportunities} />
+      <Route path="/commons" component={Commons} />
+      <Route path="/how-it-works" component={HowItWorks} />
+      <Route path="/field-guide" component={FieldGuide} />
+      <Route path="/nursery" component={Nursery} />
       <Route path="/" component={Home} />
       <Route component={NotFound} />
     </Switch>

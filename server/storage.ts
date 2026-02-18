@@ -61,6 +61,11 @@ import {
   exhibits, exhibitProgress, exhibitResponses, exhibitReflections, exhibitPurchases,
   type Exhibit, type ExhibitProgress, type ExhibitResponse, type ExhibitReflection, type ExhibitPurchase,
   type InsertExhibitResponse, type InsertExhibitReflection,
+  opportunityTracker, type OpportunityTracker,
+  commonsShares, type CommonsShare,
+  readingBouquets, bouquetItems, type ReadingBouquet, type BouquetItem,
+  moodboards, moodboardItems, type Moodboard, type MoodboardItem,
+  soilEntries, type SoilEntry,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -484,6 +489,39 @@ export interface IStorage {
   saveExhibitReflection(userId: string, data: InsertExhibitReflection): Promise<ExhibitReflection>;
   hasExhibitPurchase(userId: string, exhibitId: string): Promise<boolean>;
   createExhibitPurchase(userId: string, exhibitId: string): Promise<ExhibitPurchase>;
+
+  // Opportunity Tracker
+  getOpportunityTrackerItems(userId: string): Promise<(OpportunityTracker & { opportunityTitle: string | null })[]>;
+  upsertOpportunityTracker(userId: string, opportunityId: string, status: string, notes?: string): Promise<OpportunityTracker>;
+  deleteOpportunityTracker(userId: string, opportunityId: string): Promise<boolean>;
+
+  // Commons
+  getCommonsWritings(): Promise<(CommonsShare & { title: string; content: string; genre: string; authorName: string | null; authorId: string })[]>;
+  shareToCommons(userId: string, writingId: string): Promise<CommonsShare>;
+  removeFromCommons(userId: string, writingId: string): Promise<boolean>;
+
+  // Reading Bouquets
+  getBouquets(): Promise<(ReadingBouquet & { curatorName: string | null; itemCount: number })[]>;
+  getBouquet(id: string): Promise<(ReadingBouquet & { curatorName: string | null; items: (BouquetItem & { writingTitle: string; authorName: string | null })[] }) | undefined>;
+  createBouquet(curatorId: string, data: { title: string; description?: string; theme?: string }): Promise<ReadingBouquet>;
+  addBouquetItem(bouquetId: string, writingId: string, note?: string): Promise<BouquetItem>;
+  deleteBouquet(curatorId: string, id: string): Promise<boolean>;
+
+  // Moodboards
+  getMoodboards(userId: string): Promise<Moodboard[]>;
+  getSharedMoodboards(): Promise<(Moodboard & { userName: string | null })[]>;
+  getMoodboard(id: string): Promise<(Moodboard & { items: MoodboardItem[] }) | undefined>;
+  createMoodboard(userId: string, data: { title: string; description?: string }): Promise<Moodboard>;
+  updateMoodboard(userId: string, id: string, data: { title?: string; description?: string; isShared?: boolean }): Promise<Moodboard | undefined>;
+  addMoodboardItem(moodboardId: string, data: { itemType: string; content: string; color?: string; imageUrl?: string }): Promise<MoodboardItem>;
+  deleteMoodboardItem(id: string): Promise<boolean>;
+  deleteMoodboard(userId: string, id: string): Promise<boolean>;
+
+  // Soil Entries
+  getSoilEntries(userId: string): Promise<SoilEntry[]>;
+  createSoilEntry(userId: string, data: { content: string; entryType?: string; tags?: string[] }): Promise<SoilEntry>;
+  updateSoilEntry(userId: string, id: string, data: { content?: string; entryType?: string; tags?: string[] }): Promise<SoilEntry | undefined>;
+  deleteSoilEntry(userId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1899,7 +1937,9 @@ export class DatabaseStorage implements IStorage {
       link: opportunities.link, outlet: opportunities.outlet, deadline: opportunities.deadline,
       payRate: opportunities.payRate, responseTime: opportunities.responseTime,
       vibe: opportunities.vibe, genres: opportunities.genres, notes: opportunities.notes,
-      isCurated: opportunities.isCurated,
+      isCurated: opportunities.isCurated, opType: opportunities.opType,
+      fee: opportunities.fee, theme: opportunities.theme,
+      isPageGallery: opportunities.isPageGallery, isRolling: opportunities.isRolling,
       createdAt: opportunities.createdAt, userName: users.firstName,
       noteCount: sql<number>`(SELECT count(*) FROM opportunity_notes WHERE opportunity_id = ${opportunities.id})::int`,
     }).from(opportunities)
@@ -1914,7 +1954,9 @@ export class DatabaseStorage implements IStorage {
       link: opportunities.link, outlet: opportunities.outlet, deadline: opportunities.deadline,
       payRate: opportunities.payRate, responseTime: opportunities.responseTime,
       vibe: opportunities.vibe, genres: opportunities.genres, notes: opportunities.notes,
-      isCurated: opportunities.isCurated,
+      isCurated: opportunities.isCurated, opType: opportunities.opType,
+      fee: opportunities.fee, theme: opportunities.theme,
+      isPageGallery: opportunities.isPageGallery, isRolling: opportunities.isRolling,
       createdAt: opportunities.createdAt, userName: users.firstName,
     }).from(opportunities)
       .leftJoin(users, eq(opportunities.userId, users.id))
@@ -3362,6 +3404,203 @@ export class DatabaseStorage implements IStorage {
   async createExhibitPurchase(userId: string, exhibitId: string): Promise<ExhibitPurchase> {
     const [created] = await db.insert(exhibitPurchases).values({ userId, exhibitId }).returning();
     return created;
+  }
+
+  // === OPPORTUNITY TRACKER ===
+  async getOpportunityTrackerItems(userId: string): Promise<(OpportunityTracker & { opportunityTitle: string | null })[]> {
+    return await db.select({
+      id: opportunityTracker.id, userId: opportunityTracker.userId,
+      opportunityId: opportunityTracker.opportunityId, status: opportunityTracker.status,
+      submittedAt: opportunityTracker.submittedAt, acceptedAt: opportunityTracker.acceptedAt,
+      notes: opportunityTracker.notes, createdAt: opportunityTracker.createdAt,
+      opportunityTitle: opportunities.title,
+    }).from(opportunityTracker)
+      .leftJoin(opportunities, eq(opportunityTracker.opportunityId, opportunities.id))
+      .where(eq(opportunityTracker.userId, userId))
+      .orderBy(desc(opportunityTracker.createdAt));
+  }
+
+  async upsertOpportunityTracker(userId: string, opportunityId: string, status: string, notes?: string): Promise<OpportunityTracker> {
+    const existing = await db.select().from(opportunityTracker)
+      .where(and(eq(opportunityTracker.userId, userId), eq(opportunityTracker.opportunityId, opportunityId)));
+    if (existing.length > 0) {
+      const updateData: any = { status };
+      if (notes !== undefined) updateData.notes = notes;
+      if (status === "planted") updateData.submittedAt = new Date();
+      if (status === "harvested") updateData.acceptedAt = new Date();
+      const [updated] = await db.update(opportunityTracker).set(updateData)
+        .where(eq(opportunityTracker.id, existing[0].id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(opportunityTracker).values({
+      userId, opportunityId, status, notes,
+      submittedAt: status === "planted" ? new Date() : undefined,
+      acceptedAt: status === "harvested" ? new Date() : undefined,
+    }).returning();
+    return created;
+  }
+
+  async deleteOpportunityTracker(userId: string, opportunityId: string): Promise<boolean> {
+    const result = await db.delete(opportunityTracker)
+      .where(and(eq(opportunityTracker.userId, userId), eq(opportunityTracker.opportunityId, opportunityId))).returning();
+    return result.length > 0;
+  }
+
+  // === COMMONS ===
+  async getCommonsWritings(): Promise<(CommonsShare & { title: string; content: string; genre: string; authorName: string | null; authorId: string })[]> {
+    return await db.select({
+      id: commonsShares.id, userId: commonsShares.userId, writingId: commonsShares.writingId,
+      sharedAt: commonsShares.sharedAt,
+      title: writings.title, content: writings.content, genre: writings.genre,
+      authorName: users.firstName, authorId: writings.authorId,
+    }).from(commonsShares)
+      .innerJoin(writings, eq(commonsShares.writingId, writings.id))
+      .leftJoin(users, eq(commonsShares.userId, users.id))
+      .orderBy(desc(commonsShares.sharedAt));
+  }
+
+  async shareToCommons(userId: string, writingId: string): Promise<CommonsShare> {
+    const [created] = await db.insert(commonsShares).values({ userId, writingId }).returning();
+    return created;
+  }
+
+  async removeFromCommons(userId: string, writingId: string): Promise<boolean> {
+    const result = await db.delete(commonsShares)
+      .where(and(eq(commonsShares.userId, userId), eq(commonsShares.writingId, writingId))).returning();
+    return result.length > 0;
+  }
+
+  // === READING BOUQUETS ===
+  async getBouquets(): Promise<(ReadingBouquet & { curatorName: string | null; itemCount: number })[]> {
+    return await db.select({
+      id: readingBouquets.id, curatorId: readingBouquets.curatorId, title: readingBouquets.title,
+      description: readingBouquets.description, theme: readingBouquets.theme,
+      isPublic: readingBouquets.isPublic, createdAt: readingBouquets.createdAt,
+      curatorName: users.firstName,
+      itemCount: sql<number>`(SELECT count(*) FROM bouquet_items WHERE bouquet_id = ${readingBouquets.id})::int`,
+    }).from(readingBouquets)
+      .leftJoin(users, eq(readingBouquets.curatorId, users.id))
+      .where(eq(readingBouquets.isPublic, true))
+      .orderBy(desc(readingBouquets.createdAt));
+  }
+
+  async getBouquet(id: string): Promise<(ReadingBouquet & { curatorName: string | null; items: (BouquetItem & { writingTitle: string; authorName: string | null })[] }) | undefined> {
+    const [bouquet] = await db.select({
+      id: readingBouquets.id, curatorId: readingBouquets.curatorId, title: readingBouquets.title,
+      description: readingBouquets.description, theme: readingBouquets.theme,
+      isPublic: readingBouquets.isPublic, createdAt: readingBouquets.createdAt,
+      curatorName: users.firstName,
+    }).from(readingBouquets)
+      .leftJoin(users, eq(readingBouquets.curatorId, users.id))
+      .where(eq(readingBouquets.id, id));
+    if (!bouquet) return undefined;
+    const items = await db.select({
+      id: bouquetItems.id, bouquetId: bouquetItems.bouquetId, writingId: bouquetItems.writingId,
+      sortOrder: bouquetItems.sortOrder, note: bouquetItems.note, createdAt: bouquetItems.createdAt,
+      writingTitle: writings.title, authorName: users.firstName,
+    }).from(bouquetItems)
+      .innerJoin(writings, eq(bouquetItems.writingId, writings.id))
+      .leftJoin(users, eq(writings.authorId, users.id))
+      .where(eq(bouquetItems.bouquetId, id))
+      .orderBy(asc(bouquetItems.sortOrder));
+    return { ...bouquet, items };
+  }
+
+  async createBouquet(curatorId: string, data: { title: string; description?: string; theme?: string }): Promise<ReadingBouquet> {
+    const [created] = await db.insert(readingBouquets).values({ curatorId, ...data }).returning();
+    return created;
+  }
+
+  async addBouquetItem(bouquetId: string, writingId: string, note?: string): Promise<BouquetItem> {
+    const [created] = await db.insert(bouquetItems).values({ bouquetId, writingId, note }).returning();
+    return created;
+  }
+
+  async deleteBouquet(curatorId: string, id: string): Promise<boolean> {
+    await db.delete(bouquetItems).where(eq(bouquetItems.bouquetId, id));
+    const result = await db.delete(readingBouquets)
+      .where(and(eq(readingBouquets.id, id), eq(readingBouquets.curatorId, curatorId))).returning();
+    return result.length > 0;
+  }
+
+  // === MOODBOARDS ===
+  async getMoodboards(userId: string): Promise<Moodboard[]> {
+    return await db.select().from(moodboards)
+      .where(eq(moodboards.userId, userId))
+      .orderBy(desc(moodboards.createdAt));
+  }
+
+  async getSharedMoodboards(): Promise<(Moodboard & { userName: string | null })[]> {
+    return await db.select({
+      id: moodboards.id, userId: moodboards.userId, title: moodboards.title,
+      description: moodboards.description, isShared: moodboards.isShared,
+      createdAt: moodboards.createdAt, updatedAt: moodboards.updatedAt,
+      userName: users.firstName,
+    }).from(moodboards)
+      .leftJoin(users, eq(moodboards.userId, users.id))
+      .where(eq(moodboards.isShared, true))
+      .orderBy(desc(moodboards.createdAt));
+  }
+
+  async getMoodboard(id: string): Promise<(Moodboard & { items: MoodboardItem[] }) | undefined> {
+    const [board] = await db.select().from(moodboards).where(eq(moodboards.id, id));
+    if (!board) return undefined;
+    const items = await db.select().from(moodboardItems)
+      .where(eq(moodboardItems.moodboardId, id))
+      .orderBy(asc(moodboardItems.sortOrder));
+    return { ...board, items };
+  }
+
+  async createMoodboard(userId: string, data: { title: string; description?: string }): Promise<Moodboard> {
+    const [created] = await db.insert(moodboards).values({ userId, ...data }).returning();
+    return created;
+  }
+
+  async updateMoodboard(userId: string, id: string, data: { title?: string; description?: string; isShared?: boolean }): Promise<Moodboard | undefined> {
+    const [updated] = await db.update(moodboards).set({ ...data, updatedAt: new Date() })
+      .where(and(eq(moodboards.id, id), eq(moodboards.userId, userId))).returning();
+    return updated || undefined;
+  }
+
+  async addMoodboardItem(moodboardId: string, data: { itemType: string; content: string; color?: string; imageUrl?: string }): Promise<MoodboardItem> {
+    const [created] = await db.insert(moodboardItems).values({ moodboardId, ...data }).returning();
+    return created;
+  }
+
+  async deleteMoodboardItem(id: string): Promise<boolean> {
+    const result = await db.delete(moodboardItems).where(eq(moodboardItems.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async deleteMoodboard(userId: string, id: string): Promise<boolean> {
+    await db.delete(moodboardItems).where(eq(moodboardItems.moodboardId, id));
+    const result = await db.delete(moodboards)
+      .where(and(eq(moodboards.id, id), eq(moodboards.userId, userId))).returning();
+    return result.length > 0;
+  }
+
+  // === SOIL ENTRIES ===
+  async getSoilEntries(userId: string): Promise<SoilEntry[]> {
+    return await db.select().from(soilEntries)
+      .where(eq(soilEntries.userId, userId))
+      .orderBy(desc(soilEntries.createdAt));
+  }
+
+  async createSoilEntry(userId: string, data: { content: string; entryType?: string; tags?: string[] }): Promise<SoilEntry> {
+    const [created] = await db.insert(soilEntries).values({ userId, ...data }).returning();
+    return created;
+  }
+
+  async updateSoilEntry(userId: string, id: string, data: { content?: string; entryType?: string; tags?: string[] }): Promise<SoilEntry | undefined> {
+    const [updated] = await db.update(soilEntries).set({ ...data, updatedAt: new Date() })
+      .where(and(eq(soilEntries.id, id), eq(soilEntries.userId, userId))).returning();
+    return updated || undefined;
+  }
+
+  async deleteSoilEntry(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(soilEntries)
+      .where(and(eq(soilEntries.id, id), eq(soilEntries.userId, userId))).returning();
+    return result.length > 0;
   }
 }
 

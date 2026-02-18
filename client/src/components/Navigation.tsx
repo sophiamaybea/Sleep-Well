@@ -34,10 +34,13 @@ export default function Navigation() {
 
   const menuItems: { label: string; href: string; isPage?: boolean }[] = [
     { label: "Home", href: "/", isPage: true },
-    { label: "The Gallery", href: "/gallery", isPage: true },
-    { label: "Exhibits", href: "/exhibits", isPage: true },
+    { label: "Gallery", href: "/gallery", isPage: true },
+    { label: "Opportunities", href: "/opportunities", isPage: true },
+    { label: "Commons", href: "/commons", isPage: true },
+    { label: "Nursery", href: "/nursery", isPage: true },
     { label: "About", href: "/about", isPage: true },
-    { label: "Courses", href: "/courses", isPage: true },
+    { label: "How It Works", href: "/how-it-works", isPage: true },
+    { label: "Field Guide", href: "/field-guide", isPage: true },
   ];
 
   return (
@@ -51,7 +54,7 @@ export default function Navigation() {
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
 
-          <div className={`hidden lg:flex items-center gap-8 font-mono text-xs uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-8 py-3 rounded-full border border-white/10' : ''}`}>
+          <div className={`hidden xl:flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
             {menuItems.map((item) =>
               item.isPage ? (
                 <Link
@@ -110,7 +113,7 @@ export default function Navigation() {
 
           <button 
             onClick={() => setIsOpen(true)}
-            className="lg:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors mix-blend-difference"
+            className="xl:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors mix-blend-difference"
           >
             <Menu />
           </button>

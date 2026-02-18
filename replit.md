@@ -27,7 +27,7 @@ Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and 
 - **Authentic Typewriter Experience:** Integrates Web Audio API for mechanical key clicks and a "Special Elite" font with an amber cursor for an immersive writing environment.
 - **Museum-style Gallery:** Uses CSS `border-image` with an ornate gold-frame asset and `MuseumFrame` component for published works, creating a gallery wall aesthetic.
 - **Garden Architecture (4-Zone Design):** The `/garden` area is structured into four zones with floating pill navigation:
-    - **Your Desk:** Personal writing space with piece cards, inline expansion, a distraction-free editor with autosave, version snapshots (auto-saved on stage changes + manual "Save this state" with timeline view showing notes), 4-stage readiness (seed → growing → ready → dormant), "Open Garden" public toggle per piece, and "Ready for eyes" editorial flag button.
+    - **The Soil (formerly "Your Desk"):** Foundational private workspace for raw ideas, morning pages, links, and fragments. Lower-stakes than Garden, never seen by editors. Includes visual "Creative Layers" system showing: Soil → Garden → Commons → Gallery → Nursery. Features piece cards, inline expansion, distraction-free editor with autosave, version snapshots, 4-stage readiness (seed → growing → ready → dormant), "Open Garden" public toggle, and "Ready for eyes" editorial flag.
     - **Reading Room:** A curated social feed combining tended gardens and general garden activity, presented in a letter-like layout with ambient resonances, inline marginalia, sort/filter controls (Recent/Quiet/Tended + genre filters), quiet read signals, editor-curated opportunities banner, and a "Daily Letter" — one featured piece each morning presented like a letter from the garden.
     - **Greenhouse:** A streamlined suite of creative tools: Freewrite (with built-in timer), Growth Journal (with Reflections prompts tab), and Circles.
     - **Career:** Submission tracker and career tools (paid tier anchor). 5 sub-tabs: Tracker (submission log with status pipeline), Credits (publication credit management with rights tracking), Bio (writer bio management with copy buttons), Letters (cover letter templates with variable substitution), Analytics (writing practice dashboard with frequency charts and stage/genre breakdowns). Free tier sees blurred preview with upgrade prompt.
@@ -48,9 +48,14 @@ Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and 
 
 ### Pages
 - `/`: Landing page (condensed: StarTitle → GardenIntro → Featured → Footer).
-- `/about`: Philosophy page with TwoDoors and Manifesto sections.
+- `/about`: Philosophy page with editorial model explanation, discovery model, garden metaphor, TwoDoors, and Manifesto sections.
 - `/gallery`: Public gallery page with museum-framed published works, search, and genre filters.
-- `/garden`: Authenticated user garden with 3-zone architecture.
+- `/garden`: Authenticated user garden with 4-zone architecture (The Soil, Reading Room, Greenhouse, Career).
+- `/opportunities`: Curated Opportunities page with 3 tabs (Page Gallery Calls, Open Calls, General Submissions), filters, and Greenhouse/Planted/Harvested tracker.
+- `/commons`: The Commons - communal shared garden with Reading Bouquets and Moodboards.
+- `/nursery`: The Nursery - career resources with grants, residencies, Propagation Guides, and Seasonal Rounds.
+- `/how-it-works`: Step-by-step guide from creating a Garden to Gallery publication.
+- `/field-guide`: FAQ/reference page with botanical-themed accordion sections.
 - `/public-garden/:userId`: Public garden page with writer's self-published pieces and shareable URL.
 - `/writer/:id`: Public writer profile.
 - `/editor-studio`: Editor-only dashboard with 6 tabs (requires `editor` or `editor_in_chief` role).

@@ -1,0 +1,37 @@
+I need you to add several major new sections to this Page Gallery Journal website. This is a literary platform with a botanical metaphor. Please implement ALL of the following changes:
+
+1. CURATED OPPORTUNITIES SECTION - Create a new page at /opportunities with three subsections:
+   a) "Page Gallery Calls" - Internal opportunities flagged with a flower icon and a "Page Gallery Original" badge, where editors seek work from writers' Gardens for themed gallery exhibitions
+   b) "Specific Open Calls" - Time-limited themed calls from external journals with deadline, theme, genre, pay info, and fee indicators
+   c) "General Submissions" - Evergreen rolling submission windows at magazines
+   Add filters at the top by: genre, deadline, fee/free, pay rate, and Page Gallery vs external
+
+2. ORGANISATION TRACKER SYSTEM - Add a built-in tracker for writers to manage opportunities:
+   - "Greenhouse" (saved/bookmarked opportunities)
+   - "Planted" (submitted, with date tracking)
+   - "Harvested" (accepted/published)
+   Writers should be able to drag/move opportunities between these statuses
+
+3. COMMUNAL GARDEN FEATURES:
+   a) "The Commons" - A shared communal garden where writers can make certain pieces visible to other writers (peer-to-peer, not for editors)
+   b) "Reading Bouquets" - Let users curate reading experiences by gathering pieces from The Commons and Gallery into themed collections
+   c) "Moodboards" - Visual/textual collages with images, color palettes, reference quotes, fragments that live in private Garden but can optionally be shared to The Commons
+
+4. EXTENSIVE ABOUT & HOW-TO PAGES:
+   a) About/Philosophy page - Explain "you don't submit, you don't query, you just write" editorial model, how editors wander Gardens
+   b) How It Works page - Step-by-step walkthrough: creating your Garden > Seed/Sprout/Bloom stages > how editors discover work > what happens when selected for Gallery. Use botanical illustrations/icons
+   c) FAQ/Field Guide - Common questions about exclusivity, simultaneous submissions, timing, genres welcome
+
+5. CAREER SECTION "THE NURSERY" at /nursery:
+   a) Grants, residencies, contest listings, freelance opportunities, jobs with literary publishers
+   b) "Propagation Guides" - How-to content: writing a bio, pitching to editors, building a portfolio, understanding contracts
+   c) "Seasonal Rounds" - Editorial features highlighting what's open, closing soon, framed as a gardener's almanac
+
+6. REFRAME THE DESK AS "THE SOIL":
+   - The Desk/Soil is the foundational workspace where writers dump everything: morning pages, ideas, links, moodboards
+   - It's lower-stakes than the Garden, entirely private, never seen by editors
+   - Layer system: Soil (Desk/drafts) > Roots (organisation tracker) > Garden (Seed/Sprout/Bloom pipeline) > Commons (shared greenhouse) > Gallery (exhibition) > Nursery (career)
+
+7. ADD NAVIGATION - Update the main navigation/menu to include links to: Opportunities, The Commons, Nursery, About, How It Works, and Field Guide
+
+Maintain the existing dark aesthetic with glassmorphism effects, botanical metaphor, and elegant typography throughout all new sections. Use the same design language as the existing site.

@@ -438,6 +438,22 @@ export const opportunities = pgTable("opportunities", {
   genres: text("genres").array().default(sql`'{}'::text[]`),
   notes: text("notes").notNull().default(""),
   isCurated: boolean("is_curated").notNull().default(false),
+  opType: text("op_type").notNull().default("general_submission"),
+  fee: text("fee"),
+  theme: text("theme"),
+  isPageGallery: boolean("is_page_gallery").notNull().default(false),
+  isRolling: boolean("is_rolling").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const opportunityTracker = pgTable("opportunity_tracker", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  opportunityId: varchar("opportunity_id").notNull().references(() => opportunities.id),
+  status: text("status").notNull().default("greenhouse"),
+  submittedAt: timestamp("submitted_at"),
+  acceptedAt: timestamp("accepted_at"),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -975,3 +991,82 @@ export type InsertExhibitResponse = z.infer<typeof insertExhibitResponseSchema>;
 export type ExhibitReflection = typeof exhibitReflections.$inferSelect;
 export type InsertExhibitReflection = z.infer<typeof insertExhibitReflectionSchema>;
 export type ExhibitPurchase = typeof exhibitPurchases.$inferSelect;
+
+// === COMMONS ===
+
+export const commonsShares = pgTable("commons_shares", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  sharedAt: timestamp("shared_at").defaultNow(),
+});
+
+export const readingBouquets = pgTable("reading_bouquets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  curatorId: varchar("curator_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  theme: text("theme"),
+  isPublic: boolean("is_public").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const bouquetItems = pgTable("bouquet_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bouquetId: varchar("bouquet_id").notNull().references(() => readingBouquets.id),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  sortOrder: integer("sort_order").notNull().default(0),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const moodboards = pgTable("moodboards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  isShared: boolean("is_shared").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const moodboardItems = pgTable("moodboard_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  moodboardId: varchar("moodboard_id").notNull().references(() => moodboards.id),
+  itemType: text("item_type").notNull().default("text"),
+  content: text("content").notNull(),
+  color: text("color"),
+  imageUrl: text("image_url"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === SOIL (Raw Ideas Workspace) ===
+
+export const soilEntries = pgTable("soil_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  entryType: text("entry_type").notNull().default("note"),
+  tags: text("tags").array().default(sql`'{}'::text[]`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas
+export const insertOpportunityTrackerSchema = createInsertSchema(opportunityTracker).omit({ id: true, userId: true, createdAt: true });
+export const insertCommonsShareSchema = createInsertSchema(commonsShares).omit({ id: true, userId: true, sharedAt: true });
+export const insertReadingBouquetSchema = createInsertSchema(readingBouquets).omit({ id: true, curatorId: true, createdAt: true });
+export const insertBouquetItemSchema = createInsertSchema(bouquetItems).omit({ id: true, createdAt: true });
+export const insertMoodboardSchema = createInsertSchema(moodboards).omit({ id: true, userId: true, createdAt: true, updatedAt: true });
+export const insertMoodboardItemSchema = createInsertSchema(moodboardItems).omit({ id: true, createdAt: true });
+export const insertSoilEntrySchema = createInsertSchema(soilEntries).omit({ id: true, userId: true, createdAt: true, updatedAt: true });
+
+// Types
+export type OpportunityTracker = typeof opportunityTracker.$inferSelect;
+export type CommonsShare = typeof commonsShares.$inferSelect;
+export type ReadingBouquet = typeof readingBouquets.$inferSelect;
+export type BouquetItem = typeof bouquetItems.$inferSelect;
+export type Moodboard = typeof moodboards.$inferSelect;
+export type MoodboardItem = typeof moodboardItems.$inferSelect;
+export type SoilEntry = typeof soilEntries.$inferSelect;

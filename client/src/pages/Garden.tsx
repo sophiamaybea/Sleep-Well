@@ -441,7 +441,7 @@ const rooms = [
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
   const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
-    { id: "desk", label: "Your Desk", desc: "Your private writing space — drafts, fragments, and works in progress", icon: <PenLine size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+    { id: "desk", label: "The Soil", desc: "Your foundational workspace — raw ideas, morning pages, and fragments. Never seen by editors.", icon: <Sprout size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
     { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
     { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
     { id: "submissions", label: "Career", desc: "Track submissions, manage credits, and build your publishing career", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
@@ -730,6 +730,26 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
   return (
     <div className="max-w-3xl mx-auto">
+      <div className="mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
+        <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/25 block mb-2">Your Creative Layers</span>
+        <div className="flex items-center gap-1 text-[9px] font-mono overflow-x-auto scrollbar-hide">
+          {[
+            { label: "Soil", color: "text-amber-400/80 bg-amber-500/10 border-amber-500/20", active: true },
+            { label: "Garden", color: "text-emerald-400/50 bg-emerald-500/5 border-emerald-500/10", active: false },
+            { label: "Commons", color: "text-teal-400/50 bg-teal-500/5 border-teal-500/10", active: false },
+            { label: "Gallery", color: "text-white/40 bg-white/[0.03] border-white/10", active: false },
+            { label: "Nursery", color: "text-amber-300/40 bg-amber-500/5 border-amber-500/10", active: false },
+          ].map((layer, i) => (
+            <span key={layer.label} className="flex items-center gap-1 whitespace-nowrap">
+              {i > 0 && <span className="text-white/15 mx-0.5">&rarr;</span>}
+              <span className={`px-2 py-0.5 rounded-full border ${layer.color} ${layer.active ? "ring-1 ring-amber-500/20" : ""}`}>
+                {layer.label}
+              </span>
+            </span>
+          ))}
+        </div>
+        <p className="font-serif text-[10px] text-white/25 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
+      </div>
       <PublishInvitations />
 
       <div className="flex items-end justify-between gap-4 mb-8">

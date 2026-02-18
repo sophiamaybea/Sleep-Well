@@ -3275,5 +3275,233 @@ export async function registerRoutes(
     }
   });
 
+  // === OPPORTUNITY TRACKER ===
+  app.get("/api/opportunity-tracker", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getOpportunityTrackerItems(req.user.claims.sub);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tracker items" });
+    }
+  });
+
+  app.post("/api/opportunity-tracker", isAuthenticated, async (req: any, res) => {
+    try {
+      const { opportunityId, status, notes } = req.body;
+      if (!opportunityId || !status) return res.status(400).json({ message: "Missing fields" });
+      const item = await storage.upsertOpportunityTracker(req.user.claims.sub, opportunityId, status, notes);
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update tracker" });
+    }
+  });
+
+  app.delete("/api/opportunity-tracker/:opportunityId", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteOpportunityTracker(req.user.claims.sub, req.params.opportunityId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete tracker item" });
+    }
+  });
+
+  // === COMMONS ===
+  app.get("/api/commons", async (_req, res) => {
+    try {
+      const items = await storage.getCommonsWritings();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch commons" });
+    }
+  });
+
+  app.post("/api/commons", isAuthenticated, async (req: any, res) => {
+    try {
+      const { writingId } = req.body;
+      if (!writingId) return res.status(400).json({ message: "Missing writingId" });
+      const item = await storage.shareToCommons(req.user.claims.sub, writingId);
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to share to commons" });
+    }
+  });
+
+  app.delete("/api/commons/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.removeFromCommons(req.user.claims.sub, req.params.writingId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove from commons" });
+    }
+  });
+
+  // === BOUQUETS ===
+  app.get("/api/bouquets", async (_req, res) => {
+    try {
+      const items = await storage.getBouquets();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch bouquets" });
+    }
+  });
+
+  app.get("/api/bouquets/:id", async (req, res) => {
+    try {
+      const bouquet = await storage.getBouquet(req.params.id);
+      if (!bouquet) return res.status(404).json({ message: "Not found" });
+      res.json(bouquet);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch bouquet" });
+    }
+  });
+
+  app.post("/api/bouquets", isAuthenticated, async (req: any, res) => {
+    try {
+      const { title, description, theme } = req.body;
+      if (!title) return res.status(400).json({ message: "Title required" });
+      const bouquet = await storage.createBouquet(req.user.claims.sub, { title, description, theme });
+      res.json(bouquet);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create bouquet" });
+    }
+  });
+
+  app.post("/api/bouquets/:id/items", isAuthenticated, async (req: any, res) => {
+    try {
+      const { writingId, note } = req.body;
+      if (!writingId) return res.status(400).json({ message: "WritingId required" });
+      const item = await storage.addBouquetItem(req.params.id, writingId, note);
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add item" });
+    }
+  });
+
+  app.delete("/api/bouquets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteBouquet(req.user.claims.sub, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete bouquet" });
+    }
+  });
+
+  // === MOODBOARDS ===
+  app.get("/api/moodboards", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getMoodboards(req.user.claims.sub);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch moodboards" });
+    }
+  });
+
+  app.get("/api/moodboards/shared", async (_req, res) => {
+    try {
+      const items = await storage.getSharedMoodboards();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch shared moodboards" });
+    }
+  });
+
+  app.get("/api/moodboards/:id", async (req, res) => {
+    try {
+      const board = await storage.getMoodboard(req.params.id);
+      if (!board) return res.status(404).json({ message: "Not found" });
+      res.json(board);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch moodboard" });
+    }
+  });
+
+  app.post("/api/moodboards", isAuthenticated, async (req: any, res) => {
+    try {
+      const { title, description } = req.body;
+      if (!title) return res.status(400).json({ message: "Title required" });
+      const board = await storage.createMoodboard(req.user.claims.sub, { title, description });
+      res.json(board);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create moodboard" });
+    }
+  });
+
+  app.patch("/api/moodboards/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const board = await storage.updateMoodboard(req.user.claims.sub, req.params.id, req.body);
+      if (!board) return res.status(404).json({ message: "Not found" });
+      res.json(board);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update moodboard" });
+    }
+  });
+
+  app.post("/api/moodboards/:id/items", isAuthenticated, async (req: any, res) => {
+    try {
+      const item = await storage.addMoodboardItem(req.params.id, req.body);
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add item" });
+    }
+  });
+
+  app.delete("/api/moodboards/:id/items/:itemId", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteMoodboardItem(req.params.itemId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete item" });
+    }
+  });
+
+  app.delete("/api/moodboards/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteMoodboard(req.user.claims.sub, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete moodboard" });
+    }
+  });
+
+  // === SOIL ENTRIES ===
+  app.get("/api/soil", isAuthenticated, async (req: any, res) => {
+    try {
+      const items = await storage.getSoilEntries(req.user.claims.sub);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch soil entries" });
+    }
+  });
+
+  app.post("/api/soil", isAuthenticated, async (req: any, res) => {
+    try {
+      const { content, entryType, tags } = req.body;
+      if (!content) return res.status(400).json({ message: "Content required" });
+      const entry = await storage.createSoilEntry(req.user.claims.sub, { content, entryType, tags });
+      res.json(entry);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create soil entry" });
+    }
+  });
+
+  app.patch("/api/soil/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const entry = await storage.updateSoilEntry(req.user.claims.sub, req.params.id, req.body);
+      if (!entry) return res.status(404).json({ message: "Not found" });
+      res.json(entry);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update soil entry" });
+    }
+  });
+
+  app.delete("/api/soil/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteSoilEntry(req.user.claims.sub, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete soil entry" });
+    }
+  });
+
   return httpServer;
 }
