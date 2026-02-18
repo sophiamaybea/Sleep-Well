@@ -19,16 +19,16 @@ app.use(helmet({
 // Rate limiting for API routes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many requests, please try again later." },
 });
 
-// Stricter rate limit for auth routes
+// Rate limit for auth routes - 15 attempts per minute
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
+  windowMs: 60 * 1000,
+  max: 15,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many authentication attempts, please try again later." },

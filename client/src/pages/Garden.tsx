@@ -449,12 +449,12 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="inline-flex gap-1 p-1.5 rounded-full border border-emerald-800/20 bg-emerald-950/20 backdrop-blur-xl">
+      <div className="inline-flex gap-1 p-1.5 rounded-full border border-emerald-800/20 bg-emerald-950/20 backdrop-blur-xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-hide">
         {zones.map((z) => (
           <button
             key={z.id}
             onClick={() => onChange(z.id)}
-            className={`relative flex items-center gap-2 px-4 py-2.5 rounded-full font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
+            className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-mono text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all whitespace-nowrap ${
               active === z.id ? "text-white/90" : "text-white/40 hover:text-white/60"
             }`}
             data-testid={`zone-tab-${z.id}`}
@@ -1219,6 +1219,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [editTags, setEditTags] = useState<string[]>((writing as any).tags || []);
   const [tagInput, setTagInput] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
+  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">("medium");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCompostConfirm, setShowCompostConfirm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -1246,7 +1247,10 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
     const timer = setTimeout(() => {
       setSaveStatus("saving");
       doSave();
-      setTimeout(() => setSaveStatus("saved"), 600);
+      setTimeout(() => {
+        setSaveStatus("saved");
+        toast({ title: "Saved", description: "Your writing has been saved.", duration: 2000 });
+      }, 600);
     }, 800);
     return () => clearTimeout(timer);
   }, [editTitle, editContent, editGenre, editStage, editTags]);
@@ -1374,10 +1378,10 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         <div className="flex items-center gap-3 pb-5 border-b border-white/[0.15] flex-wrap">
           <div className="flex gap-0.5">
             {([
-              { id: "raw_seed", label: "Seed" },
-              { id: "growing", label: "Growing" },
-              { id: "ready_to_show", label: "Ready" },
-              { id: "dormant", label: "Dormant" },
+              { id: "raw_seed", label: "Seed", tip: "Early ideas and fragments — just planted" },
+              { id: "growing", label: "Growing", tip: "Works in progress — actively developing" },
+              { id: "ready_to_show", label: "Ready", tip: "Polished and ready to share with the world" },
+              { id: "dormant", label: "Dormant", tip: "Sleeping pieces — not abandoned, just waiting" },
             ] as const).map((s) => (
               <button
                 key={s.id}
@@ -1388,6 +1392,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                     setShowBloomCelebration(true);
                   }
                 }}
+                title={s.tip}
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                   editStage === s.id
                     ? `${stageColors[s.id]} ${stageAccent[s.id]}`
@@ -1578,12 +1583,31 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           )}
         </AnimatePresence>
 
-        <RichEditor
-          content={editContent}
-          onChange={setEditContent}
-          placeholder="Begin writing..."
-          autoFocus
-        />
+        <div className="flex items-center gap-1 mb-3 px-1">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-white/30 mr-2">Size</span>
+          {(["small", "medium", "large"] as const).map((size) => (
+            <button
+              key={size}
+              onClick={() => setFontSize(size)}
+              className={`px-2 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors ${
+                fontSize === size
+                  ? "bg-white/10 text-white/70 border border-white/15"
+                  : "text-white/30 hover:text-white/50 border border-transparent"
+              }`}
+              data-testid={`button-fontsize-${size}`}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+        <div className={fontSize === "small" ? "text-sm" : fontSize === "large" ? "text-lg" : "text-base"}>
+          <RichEditor
+            content={editContent}
+            onChange={setEditContent}
+            placeholder="Begin writing..."
+            autoFocus
+          />
+        </div>
       </div>
     </div>
   );
@@ -3542,6 +3566,7 @@ export default function Garden() {
       queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
       setActiveWriting(data);
       setIsEditing(true);
+      toast({ title: "New piece created", description: "Start writing your new piece.", duration: 2000 });
     },
   });
 
@@ -3661,7 +3686,8 @@ export default function Garden() {
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
               <a href="/" className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/45 hover:text-white/60 transition-colors group" data-testid="link-home">
-                <Leaf size={14} className="text-emerald-500/40 group-hover:text-emerald-400/60 transition-colors" />
+                <Home size={14} className="text-emerald-500/40 group-hover:text-emerald-400/60 transition-colors" />
+                <span className="hidden sm:inline">Home</span>
               </a>
 
               <div className="flex flex-col items-center">

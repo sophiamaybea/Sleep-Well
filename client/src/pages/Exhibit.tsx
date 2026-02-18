@@ -46,8 +46,8 @@ function getMirrorResponse(text: string): string {
 
 const PROSE_STYLE: React.CSSProperties = {
   fontFamily: "'Cormorant Garamond', serif",
-  fontSize: "clamp(1.4rem, 3.2vw, 1.75rem)",
-  lineHeight: "2.1",
+  fontSize: "clamp(1.1rem, 2.8vw, 1.75rem)",
+  lineHeight: "2.0",
   color: "#e8e4df",
 };
 

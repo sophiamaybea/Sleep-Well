@@ -22,7 +22,7 @@ export const content = {
           "Editorially curated by attention, not application"
         ],
         cta: "Explore",
-        href: "#collection"
+        href: "/gallery"
       },
       {
         title: "The Garden",

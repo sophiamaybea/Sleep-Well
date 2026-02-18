@@ -451,6 +451,49 @@
 .garden-bg [class*="border-violet-"] {
   border-color: rgba(100, 130, 180, 0.2) !important;
 }
+/* ─── Writing Editor Background ─── */
+.prose-editor.typewriter-editor {
+  background: rgba(13, 30, 45, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  padding: 2rem 1.5rem;
+}
+.garden-light .prose-editor.typewriter-editor {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Mobile Responsive: prevent horizontal overflow ─── */
+@media (max-width: 640px) {
+  .garden-bg .flex.gap-0\\.5 {
+    flex-wrap: wrap;
+  }
+  .prose-editor.typewriter-editor {
+    padding: 1.25rem 1rem;
+    min-height: 40vh !important;
+  }
+}
+
+/* ─── Contrast Improvements for Writing Space ─── */
+.prose-editor.typewriter-editor p,
+.prose-editor.typewriter-editor li,
+.prose-editor.typewriter-editor blockquote {
+  color: rgba(255, 255, 255, 0.85);
+}
+.prose-editor.typewriter-editor h2,
+.prose-editor.typewriter-editor h3 {
+  color: rgba(255, 255, 255, 0.92);
+}
+.garden-light .prose-editor.typewriter-editor p,
+.garden-light .prose-editor.typewriter-editor li,
+.garden-light .prose-editor.typewriter-editor blockquote {
+  color: rgba(45, 45, 45, 0.9);
+}
+.garden-light .prose-editor.typewriter-editor h2,
+.garden-light .prose-editor.typewriter-editor h3 {
+  color: rgba(45, 45, 45, 0.95);
+}
+
 /* ─── Garden Light Mode: "Frozen Garden" ─── */
 /* Cool drawing-paper aesthetic — nearly monochrome graphite with one warm russet accent.
    Inspired by pen-and-ink botanical illustration on cold winter paper. */

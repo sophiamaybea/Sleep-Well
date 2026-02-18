@@ -129,9 +129,11 @@ export default function StarBackground() {
   const { starsVisible } = useStarsVisible();
   const webgl = useMemo(() => hasWebGL(), []);
   const [contextLost, setContextLost] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
   const [canvasKey, setCanvasKey] = useState(0);
 
   const handleCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
+    setCanvasReady(true);
     const canvas = gl.domElement;
     const onLost = (e: Event) => {
       e.preventDefault();
@@ -161,6 +163,13 @@ export default function StarBackground() {
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none bg-background">
+      {webgl && !contextLost && !canvasReady && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-1 h-1 rounded-full bg-white/30 animate-pulse" />
+          </div>
+        </div>
+      )}
       {webgl && !contextLost ? (
         <WebGLErrorBoundary fallback={<CSSStarFallback />}>
           <Canvas
