@@ -26,12 +26,12 @@ Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and 
 **UI/UX and Features:**
 - **Authentic Typewriter Experience:** Integrates Web Audio API for mechanical key clicks and a "Special Elite" font with an amber cursor for an immersive writing environment.
 - **Museum-style Gallery:** Uses CSS `border-image` with an ornate gold-frame asset and `MuseumFrame` component for published works, creating a gallery wall aesthetic.
-- **Garden Architecture (4-Zone Design):** The `/garden` area is structured into four zones with floating pill navigation:
-    - **The Soil (formerly "Your Desk"):** Foundational private workspace for raw ideas, morning pages, links, and fragments. Lower-stakes than Garden, never seen by editors. Includes visual "Creative Layers" system showing: Soil → Garden → Commons → Gallery → Nursery. Features piece cards, inline expansion, distraction-free editor with autosave, version snapshots, 4-stage readiness (seed → growing → ready → dormant), "Open Garden" public toggle, and "Ready for eyes" editorial flag.
-    - **Reading Room:** A curated social feed combining tended gardens and general garden activity, presented in a letter-like layout with ambient resonances, inline marginalia, sort/filter controls (Recent/Quiet/Tended + genre filters), quiet read signals, editor-curated opportunities banner, and a "Daily Letter" — one featured piece each morning presented like a letter from the garden.
-    - **Greenhouse:** A streamlined suite of creative tools: Freewrite (with built-in timer), Growth Journal (with Reflections prompts tab), and Circles.
-    - **Career:** Submission tracker and career tools (paid tier anchor). 5 sub-tabs: Tracker (submission log with status pipeline), Credits (publication credit management with rights tracking), Bio (writer bio management with copy buttons), Letters (cover letter templates with variable substitution), Analytics (writing practice dashboard with frequency charts and stage/genre breakdowns). Free tier sees blurred preview with upgrade prompt.
-- **Social Features:** Includes Tending (follow system), Resonance (five reaction types: glow, pressed_flower, dewdrop, firefly, roots), Marginalia (annotation-style comments), Notifications ("Whispers"), quiet read whispers (anonymized reader details like "a poet lingered here yesterday"), and ambient garden presence ("3 writers in the garden right now" with monthly summary).
+- **Garden Architecture (4-Zone Design):** The `/garden` area is structured into four zones with collapsible sidebar navigation:
+    - **Seeding ("Your first words into the soil"):** Garden Home, Write, My Garden — the foundational private workspace for drafts, fragments, and new writing.
+    - **Sunlight ("Where your words are seen"):** Explore, Garden Feed, Gardens I Tend, Reading Queue, Bookmarks — discovery and reading features.
+    - **Nutrients ("The space for nurturing your voice"):** Writing Rituals, Growth Journal, Inner Weather, Reflections, Circles — practice and community support tools.
+    - **Greenhouse ("Growth under optimal conditions"):** Courses, Submissions, Paid Feedback — structured learning, submission tracking, and editorial feedback.
+- **Social Features:** Includes Tending (follow system), Resonance (five reaction types: glow, pressed_flower, dewdrop, firefly, roots), Marginalia (annotation-style comments), Notifications ("Wind Chimes"), quiet read whispers (anonymized reader details like "a poet lingered here yesterday"), and ambient garden presence ("3 writers in the garden right now" with monthly summary).
 - **Editorial Studio:** A dedicated `/editor-studio` page with six tabs (Overview, Garden Stream, Greenhouse, Requests & Contracts, Issue Builder, Flagged Queue) for a comprehensive editorial workflow, including role-based permissions, publish request management, issue assembly, and editorial flag response queue with paid-flag priority sorting. Enhanced with: private editorial notes on any piece, writer profile modals (view full body of work from Stream), multi-action menu in Stream (Greenhouse/Notes/Writer/Whisper), shared Greenhouse view across editors, editor-to-editor handoff, flag close/decline with writer notification, and Editors Walk reading queue with piece counts.
 - **Community Rooms:** Accessible via a "Discover" dropdown. Includes Tables (redesigned as "The Café" with daily rotating questions and quick responses), Workshop (writing exercises with rotating daily "Prompt of the Day" and community responses), Swap (beta-reading exchange with 1:1 matching, micro-swaps for quick fragment exchanges, and smart matching by genre/length/feedback style for paid users), and The Desk (communal writing).
 - **Collaborative Circle Tools:** Circles enhanced with 4-tab interface (Messages, Intentions for weekly goals, Celebrations for milestones, Prompt Potluck with random draw), 3-5 member cap, rotating weekly share rhythm with turn indicators, and weekly micro-prompts (automatic one-sentence prompts everyone responds to).
@@ -47,20 +47,25 @@ Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and 
 - **Editorial Flags & Editors Walk:** Writers flag pieces "Ready for eyes" for editor attention (1 active flag normally, up to 3 during Editors Walk seasonal windows). Editors see flagged queue with paid-flag priority sorting. Editors Walk configurable periods managed from Editor Studio Overview tab.
 
 ### Pages
-- `/`: Landing page (condensed: StarTitle → GardenIntro → Featured → Footer).
-- `/about`: Philosophy page with editorial model explanation, discovery model, garden metaphor, TwoDoors, and Manifesto sections.
-- `/gallery`: Public gallery page with museum-framed published works, search, and genre filters.
-- `/garden`: Authenticated user garden with 4-zone architecture (The Soil, Reading Room, Greenhouse, Career).
-- `/opportunities`: Curated Opportunities page with 3 tabs (Page Gallery Calls, Open Calls, General Submissions), filters, and Greenhouse/Planted/Harvested tracker.
-- `/commons`: The Commons - communal shared garden with Reading Bouquets and Moodboards.
-- `/nursery`: The Nursery - career resources with grants, residencies, Propagation Guides, and Seasonal Rounds.
-- `/how-it-works`: Step-by-step guide from creating a Garden to Gallery publication.
+- `/`: Landing page (StarTitle → Hero with "The Page Gallery Journal" title, two CTAs → Footer).
+- `/about`: About page with Journal editorial identity, Garden section, editorial model steps, and "Why a Garden?" section.
+- `/in-bloom` (alias `/gallery`): "In Bloom" — bloomed works selected by editors, with contributor view and reading mode.
+- `/publications`: Print editions page with Available Now (current issues), Our Friends (literary presses), and Archive sections.
+- `/seasons` (alias `/challenges`): "Seasons" — time-bound creative prompts on a regular cycle.
+- `/greenhouse` (alias `/nursery`): "The Greenhouse" — 4-tab page: Courses, Editorial Feedback (paid tiers), Submissions tracker, Portfolio builder.
+- `/how-it-works`: 3-part structure: intro paragraphs (Mission/Who/What), Garden vs Journal comparison, feature walkthrough (Seeding/Sunlight/Nutrients/Greenhouse).
+- `/garden`: Authenticated user garden with 4-zone sidebar (Seeding, Sunlight, Nutrients, Greenhouse).
+- `/opportunities`: Curated Opportunities page with 3 tabs.
+- `/commons`: The Commons - communal shared garden.
 - `/field-guide`: FAQ/reference page with botanical-themed accordion sections.
-- `/public-garden/:userId`: Public garden page with writer's self-published pieces and shareable URL.
+- `/public-garden/:userId`: Public garden page with writer's self-published pieces.
 - `/writer/:id`: Public writer profile.
-- `/editor-studio`: Editor-only dashboard with 6 tabs (requires `editor` or `editor_in_chief` role).
-- `/eic-dashboard`: Editor-in-Chief admin panel for managing editors and invitations (requires `editor_in_chief` role).
-- `/editor-onboarding`: Public onboarding page for invited editors with token-based validation and role upgrade.
+- `/editor-studio`: Editor-only dashboard with 6 tabs.
+- `/eic-dashboard`: Editor-in-Chief admin panel.
+- `/editor-onboarding`: Public onboarding page for invited editors.
+
+### Navigation (6 main items)
+Home, In Bloom, Publications, Seasons, About, How It Works
 
 ### Role System
 - `writer` (default) — can access Garden only
