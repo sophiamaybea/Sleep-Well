@@ -189,11 +189,11 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
               data-testid={`feed-piece-${piece.id}`}
             >
               <motion.div
-                whileHover={{ scale: isExpanded ? 1 : 1.005, x: isExpanded ? 0 : 3 }}
-                className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
+                whileHover={{ y: -2 }}
+                className={`relative rounded-2xl border overflow-hidden transition-all duration-500 ${
                   isExpanded
-                    ? "border-white/15 bg-white/[0.03]"
-                    : "border-white/[0.04] hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.025]"
+                    ? "border-white/20 bg-white/[0.04] shadow-2xl shadow-black/40"
+                    : "border-white/[0.06] hover:border-white/15 bg-white/[0.015] hover:bg-white/[0.03] shadow-sm"
                 }`}
               >
                 <button
@@ -209,70 +209,53 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
                           className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors group"
                           data-testid={`link-author-${piece.id}`}
                         >
-                          <div className="w-6 h-6 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/40 font-mono text-[9px] uppercase group-hover:border-white/20 transition-colors">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500/20 to-emerald-500/20 border border-white/10 flex items-center justify-center text-white/70 font-mono text-xs uppercase group-hover:border-white/30 transition-all shadow-lg shadow-black/20">
                             {piece.authorName?.[0] || "?"}
                           </div>
-                          <span className="font-serif text-sm">{piece.authorName || "Anonymous"}</span>
+                          <div className="flex flex-col">
+                            <span className="font-serif text-sm font-medium text-white/80 group-hover:text-white transition-colors">{piece.authorName || "Anonymous"}</span>
+                            <span className="font-mono text-[9px] text-white/20 uppercase tracking-tighter">{timeAgo(piece.updatedAt)}</span>
+                          </div>
                         </button>
                         <span className="font-mono text-[9px] text-white/15">{timeAgo(piece.updatedAt)}</span>
                       </div>
 
-                      <h3 className="text-lg font-display font-light text-white/75 italic">
+                      <h3 className="text-xl font-display font-medium text-white/90 leading-tight">
                         {piece.title || "Untitled"}
                       </h3>
 
-                      {!isExpanded && piece.content && (
-                        <p className="text-sm font-serif text-white/30 line-clamp-2 leading-relaxed">
-                          {piece.content.slice(0, 200)}
+                      <div className="prose-content">
+                        <p className={`text-base font-serif text-white/60 leading-relaxed ${!isExpanded ? "line-clamp-3" : ""}`}>
+                          {isExpanded ? piece.content : piece.content.slice(0, 240)}
+                          {!isExpanded && piece.content.length > 240 && "..."}
                         </p>
-                      )}
+                      </div>
 
-                      <div className="flex items-center gap-3 pt-1">
-                        <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">{piece.genre}</span>
+                      <div className="flex items-center gap-3 pt-2">
+                        <span className="px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.05] font-mono text-[8px] uppercase tracking-widest text-white/30">{piece.genre}</span>
                         <VisibilityBadge visibility="garden" readiness={readiness} editorialAvailable={piece.editorialAvailable} compact />
-                        <span className={`font-mono text-[9px] uppercase tracking-widest ${readinessColors[readiness] || "text-white/25"}`}>
-                          {readiness === "raw_seed" ? "seed" : readiness === "ready_to_show" ? "ready" : readiness}
-                        </span>
                       </div>
                     </div>
-
-                    <motion.div
-                      animate={{ rotate: isExpanded ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-white/15 flex-shrink-0 mt-2"
-                    >
-                      <ChevronDown size={16} />
-                    </motion.div>
                   </div>
                 </button>
 
                 <AnimatePresence>
                   {isExpanded && (
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="px-6 pb-6 space-y-6"
                     >
-                      <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
-                        <div className="border-t border-white/[0.04] pt-4">
-                          <p className="text-base font-serif text-white/50 leading-[1.9] whitespace-pre-wrap">
-                            {piece.content.slice(0, 1000)}
-                            {piece.content.length > 1000 && (
-                              <span className="text-white/20 italic"> ...continues</span>
-                            )}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-4">
-                            <span className="font-mono text-[9px] text-white/20 tracking-widest">
-                              {wordCount(piece.content)} words
-                            </span>
-                            <VisibilityBadge visibility="garden" readiness={readiness} editorialAvailable={piece.editorialAvailable} />
-                          </div>
+                      <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
+                        <div className="flex items-center gap-6">
+                          <span className="font-mono text-[10px] text-white/20 tracking-widest uppercase">
+                            {wordCount(piece.content)} words
+                          </span>
                           <TendButton gardenerId={piece.authorId} size="sm" />
                         </div>
+                      </div>
+                      <div className="space-y-4">
                         <ResonanceBar writingId={piece.id} />
                         <MarginaliaSection writingId={piece.id} authorId={piece.authorId} />
                       </div>

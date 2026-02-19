@@ -99,7 +99,7 @@ export function ResonanceBar({ writingId, compact }: { writingId: string; compac
     : REACTION_TYPES;
 
   return (
-    <div className="flex items-center gap-1" data-testid={`resonance-bar-${writingId}`}>
+    <div className="flex items-center gap-2 p-1 rounded-full bg-white/[0.02] border border-white/[0.05] w-fit" data-testid={`resonance-bar-${writingId}`}>
       {visibleReactions.map((reaction) => {
         const Icon = reaction.icon;
         const count = getCount(reaction.type);
@@ -108,21 +108,21 @@ export function ResonanceBar({ writingId, compact }: { writingId: string; compac
           <motion.button
             key={reaction.type}
             onClick={() => handleClick(reaction.type)}
-            whileTap={{ scale: 1.3 }}
-            whileHover={{ scale: 1.1 }}
-            className={`flex items-center gap-1 rounded-full border transition-all ${
-              compact ? "px-1.5 py-0.5" : "px-2 py-1"
+            whileTap={{ scale: 1.4, rotate: [0, -10, 10, 0] }}
+            whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.05)" }}
+            className={`flex items-center gap-1.5 rounded-full transition-all ${
+              compact ? "px-2 py-1" : "px-3 py-1.5"
             } ${
               active
-                ? `border-white/15 bg-white/[0.08] ${reaction.color}`
-                : "border-white/[0.15] bg-transparent text-white/50 hover:text-white/70 hover:border-white/20"
+                ? `bg-white/[0.1] shadow-sm ${reaction.color}`
+                : "text-white/40 hover:text-white/70"
             }`}
             title={reaction.label}
             data-testid={`resonance-${reaction.type}-${writingId}`}
           >
-            <Icon size={compact ? 10 : 13} />
+            <Icon size={compact ? 12 : 15} />
             {count > 0 && (
-              <span className={`font-mono ${compact ? "text-[8px]" : "text-[9px]"} ${active ? "text-white/80" : "text-white/50"}`}>
+              <span className={`font-mono font-medium ${compact ? "text-[10px]" : "text-[11px]"} ${active ? "text-white" : "text-white/40"}`}>
                 {count}
               </span>
             )}
@@ -210,24 +210,25 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
   const renderNote = (note: MarginaliaNote, isReply = false) => (
     <motion.div
       key={note.id}
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`${isReply ? "ml-8 border-l border-white/[0.20] pl-4" : ""}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`group/note ${isReply ? "ml-10 border-l border-white/[0.05] pl-4 mt-2" : "bg-white/[0.01] rounded-xl p-3 mb-2"}`}
       data-testid={`marginalia-note-${note.id}`}
     >
-      <div className="flex items-start gap-3 py-3">
-        <div className="w-7 h-7 rounded-full bg-white/[0.06] border border-white/20 flex items-center justify-center text-white/60 font-mono text-[9px] uppercase flex-shrink-0">
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-white/[0.05] to-white/[0.1] border border-white/10 flex items-center justify-center text-white/50 font-mono text-[10px] uppercase flex-shrink-0">
           {note.userName?.[0] || "?"}
         </div>
         <div className="flex-grow min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-[10px] text-white/60 tracking-wide">
-              {note.userName || "Anonymous"}
-            </span>
-            <span className="font-mono text-[9px] text-white/50">
-              {timeAgo(note.createdAt)}
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-serif text-xs font-bold text-white/80">
+                {note.userName || "Anonymous"}
+              </span>
+              <span className="font-mono text-[8px] text-white/20 uppercase tracking-tighter">
+                {timeAgo(note.createdAt)}
+              </span>
+            </div>
           </div>
           {note.highlightText && (
             <div className="border-l-2 border-white/20 pl-3 mb-2">
