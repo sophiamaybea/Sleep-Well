@@ -289,109 +289,7 @@
   tab-size: 4;
 }
 
-/* ─── Accessibility: Reduced Motion ─── */
-.a11y-reduced-motion *,
-.a11y-reduced-motion *::before,
-.a11y-reduced-motion *::after {
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
-  scroll-behavior: auto !important;
-}
-
-/* ─── Accessibility: High Contrast ─── */
-.a11y-high-contrast {
-  --color-foreground: hsl(0 0% 100%);
-}
-.a11y-high-contrast body {
-  color: hsl(0 0% 100%);
-}
-.a11y-high-contrast .text-white\/30,
-.a11y-high-contrast .text-white\/35,
-.a11y-high-contrast .text-white\/40,
-.a11y-high-contrast .text-white\/45 {
-  color: rgba(255, 255, 255, 0.75) !important;
-}
-.a11y-high-contrast .text-white\/50,
-.a11y-high-contrast .text-white\/55,
-.a11y-high-contrast .text-white\/60 {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-.a11y-high-contrast .text-white\/65,
-.a11y-high-contrast .text-white\/70,
-.a11y-high-contrast .text-white\/75,
-.a11y-high-contrast .text-white\/80 {
-  color: rgba(255, 255, 255, 0.95) !important;
-}
-.a11y-high-contrast .border-white\/\[0\.06\],
-.a11y-high-contrast .border-white\/\[0\.08\],
-.a11y-high-contrast .border-white\/\[0\.10\] {
-  border-color: rgba(255, 255, 255, 0.25) !important;
-}
-
-/* ─── Accessibility: Larger Text ─── */
-.a11y-larger-text {
-  font-size: 118%;
-}
-.a11y-larger-text .font-mono.text-\[9px\],
-.a11y-larger-text .font-mono.text-\[8px\],
-.a11y-larger-text .font-mono.text-\[10px\],
-.a11y-larger-text .font-mono.text-\[7px\] {
-  font-size: 0.75rem !important;
-}
-
-/* ─── Accessibility: Dyslexia-Friendly Font ─── */
-.a11y-dyslexia-font body,
-.a11y-dyslexia-font .font-serif,
-.a11y-dyslexia-font .font-sans,
-.a11y-dyslexia-font p,
-.a11y-dyslexia-font span,
-.a11y-dyslexia-font div,
-.a11y-dyslexia-font textarea,
-.a11y-dyslexia-font input {
-  font-family: 'Atkinson Hyperlegible', 'Verdana', sans-serif !important;
-  letter-spacing: 0.02em;
-}
-.a11y-dyslexia-font .font-display,
-.a11y-dyslexia-font h1,
-.a11y-dyslexia-font h2,
-.a11y-dyslexia-font h3 {
-  font-family: 'Atkinson Hyperlegible', 'Verdana', sans-serif !important;
-  font-style: normal !important;
-}
-
-/* ─── Accessibility: Wider Spacing ─── */
-.a11y-wider-spacing p,
-.a11y-wider-spacing .font-serif,
-.a11y-wider-spacing .leading-relaxed {
-  line-height: 2 !important;
-  letter-spacing: 0.03em;
-  word-spacing: 0.12em;
-}
-.a11y-wider-spacing .space-y-2 > * + * {
-  margin-top: 0.75rem !important;
-}
-.a11y-wider-spacing .space-y-3 > * + * {
-  margin-top: 1rem !important;
-}
-.a11y-wider-spacing .space-y-4 > * + * {
-  margin-top: 1.25rem !important;
-}
-
-/* ─── Accessibility: Focus Mode ─── */
-.a11y-focus-mode .firefly,
-.a11y-focus-mode .night-garden-atmosphere,
-.a11y-focus-mode .moonlight-glow,
-.a11y-focus-mode [class*="animate-sway"],
-.a11y-focus-mode [class*="animate-firefly"],
-.a11y-focus-mode [class*="animate-moonpulse"] {
-  display: none !important;
-}
-.a11y-focus-mode .backdrop-blur-xl,
-.a11y-focus-mode .backdrop-blur-sm {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
+/* ─── Legacy accessibility classes removed — all a11y modes now in bottom of file ─── */
 
 /* ─── Garden Background Classes — teal-indigo watercolor night ─── */
 .garden-bg {
@@ -765,4 +663,300 @@
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY MODES
+   Applied via classes on <html> root element
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── High Contrast ── */
+.a11y-high-contrast {
+  --color-foreground: #ffffff !important;
+  --color-background: #000000 !important;
+}
+.a11y-high-contrast body {
+  color: #ffffff !important;
+  background: #000000 !important;
+}
+.a11y-high-contrast * {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+.a11y-high-contrast p,
+.a11y-high-contrast span,
+.a11y-high-contrast h1,
+.a11y-high-contrast h2,
+.a11y-high-contrast h3,
+.a11y-high-contrast h4,
+.a11y-high-contrast h5,
+.a11y-high-contrast h6,
+.a11y-high-contrast li,
+.a11y-high-contrast td,
+.a11y-high-contrast th,
+.a11y-high-contrast label,
+.a11y-high-contrast a {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+.a11y-high-contrast button {
+  border: 2px solid #ffffff !important;
+}
+
+/* ── Light Mode ── */
+.a11y-light-mode {
+  --color-background: #f5f3ef !important;
+  --color-foreground: #1a1a1a !important;
+}
+.a11y-light-mode body {
+  background: #f5f3ef !important;
+  color: #1a1a1a !important;
+}
+.a11y-light-mode p,
+.a11y-light-mode span,
+.a11y-light-mode h1,
+.a11y-light-mode h2,
+.a11y-light-mode h3,
+.a11y-light-mode h4,
+.a11y-light-mode h5,
+.a11y-light-mode h6,
+.a11y-light-mode li,
+.a11y-light-mode label {
+  color: #2d2d2d !important;
+}
+.a11y-light-mode a {
+  color: #1a5276 !important;
+}
+.a11y-light-mode button {
+  color: #2d2d2d !important;
+  border-color: rgba(0,0,0,0.2) !important;
+}
+.a11y-light-mode canvas {
+  opacity: 0.05 !important;
+}
+.a11y-light-mode [class*="bg-white/"],
+.a11y-light-mode [class*="bg-[#0"] {
+  background-color: rgba(0,0,0,0.03) !important;
+}
+
+/* ── Inverted Colors ── */
+.a11y-inverted {
+  filter: invert(1) hue-rotate(180deg);
+}
+.a11y-inverted img,
+.a11y-inverted video,
+.a11y-inverted canvas,
+.a11y-inverted [data-testid="button-accessibility-open"],
+.a11y-inverted [role="dialog"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ── Grayscale ── */
+.a11y-grayscale {
+  filter: grayscale(1);
+}
+
+/* ── Large Text (+25%) ── */
+.a11y-large-text {
+  font-size: 125% !important;
+}
+
+/* ── Extra Large Text (+50%) ── */
+.a11y-extra-large-text {
+  font-size: 150% !important;
+}
+
+/* ── Highlight Links ── */
+.a11y-highlight-links a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+  outline: 2px solid rgba(196, 162, 77, 0.4) !important;
+  outline-offset: 2px !important;
+  border-radius: 2px !important;
+}
+
+/* ── Large Cursor ── */
+.a11y-large-cursor,
+.a11y-large-cursor * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M8 4l28 20H20l8 16-4 2-8-16-8 14z' fill='white' stroke='black' stroke-width='2'/%3E%3C/svg%3E") 4 4, auto !important;
+}
+
+/* ── Keyboard Navigation ── */
+.a11y-keyboard-nav *:focus {
+  outline: 3px solid #c4a24d !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px rgba(196, 162, 77, 0.2) !important;
+}
+.a11y-keyboard-nav *:focus:not(:focus-visible) {
+  outline: 3px solid #c4a24d !important;
+}
+
+/* ── Stop Animations ── */
+.a11y-stop-animations *,
+.a11y-stop-animations *::before,
+.a11y-stop-animations *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+.a11y-stop-animations canvas {
+  display: none !important;
+}
+
+/* ── Big Click Targets ── */
+.a11y-big-targets button,
+.a11y-big-targets a,
+.a11y-big-targets input,
+.a11y-big-targets select,
+.a11y-big-targets textarea,
+.a11y-big-targets [role="button"] {
+  min-height: 48px !important;
+  min-width: 48px !important;
+  padding: 12px 16px !important;
+}
+
+/* ── Dyslexia-Friendly Font (Atkinson Hyperlegible loaded via index.html) ── */
+.a11y-dyslexia-font,
+.a11y-dyslexia-font * {
+  font-family: 'Atkinson Hyperlegible', 'Comic Sans MS', sans-serif !important;
+}
+
+/* ── Letter Spacing ── */
+.a11y-letter-spacing,
+.a11y-letter-spacing * {
+  letter-spacing: 0.12em !important;
+}
+
+/* ── Word Spacing ── */
+.a11y-word-spacing,
+.a11y-word-spacing * {
+  word-spacing: 0.25em !important;
+}
+
+/* ── Line Height ── */
+.a11y-line-height,
+.a11y-line-height * {
+  line-height: 2 !important;
+}
+
+/* ── Hide Images ── */
+.a11y-hide-images img:not([role="presentation"]),
+.a11y-hide-images svg:not([data-a11y-keep]),
+.a11y-hide-images video,
+.a11y-hide-images canvas {
+  opacity: 0.05 !important;
+}
+.a11y-hide-images [data-testid="button-accessibility-open"] svg,
+.a11y-hide-images [role="dialog"] svg {
+  opacity: 1 !important;
+}
+
+/* ── Focus Mode ── */
+.a11y-focus-mode nav,
+.a11y-focus-mode header:not([role="banner"]),
+.a11y-focus-mode footer,
+.a11y-focus-mode aside,
+.a11y-focus-mode [class*="sidebar"],
+.a11y-focus-mode [class*="StarBackground"],
+.a11y-focus-mode canvas,
+.a11y-focus-mode .firefly,
+.a11y-focus-mode .night-garden-atmosphere,
+.a11y-focus-mode .moonlight-glow,
+.a11y-focus-mode [class*="animate-sway"],
+.a11y-focus-mode [class*="animate-firefly"],
+.a11y-focus-mode [class*="animate-moonpulse"] {
+  display: none !important;
+}
+.a11y-focus-mode .backdrop-blur-xl,
+.a11y-focus-mode .backdrop-blur-sm {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.a11y-focus-mode main {
+  max-width: 680px !important;
+  margin: 2rem auto !important;
+  padding: 2rem !important;
+}
+
+/* ── Text Align Left ── */
+.a11y-text-left,
+.a11y-text-left * {
+  text-align: left !important;
+}
+
+/* ── Reading Guide (CSS marker class for pre-hydration; visual handled in React) ── */
+.a11y-reading-guide body {
+  cursor: crosshair;
+}
+
+/* ── Screen Reader Optimized ── */
+.a11y-screen-reader img:not([alt]) {
+  outline: 3px solid red !important;
+}
+.a11y-screen-reader main {
+  role: main;
+}
+.a11y-screen-reader button:not([aria-label]):not([aria-labelledby])::after {
+  content: " (button)";
+  font-size: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+}
+.a11y-screen-reader [aria-hidden="true"]:not([data-a11y-keep]) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.a11y-screen-reader *:focus {
+  outline: 3px solid #c4a24d !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Tooltip on Hover ── */
+.a11y-tooltip-hover [data-testid]:hover::after {
+  content: attr(data-testid);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: #1a2a3a;
+  color: #e0ddd5;
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.15);
+  white-space: nowrap;
+  z-index: 99999;
+  pointer-events: none;
+}
+.a11y-tooltip-hover [data-testid] {
+  position: relative;
+}
+.a11y-tooltip-hover [aria-label]:hover::after {
+  content: attr(aria-label);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: #1a2a3a;
+  color: #e0ddd5;
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.15);
+  white-space: nowrap;
+  z-index: 99999;
+  pointer-events: none;
 }

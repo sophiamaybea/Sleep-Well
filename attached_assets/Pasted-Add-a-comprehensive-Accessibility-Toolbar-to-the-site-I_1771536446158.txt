@@ -1,0 +1,44 @@
+Add a comprehensive Accessibility Toolbar to the site. It should be a floating button (universal accessibility icon ♿) in the bottom-right corner of every page. When clicked, it opens a clean panel/drawer with clearly labeled toggle buttons for EVERY one of these accessibility modes:
+
+**Vision:**
+1. High Contrast Mode - increases contrast across the entire site
+2. Dark/Light Mode Toggle - switches between dark and light themes
+3. Inverted Colors - inverts all colors on the page
+4. Grayscale Mode - removes all color, displays in grayscale
+5. Large Text / Increase Font Size - increases all text by 25%
+6. Extra Large Text - increases all text by 50%
+7. Highlight Links - underlines and highlights all clickable links
+8. Large Cursor - makes the mouse cursor larger
+9. Reading Guide / Line Focus - a horizontal bar follows the cursor to help track reading lines
+
+**Motor/Navigation:**
+10. Keyboard Navigation Mode - highlights focus indicators, enables tab navigation with visible outlines
+11. Stop Animations - pauses/disables all CSS animations, transitions, and scroll-triggered effects
+12. Big Click Targets - increases padding on all interactive elements
+
+**Cognitive:**
+13. Dyslexia-Friendly Font - switches all text to OpenDyslexic or a similar dyslexia-friendly font
+14. Letter Spacing - increases letter-spacing across all text
+15. Word Spacing - increases word-spacing across all text
+16. Line Height / Reading Spacing - increases line-height for easier reading
+17. Hide Images - hides decorative images to reduce visual noise
+18. Focus Mode / Content Only - hides non-essential UI elements, leaving just main content
+19. Text Align Left - forces all text to left-align for easier reading
+
+**Audio/Screen Reader:**
+20. Screen Reader Optimized - adds extra aria labels, improves semantic structure
+21. Tooltip on Hover - shows descriptive tooltips when hovering over UI elements
+
+**Reset:**
+22. Reset All - one button to reset all accessibility settings back to defaults
+
+Implementation requirements:
+- Each mode should be a clearly labeled button/toggle with an icon
+- Group them under headings: Vision, Motor & Navigation, Cognitive, Audio & Screen Reader, Reset
+- Persist user preferences in localStorage so they survive page refreshes
+- The toolbar should not conflict with existing page styling
+- Add smooth open/close animation for the panel
+- Make the panel itself accessible (keyboard navigable, proper aria labels)
+- The floating button should have a small badge/pulse to draw attention on first visit
+- Include a "Reset All" button at the bottom of the panel
+- The toolbar should appear on ALL pages (landing, garden, gallery, about, etc.)

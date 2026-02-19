@@ -29,6 +29,7 @@ import Publications from "@/pages/Publications";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
+import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 
 function Router() {
   return (
@@ -72,6 +73,7 @@ function App() {
           <CustomCursor />
           <Toaster />
           <Router />
+          <AccessibilityToolbar />
         </SmoothScroll>
       </TooltipProvider>
     </QueryClientProvider>
