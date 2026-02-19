@@ -255,11 +255,11 @@ export default function AccessibilityToolbar() {
 
             <motion.div
               ref={panelRef}
-              initial={{ x: "100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0 }}
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-0 right-0 bottom-0 z-[10001] w-full max-w-[400px] bg-[#0c1520] border-l border-white/10 shadow-2xl shadow-black/50 flex flex-col overflow-hidden"
+              className="fixed top-0 right-0 bottom-0 z-[10001] w-full sm:max-w-[400px] bg-[#0c1520] border-l border-white/10 shadow-2xl shadow-black/50 flex flex-col overflow-hidden"
               role="dialog"
               aria-label="Accessibility Settings"
               aria-modal="true"
