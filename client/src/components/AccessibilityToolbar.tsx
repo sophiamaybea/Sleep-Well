@@ -4,7 +4,7 @@ import {
   Accessibility, X, Eye, Monitor, Contrast, Palette, Type,
   Link2, MousePointer2, AlignLeft, Keyboard, Pause, Target,
   BookOpen, Space, MoveHorizontal, LetterText, ImageOff,
-  Focus, RotateCcw, Volume2, Info, Sun, Moon, ScanLine
+  Focus, RotateCcw, Volume2, Info, Sun, Moon, ScanLine, FileText
 } from "lucide-react";
 
 const A11Y_STORAGE_KEY = "pgj-accessibility-settings";
@@ -30,6 +30,7 @@ interface A11ySettings {
   hideImages: boolean;
   focusMode: boolean;
   textAlignLeft: boolean;
+  plainMode: boolean;
   screenReaderOptimized: boolean;
   tooltipOnHover: boolean;
 }
@@ -54,6 +55,7 @@ const defaultSettings: A11ySettings = {
   hideImages: false,
   focusMode: false,
   textAlignLeft: false,
+  plainMode: false,
   screenReaderOptimized: false,
   tooltipOnHover: false,
 };
@@ -96,6 +98,7 @@ function applySettings(settings: A11ySettings) {
     hideImages: "a11y-hide-images",
     focusMode: "a11y-focus-mode",
     textAlignLeft: "a11y-text-left",
+    plainMode: "a11y-plain-mode",
     screenReaderOptimized: "a11y-screen-reader",
     tooltipOnHover: "a11y-tooltip-hover",
   };
@@ -126,6 +129,7 @@ const visionItems: ToggleItem[] = [
   { key: "highlightLinks", label: "Highlight Links", icon: <Link2 size={16} />, description: "Underline and highlight all links" },
   { key: "largeCursor", label: "Large Cursor", icon: <MousePointer2 size={16} />, description: "Make the cursor larger" },
   { key: "readingGuide", label: "Reading Guide", icon: <ScanLine size={16} />, description: "Horizontal bar follows your cursor" },
+  { key: "plainMode", label: "Plain Mode", icon: <FileText size={16} />, description: "Strip all decoration for a clean reading view" },
 ];
 
 const motorItems: ToggleItem[] = [
