@@ -1,0 +1,80 @@
+I need you to implement a large set of changes based on our new design direction. Keep the dark botanical aesthetic with glassmorphism. Here are ALL the changes:
+
+## 1. RENAME FEATURES ACROSS THE ENTIRE PLATFORM
+Update ALL references (labels, copy, routes, components, variables) for these renames:
+- "Your Desk" / "The Soil" / "Desk" → "Seeding" (tagline: "Your first words into the soil.")
+- "Reading Room" → "Sunlight" (tagline: "Where your words are seen, and where you see the words of others.")
+- "Winghouse" → "Nutrients" (tagline: "The space for nurturing your voice.")
+- "Career" → "Greenhouse" (tagline: "Growth under optimal conditions.")
+- "Notifications" / "Whispers" → "Wind Chimes" (tagline: "Something stirred in the garden.")
+- "Gallery" (the spotlight/featured section) → "In Bloom" (tagline: "Work that has flowered.")
+- "Community Challenges" → "Seasons" (tagline: "Time-bound creative prompts on a regular cycle.")
+
+The sidebar navigation groups should be restructured to:
+- "Seeding" section: your private writing space (write, my-garden)
+- "Sunlight" section: the reading room / shared space (explore, reading-queue, bookmarks)
+- "Nutrients" section: growth tools (writing-rituals, growth-journal, inner-weather, reflections, circles)
+- "Greenhouse" section: career/craft tools (courses, submissions, paid feedback)
+
+## 2. HOMEPAGE HERO
+Update the Home.tsx landing/hero to feature:
+- Main headline: "The Page Gallery Journal"
+- Hook line: "We are a journal, and we tend to a garden."
+- Two CTA buttons side by side: "The Journal" (links to /about) and "Enter the Garden" (links to /garden)
+- This gives visitors an immediate two-path distinction
+
+## 3. HOW IT WORKS PAGE (update HowItWorks.tsx)
+Structure it in three parts:
+
+Part A - Three intro paragraphs:
+- "Our Mission": Everything here is human-made. No algorithm decides what you see. Only intention and care.
+- "Who We Are": A literary journal and curatorial project. We publish thematic print editions. Alongside the Journal, we tend to a garden.
+- "What We Offer": A collaborative writing platform. Paid courses. Feedback. Traditional publishing opportunities.
+
+Part B - Garden vs Journal side-by-side comparison (two columns on desktop, stacked on mobile):
+The Garden column: Writer-to-writer non-algorithmic platform, share writing, no rejections, work may be "bloomed" with consent
+The Journal column: Thematic curations handpicked by editors, open calls, print publication, editors may scout from Garden with consent
+
+Below the comparison, add a consent disclaimer: "Nothing is ever featured or published without your explicit permission. Submitting to an open call constitutes consent. Work selected from the Garden will always be discussed with you first. We ask. Always."
+
+Part C - Feature Walkthrough with each feature getting a name, tagline, and practical how-to:
+- Seeding: private writing space, how to draft/save/share
+- Sunlight: reading room, how to browse/share/leave feedback
+- Nutrients: growth tools, exercises, journals, writing circles
+- Greenhouse: courses, detailed feedback (paid), submission tracker, portfolio
+
+## 4. IN BLOOM SECTION (new page or section replacing/updating Gallery.tsx)
+- Featured/spotlighted work that has "bloomed" - selected by editors, shared with consent
+- Display as a card grid with title, author, excerpt, and "Read" link
+- Header: "In Bloom" with subtitle "Work that has flowered — selected by the editors, shared with consent."
+- Lives inside the Garden, not on the Journal website
+
+## 5. SEASONS (update Challenges.tsx → rename to Seasons)
+- Current Season displayed prominently with: season badge, theme name, prompt text (italic), date range
+- Two CTAs: "Read responses" and "Write a response"
+- Past Seasons archive grid below with cards showing name, dates, response count
+- Example: Season "Margins" - "What lives at the edge? Write toward the borders of pages, of places, of what you're allowed to say."
+
+## 6. WIND CHIMES (notification dropdown)
+- Rename any "Whispers" or "Notifications" references to "Wind Chimes"
+- Dropdown header: "Wind Chimes" with subtitle "Something stirred in the garden."
+- Notification items styled as "chime-items" with unread state
+- Example notifications: "Your piece is in bloom.", "A new Season has begun", "Someone left feedback on [piece]"
+
+## 7. GREENHOUSE (update Nursery.tsx or create new)
+- Houses: Courses, Detailed Feedback (paid), Submission Tracker, Portfolio
+- Detailed Feedback section: submit a piece for thorough editorial notes, 7-10 day turnaround, annotated document + summary letter, paid service with price placeholder "£XX per piece"
+- Include a form: select piece from Seeding, optional notes textarea, submit button
+
+## 8. PUBLICATIONS PAGE (add if not exists)
+Add a /publications route with sections:
+- "Available Now" - current issues for sale with cover images, titles, types, buy buttons
+- "Our Friends" - publications and presses we love
+- "Archive" - past issues (out of print) displayed with "Out of print" badge
+
+## 9. ABOUT PAGE updates
+- Focus on the Journal's editorial identity, visual philosophy, book-as-art-object ethos
+- Include redirect/link to the Garden
+- Courses advertised here with click-through to Garden/Greenhouse
+
+Please implement all these changes while maintaining the existing dark botanical glassmorphism aesthetic. Update all navigation links, sidebar items, and route definitions in App.tsx accordingly.

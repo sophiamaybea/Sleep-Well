@@ -9,10 +9,10 @@ import Garden from "@/pages/Garden";
 import WriterProfile from "@/pages/WriterProfile";
 import PublicGarden from "@/pages/PublicGarden";
 import EditorStudio from "@/pages/EditorStudio";
-import Gallery from "@/pages/Gallery";
+import InBloom from "@/pages/Gallery";
 import About from "@/pages/About";
 import Courses from "@/pages/Courses";
-import Challenges from "@/pages/Challenges";
+import Seasons from "@/pages/Challenges";
 import EICDashboard from "@/pages/EICDashboard";
 import EditorOnboarding from "@/pages/EditorOnboarding";
 import SignIn from "@/pages/SignIn";
@@ -24,7 +24,8 @@ import Opportunities from "@/pages/Opportunities";
 import Commons from "@/pages/Commons";
 import HowItWorks from "@/pages/HowItWorks";
 import FieldGuide from "@/pages/FieldGuide";
-import Nursery from "@/pages/Nursery";
+import Greenhouse from "@/pages/Nursery";
+import Publications from "@/pages/Publications";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -36,11 +37,13 @@ function Router() {
       <Route path="/garden" component={Garden} />
       <Route path="/writer/:id" component={WriterProfile} />
       <Route path="/public-garden/:userId" component={PublicGarden} />
-      <Route path="/gallery" component={Gallery} />
+      <Route path="/in-bloom" component={InBloom} />
+      <Route path="/gallery" component={InBloom} />
       <Route path="/editor-studio" component={EditorStudio} />
       <Route path="/about" component={About} />
       <Route path="/courses" component={Courses} />
-      <Route path="/challenges" component={Challenges} />
+      <Route path="/seasons" component={Seasons} />
+      <Route path="/challenges" component={Seasons} />
       <Route path="/eic-dashboard" component={EICDashboard} />
       <Route path="/editor-onboarding" component={EditorOnboarding} />
       <Route path="/privacy" component={Privacy} />
@@ -51,7 +54,9 @@ function Router() {
       <Route path="/commons" component={Commons} />
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/field-guide" component={FieldGuide} />
-      <Route path="/nursery" component={Nursery} />
+      <Route path="/greenhouse" component={Greenhouse} />
+      <Route path="/nursery" component={Greenhouse} />
+      <Route path="/publications" component={Publications} />
       <Route path="/" component={Home} />
       <Route component={NotFound} />
     </Switch>

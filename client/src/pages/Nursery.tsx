@@ -3,213 +3,68 @@ import Footer from "@/components/Footer";
 import StarBackground from "@/components/StarBackground";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ChevronDown, BookOpen, Compass, Calendar, ExternalLink, Plus, Minus, Award, Building, Pen, Briefcase, FileText, Sprout } from "lucide-react";
+import { ChevronDown, GraduationCap, MessageCircle, FileCheck, FolderOpen, ArrowRight, Clock, Star, Users, BookOpen, Sprout } from "lucide-react";
 
-type TabId = "resources" | "guides" | "seasonal";
-
-interface Resource {
-  category: string;
-  categoryColor: string;
-  title: string;
-  description: string;
-  link: string;
-}
-
-interface Guide {
-  title: string;
-  description: string;
-  steps: string[];
-}
-
-interface SeasonalItem {
-  month: string;
-  items: { name: string; type: string; status: "open" | "closing" | "upcoming"; deadline?: string }[];
-}
-
-const categoryIcons: Record<string, React.ReactNode> = {
-  "Grants": <Award className="w-3.5 h-3.5" />,
-  "Residencies": <Building className="w-3.5 h-3.5" />,
-  "Contests": <Pen className="w-3.5 h-3.5" />,
-  "Freelance": <Briefcase className="w-3.5 h-3.5" />,
-  "Publishers": <FileText className="w-3.5 h-3.5" />,
-};
-
-const resources: Resource[] = [
-  { category: "Grants", categoryColor: "text-amber-400 bg-amber-400/10 border-amber-400/20", title: "NEA Creative Writing Fellowships", description: "National Endowment for the Arts offers $25,000 fellowships for published creative writers in prose and poetry.", link: "#" },
-  { category: "Grants", categoryColor: "text-amber-400 bg-amber-400/10 border-amber-400/20", title: "PEN/Robert W. Bingham Prize", description: "Annual prize for an exceptionally talented fiction writer whose debut work represents distinguished literary achievement.", link: "#" },
-  { category: "Residencies", categoryColor: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", title: "MacDowell Fellowship", description: "Residencies of up to eight weeks for artists working in seven disciplines. Room, board, and studio provided.", link: "#" },
-  { category: "Residencies", categoryColor: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", title: "Yaddo Residency", description: "Invitations for artists working at a professional level in their field. Free room, board, and studio space.", link: "#" },
-  { category: "Contests", categoryColor: "text-violet-400 bg-violet-400/10 border-violet-400/20", title: "Pushcart Prize Nominations", description: "Annual literary anthology honoring the best poetry, short fiction, and essays published by small presses.", link: "#" },
-  { category: "Contests", categoryColor: "text-violet-400 bg-violet-400/10 border-violet-400/20", title: "Best of the Net Anthology", description: "Annual anthology featuring the best online literary work. Nominated by editors of participating journals.", link: "#" },
-  { category: "Freelance", categoryColor: "text-rose-400 bg-rose-400/10 border-rose-400/20", title: "Literary Hub Contributor Network", description: "Opportunities for literary criticism, essays, and cultural commentary. Pays competitive rates for quality work.", link: "#" },
-  { category: "Freelance", categoryColor: "text-rose-400 bg-rose-400/10 border-rose-400/20", title: "Poets & Writers Classifieds", description: "Curated listings of freelance writing opportunities, workshops, and publication calls updated regularly.", link: "#" },
-  { category: "Publishers", categoryColor: "text-teal-400 bg-teal-400/10 border-teal-400/20", title: "Graywolf Press Open Reading", description: "Independent nonprofit publisher. Accepts unsolicited manuscripts during specific reading periods.", link: "#" },
-  { category: "Publishers", categoryColor: "text-teal-400 bg-teal-400/10 border-teal-400/20", title: "Copper Canyon Press", description: "Nonprofit publisher dedicated to poetry. Open submission periods announced on their website.", link: "#" },
-];
-
-const guides: Guide[] = [
-  {
-    title: "Writing a Compelling Author Bio",
-    description: "Your bio is often the first impression editors and readers get. Learn to write one that's professional, authentic, and memorable.",
-    steps: [
-      "Start with your name and what you do — keep it simple and direct",
-      "Mention 2-3 notable publications or achievements (if applicable)",
-      "Include one personal detail that makes you human, not a resume",
-      "Write in third person for formal contexts, first person for casual",
-      "Keep it under 100 words — brevity signals confidence",
-      "Update it quarterly as your career evolves"
-    ]
-  },
-  {
-    title: "Pitching to Literary Journals",
-    description: "While The Page Gallery uses discovery, many journals still require pitches. Here's how to make yours stand out.",
-    steps: [
-      "Read at least 3 recent issues of the journal before pitching",
-      "Address the specific editor by name when possible",
-      "Lead with the work — describe what you're sending in one sentence",
-      "Keep the cover letter under 200 words",
-      "Follow submission guidelines exactly — no exceptions",
-      "Send simultaneous submissions unless explicitly prohibited"
-    ]
-  },
-  {
-    title: "Building a Writer's Portfolio",
-    description: "A strong portfolio opens doors to opportunities, residencies, and publication. Build one strategically.",
-    steps: [
-      "Choose 5-8 of your strongest pieces across different forms",
-      "Include a mix of published and unpublished work",
-      "Create a simple, clean website (your Garden can serve this purpose)",
-      "Organize by genre or theme, not chronologically",
-      "Include a brief introduction for each piece explaining context",
-      "Update every 3-6 months with your latest and best work"
-    ]
-  },
-  {
-    title: "Understanding Publishing Contracts",
-    description: "Before signing anything, understand what you're agreeing to. A quick guide to common contract terms.",
-    steps: [
-      "First serial rights — the journal publishes it first; rights revert after",
-      "Exclusive vs. non-exclusive — know the difference and negotiate",
-      "Always retain copyright — never sign it away for journal publication",
-      "Check the reversion clause — when do rights return to you?",
-      "Understand digital vs. print rights — they're separate",
-      "When in doubt, ask a literary lawyer or consult the Authors Guild"
-    ]
-  },
-  {
-    title: "Applying for Writing Residencies",
-    description: "Residencies offer time, space, and community. Here's how to put together a strong application.",
-    steps: [
-      "Start applications 6-12 months before deadlines",
-      "Craft a project statement that's specific but not rigid",
-      "Include your best work samples — quality over quantity",
-      "Get letters of recommendation from people who know your work",
-      "Apply to 5-10 residencies per cycle to improve odds",
-      "Don't be discouraged by rejection — persistence matters"
-    ]
-  }
-];
-
-const seasonalRounds: SeasonalItem[] = [
-  {
-    month: "January",
-    items: [
-      { name: "NEA Creative Writing Fellowships", type: "Grant", status: "open", deadline: "March 8" },
-      { name: "AWP Conference Registration", type: "Event", status: "open", deadline: "February 15" },
-    ]
-  },
-  {
-    month: "February",
-    items: [
-      { name: "Pushcart Prize Nominations", type: "Contest", status: "closing", deadline: "February 28" },
-      { name: "MacDowell Fellowship — Spring Cycle", type: "Residency", status: "open", deadline: "April 15" },
-    ]
-  },
-  {
-    month: "March",
-    items: [
-      { name: "Best of the Net Nominations", type: "Contest", status: "upcoming" },
-      { name: "Graywolf Press Open Reading", type: "Publisher", status: "open", deadline: "March 31" },
-    ]
-  },
-  {
-    month: "April",
-    items: [
-      { name: "National Poetry Month Challenges", type: "Community", status: "open", deadline: "April 30" },
-      { name: "Yaddo Residency — Fall Applications", type: "Residency", status: "open", deadline: "May 1" },
-    ]
-  },
-  {
-    month: "May",
-    items: [
-      { name: "PEN Literary Awards Cycle", type: "Contest", status: "upcoming" },
-      { name: "Summer Writing Workshop Season", type: "Event", status: "open", deadline: "June 1" },
-    ]
-  },
-  {
-    month: "June",
-    items: [
-      { name: "Copper Canyon Press Reading Period", type: "Publisher", status: "open", deadline: "August 31" },
-      { name: "Bread Loaf Writers Conference", type: "Event", status: "closing", deadline: "June 15" },
-    ]
-  },
-];
+type TabId = "courses" | "feedback" | "submissions" | "portfolio";
 
 const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
-  { id: "resources", label: "Resources", icon: <BookOpen className="w-4 h-4" /> },
-  { id: "guides", label: "Propagation Guides", icon: <Compass className="w-4 h-4" /> },
-  { id: "seasonal", label: "Seasonal Rounds", icon: <Calendar className="w-4 h-4" /> },
+  { id: "courses", label: "Courses", icon: <GraduationCap size={16} /> },
+  { id: "feedback", label: "Editorial Feedback", icon: <MessageCircle size={16} /> },
+  { id: "submissions", label: "Submissions", icon: <FileCheck size={16} /> },
+  { id: "portfolio", label: "Portfolio", icon: <FolderOpen size={16} /> },
 ];
 
-function GuideCard({ guide, index }: { guide: Guide; index: number }) {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      viewport={{ once: true }}
-      className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl overflow-hidden"
-      data-testid={`guide-card-${index}`}
-    >
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-6 md:p-8 flex items-start justify-between text-left group"
-        data-testid={`guide-toggle-${index}`}
-      >
-        <div className="space-y-2 pr-4">
-          <h3 className="font-display text-xl italic text-white/80 group-hover:text-white transition-colors">{guide.title}</h3>
-          <p className="font-serif text-white/40 text-sm leading-relaxed">{guide.description}</p>
-        </div>
-        <span className="shrink-0 text-white/30 mt-1">
-          {isOpen ? <Minus className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-        </span>
-      </button>
-      <motion.div
-        initial={false}
-        animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="overflow-hidden"
-      >
-        <div className="px-6 md:px-8 pb-8 space-y-3">
-          {guide.steps.map((step, si) => (
-            <div key={si} className="flex gap-3 items-start" data-testid={`guide-${index}-step-${si}`}>
-              <span className="font-mono text-[10px] text-amber-400/50 mt-1 shrink-0">{String(si + 1).padStart(2, '0')}</span>
-              <span className="font-serif text-white/50 text-sm leading-relaxed">{step}</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    </motion.div>
-  );
+interface Course {
+  title: string;
+  instructor: string;
+  description: string;
+  duration: string;
+  level: string;
+  spots: number;
+  status: "enrolling" | "in_progress" | "upcoming";
 }
 
-export default function Nursery() {
-  const [activeTab, setActiveTab] = useState<TabId>("resources");
-  const [categoryFilter, setCategoryFilter] = useState<string>("All");
+const courses: Course[] = [
+  {
+    title: "The First Draft",
+    instructor: "Elena Marsh",
+    description: "A 6-week course on getting words on the page without judgment. Freewriting techniques, daily practice structures, and the art of silencing the inner critic.",
+    duration: "6 weeks",
+    level: "Beginner",
+    spots: 12,
+    status: "enrolling",
+  },
+  {
+    title: "Revision as Discovery",
+    instructor: "James Okafor",
+    description: "Learn to see revision not as correction but as creative excavation. Close reading, structural analysis, and the craft of cutting.",
+    duration: "8 weeks",
+    level: "Intermediate",
+    spots: 8,
+    status: "enrolling",
+  },
+  {
+    title: "The Prose Poem",
+    instructor: "Sofia Valdez",
+    description: "Exploring the territory between poetry and prose. Form, rhythm, compression, and the lyric essay. Readings and weekly writing assignments.",
+    duration: "4 weeks",
+    level: "All levels",
+    spots: 15,
+    status: "upcoming",
+  },
+  {
+    title: "Writing the Body",
+    instructor: "Aisha Lowe",
+    description: "Embodied writing practice. Somatic techniques for accessing deeper material. Includes guided movement exercises and weekly critique.",
+    duration: "6 weeks",
+    level: "Intermediate",
+    spots: 10,
+    status: "upcoming",
+  },
+];
 
-  const categories = ["All", ...Array.from(new Set(resources.map(r => r.category)))];
-  const filteredResources = categoryFilter === "All" ? resources : resources.filter(r => r.category === categoryFilter);
+export default function Greenhouse() {
+  const [activeTab, setActiveTab] = useState<TabId>("courses");
 
   return (
     <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-background relative">
@@ -225,25 +80,24 @@ export default function Nursery() {
               transition={{ delay: 0.3, duration: 1 }}
               className="font-mono text-[10px] tracking-[0.4em] block uppercase"
             >
-              Career Resources
+              Growth Under Optimal Conditions
             </motion.span>
-            <motion.div
+            <motion.h1
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.5, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-tight italic"
+              data-testid="greenhouse-title"
             >
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-tight italic" data-testid="nursery-title">
-                The Nursery
-              </h1>
-              <p className="font-display text-xl md:text-2xl italic text-amber-400/60 mt-2">Where Careers Take Root</p>
-            </motion.div>
+              The Greenhouse
+            </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               transition={{ delay: 0.9, duration: 1 }}
               className="font-serif italic text-lg text-white/50 max-w-lg mx-auto leading-relaxed"
             >
-              Grants, residencies, guides, and seasonal opportunities — everything a growing writer needs.
+              Courses, editorial feedback, submission tracking, and your writer's portfolio.
             </motion.p>
           </div>
 
@@ -264,155 +118,30 @@ export default function Nursery() {
           </motion.div>
         </section>
 
-        <section className="py-16 px-6 md:px-12">
+        <section className="py-16 px-6 md:px-12 border-t border-white/[0.04]">
           <div className="max-w-5xl mx-auto">
-            <div className="flex flex-wrap gap-2 mb-12 justify-center">
-              {tabs.map(tab => (
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-16">
+              {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-full font-mono text-xs uppercase tracking-widest transition-all duration-300 border ${
+                  className={`flex items-center gap-2 px-6 py-3 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all duration-300 ${
                     activeTab === tab.id
-                      ? "bg-white/[0.08] border-white/[0.15] text-white"
-                      : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:text-white/60 hover:bg-white/[0.04]"
+                      ? "bg-white/[0.08] border border-white/[0.12] text-white/90"
+                      : "border border-white/[0.06] text-white/35 hover:text-white/60 hover:bg-white/[0.03]"
                   }`}
                   data-testid={`tab-${tab.id}`}
                 >
                   {tab.icon}
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  {tab.label}
                 </button>
               ))}
             </div>
 
-            {activeTab === "resources" && (
-              <motion.div
-                key="resources"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="flex flex-wrap gap-2 mb-8 justify-center">
-                  {categories.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setCategoryFilter(cat)}
-                      className={`px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all duration-300 border ${
-                        categoryFilter === cat
-                          ? "bg-white/[0.06] border-white/[0.12] text-white/80"
-                          : "bg-transparent border-white/[0.04] text-white/30 hover:text-white/50"
-                      }`}
-                      data-testid={`filter-${cat.toLowerCase()}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  {filteredResources.map((resource, i) => (
-                    <motion.div
-                      key={`${resource.title}-${i}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: i * 0.05 }}
-                      className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-6 space-y-3 group hover:bg-white/[0.04] transition-colors"
-                      data-testid={`resource-card-${i}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider border ${resource.categoryColor}`}>
-                          {categoryIcons[resource.category]}
-                          {resource.category}
-                        </span>
-                        <a href={resource.link} className="text-white/20 hover:text-white/50 transition-colors" data-testid={`resource-link-${i}`}>
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </div>
-                      <h3 className="font-display text-lg italic text-white/80 group-hover:text-white transition-colors">{resource.title}</h3>
-                      <p className="font-serif text-white/40 text-sm leading-relaxed">{resource.description}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === "guides" && (
-              <motion.div
-                key="guides"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="space-y-4"
-              >
-                {guides.map((guide, i) => (
-                  <GuideCard key={guide.title} guide={guide} index={i} />
-                ))}
-              </motion.div>
-            )}
-
-            {activeTab === "seasonal" && (
-              <motion.div
-                key="seasonal"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="space-y-8"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <Sprout className="w-5 h-5 text-emerald-400/60" />
-                  <p className="font-serif text-white/40 text-sm italic">An almanac of what's open, closing, and coming soon in the literary world.</p>
-                </div>
-
-                {seasonalRounds.map((month, mi) => (
-                  <motion.div
-                    key={month.month}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: mi * 0.05 }}
-                    viewport={{ once: true }}
-                    data-testid={`month-${month.month.toLowerCase()}`}
-                  >
-                    <div className="flex items-center gap-4 mb-4">
-                      <span className="font-display text-2xl italic text-white/60">{month.month}</span>
-                      <div className="flex-1 h-[1px] bg-white/[0.06]" />
-                    </div>
-
-                    <div className="space-y-2 pl-4 md:pl-8">
-                      {month.items.map((item, ii) => (
-                        <div
-                          key={`${item.name}-${ii}`}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-3 px-4 bg-white/[0.02] border border-white/[0.04] rounded-xl"
-                          data-testid={`seasonal-item-${mi}-${ii}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${
-                              item.status === "open" ? "bg-emerald-400" :
-                              item.status === "closing" ? "bg-amber-400" :
-                              "bg-white/20"
-                            }`} />
-                            <div>
-                              <span className="font-serif text-white/70 text-sm">{item.name}</span>
-                              <span className="font-mono text-[9px] text-white/30 uppercase tracking-wider ml-2">{item.type}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 pl-5 sm:pl-0">
-                            <span className={`font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                              item.status === "open" ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/10" :
-                              item.status === "closing" ? "text-amber-400 border-amber-400/20 bg-amber-400/10" :
-                              "text-white/30 border-white/10 bg-white/5"
-                            }`}>
-                              {item.status}
-                            </span>
-                            {item.deadline && (
-                              <span className="font-mono text-[10px] text-white/30">Due {item.deadline}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+            {activeTab === "courses" && <CoursesTab />}
+            {activeTab === "feedback" && <FeedbackTab />}
+            {activeTab === "submissions" && <SubmissionsTab />}
+            {activeTab === "portfolio" && <PortfolioTab />}
           </div>
         </section>
       </main>
@@ -421,5 +150,266 @@ export default function Nursery() {
         <Footer />
       </div>
     </div>
+  );
+}
+
+function CoursesTab() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-12"
+    >
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl md:text-4xl font-display font-light italic">Courses</h2>
+        <p className="font-serif text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
+          Small-group writing courses led by published writers. Each course includes weekly assignments, peer feedback, and one-on-one mentorship.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {courses.map((course, i) => (
+          <motion.div
+            key={course.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1, duration: 0.5 }}
+            className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-7 space-y-4 group hover:bg-white/[0.04] transition-all"
+            data-testid={`course-card-${i}`}
+          >
+            <div className="flex items-center justify-between">
+              <span className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                course.status === "enrolling"
+                  ? "text-emerald-400/70 border-emerald-400/20 bg-emerald-400/10"
+                  : course.status === "in_progress"
+                  ? "text-amber-400/70 border-amber-400/20 bg-amber-400/10"
+                  : "text-white/30 border-white/10 bg-white/5"
+              }`}>
+                {course.status === "enrolling" ? "Enrolling Now" : course.status === "in_progress" ? "In Progress" : "Coming Soon"}
+              </span>
+              <span className="font-mono text-[9px] text-white/20">{course.level}</span>
+            </div>
+            <h3 className="font-display text-xl italic text-white/85 group-hover:text-white transition-colors">{course.title}</h3>
+            <p className="font-serif text-sm italic text-white/40">with {course.instructor}</p>
+            <p className="font-serif text-sm text-white/35 leading-relaxed">{course.description}</p>
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1.5 font-mono text-[9px] text-white/25">
+                  <Clock size={12} /> {course.duration}
+                </span>
+                <span className="flex items-center gap-1.5 font-mono text-[9px] text-white/25">
+                  <Users size={12} /> {course.spots} spots
+                </span>
+              </div>
+              {course.status === "enrolling" && (
+                <button className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-amber-300/70 hover:text-amber-200 transition-colors" data-testid={`button-enrol-${i}`}>
+                  Enrol <ArrowRight size={12} />
+                </button>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+function FeedbackTab() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-12"
+    >
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl md:text-4xl font-display font-light italic">Editorial Feedback</h2>
+        <p className="font-serif text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
+          Submit a piece for detailed, professional editorial feedback. Our editors provide line-level notes, structural suggestions, and a written editorial letter.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {[
+          {
+            title: "Quick Read",
+            price: "£15",
+            description: "A 500-word editorial overview of your piece — strengths, opportunities, and a suggested direction.",
+            turnaround: "3-5 days",
+            wordLimit: "Up to 3,000 words",
+          },
+          {
+            title: "Full Critique",
+            price: "£45",
+            description: "Line-level annotations, structural analysis, and a 1,000-word editorial letter. The most popular option.",
+            turnaround: "7-10 days",
+            wordLimit: "Up to 8,000 words",
+            featured: true,
+          },
+          {
+            title: "Manuscript Review",
+            price: "£120",
+            description: "For longer works — novellas, essay collections, chapbook manuscripts. Includes a 30-minute video call with your editor.",
+            turnaround: "2-3 weeks",
+            wordLimit: "Up to 30,000 words",
+          },
+        ].map((tier, i) => (
+          <motion.div
+            key={tier.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1, duration: 0.5 }}
+            className={`bg-white/[0.02] border backdrop-blur-sm rounded-2xl p-7 space-y-5 ${
+              tier.featured ? "border-amber-400/20 ring-1 ring-amber-400/10" : "border-white/[0.06]"
+            }`}
+            data-testid={`feedback-tier-${i}`}
+          >
+            {tier.featured && (
+              <span className="inline-block font-mono text-[8px] uppercase tracking-widest text-amber-400/70 px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/10">
+                Most Popular
+              </span>
+            )}
+            <h3 className="font-display text-2xl italic text-white/85">{tier.title}</h3>
+            <p className="font-display text-3xl text-white/90">{tier.price}</p>
+            <p className="font-serif text-sm text-white/35 leading-relaxed">{tier.description}</p>
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center gap-2 font-mono text-[9px] text-white/25">
+                <Clock size={12} /> {tier.turnaround}
+              </div>
+              <div className="flex items-center gap-2 font-mono text-[9px] text-white/25">
+                <BookOpen size={12} /> {tier.wordLimit}
+              </div>
+            </div>
+            <button
+              className={`w-full py-3 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all ${
+                tier.featured
+                  ? "bg-amber-500/15 border border-amber-500/25 text-amber-200/80 hover:bg-amber-500/25"
+                  : "bg-white/[0.04] border border-white/[0.08] text-white/50 hover:bg-white/[0.08]"
+              }`}
+              data-testid={`button-submit-feedback-${i}`}
+            >
+              Submit for Review
+            </button>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-xl p-6 text-center">
+        <p className="font-serif text-sm text-white/40 italic leading-relaxed max-w-2xl mx-auto">
+          All editorial feedback is provided by our team of published writers and editors. Feedback is private — only you see it. We never share your work without consent.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function SubmissionsTab() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-12"
+    >
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl md:text-4xl font-display font-light italic">Submission Tracker</h2>
+        <p className="font-serif text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
+          Track your submissions to external journals, contests, and publications. Keep everything organised in one place.
+        </p>
+      </div>
+
+      <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 space-y-8" data-testid="submissions-tracker">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg italic text-white/70">Your Submissions</h3>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] font-mono text-[10px] uppercase tracking-widest text-white/50 hover:bg-white/[0.06] transition-all" data-testid="button-add-submission">
+            + Add Submission
+          </button>
+        </div>
+
+        <div className="text-center py-16 space-y-4">
+          <FileCheck size={32} className="mx-auto text-white/15" />
+          <p className="font-serif text-white/30 italic">No submissions tracked yet.</p>
+          <p className="font-serif text-white/20 text-sm">
+            Add your first submission to start tracking responses and building your publication history.
+          </p>
+        </div>
+
+        <div className="border-t border-white/[0.06] pt-6 space-y-3">
+          <h4 className="font-mono text-[10px] uppercase tracking-widest text-white/30">How It Works</h4>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[
+              "Log each submission with journal name, piece title, and date",
+              "Track status: Submitted → Under Review → Accepted / Rejected",
+              "Set reminders for follow-ups and response windows",
+              "View your acceptance rate and submission history over time",
+            ].map((step, i) => (
+              <div key={i} className="flex gap-3 items-start">
+                <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-emerald-400/40" />
+                <span className="font-serif text-white/35 text-sm leading-relaxed">{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function PortfolioTab() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-12"
+    >
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl md:text-4xl font-display font-light italic">Your Portfolio</h2>
+        <p className="font-serif text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">
+          Build a curated portfolio of your best work. Share it with editors, agents, or anyone who asks "so, what do you write?"
+        </p>
+      </div>
+
+      <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 space-y-8" data-testid="portfolio-builder">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg italic text-white/70">Portfolio Pieces</h3>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] font-mono text-[10px] uppercase tracking-widest text-white/50 hover:bg-white/[0.06] transition-all" data-testid="button-add-portfolio-piece">
+            + Add Piece
+          </button>
+        </div>
+
+        <div className="text-center py-16 space-y-4">
+          <FolderOpen size={32} className="mx-auto text-white/15" />
+          <p className="font-serif text-white/30 italic">Your portfolio is empty.</p>
+          <p className="font-serif text-white/20 text-sm">
+            Select pieces from your Garden to build a curated collection of your strongest work.
+          </p>
+        </div>
+
+        <div className="border-t border-white/[0.06] pt-6 space-y-4">
+          <h4 className="font-mono text-[10px] uppercase tracking-widest text-white/30">Portfolio Features</h4>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[
+              "Curate your best 5-8 pieces across genres",
+              "Customise ordering and add context notes",
+              "Generate a shareable portfolio link",
+              "Export as PDF for grant and residency applications",
+            ].map((feature, i) => (
+              <div key={i} className="flex gap-3 items-start">
+                <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-amber-400/40" />
+                <span className="font-serif text-white/35 text-sm leading-relaxed">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-xl p-6 text-center">
+        <p className="font-serif text-sm text-white/40 italic leading-relaxed max-w-2xl mx-auto">
+          Your portfolio draws from your Garden. Pieces you add here remain private unless you choose to share the portfolio link.
+        </p>
+      </div>
+    </motion.div>
   );
 }

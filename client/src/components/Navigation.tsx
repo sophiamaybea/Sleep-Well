@@ -34,13 +34,11 @@ export default function Navigation() {
 
   const menuItems: { label: string; href: string; isPage?: boolean }[] = [
     { label: "Home", href: "/", isPage: true },
-    { label: "Gallery", href: "/gallery", isPage: true },
-    { label: "Opportunities", href: "/opportunities", isPage: true },
-    { label: "Commons", href: "/commons", isPage: true },
-    { label: "Nursery", href: "/nursery", isPage: true },
+    { label: "In Bloom", href: "/in-bloom", isPage: true },
+    { label: "Publications", href: "/publications", isPage: true },
+    { label: "Seasons", href: "/seasons", isPage: true },
     { label: "About", href: "/about", isPage: true },
     { label: "How It Works", href: "/how-it-works", isPage: true },
-    { label: "Field Guide", href: "/field-guide", isPage: true },
   ];
 
   return (
@@ -120,7 +118,6 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 

@@ -80,10 +80,10 @@ function ChallengeList({ onSelect }: { onSelect: (id: string) => void }) {
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2">
           <Trophy size={18} className="text-amber-400/60" />
-          <h1 className="font-display text-2xl text-white/90">Community Challenges</h1>
+          <h1 className="font-display text-2xl text-white/90">Seasons</h1>
         </div>
-        <p className="text-white/45 font-body text-sm max-w-lg mx-auto">
-          Themed writing competitions — submit your work, read others', and vote for your favourites.
+        <p className="text-white/45 font-body text-sm max-w-lg mx-auto italic">
+          Time-bound creative prompts on a regular cycle.
         </p>
       </div>
 
@@ -180,7 +180,7 @@ function ChallengeList({ onSelect }: { onSelect: (id: string) => void }) {
         <div className="text-center py-16 text-white/30">
           <Trophy size={32} className="mx-auto mb-3 opacity-30" />
           <p className="font-body text-sm">
-            {filter === "all" ? "No challenges yet. Check back soon." : `No ${filter} challenges right now.`}
+            {filter === "all" ? "No seasons yet. Check back soon." : `No ${filter} seasons right now.`}
           </p>
         </div>
       )}
@@ -252,7 +252,7 @@ function ChallengeDetailView({ challengeId, onBack }: { challengeId: string; onB
     return (
       <div className="space-y-6">
         <button onClick={onBack} className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm font-mono">
-          <ArrowLeft size={14} /> Back to challenges
+          <ArrowLeft size={14} /> Back to seasons
         </button>
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-2/3 bg-white/10 rounded" />
@@ -274,7 +274,7 @@ function ChallengeDetailView({ challengeId, onBack }: { challengeId: string; onB
         className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm font-mono transition-colors"
         data-testid="button-back-challenges"
       >
-        <ArrowLeft size={14} /> Back to challenges
+        <ArrowLeft size={14} /> Back to seasons
       </button>
 
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 sm:p-8">
@@ -556,7 +556,7 @@ export default function Challenges() {
             </button>
             <div className="flex items-center gap-2">
               <Trophy size={16} className="text-amber-400/60" />
-              <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">Challenges</span>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">Seasons</span>
             </div>
           </div>
 

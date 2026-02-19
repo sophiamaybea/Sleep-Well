@@ -2,95 +2,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import StarBackground from "@/components/StarBackground";
 import { motion } from "framer-motion";
-import { Sprout, Sun, Leaf, Eye, Frame, Share2, ChevronDown } from "lucide-react";
-
-const steps = [
-  {
-    number: "01",
-    title: "Create Your Garden",
-    subtitle: "Plant your first seed",
-    icon: <Sprout className="w-8 h-8" />,
-    color: "text-emerald-400",
-    borderColor: "border-emerald-400/20",
-    bgGlow: "rgba(52,211,153,0.05)",
-    description: "Sign up and step into your Garden — a private creative space that belongs entirely to you. Here, you plant Seeds: poems, stories, essays, fragments, experiments. There are no rules about form or genre. Your Garden is your sanctuary.",
-    details: [
-      "Choose your pen name and set up your writer profile",
-      "Your Garden is private by default — only you can see it",
-      "Plant your first Seed: paste, type, or start from a prompt",
-      "Tag your work with growth stages as it develops"
-    ]
-  },
-  {
-    number: "02",
-    title: "Nurture Your Work",
-    subtitle: "Seed → Sprout → Bloom",
-    icon: <Sun className="w-8 h-8" />,
-    color: "text-amber-400",
-    borderColor: "border-amber-400/20",
-    bgGlow: "rgba(245,158,11,0.05)",
-    description: "Every piece of writing has a lifecycle. Use growth stages to track where your work is in its journey. There's no pressure to rush — some seeds take seasons to bloom.",
-    details: [
-      "Seed — a raw idea, a fragment, a first draft. Still underground.",
-      "Sprout — taking shape. You're revising, expanding, finding the voice.",
-      "Bloom — ready to be seen. Polished, intentional, complete.",
-      "Move pieces between stages at your own pace"
-    ],
-    stages: [
-      { label: "Seed", icon: <Sprout className="w-5 h-5" />, desc: "Raw idea" },
-      { label: "Sprout", icon: <Leaf className="w-5 h-5" />, desc: "Taking shape" },
-      { label: "Bloom", icon: <Sun className="w-5 h-5" />, desc: "Ready to share" }
-    ]
-  },
-  {
-    number: "03",
-    title: "Editors Discover",
-    subtitle: "Editors wander gardens organically",
-    icon: <Eye className="w-8 h-8" />,
-    color: "text-violet-400",
-    borderColor: "border-violet-400/20",
-    bgGlow: "rgba(167,139,250,0.05)",
-    description: "This is where The Page Gallery Journal breaks from tradition. You never submit your work. Instead, our editorial team wanders through Gardens — reading, discovering, and nominating pieces that resonate.",
-    details: [
-      "No submission forms, no cover letters, no query process",
-      "Editors browse Gardens organically, following their instincts",
-      "When an editor finds work they love, they nominate it",
-      "You're notified if your work catches editorial attention"
-    ]
-  },
-  {
-    number: "04",
-    title: "Selected for Gallery",
-    subtitle: "Work published in the Gallery",
-    icon: <Frame className="w-8 h-8" />,
-    color: "text-amber-300",
-    borderColor: "border-amber-300/20",
-    bgGlow: "rgba(252,211,77,0.05)",
-    description: "The Gallery is our curated, public-facing journal. When your work is selected, it's presented with care — beautifully typeset, properly credited, and given the space it deserves. This is publication as recognition, not transaction.",
-    details: [
-      "Selected work is professionally presented in the Gallery",
-      "Your writer profile is linked — readers can explore your Garden",
-      "Gallery pieces are shared across our community and beyond",
-      "Publication carries no rights transfer — your work remains yours"
-    ]
-  },
-  {
-    number: "05",
-    title: "Beyond the Gallery",
-    subtitle: "Sharing, community, growth",
-    icon: <Share2 className="w-8 h-8" />,
-    color: "text-emerald-300",
-    borderColor: "border-emerald-300/20",
-    bgGlow: "rgba(110,231,183,0.05)",
-    description: "Publication is a beginning, not an end. Beyond the Gallery, you'll find a community of writers, opportunities for growth, and resources to build a sustainable creative practice.",
-    details: [
-      "Connect with other writers in the Commons",
-      "Access career resources in the Nursery",
-      "Participate in community challenges and workshops",
-      "Build your public portfolio from your Garden"
-    ]
-  }
-];
+import { Sprout, Sun, Leaf, BookOpen, ChevronDown, GraduationCap, MessageCircle, FileCheck, Users } from "lucide-react";
 
 export default function HowItWorks() {
   return (
@@ -107,7 +19,7 @@ export default function HowItWorks() {
               transition={{ delay: 0.3, duration: 1 }}
               className="font-mono text-[10px] tracking-[0.4em] block uppercase"
             >
-              From Seed to Gallery
+              Understanding the Platform
             </motion.span>
             <motion.h1
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
@@ -124,7 +36,7 @@ export default function HowItWorks() {
               transition={{ delay: 0.9, duration: 1 }}
               className="font-serif italic text-lg text-white/50 max-w-lg mx-auto leading-relaxed"
             >
-              Five steps from planting a seed to seeing your work in the Gallery. No submissions. No gatekeeping. Just writing.
+              A journal and a garden. Two doors, one home.
             </motion.p>
           </div>
 
@@ -145,95 +57,227 @@ export default function HowItWorks() {
           </motion.div>
         </section>
 
-        {steps.map((step, index) => (
-          <section
-            key={step.number}
-            className="py-24 md:py-32 px-6 md:px-12 border-t border-white/[0.04]"
-            data-testid={`step-section-${step.number}`}
-          >
-            <div className="max-w-5xl mx-auto">
-              <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-start">
-                <motion.div
-                  initial={{ opacity: 0, x: -40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  viewport={{ once: true }}
-                  className="space-y-6"
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="font-mono text-5xl md:text-7xl font-light text-white/[0.06]">{step.number}</span>
-                    <div className={`w-14 h-14 rounded-full bg-white/[0.04] border ${step.borderColor} flex items-center justify-center ${step.color}`}>
-                      {step.icon}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <span className={`font-mono text-[10px] tracking-[0.4em] uppercase ${step.color} opacity-60`}>{step.subtitle}</span>
-                    <h2 className="text-3xl md:text-4xl font-display font-light italic">{step.title}</h2>
-                  </div>
-                  <p className="font-serif text-white/50 leading-relaxed text-lg">{step.description}</p>
-                </motion.div>
+        {/* Part A: Three Intro Paragraphs */}
+        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-intro">
+          <div className="max-w-4xl mx-auto space-y-16">
+            {[
+              {
+                label: "Our Mission",
+                text: "Everything here is human-made. No algorithm decides what you see. Only intention and care. We believe that writing deserves to be read by people who choose to read it \u2014 not served by a machine that guesses what you want.",
+              },
+              {
+                label: "Who We Are",
+                text: "A literary journal and curatorial project. We publish thematic print editions, each one assembled by hand. Alongside the Journal, we tend to a garden \u2014 a collaborative writing platform where writers plant, nurture, and share their work.",
+              },
+              {
+                label: "What We Offer",
+                text: "A collaborative writing platform. Paid courses. Detailed editorial feedback. Traditional publishing opportunities. And above all, a community that values the process of writing as much as the finished piece.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="space-y-4"
+                data-testid={`intro-block-${i}`}
+              >
+                <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">{item.label}</span>
+                <p className="font-serif text-white/55 text-xl md:text-2xl leading-relaxed">{item.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
-                <motion.div
-                  initial={{ opacity: 0, x: 40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                  viewport={{ once: true }}
-                  className="space-y-4"
-                >
-                  <div
-                    className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 space-y-4"
-                    style={{ boxShadow: `0 0 80px ${step.bgGlow}` }}
-                  >
-                    {step.details.map((detail, di) => (
-                      <motion.div
-                        key={di}
-                        initial={{ opacity: 0, y: 10 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.3 + di * 0.1 }}
-                        viewport={{ once: true }}
-                        className="flex gap-3 items-start"
-                        data-testid={`step-${step.number}-detail-${di}`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${step.color} opacity-50`} />
-                        <span className="font-serif text-white/40 text-sm leading-relaxed">{detail}</span>
-                      </motion.div>
-                    ))}
-                  </div>
+        {/* Part B: Garden vs Journal Comparison */}
+        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-comparison">
+          <div className="max-w-5xl mx-auto space-y-16">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true }}
+              className="text-center space-y-4"
+            >
+              <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">Two Paths, One Home</span>
+              <h2 className="text-3xl md:text-5xl font-display font-light italic">The Garden & The Journal</h2>
+            </motion.div>
 
-                  {step.stages && (
-                    <div className="grid grid-cols-3 gap-3 mt-6">
-                      {step.stages.map((stage, si) => (
-                        <motion.div
-                          key={stage.label}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.5, delay: 0.5 + si * 0.15 }}
-                          viewport={{ once: true }}
-                          className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-xl p-4 text-center space-y-2"
-                          data-testid={`stage-${stage.label.toLowerCase()}`}
-                        >
-                          <div className="text-amber-400/60 flex justify-center">{stage.icon}</div>
-                          <p className="font-display text-sm italic text-white/70">{stage.label}</p>
-                          <p className="font-mono text-[9px] text-white/30 uppercase tracking-wider">{stage.desc}</p>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              </div>
+            <div className="grid md:grid-cols-2 gap-8">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-emerald-400/10 backdrop-blur-sm rounded-2xl p-8 md:p-10 space-y-6"
+                data-testid="comparison-garden"
+              >
+                <div className="flex items-center gap-3">
+                  <Sprout className="w-6 h-6 text-emerald-400/70" />
+                  <h3 className="font-display text-2xl italic text-white/85">The Garden</h3>
+                </div>
+                <ul className="space-y-4">
+                  {[
+                    "Writer-to-writer, non-algorithmic platform",
+                    "Share writing at your own pace",
+                    "No rejections \u2014 your garden is always yours",
+                    "Work may be \u201cbloomed\u201d with your explicit consent",
+                    "Community features: circles, rituals, feedback",
+                  ].map((point, i) => (
+                    <li key={i} className="flex gap-3 items-start">
+                      <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-emerald-400/50" />
+                      <span className="font-serif text-white/45 text-sm leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
 
-              {index < steps.length - 1 && (
-                <motion.div
-                  initial={{ scaleY: 0 }}
-                  whileInView={{ scaleY: 1 }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                  viewport={{ once: true }}
-                  className="w-[1px] h-16 bg-gradient-to-b from-white/10 to-transparent mx-auto mt-16 origin-top"
-                />
-              )}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-amber-400/10 backdrop-blur-sm rounded-2xl p-8 md:p-10 space-y-6"
+                data-testid="comparison-journal"
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-6 h-6 text-amber-400/70" />
+                  <h3 className="font-display text-2xl italic text-white/85">The Journal</h3>
+                </div>
+                <ul className="space-y-4">
+                  {[
+                    "Thematic curations handpicked by editors",
+                    "Open calls for themed print editions",
+                    "Print publication \u2014 physical, beautiful objects",
+                    "Editors may scout from the Garden with consent",
+                    "Professional editorial and publishing standards",
+                  ].map((point, i) => (
+                    <li key={i} className="flex gap-3 items-start">
+                      <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-amber-400/50" />
+                      <span className="font-serif text-white/45 text-sm leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
             </div>
-          </section>
-        ))}
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true }}
+              className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-xl p-6 md:p-8 text-center"
+              data-testid="consent-disclaimer"
+            >
+              <p className="font-serif text-white/50 text-sm md:text-base leading-relaxed italic max-w-3xl mx-auto">
+                Nothing is ever featured or published without your explicit permission. Submitting to an open call constitutes consent. Work selected from the Garden will always be discussed with you first. We ask. Always.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Part C: Feature Walkthrough */}
+        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-features">
+          <div className="max-w-5xl mx-auto space-y-16">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true }}
+              className="text-center space-y-4"
+            >
+              <span className="font-mono text-[10px] tracking-[0.4em] text-white/30 uppercase">Feature Walkthrough</span>
+              <h2 className="text-3xl md:text-5xl font-display font-light italic">Inside the Garden</h2>
+            </motion.div>
+
+            {[
+              {
+                name: "Seeding",
+                tagline: "Your first words into the soil.",
+                icon: <Sprout className="w-8 h-8" />,
+                color: "text-emerald-400",
+                borderColor: "border-emerald-400/15",
+                howTo: [
+                  "Create drafts in your private writing space",
+                  "Save work automatically as you write",
+                  "Tag pieces with growth stages: seed, sprout, bloom",
+                  "Choose when to share \u2014 or keep it private forever",
+                ],
+              },
+              {
+                name: "Sunlight",
+                tagline: "Where your words are seen, and where you see the words of others.",
+                icon: <Sun className="w-8 h-8" />,
+                color: "text-amber-400",
+                borderColor: "border-amber-400/15",
+                howTo: [
+                  "Browse writing from gardens you tend",
+                  "Discover new writers through the explore feed",
+                  "Leave resonances and marginalia on pieces that move you",
+                  "Build a reading queue of work you want to return to",
+                ],
+              },
+              {
+                name: "Nutrients",
+                tagline: "The space for nurturing your voice.",
+                icon: <Leaf className="w-8 h-8" />,
+                color: "text-teal-400",
+                borderColor: "border-teal-400/15",
+                howTo: [
+                  "Set writing rituals and track your practice",
+                  "Use the growth journal for reflections",
+                  "Check your inner weather before writing",
+                  "Join circles \u2014 small groups for accountability and support",
+                ],
+              },
+              {
+                name: "Greenhouse",
+                tagline: "Growth under optimal conditions.",
+                icon: <GraduationCap className="w-8 h-8" />,
+                color: "text-violet-400",
+                borderColor: "border-violet-400/15",
+                howTo: [
+                  "Enrol in courses led by published writers",
+                  "Submit a piece for detailed editorial feedback (paid)",
+                  "Track your submissions to external publications",
+                  "Build your portfolio and writer profile",
+                ],
+              },
+            ].map((feature, i) => (
+              <motion.div
+                key={feature.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="grid md:grid-cols-2 gap-8 items-start"
+                data-testid={`feature-${feature.name.toLowerCase()}`}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-full bg-white/[0.04] border ${feature.borderColor} flex items-center justify-center ${feature.color}`}>
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-display text-2xl italic text-white/85">{feature.name}</h3>
+                      <p className="font-serif text-sm italic text-white/35 mt-1">{feature.tagline}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`bg-white/[0.02] border ${feature.borderColor} backdrop-blur-sm rounded-2xl p-6 md:p-8 space-y-3`}>
+                  {feature.howTo.map((step, si) => (
+                    <div key={si} className="flex gap-3 items-start" data-testid={`feature-${feature.name.toLowerCase()}-step-${si}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${feature.color} opacity-50`} />
+                      <span className="font-serif text-white/40 text-sm leading-relaxed">{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
         <section className="py-32 px-6 md:px-12 border-t border-white/[0.04]">
           <motion.div

@@ -4,8 +4,8 @@ import {
   Sprout, PenLine, BookOpen, Compass, Heart, Bookmark,
   MessageCircle, Flame, Archive, NotebookPen, FileCheck,
   CloudSun, Brain, CalendarRange, Network, Users, Mic,
-  Mail, BarChart3, ChevronDown, Menu, X, Home, Moon,
-  Search, Settings, LogOut, Globe
+  Mail, BarChart3, ChevronDown, Menu, X, Home, Moon, Wind,
+  Search, Settings, LogOut, Globe, GraduationCap, Bell
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -25,54 +25,49 @@ interface NavItem {
 
 interface NavGroup {
   title: string;
+  tagline: string;
   items: NavItem[];
 }
 
 const navGroups: NavGroup[] = [
   {
-    title: "Create",
+    title: "Seeding",
+    tagline: "Your first words into the soil.",
     items: [
       { id: "landing", label: "Garden Home", icon: <Home size={16} />, available: true },
-      { id: "my-garden", label: "My Garden", icon: <Sprout size={16} />, available: true },
       { id: "write", label: "Write", icon: <PenLine size={16} />, available: true },
+      { id: "my-garden", label: "My Garden", icon: <Sprout size={16} />, available: true },
     ],
   },
   {
-    title: "Discover",
+    title: "Sunlight",
+    tagline: "Where your words are seen.",
     items: [
-      { id: "garden-feed", label: "Garden Gallery", icon: <Globe size={16} />, available: true },
-      { id: "tending-feed", label: "Gardens I Tend", icon: <Sprout size={16} />, available: true },
-      { id: "gallery", label: "The Page", icon: <BookOpen size={16} />, available: true },
-      { id: "queue", label: "Reading Queue", icon: <Bookmark size={16} />, available: true },
       { id: "explore", label: "Explore", icon: <Compass size={16} />, available: true },
-      { id: "saved", label: "Saved", icon: <Heart size={16} />, available: true },
-      { id: "pollination", label: "Pollination", icon: <MessageCircle size={16} />, available: true },
+      { id: "garden-feed", label: "Garden Feed", icon: <Globe size={16} />, available: true },
+      { id: "tending-feed", label: "Gardens I Tend", icon: <Sprout size={16} />, available: true },
+      { id: "queue", label: "Reading Queue", icon: <Bookmark size={16} />, available: true },
+      { id: "saved", label: "Bookmarks", icon: <Heart size={16} />, available: true },
     ],
   },
   {
-    title: "Practice",
+    title: "Nutrients",
+    tagline: "The space for nurturing your voice.",
     items: [
-      { id: "rituals", label: "Rituals", icon: <Flame size={16} />, available: true },
-      { id: "compost", label: "Compost", icon: <Archive size={16} />, available: true },
+      { id: "rituals", label: "Writing Rituals", icon: <Flame size={16} />, available: true },
       { id: "growth-journal", label: "Growth Journal", icon: <NotebookPen size={16} />, available: true },
-      { id: "submissions", label: "Submissions", icon: <FileCheck size={16} />, available: true },
-    ],
-  },
-  {
-    title: "Reflect",
-    items: [
       { id: "inner-weather", label: "Inner Weather", icon: <CloudSun size={16} />, available: true },
       { id: "reflections", label: "Reflections", icon: <Brain size={16} />, available: true },
-      { id: "seasonal-review", label: "Seasonal Review", icon: <CalendarRange size={16} />, available: true },
-      { id: "root-system", label: "Root System", icon: <Network size={16} />, available: true },
+      { id: "circles", label: "Circles", icon: <Users size={16} />, available: true },
     ],
   },
   {
-    title: "Community",
+    title: "Greenhouse",
+    tagline: "Growth under optimal conditions.",
     items: [
-      { id: "circles", label: "Circles", icon: <Users size={16} />, available: true },
-      { id: "moonlit-readings", label: "Moonlit Readings", icon: <Mic size={16} />, available: true },
-      { id: "replant-requests", label: "Replant Requests", icon: <Mail size={16} />, available: true },
+      { id: "gallery", label: "Courses", icon: <GraduationCap size={16} />, available: true },
+      { id: "submissions", label: "Submissions", icon: <FileCheck size={16} />, available: true },
+      { id: "pollination", label: "Paid Feedback", icon: <MessageCircle size={16} />, available: true },
     ],
   },
 ];
@@ -89,11 +84,10 @@ export type { GardenView };
 export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggle }: GardenSidebarProps) {
   const { user } = useAuth();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    Create: true,
-    Discover: false,
-    Practice: false,
-    Reflect: false,
-    Community: false,
+    Seeding: true,
+    Sunlight: false,
+    Nutrients: false,
+    Greenhouse: false,
   });
 
   function toggleGroup(title: string) {
@@ -162,7 +156,9 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
                       className="w-full flex items-center justify-between px-2 py-2 text-white/30 hover:text-white/50 transition-colors group"
                       data-testid={`nav-group-${group.title.toLowerCase()}`}
                     >
-                      <span className="font-mono text-[9px] tracking-[0.25em] uppercase">{group.title}</span>
+                      <div className="flex flex-col items-start">
+                        <span className="font-mono text-[9px] tracking-[0.25em] uppercase">{group.title}</span>
+                      </div>
                       <ChevronDown
                         size={12}
                         className={`transition-transform duration-200 ${expandedGroups[group.title] ? "rotate-0" : "-rotate-90"}`}
@@ -224,8 +220,8 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
                   }`}
                   data-testid="nav-notifications"
                 >
-                  <Moon size={16} />
-                  <span className="text-[13px] font-serif">Whispers</span>
+                  <Wind size={16} />
+                  <span className="text-[13px] font-serif">Wind Chimes</span>
                 </button>
                 <a
                   href="/"

@@ -3,14 +3,7 @@ import { content } from "@/data";
 import { motion, useMotionValue, useTransform, useSpring, useScroll } from "framer-motion";
 import StarTitle from "@/components/StarTitle";
 import collageSheet from "@assets/Untitled_design_(26)_1771134509762.png";
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "Good morning, writer.";
-  if (hour >= 12 && hour < 17) return "Good afternoon, writer.";
-  if (hour >= 17 && hour < 21) return "Good evening, writer.";
-  return "The night is yours, writer.";
-}
+import { Link } from "wouter";
 
 function MagneticLink({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLAnchorElement>(null);
@@ -42,26 +35,6 @@ function MagneticLink({ href, children, className }: { href: string; children: R
     >
       {children}
     </motion.a>
-  );
-}
-
-function WordReveal({ text, className, delay = 0 }: { text: string; className?: string; delay?: number }) {
-  const words = text.split(" ");
-  return (
-    <span className={className}>
-      {words.map((word, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: delay + i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          viewport={{ once: true }}
-          className="inline-block mr-[0.3em]"
-        >
-          {word}
-        </motion.span>
-      ))}
-    </span>
   );
 }
 
@@ -100,18 +73,12 @@ function FloatingCreature({ c, scrollYProgress }: { c: typeof creatures[0]; scro
 }
 
 export default function Hero() {
-  const [greeting, setGreeting] = useState(getGreeting);
   const heroRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
-
-  useEffect(() => {
-    const interval = setInterval(() => setGreeting(getGreeting()), 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -151,47 +118,57 @@ export default function Hero() {
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true, margin: "-50px" }}
               >
-                <motion.div
-                  className="flex items-center gap-4 mb-6"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-                  <span className="font-mono text-xs tracking-[0.2em] text-secondary opacity-70 uppercase" data-testid="text-greeting">
-                    {greeting}
-                  </span>
-                </motion.div>
-
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-light leading-[1.1] tracking-tight text-white/90 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
-                  <WordReveal text="You don't submit." delay={0.1} />
-                  <br />
-                  <WordReveal text="You don't query." delay={0.4} />
-                  <br />
-                  <span className="italic font-medium text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.15)]">
-                    <WordReveal text="You just write." delay={0.7} />
-                  </span>
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-light leading-[1.1] tracking-tight text-white/90 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+                  <motion.span
+                    initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
+                    whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    transition={{ delay: 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    viewport={{ once: true }}
+                    className="block italic"
+                    data-testid="text-hero-title"
+                  >
+                    The Page Gallery Journal
+                  </motion.span>
                 </h2>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.0, duration: 0.8 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
                 viewport={{ once: true }}
-                className="max-w-xl text-lg leading-relaxed font-serif opacity-80 backdrop-blur-sm p-6 bg-white/5 hover:bg-white/[0.07] transition-all duration-500"
+                className="max-w-xl text-xl md:text-2xl leading-relaxed font-serif italic text-white/60"
+                data-testid="text-hero-hook"
               >
-                {content.hero.subtitle}
+                We are a journal, and we tend to a garden.
               </motion.div>
 
-              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0, duration: 0.8 }}
+                viewport={{ once: true }}
+                className="flex flex-wrap gap-4 pt-4"
+              >
+                <Link
+                  href="/about"
+                  className="px-8 py-4 bg-white/[0.06] border border-white/[0.12] backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white/80 hover:bg-white/[0.12] hover:text-white transition-all duration-300 rounded-full"
+                  data-testid="cta-the-journal"
+                >
+                  The Journal
+                </Link>
+                <Link
+                  href="/garden"
+                  className="px-8 py-4 bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-amber-200/80 hover:bg-amber-500/20 hover:text-amber-100 transition-all duration-300 rounded-full"
+                  data-testid="cta-enter-garden"
+                >
+                  Enter the Garden
+                </Link>
+              </motion.div>
             </div>
           </div>
         </div>
       </section>
-
-      
     </div>
   );
 }
