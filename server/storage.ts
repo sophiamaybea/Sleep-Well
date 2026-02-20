@@ -314,6 +314,10 @@ export interface IStorage {
   adoptIdeaDrop(userId: string, id: string): Promise<IdeaDrop | undefined>;
   deleteIdeaDrop(userId: string, id: string): Promise<boolean>;
 
+  // Genre Genie
+  getGenreSuggestions(userId: string, writingId?: string): Promise<GenreGenieSuggestion[]>;
+  createGenreSuggestion(userId: string, data: { writingId?: string; suggestedGenre: string; explanation: string; conventions: string; inspiration: string }): Promise<GenreGenieSuggestion>;
+
   // Quiet Reads
   hasQuietRead(readerId: string, writingId: string): Promise<boolean>;
   addQuietRead(readerId: string, writingId: string): Promise<QuietRead>;

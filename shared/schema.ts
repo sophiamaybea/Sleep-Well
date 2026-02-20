@@ -405,6 +405,9 @@ export const genreGenieSuggestionsRelations = relations(genreGenieSuggestions, (
   writing: one(writings, { fields: [genreGenieSuggestions.writingId], references: [writings.id] }),
 }));
 
+export type GenreGenieSuggestion = typeof genreGenieSuggestions.$inferSelect;
+export type InsertGenreGenieSuggestion = typeof genreGenieSuggestions.$inferInsert;
+
 export const writingsRelations = relations(writings, ({ one, many }) => ({
   author: one(users, { fields: [writings.authorId], references: [users.id] }),
   pollinations: many(pollinations),
