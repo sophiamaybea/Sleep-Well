@@ -127,7 +127,7 @@ export default function Hero() {
                     className="block italic"
                     data-testid="text-hero-title"
                   >
-                    The Page Gallery & Garden
+                    The Page Gallery Journal
                   </motion.span>
                 </h2>
               </motion.div>

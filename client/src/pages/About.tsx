@@ -20,7 +20,7 @@ export default function About() {
               transition={{ delay: 0.3, duration: 1 }}
               className="font-mono text-[10px] tracking-[0.4em] block uppercase"
             >
-              About The Page Gallery & Garden
+              About The Page Gallery Journal
             </motion.span>
             <motion.h1
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
@@ -74,7 +74,7 @@ export default function About() {
                 <span className="text-amber-400/80">We publish writing that we can't stop thinking about.</span>
               </h2>
               <p className="font-serif text-white/50 text-lg leading-relaxed max-w-2xl mx-auto">
-                The Page Gallery & Garden is a literary journal that publishes thematic print editions. Each issue is assembled by hand — selected, sequenced, and designed with the care of a gallery exhibition. We believe print is not dead; it's a deliberate act.
+                The Page Gallery Journal is a literary journal that publishes thematic print editions. Each issue is assembled by hand — selected, sequenced, and designed with the care of a gallery exhibition. We believe print is not dead; it's a deliberate act.
               </p>
             </motion.div>
 
