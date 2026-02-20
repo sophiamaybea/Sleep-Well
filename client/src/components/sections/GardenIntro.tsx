@@ -151,19 +151,19 @@ function MagneticLink({ href, children, className, testId }: { href: string; chi
 export default function GardenIntro() {
   const stages = [
     {
-      stage: "Seed",
+      stage: "Seed (Private Draft)",
       icon: <SeedDoodle />,
-      desc: "Plant a raw idea. A sentence, a feeling, a fragment — anything that stirs."
+      desc: "Write your first ideas here. This is private. No one else can see this until you are ready."
     },
     {
-      stage: "Sprout",
+      stage: "Sprout (Editing)",
       icon: <SproutDoodle />,
-      desc: "Nurture it. Shape it. Let the draft grow roots and find its voice."
+      desc: "Keep writing and making it better. It is still private and safe in your personal workspace."
     },
     {
-      stage: "Bloom",
+      stage: "Bloom (Public)",
       icon: <BloomDoodle />,
-      desc: "When it's ready, it blooms. Our editors wander the gardens looking for flowers."
+      desc: "When you are happy with it, you can share it with others. Our editors also look here for stories to publish."
     }
   ];
 

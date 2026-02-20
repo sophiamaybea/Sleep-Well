@@ -442,10 +442,10 @@ const rooms = [
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
   const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
-    { id: "desk", label: "The Soil", desc: "Your foundational workspace — raw ideas, morning pages, and fragments. Never seen by editors.", icon: <Sprout size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
-    { id: "reading-room", label: "Reading Room", desc: "Read what others are growing — a quiet place to discover and respond", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
-    { id: "greenhouse", label: "Greenhouse", desc: "Private tools for tending your creative practice", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
-    { id: "submissions", label: "Career", desc: "Track submissions, manage credits, and build your publishing career", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+    { id: "desk", label: "The Soil (Private)", desc: "This is your private workspace. You write here alone. No one else can see these stories but you.", icon: <Sprout size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+    { id: "reading-room", label: "Reading Room (Public)", desc: "This is the public space. Here you can read stories that other writers have shared.", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
+    { id: "greenhouse", label: "Nutrients (Practice)", desc: "These are private writing exercises and tools to help you get better at writing.", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
+    { id: "submissions", label: "Greenhouse (Career)", desc: "This is for professional growth. Here you find classes and help getting published.", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
   ];
 
   return (
