@@ -84,6 +84,11 @@ export async function registerRoutes(
   await setupAuth(app);
   registerAuthRoutes(app);
 
+  // === HEALTH CHECK ===
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // === WRITINGS ===
   app.get("/api/writings", isAuthenticated, async (req: any, res) => {
     try {
