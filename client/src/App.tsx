@@ -57,7 +57,7 @@ function Router() {
       <Route path="/field-guide" component={FieldGuide} />
       <Route path="/greenhouse" component={Greenhouse} />
       <Route path="/nursery" component={Greenhouse} />
-      <Route path="/publications" component={Publications} />
+      <Route path="/publications" component={InBloom} />
       <Route path="/" component={Home} />
       <Route component={NotFound} />
     </Switch>

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2, Bookmark, Share2, Check } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2, Bookmark, Share2, Check, Heart, Archive, ExternalLink } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
 
@@ -140,7 +140,7 @@ export default function Gallery() {
               </h1>
             </div>
             <p className="text-lg font-serif italic text-white/45 max-w-xl mx-auto leading-relaxed">
-              Work that has flowered — selected by the editors, shared with consent.
+              Work that has flowered — planted in the garden, selected by the editors, shared with consent.
             </p>
             <div className="flex items-center justify-center gap-4 pt-2">
               <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />
@@ -474,6 +474,8 @@ export default function Gallery() {
           )}
         </div>
 
+        <PlantedInTheGarden />
+
         <footer className="border-t border-white/[0.04] py-12 text-center">
           <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20">
             The Page Gallery Journal
@@ -725,6 +727,237 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
         </div>
       </div>
     </motion.div>
+  );
+}
+
+const printEditions = [
+  {
+    title: "Issue One: Margins",
+    type: "Print Edition",
+    description: "Our inaugural issue explores the edges — of pages, of places, of what we're allowed to say. Featuring poetry, short fiction, and visual art from twelve emerging voices.",
+    coverColor: "from-amber-900/30 to-emerald-900/20",
+    status: "available" as const,
+    buyLink: "#",
+  },
+  {
+    title: "Issue Two: Undergrowth",
+    type: "Print Edition",
+    description: "What grows beneath the surface? Prose and poetry that excavates the hidden, the buried, the deliberately forgotten. Ten writers unearth what lies below.",
+    coverColor: "from-emerald-900/30 to-teal-900/20",
+    status: "available" as const,
+    buyLink: "#",
+  },
+];
+
+const pastEditions = [
+  {
+    title: "Seed Chapbook: First Light",
+    type: "Limited Chapbook",
+    description: "A hand-stitched chapbook from our earliest garden. Five poets, twenty pages, one hundred copies.",
+    coverColor: "from-violet-900/20 to-indigo-900/20",
+    status: "out_of_print" as const,
+  },
+];
+
+const friendlyPresses = [
+  { name: "Granta", description: "The magazine of new writing — literary journalism, memoir, fiction, and poetry from around the world.", link: "#" },
+  { name: "The White Review", description: "A quarterly arts and literature magazine publishing new fiction, poetry, interviews, essays, and visual art.", link: "#" },
+  { name: "Poetry London", description: "One of the UK's leading poetry magazines, publishing new poems and incisive reviews three times a year.", link: "#" },
+  { name: "Prototype", description: "An independent publisher committed to innovative forms of fiction, poetry, and creative non-fiction.", link: "#" },
+  { name: "Fitzcarraldo Editions", description: "An independent publisher specialising in long-form essay and literary fiction in translation.", link: "#" },
+  { name: "Cipher Press", description: "An independent publisher of boundary-pushing queer and feminist fiction and non-fiction.", link: "#" },
+];
+
+function PlantedInTheGarden() {
+  return (
+    <>
+      <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-planted-intro">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          viewport={{ once: true }}
+          className="max-w-2xl mx-auto text-center space-y-6"
+        >
+          <div className="flex items-center justify-center gap-4">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />
+            <Flower2 size={20} className="text-amber-400/40" />
+            <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-600/20" />
+          </div>
+          <h2 className="text-3xl md:text-5xl font-display font-light italic">
+            Planted in the Garden
+          </h2>
+          <p className="font-serif text-white/45 text-lg leading-relaxed">
+            Every piece in this journal was first planted in a writer's garden. Our editors wander the gardens, discovering work that has bloomed. These print editions gather the finest harvests.
+          </p>
+        </motion.div>
+      </section>
+
+      <section className="py-16 px-6 md:px-12" data-testid="section-print-editions">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-5 h-5 text-amber-400/60" />
+              <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Available Now</span>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-display font-light italic">Current Issues</h3>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {printEditions.map((issue, i) => (
+              <motion.div
+                key={issue.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl overflow-hidden group hover:bg-white/[0.04] transition-all"
+                data-testid={`publication-card-${i}`}
+              >
+                <div className={`h-48 bg-gradient-to-br ${issue.coverColor} flex items-center justify-center relative`}>
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.04),transparent_60%)]" />
+                  <span className="font-display text-3xl italic text-white/20 group-hover:text-white/30 transition-colors">{issue.title.split(":")[0]}</span>
+                </div>
+                <div className="p-8 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/50">{issue.type}</span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-400/60 px-2 py-0.5 rounded-full border border-emerald-400/20 bg-emerald-400/10">Available</span>
+                  </div>
+                  <h4 className="font-display text-xl italic text-white/85">{issue.title}</h4>
+                  <p className="font-serif text-white/40 text-sm leading-relaxed">{issue.description}</p>
+                  {issue.buyLink && (
+                    <a
+                      href={issue.buyLink}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-300/80 font-mono text-[10px] uppercase tracking-widest hover:bg-amber-500/20 hover:border-amber-500/30 transition-all"
+                      data-testid={`button-buy-${i}`}
+                    >
+                      <BookOpen size={12} />
+                      Purchase
+                    </a>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-our-friends">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <Heart className="w-5 h-5 text-emerald-400/60" />
+              <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">Our Friends</span>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-display font-light italic">Publications & Presses We Love</h3>
+            <p className="font-serif text-white/40 text-lg leading-relaxed max-w-2xl">
+              The literary ecosystem thrives on interconnection. These are the journals, presses, and publications whose work we admire.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {friendlyPresses.map((friend, i) => (
+              <motion.a
+                key={friend.name}
+                href={friend.link}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-xl p-6 space-y-3 group hover:bg-white/[0.04] hover:border-white/[0.1] transition-all"
+                data-testid={`friend-card-${i}`}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-display text-lg italic text-white/80 group-hover:text-white transition-colors">{friend.name}</h4>
+                  <ExternalLink size={14} className="text-white/20 group-hover:text-white/40 transition-colors" />
+                </div>
+                <p className="font-serif text-white/35 text-sm leading-relaxed">{friend.description}</p>
+              </motion.a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-archive">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <Archive className="w-5 h-5 text-white/30" />
+              <span className="font-mono text-[10px] tracking-[0.4em] text-white/30 uppercase">Archive</span>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-display font-light italic text-white/60">Past Issues</h3>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pastEditions.map((issue, i) => (
+              <motion.div
+                key={issue.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="bg-white/[0.015] border border-white/[0.04] backdrop-blur-sm rounded-2xl overflow-hidden opacity-70"
+                data-testid={`archive-card-${i}`}
+              >
+                <div className={`h-32 bg-gradient-to-br ${issue.coverColor} flex items-center justify-center relative`}>
+                  <span className="font-display text-2xl italic text-white/15">{issue.title.split(":")[0]}</span>
+                  <span className="absolute top-3 right-3 font-mono text-[9px] uppercase tracking-widest text-white/30 px-2 py-0.5 rounded-full border border-white/10 bg-white/5">
+                    Out of print
+                  </span>
+                </div>
+                <div className="p-6 space-y-3">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-white/25">{issue.type}</span>
+                  <h4 className="font-display text-lg italic text-white/50">{issue.title}</h4>
+                  <p className="font-serif text-white/30 text-sm leading-relaxed">{issue.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          viewport={{ once: true }}
+          className="max-w-2xl mx-auto text-center space-y-8"
+        >
+          <h2 className="text-3xl md:text-5xl font-display font-light italic">
+            Want to be in our pages?
+          </h2>
+          <p className="font-serif text-white/50 text-lg leading-relaxed">
+            We don't accept traditional submissions. Instead, our editors discover work through the Garden. Plant your words, and let them find you.
+          </p>
+          <Link
+            href="/garden"
+            className="inline-block px-10 py-4 bg-white/[0.06] border border-white/[0.1] backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white/80 hover:bg-white/[0.1] hover:text-white transition-all duration-300 rounded-full"
+            data-testid="cta-enter-garden-bloom"
+          >
+            Enter the Garden
+          </Link>
+        </motion.div>
+      </section>
+    </>
   );
 }
 

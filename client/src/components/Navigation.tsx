@@ -68,7 +68,6 @@ export default function Navigation() {
   const menuItems: { label: string; href: string; isPage?: boolean }[] = [
     { label: "Home", href: "/", isPage: true },
     { label: "In Bloom", href: "/in-bloom", isPage: true },
-    { label: "Publications", href: "/publications", isPage: true },
     { label: "Seasons", href: "/seasons", isPage: true },
     { label: "About", href: "/about", isPage: true },
     { label: "How It Works", href: "/how-it-works", isPage: true },

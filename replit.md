@@ -52,8 +52,7 @@ Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and 
 ### Pages
 - `/`: Landing page (StarTitle → Hero with "The Page Gallery Journal" title, two CTAs → Footer).
 - `/about`: About page with Journal editorial identity, Garden section, editorial model steps, and "Why a Garden?" section.
-- `/in-bloom` (alias `/gallery`): "In Bloom" — bloomed works selected by editors, with contributor view and reading mode.
-- `/publications`: Print editions page with Available Now (current issues), Our Friends (literary presses), and Archive sections.
+- `/in-bloom` (alias `/gallery`, `/publications`): "In Bloom" — bloomed works selected by editors, with contributor view, reading mode, and "Planted in the Garden" section featuring print editions, friendly presses, and archive.
 - `/seasons` (alias `/challenges`): "Seasons" — time-bound creative prompts on a regular cycle.
 - `/greenhouse` (alias `/nursery`): "The Greenhouse" — 4-tab page: Courses, Editorial Feedback (paid tiers), Submissions tracker, Portfolio builder.
 - `/how-it-works`: 3-part structure: intro paragraphs (Mission/Who/What), Garden vs Journal comparison, feature walkthrough (Seeding/Sunlight/Nutrients/Greenhouse).
@@ -67,8 +66,8 @@ Typography utilizes `Cormorant Garamond` for display, `Lora` for body text, and 
 - `/eic-dashboard`: Editor-in-Chief admin panel.
 - `/editor-onboarding`: Public onboarding page for invited editors.
 
-### Navigation (6 main items)
-Home, In Bloom, Publications, Seasons, About, How It Works
+### Navigation (5 main items)
+Home, In Bloom, Seasons, About, How It Works
 
 ### Role System
 - `writer` (default) — can access Garden only
