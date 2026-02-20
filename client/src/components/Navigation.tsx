@@ -134,6 +134,7 @@ export default function Navigation() {
                   <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 max-h-80 overflow-y-auto">
                     <div className="p-3 border-b border-white/[0.06]">
                       <h3 className="font-display text-sm text-white/70 italic">Wind Chimes</h3>
+                      <p className="font-serif text-[10px] text-white/30 italic mt-0.5">Something stirred in the garden.</p>
                     </div>
                     <div className="p-2">
                       {(notifData?.notifications || []).length === 0 ? (

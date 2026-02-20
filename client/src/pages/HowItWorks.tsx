@@ -63,15 +63,15 @@ export default function HowItWorks() {
             {[
               {
                 label: "Our Mission",
-                text: "Everything here is human-made. No algorithm decides what you see. Only intention and care. We believe that writing deserves to be read by people who choose to read it \u2014 not served by a machine that guesses what you want.",
+                text: "Everything here is human-made. The writing, the website, the community \u2014 this is an ode to human creativity. We believe in collaborative spaces, non-algorithmic platforms, and a different approach to writing and publishing. No algorithm decides what you see. Only intention and care.",
               },
               {
                 label: "Who We Are",
-                text: "A literary journal and curatorial project. We publish thematic print editions, each one assembled by hand. Alongside the Journal, we tend to a garden \u2014 a collaborative writing platform where writers plant, nurture, and share their work.",
+                text: "The Page Gallery Journal is a literary journal and curatorial project. We publish thematic, illustrated print editions \u2014 chapbooks and quarterly issues \u2014 that treat the book as an art object. Alongside the Journal, we tend to a garden: a collaborative writing platform where writers grow, share, and support one another.",
               },
               {
                 label: "What We Offer",
-                text: "A collaborative writing platform. Paid courses. Detailed editorial feedback. Traditional publishing opportunities. And above all, a community that values the process of writing as much as the finished piece.",
+                text: "A collaborative writing platform. Paid courses. Feedback to support your writing journey. And traditional publishing opportunities through our chapbook series and quarterly issues. Whether you\u2019re here to grow quietly or to put your work into the world, there\u2019s a space for you.",
               },
             ].map((item, i) => (
               <motion.div
@@ -198,11 +198,13 @@ export default function HowItWorks() {
                 icon: <Sprout className="w-8 h-8" />,
                 color: "text-emerald-400",
                 borderColor: "border-emerald-400/15",
+                description: "Seeding is your private writing space \u2014 a protected container where your work begins. Nothing here is visible to anyone but you. This is where you draft, revise, and hold your writing until you're ready to share it.",
+                howToLabel: "How to use it",
                 howTo: [
-                  "Create drafts in your private writing space",
-                  "Save work automatically as you write",
-                  "Tag pieces with growth stages: seed, sprout, bloom",
-                  "Choose when to share \u2014 or keep it private forever",
+                  "Navigate to Seeding from your dashboard",
+                  "Click New Piece to open a blank document",
+                  "Write, save, return to it whenever you like \u2014 your work is private by default",
+                  "When you're ready to share, move your piece to Sunlight",
                 ],
               },
               {
@@ -211,11 +213,13 @@ export default function HowItWorks() {
                 icon: <Sun className="w-8 h-8" />,
                 color: "text-amber-400",
                 borderColor: "border-amber-400/15",
+                description: "Sunlight is the reading room \u2014 the shared space where your writing is exposed to the community and where you encounter the work of others. No algorithm decides what appears; everything is chronological and human.",
+                howToLabel: "How to use it",
                 howTo: [
-                  "Browse writing from gardens you tend",
-                  "Discover new writers through the explore feed",
-                  "Leave resonances and marginalia on pieces that move you",
-                  "Build a reading queue of work you want to return to",
+                  "Browse Sunlight to read work shared by fellow writers",
+                  "To share your own, move a piece from Seeding into Sunlight",
+                  "Leave light feedback on work that moves you \u2014 brief, directional, kind",
+                  "Your work may be tagged under a current Season if you\u2019re responding to a prompt",
                 ],
               },
               {
@@ -224,11 +228,13 @@ export default function HowItWorks() {
                 icon: <Leaf className="w-8 h-8" />,
                 color: "text-teal-400",
                 borderColor: "border-teal-400/15",
+                description: "Nutrients is where you grow inward. Free writing exercises, growth journals, writing circles \u2014 this is the emotional and psychological architecture of finding your voice. Not everything here is meant to be shared. Some of it is just for you.",
+                howToLabel: "How to use it",
                 howTo: [
-                  "Set writing rituals and track your practice",
-                  "Use the growth journal for reflections",
-                  "Check your inner weather before writing",
-                  "Join circles \u2014 small groups for accountability and support",
+                  "Explore the available exercises, journals, and circles",
+                  "Use the growth journal to track your process and reflections privately",
+                  "Join a writing circle to connect with a small group of peers",
+                  "Return as often as you need \u2014 this space is always here",
                 ],
               },
               {
@@ -237,11 +243,13 @@ export default function HowItWorks() {
                 icon: <GraduationCap className="w-8 h-8" />,
                 color: "text-violet-400",
                 borderColor: "border-violet-400/15",
+                description: "The Greenhouse is where craft meets ambition. This is your investment space \u2014 paid courses, a submission tracker, a portfolio, and access to detailed editorial feedback. Everything here is designed to help you grow deliberately and move your writing into the world.",
+                howToLabel: "What\u2019s inside",
                 howTo: [
-                  "Enrol in courses led by published writers",
-                  "Submit a piece for detailed editorial feedback (paid)",
-                  "Track your submissions to external publications",
-                  "Build your portfolio and writer profile",
+                  "Courses \u2014 Paid courses on craft, editing, publishing, and more",
+                  "Detailed Feedback \u2014 Submit a piece for thorough, personalised editorial notes (paid)",
+                  "Submission Tracker \u2014 Log where you've sent work, track responses, stay organised",
+                  "Portfolio \u2014 Curate a selection of your work in one presentable place",
                 ],
               },
             ].map((feature, i) => (
@@ -251,28 +259,31 @@ export default function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
                 viewport={{ once: true }}
-                className="grid md:grid-cols-2 gap-8 items-start"
+                className={`bg-white/[0.02] border ${feature.borderColor} backdrop-blur-sm rounded-2xl p-8 md:p-10 space-y-6`}
                 data-testid={`feature-${feature.name.toLowerCase()}`}
               >
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-full bg-white/[0.04] border ${feature.borderColor} flex items-center justify-center ${feature.color}`}>
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-display text-2xl italic text-white/85">{feature.name}</h3>
-                      <p className="font-serif text-sm italic text-white/35 mt-1">{feature.tagline}</p>
-                    </div>
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-full bg-white/[0.04] border ${feature.borderColor} flex items-center justify-center ${feature.color}`}>
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-display text-2xl italic text-white/85">{feature.name}</h3>
+                    <p className="font-serif text-sm italic text-white/35 mt-1">{feature.tagline}</p>
                   </div>
                 </div>
 
-                <div className={`bg-white/[0.02] border ${feature.borderColor} backdrop-blur-sm rounded-2xl p-6 md:p-8 space-y-3`}>
-                  {feature.howTo.map((step, si) => (
-                    <div key={si} className="flex gap-3 items-start" data-testid={`feature-${feature.name.toLowerCase()}-step-${si}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${feature.color} opacity-50`} />
-                      <span className="font-serif text-white/40 text-sm leading-relaxed">{step}</span>
-                    </div>
-                  ))}
+                <p className="font-serif text-white/45 leading-relaxed">{feature.description}</p>
+
+                <div className="space-y-1">
+                  <span className="font-mono text-[10px] tracking-[0.3em] text-white/30 uppercase">{feature.howToLabel}</span>
+                  <div className="space-y-3 pt-2">
+                    {feature.howTo.map((step, si) => (
+                      <div key={si} className="flex gap-3 items-start" data-testid={`feature-${feature.name.toLowerCase()}-step-${si}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${feature.color} opacity-50`} />
+                        <span className="font-serif text-white/40 text-sm leading-relaxed">{step}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             ))}

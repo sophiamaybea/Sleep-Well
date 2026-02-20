@@ -25,7 +25,7 @@ import Commons from "@/pages/Commons";
 import HowItWorks from "@/pages/HowItWorks";
 import FieldGuide from "@/pages/FieldGuide";
 import Greenhouse from "@/pages/Nursery";
-import Publications from "@/pages/Publications";
+
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";

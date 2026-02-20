@@ -192,6 +192,43 @@ export default function About() {
           </div>
         </section>
 
+        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-submit-for-print">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true }}
+            className="max-w-3xl mx-auto space-y-8"
+          >
+            <div className="text-center space-y-4">
+              <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Submitting for Print</span>
+              <h2 className="text-3xl md:text-5xl font-display font-light italic">
+                How to Get Published
+              </h2>
+            </div>
+            <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 md:p-12 space-y-6">
+              <p className="font-serif text-white/55 text-lg leading-relaxed">
+                To be considered for our print editions, you need to be part of the Garden — which is completely free to join. When we announce open calls for upcoming issues, you can submit your work directly through the platform.
+              </p>
+              <p className="font-serif text-white/55 text-lg leading-relaxed">
+                Our editors also read the Gardens, discovering work that resonates. If they find something they'd like to feature, they'll always reach out to you first. Nothing is ever published without your explicit consent.
+              </p>
+              <p className="font-serif text-amber-400/60 text-lg leading-relaxed italic">
+                Join the Garden, write freely, and when the time is right — let your work bloom.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-4 justify-center">
+                <Link
+                  href="/garden"
+                  className="px-8 py-4 bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-amber-200/80 hover:bg-amber-500/20 hover:text-amber-100 transition-all duration-300 rounded-full"
+                  data-testid="cta-join-garden-submit"
+                >
+                  Join the Garden
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+
         <section className="py-32 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-editorial-model">
           <div className="max-w-4xl mx-auto space-y-16">
             <motion.div

@@ -27,8 +27,8 @@ export default function Footer() {
             <Link href="/garden" className="px-8 py-4 bg-primary text-background font-mono text-sm uppercase tracking-widest hover:bg-secondary transition-colors" data-testid="footer-enter-garden">
               Enter The Garden
             </Link>
-            <Link href="/gallery" className="px-8 py-4 border border-white/20 text-primary font-mono text-sm uppercase tracking-widest hover:bg-white/5 transition-colors" data-testid="footer-read-gallery">
-              Read The Gallery
+            <Link href="/in-bloom" className="px-8 py-4 border border-white/20 text-primary font-mono text-sm uppercase tracking-widest hover:bg-white/5 transition-colors" data-testid="footer-read-gallery">
+              Read In Bloom
             </Link>
           </motion.div>
         </div>

@@ -44,13 +44,13 @@ export default function Featured() {
             transition={{ duration: 1.2 }}
             viewport={{ once: true }}
           >
-            The Gallery
+            In Bloom
           </motion.span>
           <h2 className="text-5xl md:text-6xl font-display font-light tracking-tight">
             Read the Journal
           </h2>
           <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto leading-relaxed">
-            Found in the Gardens. Chosen because they wouldn't let go.
+            Planted in the Garden. Chosen because they wouldn't let go.
           </p>
           <motion.div
             className="flex items-center justify-center gap-4 pt-2"
@@ -71,7 +71,7 @@ export default function Featured() {
           transition={{ delay: 0.2, duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <Link href="/gallery" data-testid="link-read-journal">
+          <Link href="/in-bloom" data-testid="link-read-journal">
             <div className="relative group cursor-pointer">
               <div className="absolute -inset-2 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
@@ -119,17 +119,17 @@ export default function Featured() {
                       ) : (
                         <div className="space-y-3">
                           <p className="font-display text-2xl md:text-3xl font-light text-white/70 italic">
-                            The Gallery is Preparing
+                            Awaiting First Bloom
                           </p>
                           <p className="font-serif text-white/35 text-sm max-w-md mx-auto">
-                            Editors are reading the Gardens. When a piece stops them, they'll publish it here.
+                            Editors are reading the Gardens. When a piece blooms, it will appear here.
                           </p>
                         </div>
                       )}
 
                       <div className="flex items-center justify-center gap-3 pt-4">
                         <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200/50 group-hover:text-amber-200/80 transition-colors duration-500">
-                          Enter the Gallery
+                          View In Bloom
                         </span>
                         <ArrowRight size={16} className="text-amber-200/40 group-hover:text-amber-200/70 group-hover:translate-x-1 transition-all duration-500" />
                       </div>
