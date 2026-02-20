@@ -40,38 +40,29 @@ export default function Navigation() {
   const isEditorOrEIC = roleData?.role === "editor" || roleData?.role === "editor_in_chief";
   const isEIC = roleData?.role === "editor_in_chief";
 
-  const { data: notifData } = useQuery<{ unread: number; notifications: any[] }>({
-    queryKey: ["/api/notifications"],
-    queryFn: async () => {
-      const [notifRes, countRes] = await Promise.all([
-        fetch("/api/notifications", { credentials: "include" }),
-        fetch("/api/notifications/unread-count", { credentials: "include" }),
-      ]);
-      const notifications = notifRes.ok ? await notifRes.json() : [];
-      const countData = countRes.ok ? await countRes.json() : { count: 0 };
-      return { unread: countData.count, notifications: notifications.slice(0, 10) };
-    },
-    enabled: !!user,
-    refetchInterval: 30000,
-  });
-
-  const [showNotifs, setShowNotifs] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const menuItems: { label: string; href: string; isPage?: boolean }[] = [
+  const publicMenuItems = [
     { label: "Home", href: "/", isPage: true },
-    { label: "In Bloom", href: "/in-bloom", isPage: true },
+    { label: "The Journal", href: "/in-bloom", isPage: true },
     { label: "Seasons", href: "/seasons", isPage: true },
     { label: "About", href: "/about", isPage: true },
-    { label: "How It Works", href: "/how-it-works", isPage: true },
   ];
+
+  const writerMenuItems = [
+    { label: "Home", href: "/", isPage: true },
+    { label: "The Journal", href: "/in-bloom", isPage: true },
+    { label: "Seasons", href: "/seasons", isPage: true },
+    { label: "My Garden", href: "/garden", isPage: true },
+    { label: "Studio", href: "/editor-studio", isPage: true },
+  ];
+
+  const editorMenuItems = [
+    ...writerMenuItems,
+    { label: "Command", href: "/eic-dashboard", isPage: true },
+  ];
+
+  const activeMenuItems = !isAuthenticated 
+    ? publicMenuItems 
+    : (isEIC ? editorMenuItems : writerMenuItems);
 
   return (
     <>
@@ -85,29 +76,18 @@ export default function Navigation() {
           </Link>
 
           <div className={`hidden lg:flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
-            {menuItems.map((item) =>
-              item.isPage ? (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="text-white/70 hover:text-white transition-colors relative group"
-                  data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
-                >
-                  {item.label}
-                  <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
-                </Link>
-              ) : (
-                <a 
-                  key={item.label} 
-                  href={item.href}
-                  className="text-white/70 hover:text-white transition-colors relative group"
-                  data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
-                >
-                  {item.label}
-                  <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
-                </a>
-              )
-            )}
+            {activeMenuItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`transition-colors relative group ${item.label === "Command" ? "text-[#c4a24d]/70 hover:text-[#c4a24d]" : "text-white/70 hover:text-white"}`}
+                data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
+              >
+                {item.label}
+                <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Command" ? "bg-[#c4a24d]" : "bg-white"}`} />
+              </Link>
+            ))}
+            
             <button
               onClick={() => setIsLight(!isLight)}
               className="p-2 text-white/50 hover:text-white/80 transition-colors"
@@ -116,6 +96,7 @@ export default function Navigation() {
             >
               {isLight ? <Moon size={16} /> : <Sun size={16} />}
             </button>
+
             {user && (
               <div className="relative">
                 <button
@@ -154,34 +135,37 @@ export default function Navigation() {
                 )}
               </div>
             )}
+
             <span className="w-[1px] h-4 bg-white/10" />
+
             {!isLoading && (
               isAuthenticated ? (
-                <>
-                  <Link href="/garden" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-garden">
-                    My Garden
-                    <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
-                  </Link>
-                  {isEditorOrEIC && (
-                    <Link href="/editor-studio" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-editor-studio">
-                      Studio
-                      <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
+                <div className="relative group/user">
+                  <button className="flex items-center gap-2 p-1 pl-3 rounded-full border border-white/10 hover:border-white/20 transition-all bg-white/5" data-testid="nav-user-dropdown">
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-white/70">
+                      {user.username.slice(0, 1) || "U"}
+                    </span>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500/20 to-teal-500/20 border border-white/10 flex items-center justify-center overflow-hidden">
+                      <span className="text-[10px] text-white/40">{user.username.slice(0, 1).toUpperCase()}</span>
+                    </div>
+                  </button>
+                  
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 py-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300">
+                    <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/60 hover:text-white hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest">
+                      Profile
                     </Link>
-                  )}
-                  {isEIC && (
-                    <Link href="/eic-dashboard" className="text-[#c4a24d]/70 hover:text-[#c4a24d] transition-colors relative group" data-testid="nav-eic-dashboard">
-                      Command
-                      <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-[#c4a24d] transition-all duration-300 group-hover:w-full group-hover:left-0" />
+                    <Link href="/settings" className="block px-4 py-2 text-white/60 hover:text-white hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest">
+                      Settings
                     </Link>
-                  )}
-                  <a href="/api/logout" className="text-white/40 hover:text-white/70 transition-all duration-300 text-[10px] lowercase tracking-[0.15em]" data-testid="nav-logout">
-                    leave
-                  </a>
-                </>
+                    <div className="h-[1px] bg-white/5 my-1" />
+                    <a href="/api/logout" className="block px-4 py-2 text-white/40 hover:text-white/60 hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest" data-testid="nav-logout">
+                      Sign Out
+                    </a>
+                  </div>
+                </div>
               ) : (
-                <Link href="/sign-in" className="text-white/70 hover:text-white transition-colors relative group" data-testid="nav-login">
-                  Enter
-                  <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
+                <Link href="/sign-in" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all font-mono text-[10px] uppercase tracking-widest" data-testid="nav-login">
+                  Sign In
                 </Link>
               )
             )}
@@ -212,67 +196,46 @@ export default function Navigation() {
             </button>
 
             <div className="flex flex-col gap-8 text-center">
-              {menuItems.map((item, i) =>
-                item.isPage ? (
-                  <motion.div
-                    key={item.label}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    <Link
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
-                    >
-                      {item.label}
-                    </Link>
-                  </motion.div>
-                ) : (
-                <motion.a 
-                  key={item.label} 
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
+              {activeMenuItems.map((item, i) => (
+                <motion.div
+                  key={item.label}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: i * 0.1 }}
-                  className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
                 >
-                  {item.label}
-                </motion.a>
-                )
-              )}
+                  <Link
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`font-display text-4xl italic hover:scale-105 transition-transform ${item.label === "Command" ? "text-[#c4a24d]/80 hover:text-[#c4a24d]" : "text-white/80 hover:text-white"}`}
+                  >
+                    {item.label}
+                  </Link>
+                </motion.div>
+              ))}
+              
               <div className="w-12 h-[1px] bg-white/10 mx-auto my-4" />
+              
               {!isLoading && (
                 isAuthenticated ? (
                   <>
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
-                      <Link href="/garden" onClick={() => setIsOpen(false)} className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform">
-                        My Garden
+                      <Link href={`/writer/${user.id}`} onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/60 hover:text-white italic hover:scale-105 transition-transform">
+                        Profile
                       </Link>
                     </motion.div>
-                    {isEditorOrEIC && (
-                      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.55 }}>
-                        <Link href="/editor-studio" onClick={() => setIsOpen(false)} className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform">
-                          Editorial Studio
-                        </Link>
-                      </motion.div>
-                    )}
-                    {isEIC && (
-                      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6 }}>
-                        <Link href="/eic-dashboard" onClick={() => setIsOpen(false)} className="font-display text-3xl text-[#c4a24d]/80 hover:text-[#c4a24d] italic hover:scale-105 transition-transform">
-                          Editorial Command
-                        </Link>
-                      </motion.div>
-                    )}
+                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.55 }}>
+                      <Link href="/settings" onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/60 hover:text-white italic hover:scale-105 transition-transform">
+                        Settings
+                      </Link>
+                    </motion.div>
                     <motion.a 
                       href="/api/logout"
                       initial={{ y: 20, opacity: 0 }} 
                       animate={{ y: 0, opacity: 1 }} 
-                      transition={{ delay: 0.65 }}
+                      transition={{ delay: 0.6 }}
                       className="font-mono text-[11px] text-white/30 hover:text-white/60 lowercase tracking-[0.15em] transition-colors"
                     >
-                      leave
+                      Sign Out
                     </motion.a>
                   </>
                 ) : (
@@ -282,7 +245,7 @@ export default function Navigation() {
                       onClick={() => setIsOpen(false)}
                       className="font-display text-4xl text-white/80 hover:text-white italic hover:scale-105 transition-transform"
                     >
-                      Enter
+                      Sign In
                     </Link>
                   </motion.div>
                 )
