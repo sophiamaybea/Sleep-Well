@@ -3,51 +3,53 @@ import { motion } from "framer-motion";
 
 export default function Footer() {
   return (
-    <footer className="bg-transparent text-primary py-32 px-6 md:px-12 border-t border-white/5 relative overflow-hidden">
+    <footer className="bg-transparent text-primary py-24 px-6 md:px-12 border-t border-white/5 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(196,162,77,0.03) 0%, transparent 50%)" }} />
 
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-12 relative z-10">
-        <div className="space-y-8 max-w-2xl">
-          <motion.h2
-            className="text-4xl md:text-6xl font-display font-light leading-tight italic"
-            initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            viewport={{ once: true }}
-          >
-            You tend your Garden.<br/>We tend our attention.
-          </motion.h2>
-          <motion.div
-            className="flex flex-wrap gap-4"
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            viewport={{ once: true }}
-          >
-            <Link href="/garden" className="px-8 py-4 bg-primary text-background font-mono text-sm uppercase tracking-widest hover:bg-secondary transition-colors" data-testid="footer-enter-garden">
-              Enter The Garden
-            </Link>
-            <Link href="/in-bloom" className="px-8 py-4 border border-white/20 text-primary font-mono text-sm uppercase tracking-widest hover:bg-white/5 transition-colors" data-testid="footer-read-gallery">
-              Read In Bloom
-            </Link>
-          </motion.div>
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16 text-left">
+          {/* Column 1 - Read */}
+          <div className="space-y-6">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Read</h3>
+            <div className="flex flex-col gap-3">
+              <Link href="/in-bloom" className="font-serif italic text-white/60 hover:text-white transition-colors">The Journal</Link>
+              <Link href="/in-bloom#issues" className="font-serif italic text-white/40 hover:text-white transition-colors">Current Issue</Link>
+              <Link href="/in-bloom#archive" className="font-serif italic text-white/40 hover:text-white transition-colors">Archive</Link>
+              <Link href="/in-bloom#contributors" className="font-serif italic text-white/40 hover:text-white transition-colors">Contributors</Link>
+            </div>
+          </div>
+
+          {/* Column 2 - Write */}
+          <div className="space-y-6">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Write</h3>
+            <div className="flex flex-col gap-3">
+              <Link href="/garden" className="font-serif italic text-white/60 hover:text-white transition-colors">The Garden</Link>
+              <Link href="/how-it-works" className="font-serif italic text-white/40 hover:text-white transition-colors">How It Works</Link>
+              <Link href="/seasons" className="font-serif italic text-white/40 hover:text-white transition-colors">Seasons</Link>
+              <Link href="/garden#submissions" className="font-serif italic text-white/40 hover:text-white transition-colors">Submissions</Link>
+            </div>
+          </div>
+
+          {/* Column 3 - Connect */}
+          <div className="space-y-6">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Connect</h3>
+            <div className="flex flex-col gap-3">
+              <Link href="/about" className="font-serif italic text-white/60 hover:text-white transition-colors">About</Link>
+              <button className="text-left font-serif italic text-white/40 hover:text-white transition-colors">Contact</button>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/40 hover:text-white transition-colors">Instagram</a>
+              <button className="text-left font-serif italic text-white/40 hover:text-white transition-colors">Newsletter</button>
+            </div>
+          </div>
         </div>
 
-        <motion.div
-          className="text-right space-y-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <Link href="/about" className="block font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors" data-testid="footer-about">
-            Our Philosophy
-          </Link>
-          <div className="space-y-2 opacity-50 font-mono text-xs uppercase tracking-widest">
-            <p>The Page Gallery Journal © 2026</p>
-            <p>Curated by Attention</p>
+        <div className="pt-8 border-t border-white/[0.03] flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+          <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
+            THE PAGE GALLERY JOURNAL © 2026
           </div>
-        </motion.div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
+            CURATED BY ATTENTION
+          </div>
+        </div>
       </div>
     </footer>
   );
