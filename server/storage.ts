@@ -66,6 +66,7 @@ import {
   readingBouquets, bouquetItems, type ReadingBouquet, type BouquetItem,
   moodboards, moodboardItems, type Moodboard, type MoodboardItem,
   soilEntries, type SoilEntry,
+  genreGenieSuggestions, type GenreGenieSuggestion,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";

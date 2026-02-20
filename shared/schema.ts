@@ -375,6 +375,17 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const genreGenieSuggestions = pgTable("genre_genie_suggestions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  writingId: varchar("writing_id").references(() => writings.id),
+  suggestedGenre: text("suggested_genre").notNull(),
+  explanation: text("explanation").notNull(),
+  conventions: text("conventions").notNull(),
+  inspiration: text("inspiration").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   writings: many(writings),
@@ -386,6 +397,12 @@ export const usersRelations = relations(users, ({ many }) => ({
   innerWeather: many(innerWeather),
   reflections: many(reflections),
   rootInfluences: many(rootInfluences),
+  genreSuggestions: many(genreGenieSuggestions),
+}));
+
+export const genreGenieSuggestionsRelations = relations(genreGenieSuggestions, ({ one }) => ({
+  user: one(users, { fields: [genreGenieSuggestions.userId], references: [users.id] }),
+  writing: one(writings, { fields: [genreGenieSuggestions.writingId], references: [writings.id] }),
 }));
 
 export const writingsRelations = relations(writings, ({ one, many }) => ({
