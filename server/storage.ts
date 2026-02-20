@@ -3607,6 +3607,23 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(soilEntries.id, id), eq(soilEntries.userId, userId))).returning();
     return result.length > 0;
   }
+
+  async getSoilEntry(id: string): Promise<SoilEntry | undefined> {
+    const [entry] = await db.select().from(soilEntries).where(eq(soilEntries.id, id));
+    return entry || undefined;
+  }
+
+  // === GENRE GENIE ===
+  async getGenreSuggestions(userId: string): Promise<GenreGenieSuggestion[]> {
+    return await db.select().from(genreGenieSuggestions)
+      .where(eq(genreGenieSuggestions.userId, userId))
+      .orderBy(desc(genreGenieSuggestions.createdAt));
+  }
+
+  async createGenreSuggestion(userId: string, data: InsertGenreGenieSuggestion): Promise<GenreGenieSuggestion> {
+    const [suggestion] = await db.insert(genreGenieSuggestions).values({ ...data, userId }).returning();
+    return suggestion;
+  }
 }
 
 export const storage = new DatabaseStorage();

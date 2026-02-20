@@ -581,6 +581,51 @@ export async function registerRoutes(
     }
   });
 
+  // === GENRE GENIE ===
+  app.get("/api/genre-genie/suggestions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const suggestions = await storage.getGenreSuggestions(userId);
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error fetching genre suggestions:", error);
+      res.status(500).json({ message: "Failed to fetch genre suggestions" });
+    }
+  });
+
+  app.post("/api/genre-genie/suggest", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { writingId, content } = req.body;
+      
+      if (!content && !writingId) {
+        return res.status(400).json({ message: "Content or writingId is required" });
+      }
+
+      let textToAnalyze = content;
+      if (writingId) {
+        const writing = await storage.getWriting(writingId);
+        if (writing) {
+          textToAnalyze = writing.content.replace(/<[^>]*>/g, "");
+        }
+      }
+
+      // Placeholder for AI logic - will be implemented with OpenAI API key
+      const suggestion = await storage.createGenreSuggestion(userId, {
+        writingId: writingId || null,
+        suggestedGenre: "Poetry",
+        explanation: "The rhythmic nature and concise imagery suggest a poetic form.",
+        conventions: "Line breaks, metaphor, and emotional resonance.",
+        inspiration: "Consider looking at works by Mary Oliver for similar natural themes.",
+      });
+
+      res.status(201).json(suggestion);
+    } catch (error) {
+      console.error("Error generating genre suggestion:", error);
+      res.status(500).json({ message: "Failed to generate genre suggestion" });
+    }
+  });
+
   app.delete("/api/submissions/:id", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.deleteSubmission(req.params.id, req.user.claims.sub);
