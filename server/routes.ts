@@ -610,13 +610,105 @@ export async function registerRoutes(
         }
       }
 
-      // Placeholder for AI logic - will be implemented with OpenAI API key
+      if (!textToAnalyze || textToAnalyze.trim().length < 20) {
+        return res.status(400).json({ message: "Please provide at least a few sentences for the Genre Genie to analyze." });
+      }
+
+      let result: { suggestedGenre: string; explanation: string; conventions: string; inspiration: string } | null = null;
+
+      const openaiKey = process.env.OPENAI_API_KEY;
+      if (openaiKey) {
+        try {
+          const OpenAI = (await import("openai")).default;
+          const openai = new OpenAI({ apiKey: openaiKey });
+
+          const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: `You are Genre Genie, a literary genre expert for The Page Gallery Journal. Analyze the provided writing and suggest the most fitting literary genre or form. Respond in JSON with exactly these keys:
+- "suggestedGenre": A specific genre or form (e.g., "Lyric Poetry", "Flash Fiction", "Personal Essay", "Prose Poetry", "Micro-memoir", "Speculative Fiction", "Literary Realism")
+- "explanation": 2-3 sentences explaining why this genre fits the writing's voice, structure, and themes
+- "conventions": Key conventions and craft elements of this genre that the writer is already using or could explore
+- "inspiration": Suggest 2-3 specific authors or works in this genre that share a similar sensibility, with brief notes on why
+
+Keep the tone warm and encouraging, like a knowledgeable literary friend. Respond ONLY with valid JSON, no markdown.`
+              },
+              {
+                role: "user",
+                content: `Please analyze this writing and suggest a genre:\n\n${textToAnalyze.substring(0, 3000)}`
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+          });
+
+          const raw = completion.choices[0]?.message?.content || "";
+          try {
+            const parsed = JSON.parse(raw);
+            result = {
+              suggestedGenre: String(parsed.suggestedGenre || "Creative Writing"),
+              explanation: String(parsed.explanation || ""),
+              conventions: String(parsed.conventions || ""),
+              inspiration: String(parsed.inspiration || ""),
+            };
+          } catch {
+            result = {
+              suggestedGenre: "Creative Writing",
+              explanation: raw.substring(0, 300),
+              conventions: "The Genre Genie had trouble formatting its response. Try again!",
+              inspiration: "",
+            };
+          }
+        } catch (aiError) {
+          console.error("OpenAI Genre Genie error, falling back to heuristics:", aiError);
+        }
+      }
+      
+      if (!result) {
+        const text = textToAnalyze.toLowerCase();
+        const hasLineBreaks = (textToAnalyze.match(/\n/g) || []).length > 5;
+        const avgSentenceLen = textToAnalyze.split(/[.!?]+/).filter(Boolean).length;
+        const wordCount = textToAnalyze.split(/\s+/).length;
+
+        if (hasLineBreaks && wordCount < 300) {
+          result = {
+            suggestedGenre: "Poetry",
+            explanation: "Your writing uses deliberate line breaks and compact imagery, which are hallmarks of poetic form. The concentrated language suggests each word is carefully chosen for rhythm and meaning.",
+            conventions: "Consider exploring enjambment, caesura, and stanzaic structure. Strong imagery and figurative language — metaphor, simile, personification — are your tools here.",
+            inspiration: "Look into Mary Oliver's nature poetry, Ocean Vuong's lyric intensity, or Ada Limón's grounded observations for kindred voices.",
+          };
+        } else if (wordCount < 1000) {
+          result = {
+            suggestedGenre: "Flash Fiction",
+            explanation: "The brevity and narrative compression of your piece align with flash fiction — a form that demands every sentence carry weight. Your writing hints at a larger world beyond the page.",
+            conventions: "Flash fiction thrives on implication, a single resonant image, and endings that reverberate. Aim for a moment of change or revelation in miniature.",
+            inspiration: "Explore Diane Williams' micro-fictions, Lydia Davis' precise brevity, or Stuart Dybek's lyric flash pieces.",
+          };
+        } else if (text.includes("i ") || text.includes("my ") || text.includes("we ")) {
+          result = {
+            suggestedGenre: "Personal Essay",
+            explanation: "The first-person perspective and reflective tone suggest a personal essay — writing that uses lived experience as a lens for larger meaning. Your voice carries authenticity and introspection.",
+            conventions: "The personal essay braids scene, reflection, and research. Look for the universal in the particular. Let your specific story illuminate something shared.",
+            inspiration: "Consider reading Leslie Jamison's 'The Empathy Exams,' Roxane Gay's essay collections, or James Baldwin's personal nonfiction.",
+          };
+        } else {
+          result = {
+            suggestedGenre: "Literary Fiction",
+            explanation: "Your writing demonstrates attention to language and character that places it in the realm of literary fiction — stories that prioritize depth of human experience over plot mechanics.",
+            conventions: "Literary fiction values interiority, nuanced character development, and prose style. Subtext and ambiguity are strengths, not weaknesses.",
+            inspiration: "Explore Marilynne Robinson's contemplative prose, George Saunders' compassionate satire, or Carmen Maria Machado's inventive forms.",
+          };
+        }
+      }
+
       const suggestion = await storage.createGenreSuggestion(userId, {
-        writingId: writingId || null,
-        suggestedGenre: "Poetry",
-        explanation: "The rhythmic nature and concise imagery suggest a poetic form.",
-        conventions: "Line breaks, metaphor, and emotional resonance.",
-        inspiration: "Consider looking at works by Mary Oliver for similar natural themes.",
+        writingId: writingId || undefined,
+        suggestedGenre: result!.suggestedGenre,
+        explanation: result!.explanation,
+        conventions: result!.conventions,
+        inspiration: result!.inspiration,
       });
 
       res.status(201).json(suggestion);
