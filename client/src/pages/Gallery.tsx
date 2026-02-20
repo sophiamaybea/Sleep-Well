@@ -135,7 +135,7 @@ export default function Gallery() {
             </span>
             <div className="flex items-center justify-center gap-3">
               <Flower2 size={28} className="text-amber-400/40" />
-              <h1 className="text-5xl md:text-7xl font-display font-light tracking-tight italic">
+              <h1 className="text-5xl md:text-7xl font-display font-light tracking-tight italic text-white/90">
                 The Journal
               </h1>
             </div>
@@ -481,7 +481,7 @@ export default function Gallery() {
 
         <footer className="border-t border-white/[0.04] py-12 text-center">
           <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20">
-            The Page Gallery Journal
+            The Page Gallery & Garden
           </p>
         </footer>
       </div>
@@ -513,7 +513,7 @@ function ShareButton({ piece }: { piece: any }) {
       try {
         await navigator.share({
           title: piece.title,
-          text: `Read "${piece.title}" on The Page Gallery Journal`,
+          text: `Read "${piece.title}" on The Page Gallery & Garden`,
           url: shareUrl,
         });
       } catch (e) {
