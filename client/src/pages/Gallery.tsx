@@ -136,9 +136,12 @@ export default function Gallery() {
             <div className="flex items-center justify-center gap-3">
               <Flower2 size={28} className="text-amber-400/40" />
               <h1 className="text-5xl md:text-7xl font-display font-light tracking-tight italic">
-                In Bloom (Published Works)
+                The Journal
               </h1>
             </div>
+            <p className="text-sm font-mono uppercase tracking-[0.3em] text-amber-400/60 mb-2">
+              In Bloom
+            </p>
             <p className="text-lg font-serif italic text-white/45 max-w-xl mx-auto leading-relaxed">
               This is the public journal. Here you can read stories and poems that have been selected for publication.
             </p>
@@ -210,7 +213,7 @@ export default function Gallery() {
                   <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" />
                   <input
                     type="text"
-                    placeholder="Search bloomed works..."
+                    placeholder="Search published works..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-full font-serif text-sm text-white/80 placeholder:text-white/25 focus:outline-none focus:border-amber-600/30 transition-colors"
@@ -772,25 +775,25 @@ function PlantedInTheGarden() {
   return (
     <>
       <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-planted-intro">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          viewport={{ once: true }}
-          className="max-w-2xl mx-auto text-center space-y-6"
-        >
-          <div className="flex items-center justify-center gap-4">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />
-            <Flower2 size={20} className="text-amber-400/40" />
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-600/20" />
-          </div>
-          <h2 className="text-3xl md:text-5xl font-display font-light italic">
-            Planted in the Garden
-          </h2>
-          <p className="font-serif text-white/45 text-lg leading-relaxed">
-            Every piece in this journal was first planted in a writer's garden. Our editors wander the gardens, discovering work that has bloomed. These print editions gather the finest harvests.
-          </p>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true }}
+            className="max-w-2xl mx-auto text-center space-y-6"
+          >
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />
+              <Flower2 size={20} className="text-amber-400/40" />
+              <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-600/20" />
+            </div>
+            <h2 className="text-3xl md:text-5xl font-display font-light italic">
+              Print Editions
+            </h2>
+            <p className="font-serif text-white/45 text-lg leading-relaxed">
+              Every piece in this journal was first planted in a writer's garden. These issues gather the finest harvests.
+            </p>
+          </motion.div>
       </section>
 
       <section className="py-16 px-6 md:px-12" data-testid="section-print-editions">
@@ -859,9 +862,9 @@ function PlantedInTheGarden() {
           >
             <div className="flex items-center gap-3">
               <Heart className="w-5 h-5 text-emerald-400/60" />
-              <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">Our Friends</span>
+              <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">Friends</span>
             </div>
-            <h3 className="text-3xl md:text-4xl font-display font-light italic">Publications & Presses We Love</h3>
+            <h3 className="text-3xl md:text-4xl font-display font-light italic">Publications We Admire</h3>
             <p className="font-serif text-white/40 text-lg leading-relaxed max-w-2xl">
               The literary ecosystem thrives on interconnection. These are the journals, presses, and publications whose work we admire.
             </p>
