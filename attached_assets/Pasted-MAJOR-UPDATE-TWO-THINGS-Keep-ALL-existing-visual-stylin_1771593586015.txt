@@ -1,0 +1,26 @@
+MAJOR UPDATE - TWO THINGS. Keep ALL existing visual styling.
+
+1) RENAME THE SITE: Change "The Page Gallery Journal" to "The Page Gallery & Garden" EVERYWHERE it appears:
+- Logo/wordmark in the nav bar
+- Homepage hero heading
+- The /in-bloom page header (currently says "THE PAGE GALLERY JOURNAL" above "The Journal")
+- The /about page header
+- Footer copyright line: change to "THE PAGE GALLERY & GARDEN (c) 2026"
+- Any other place the old name appears in the codebase
+- The animated JOURNAL text background on the homepage hero - change it to show both words or just the new name
+- The tagline stays: "We are a journal, and we tend to a garden." (this already makes sense with the new name)
+
+2) IDIOT-PROOF EVERYTHING - Beta testers are confused. Make every single label and button so obvious that nobody could misunderstand:
+
+- Homepage CTAs: Keep "READ THE JOURNAL" and "START WRITING" and "ABOUT US" - these are already clear
+- The "From the Journal" section on homepage: add a one-line explainer underneath like "Published stories and poems, selected by our editors" so people know what they're looking at
+- The "From the Journal" card that says "VIEW IN BLOOM" - change to "READ ALL PUBLISHED WORK" or "SEE ALL PIECES"
+- The Garden section: The Seed/Sprout/Bloom stages are already well explained with plain English - good
+- "ENTER YOUR GARDEN" button - change to "GO TO YOUR WRITING SPACE" or keep as is but make sure it says clearly it's for writing
+- Nav item "MY GARDEN" - add tooltip or subtitle "Your Writing Space" 
+- Nav item "THE JOURNAL" - add tooltip "Published Work"
+- Nav item "SEASONS" - add tooltip "Writing Challenges" 
+- "CURATED BY ATTENTION" - keep, it's a tagline not navigation
+- On the /in-bloom page, the subtitle "IN BLOOM" is poetic but unclear - change to something like "PUBLISHED WORKS" or remove it entirely since the heading already says "The Journal"
+
+The goal: a person who has never heard of this site should understand what every button does within 2 seconds of looking at it. No metaphor should stand between a user and understanding.

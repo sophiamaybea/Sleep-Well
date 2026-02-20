@@ -234,7 +234,7 @@ export default function GardenIntro() {
               className="inline-flex items-center gap-3 font-mono text-sm uppercase tracking-widest border-b border-white/20 hover:border-white/60 transition-all pb-2 hover:text-white"
               testId="link-enter-garden"
             >
-              Enter Your Garden
+              Go to Your Writing Space
               <motion.span
                 className="text-lg inline-block"
                 whileHover={{ x: 8, scale: 1.3 }}

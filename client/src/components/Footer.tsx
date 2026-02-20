@@ -44,7 +44,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-white/[0.03] flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
-            THE PAGE GALLERY JOURNAL © 2026
+            THE PAGE GALLERY & GARDEN © 2026
           </div>
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
             CURATED BY ATTENTION

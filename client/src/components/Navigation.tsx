@@ -59,16 +59,16 @@ export default function Navigation() {
 
   const publicMenuItems = [
     { label: "Home", href: "/", isPage: true },
-    { label: "The Journal", href: "/in-bloom", isPage: true },
-    { label: "Seasons", href: "/seasons", isPage: true },
+    { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
+    { label: "Seasons", href: "/seasons", isPage: true, tooltip: "Writing Challenges" },
     { label: "About", href: "/about", isPage: true },
   ];
 
   const writerMenuItems = [
     { label: "Home", href: "/", isPage: true },
-    { label: "The Journal", href: "/in-bloom", isPage: true },
-    { label: "Seasons", href: "/seasons", isPage: true },
-    { label: "My Garden", href: "/garden", isPage: true },
+    { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
+    { label: "Seasons", href: "/seasons", isPage: true, tooltip: "Writing Challenges" },
+    { label: "My Garden", href: "/garden", isPage: true, tooltip: "Your Writing Space" },
     { label: "Studio", href: "/editor-studio", isPage: true },
   ];
 
@@ -87,7 +87,7 @@ export default function Navigation() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           <Link href="/" className="relative group">
             <span className="font-display font-medium text-2xl tracking-tight italic mix-blend-difference text-white">
-              The Page Gallery Journal
+              The Page Gallery & Garden
             </span>
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
@@ -99,6 +99,7 @@ export default function Navigation() {
                 href={item.href}
                 className={`transition-colors relative group ${item.label === "Command" ? "text-[#c4a24d]/70 hover:text-[#c4a24d]" : "text-white/70 hover:text-white"}`}
                 data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
+                title={(item as any).tooltip}
               >
                 {item.label}
                 <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Command" ? "bg-[#c4a24d]" : "bg-white"}`} />

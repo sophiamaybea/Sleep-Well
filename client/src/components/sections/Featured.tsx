@@ -49,7 +49,10 @@ export default function Featured() {
           <h2 className="text-5xl md:text-6xl font-display font-light tracking-tight">
             From the Journal
           </h2>
-          <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto leading-relaxed">
+          <p className="font-serif text-[13px] text-white/40 tracking-wide mt-2">
+            Published stories and poems, selected by our editors
+          </p>
+          <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto leading-relaxed mt-4">
             Planted in the Garden. Chosen because they wouldn't let go.
           </p>
           <motion.div
@@ -129,7 +132,7 @@ export default function Featured() {
 
                       <div className="flex items-center justify-center gap-3 pt-4">
                         <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200/50 group-hover:text-amber-200/80 transition-colors duration-500">
-                          View In Bloom
+                          Read All Published Work
                         </span>
                         <ArrowRight size={16} className="text-amber-200/40 group-hover:text-amber-200/70 group-hover:translate-x-1 transition-all duration-500" />
                       </div>

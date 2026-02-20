@@ -131,7 +131,7 @@ export default function Gallery() {
             className="text-center space-y-6"
           >
             <span className="font-mono text-[10px] tracking-[0.4em] text-amber-200/25 block uppercase">
-              The Page Gallery Journal
+              The Page Gallery & Garden
             </span>
             <div className="flex items-center justify-center gap-3">
               <Flower2 size={28} className="text-amber-400/40" />
@@ -140,7 +140,7 @@ export default function Gallery() {
               </h1>
             </div>
             <p className="text-sm font-mono uppercase tracking-[0.3em] text-amber-400/60 mb-2">
-              In Bloom
+              Published Works
             </p>
             <p className="text-lg font-serif italic text-white/45 max-w-xl mx-auto leading-relaxed">
               This is the public journal. Here you can read stories and poems that have been selected for publication.

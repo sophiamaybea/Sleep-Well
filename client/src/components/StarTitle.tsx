@@ -66,7 +66,7 @@ export default function StarTitle() {
       oc.textAlign = "center";
       oc.textBaseline = "middle";
 
-      const lines = ["THE PAGE", "GALLERY", "JOURNAL"];
+      const lines = ["THE PAGE", "GALLERY", "& GARDEN"];
       const gap = fontSize * 1.25;
       const top = h / 2 - ((lines.length - 1) * gap) / 2;
       lines.forEach((l, i) => oc.fillText(l, w / 2, top + i * gap));
@@ -215,7 +215,7 @@ export default function StarTitle() {
 
 function generateFallbackPoints(w: number, h: number, fontSize: number): { x: number; y: number }[] {
   const pts: { x: number; y: number }[] = [];
-  const lines = ["THE PAGE", "GALLERY", "JOURNAL"];
+  const lines = ["THE PAGE", "GALLERY", "& GARDEN"];
   const gap = fontSize * 1.25;
   const top = h / 2 - ((lines.length - 1) * gap) / 2;
 
