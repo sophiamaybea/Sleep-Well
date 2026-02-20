@@ -3620,7 +3620,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(genreGenieSuggestions.createdAt));
   }
 
-  async createGenreSuggestion(userId: string, data: InsertGenreGenieSuggestion): Promise<GenreGenieSuggestion> {
+  async createGenreSuggestion(userId: string, data: { writingId?: string; suggestedGenre: string; explanation: string; conventions: string; inspiration: string }): Promise<GenreGenieSuggestion> {
     const [suggestion] = await db.insert(genreGenieSuggestions).values({ ...data, userId }).returning();
     return suggestion;
   }
