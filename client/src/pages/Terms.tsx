@@ -21,7 +21,7 @@ export default function Terms() {
             <p className="text-lg">Effective Date: February 2025</p>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">1. Acceptance of Terms</h2>
-              <p>By accessing or using The Page Gallery Journal, you agree to be bound by these Terms of Service. If you do not agree, please do not use our platform.</p>
+              <p>By accessing or using The Page Gallery & Garden, you agree to be bound by these Terms of Service. If you do not agree, please do not use our platform.</p>
             </section>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">2. User Accounts</h2>
@@ -29,7 +29,7 @@ export default function Terms() {
             </section>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">3. Content Ownership</h2>
-              <p>You retain full ownership of all original works you submit to The Page Gallery Journal. By submitting content, you grant us a non-exclusive license to display, publish, and distribute your work within our platform and associated publications.</p>
+              <p>You retain full ownership of all original works you submit to The Page Gallery & Garden. By submitting content, you grant us a non-exclusive license to display, publish, and distribute your work within our platform and associated publications.</p>
             </section>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">4. Editorial Process</h2>

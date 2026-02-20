@@ -66,7 +66,7 @@ export default function Publications() {
               transition={{ delay: 0.3, duration: 1 }}
               className="font-mono text-[10px] tracking-[0.4em] block uppercase"
             >
-              The Page Gallery Journal
+              The Page Gallery & Garden
             </motion.span>
             <motion.h1
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}

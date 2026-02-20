@@ -21,11 +21,11 @@ export default function Privacy() {
             <p className="text-lg">Last updated: {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">1. Information We Collect</h2>
-              <p>The Page Gallery Journal collects information you provide when creating an account, including your name, email address, and profile information. We also collect content you submit, such as written pieces, editorial notes, and comments.</p>
+              <p>The Page Gallery & Garden collects information you provide when creating an account, including your name, email address, and profile information. We also collect content you submit, such as written pieces, editorial notes, and comments.</p>
             </section>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">2. How We Use Your Information</h2>
-              <p>We use your information to operate and improve The Page Gallery Journal, including managing your account, displaying your published works, facilitating editorial workflows, and communicating important updates about the platform.</p>
+              <p>We use your information to operate and improve The Page Gallery & Garden, including managing your account, displaying your published works, facilitating editorial workflows, and communicating important updates about the platform.</p>
             </section>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">3. Content &amp; Publishing</h2>
@@ -45,7 +45,7 @@ export default function Privacy() {
             </section>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">7. Contact</h2>
-              <p>For privacy inquiries, please contact us at privacy@thepagegalleryjournal.com.</p>
+              <p>For privacy inquiries, please contact us at privacy@thepagegalleryandgarden.com.</p>
             </section>
           </div>
           <div className="mt-16 pt-8 border-t border-white/10">

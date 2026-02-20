@@ -67,7 +67,7 @@ export default function HowItWorks() {
               },
               {
                 label: "Who We Are",
-                text: "The Page Gallery Journal is a literary journal and curatorial project. We publish thematic, illustrated print editions \u2014 chapbooks and quarterly issues \u2014 that treat the book as an art object. Alongside the Journal, we tend to a garden: a collaborative writing platform where writers grow, share, and support one another.",
+                text: "The Page Gallery & Garden is a literary journal and curatorial project. We publish thematic, illustrated print editions \u2014 chapbooks and quarterly issues \u2014 that treat the book as an art object. Alongside the Journal, we tend to a garden: a collaborative writing platform where writers grow, share, and support one another.",
               },
               {
                 label: "What We Offer",

@@ -24,8 +24,8 @@ const faqSections: FAQSection[] = [
     color: "text-emerald-400",
     items: [
       {
-        question: "What is The Page Gallery Journal?",
-        answer: "The Page Gallery Journal is a literary journal built on a discovery model. Instead of traditional submissions, writers cultivate work in personal Gardens, and our editorial team wanders through those Gardens to discover pieces for publication in the Gallery."
+        question: "What is The Page Gallery & Garden?",
+        answer: "The Page Gallery & Garden is a literary journal built on a discovery model. Instead of traditional submissions, writers cultivate work in personal Gardens, and our editorial team wanders through those Gardens to discover pieces for publication in the Gallery."
       },
       {
         question: "How do I sign up?",
@@ -260,7 +260,7 @@ export default function FieldGuide() {
               transition={{ delay: 0.9, duration: 1 }}
               className="font-serif italic text-lg text-white/50 max-w-lg mx-auto leading-relaxed"
             >
-              Everything you need to know about cultivating your writing life at The Page Gallery Journal.
+              Everything you need to know about cultivating your writing life at The Page Gallery & Garden.
             </motion.p>
           </div>
 
