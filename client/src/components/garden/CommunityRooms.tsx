@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronDown, Plus, MessageSquare, BookOpen, ArrowLeftRight, Feather, Users, PenLine, FileCheck, Sparkles, Clock, Award, Send, ShieldOff, Globe, Lightbulb, ExternalLink, MapPin, Trash2, X, Heart, Crown } from "lucide-react";
-import { ContentRenderer } from "./RichEditor";
+import { ContentRenderer, stripHtml } from "./RichEditor";
 import { Toast } from "./GardenUI";
 
 function ListSkeleton({ count = 4 }: { count?: number }) {
@@ -3196,7 +3196,7 @@ export function FirstReaderRoom({ onBack }: { onBack: () => void }) {
             <p className="text-center font-serif text-sm text-white/30 py-12">You haven't dropped anything yet.</p>
           ) : myDrops.map((drop: any) => (
             <div key={drop.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <p className="font-serif text-xs text-white/40 truncate mb-2">{drop.content.slice(0, 100)}...</p>
+              <p className="font-serif text-xs text-white/40 truncate mb-2">{stripHtml(drop.content || "").slice(0, 100)}...</p>
               <span className="font-mono text-[8px] text-white/20">{drop.responses?.length || 0} {(drop.responses?.length || 0) === 1 ? "reader" : "readers"}</span>
               {(drop.responses || []).map((r: any) => (
                 <div key={r.id} className="mt-3 pl-3 border-l-2 border-amber-500/15">

@@ -7,7 +7,6 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import bcrypt from "bcryptjs";
 import { authStorage } from "./storage";
-import bcrypt from "bcryptjs";
 
 const isReplit = !!process.env.REPL_ID;
 
@@ -22,7 +21,7 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -149,7 +148,7 @@ export async function setupAuth(app: Express) {
         (req.session as any).userId = user.id;
         (req.session as any).user = {
           claims: { sub: user.id, email: user.email, first_name: user.firstName, last_name: user.lastName, profile_image_url: user.profileImageUrl },
-          expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+          expires_at: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
         };
         return res.json({ message: "Login successful", user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: (user as any).role } });
       } catch (error) {
@@ -182,7 +181,7 @@ export async function setupAuth(app: Express) {
         (req.session as any).userId = userId;
         (req.session as any).user = {
           claims: { sub: userId, email, first_name: firstName, last_name: lastName },
-          expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+          expires_at: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
         };
         return res.json({ message: "Registration successful" });
       } catch (error) {

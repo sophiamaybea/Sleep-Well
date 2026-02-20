@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2 } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2, Bookmark, Share2, Check } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
 
@@ -32,6 +32,7 @@ type ViewMode = "pieces" | "contributors";
 export default function Gallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeGenre, setActiveGenre] = useState("all");
+  const [wordCountFilter, setWordCountFilter] = useState("all");
   const [selectedPiece, setSelectedPiece] = useState<GalleryItem | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("pieces");
   const [selectedContributor, setSelectedContributor] = useState<string | null>(null);
@@ -88,9 +89,21 @@ export default function Gallery() {
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [allGallery]);
 
-  const displayedGallery = selectedContributor
+  const wordCountFiltered = (selectedContributor
     ? allGallery.filter(item => item.authorId === selectedContributor)
-    : gallery;
+    : gallery
+  ).filter(p => {
+    if (wordCountFilter === "all") return true;
+    const text = stripHtml(p.content || "");
+    const wc = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+    if (wordCountFilter === "flash") return wc < 1000;
+    if (wordCountFilter === "short") return wc >= 1000 && wc < 5000;
+    if (wordCountFilter === "medium") return wc >= 5000 && wc < 15000;
+    if (wordCountFilter === "long") return wc >= 15000;
+    return true;
+  });
+
+  const displayedGallery = wordCountFiltered;
 
   const selectedIndex = selectedPiece ? displayedGallery.findIndex(g => g.id === selectedPiece.id) : -1;
   const prevPiece = selectedIndex > 0 ? displayedGallery[selectedIndex - 1] : null;
@@ -192,7 +205,7 @@ export default function Gallery() {
                   </button>
                 ))}
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center items-center gap-3 flex-wrap">
                 <div className="relative w-full sm:w-80">
                   <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" />
                   <input
@@ -204,6 +217,18 @@ export default function Gallery() {
                     data-testid="input-gallery-search"
                   />
                 </div>
+                <select
+                  value={wordCountFilter}
+                  onChange={(e) => setWordCountFilter(e.target.value)}
+                  className="bg-transparent text-white/50 font-mono text-[10px] uppercase tracking-widest border border-white/[0.15] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
+                  data-testid="select-wordcount-filter"
+                >
+                  <option value="all" className="bg-[#0b101a]">All Lengths</option>
+                  <option value="flash" className="bg-[#0b101a]">Flash (&lt;1k)</option>
+                  <option value="short" className="bg-[#0b101a]">Short (1-5k)</option>
+                  <option value="medium" className="bg-[#0b101a]">Medium (5-15k)</option>
+                  <option value="long" className="bg-[#0b101a]">Long (15k+)</option>
+                </select>
               </div>
             </motion.div>
           )}
@@ -473,6 +498,40 @@ export default function Gallery() {
   );
 }
 
+function ShareButton({ piece }: { piece: any }) {
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl = `${window.location.origin}/in-bloom?piece=${piece.id}`;
+
+  async function handleShare() {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: piece.title,
+          text: `Read "${piece.title}" on The Page Gallery Journal`,
+          url: shareUrl,
+        });
+      } catch (e) {
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleShare}
+      className="p-2 rounded-full text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all"
+      title={copied ? "Link copied!" : "Share this piece"}
+      data-testid="button-share-piece"
+    >
+      {copied ? <Check size={16} className="text-emerald-400" /> : <Share2 size={16} />}
+    </button>
+  );
+}
+
 function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextPiece, onNavigate }: {
   piece: GalleryItem;
   lightMode: boolean;
@@ -484,8 +543,41 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
 }) {
   const readingTime = getReadingTime(piece.content);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
   const { scrollYProgress } = useScroll({ container: scrollRef });
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+
+  const { data: savedPieces = [] } = useQuery<{ id: string; writingId: string }[]>({
+    queryKey: ["/api/saved"],
+    queryFn: async () => {
+      const res = await fetch("/api/saved", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const isSaved = savedPieces.some((s) => s.writingId === piece.id);
+  const savedEntry = savedPieces.find((s) => s.writingId === piece.id);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (isSaved && savedEntry) {
+        const res = await fetch(`/api/saved/${savedEntry.id}`, { method: "DELETE", credentials: "include" });
+        if (!res.ok) throw new Error("Failed");
+      } else {
+        const res = await fetch("/api/saved", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ writingId: piece.id }),
+        });
+        if (!res.ok) throw new Error("Failed");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved"] });
+    },
+  });
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -544,6 +636,19 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
               <ChevronRight size={18} />
             </button>
           )}
+          <ShareButton piece={piece} />
+          <button
+            onClick={() => saveMutation.mutate()}
+            disabled={saveMutation.isPending}
+            className={`p-2 rounded-full transition-colors ${
+              isSaved
+                ? lightMode ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50" : "text-amber-400 hover:text-amber-300 hover:bg-amber-400/[0.08]"
+                : lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/30 hover:text-white/70 hover:bg-white/[0.06]"
+            }`}
+            data-testid="button-bookmark-piece"
+          >
+            <Bookmark size={16} fill={isSaved ? "currentColor" : "none"} />
+          </button>
           <button
             onClick={() => setLightMode(!lightMode)}
             className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/30 hover:text-white/70 hover:bg-white/[0.06]"}`}
@@ -559,7 +664,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
         className="absolute inset-0 overflow-y-auto pt-16 pb-32"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="max-w-2xl mx-auto px-6 md:px-8 py-12">
+        <div className="max-w-2xl mx-auto px-4 md:px-8 lg:px-16 py-12">
           <div className="space-y-8">
             <div className="space-y-4">
               <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lightMode ? "text-stone-400" : "text-amber-200/30"}`}>
@@ -584,10 +689,10 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
 
             <div className={`h-px ${lightMode ? "bg-stone-200" : "bg-white/[0.06]"}`} />
 
-            <div className={`prose max-w-none ${lightMode
+            <div className={`prose max-w-none break-words ${lightMode
               ? "prose-stone prose-p:text-stone-700 prose-p:leading-[1.9] prose-headings:text-stone-800"
               : "prose-invert prose-p:text-white/60 prose-p:leading-[1.9] prose-headings:text-white/80"
-            } prose-p:font-serif prose-p:text-[17px] prose-headings:font-display prose-headings:italic`}>
+            } prose-p:font-serif prose-p:text-base md:prose-p:text-[17px] prose-headings:font-display prose-headings:italic`} style={{ overflowWrap: "anywhere" }}>
               <ContentRenderer content={piece.content} />
             </div>
 
@@ -614,9 +719,90 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
                 )}
               </div>
             )}
+
+            <GalleryComments writingId={piece.id} />
           </div>
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function GalleryComments({ writingId }: { writingId: string }) {
+  const [newComment, setNewComment] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: comments = [] } = useQuery<any[]>({
+    queryKey: ["/api/gallery-comments", writingId],
+    queryFn: async () => {
+      const res = await fetch(`/api/gallery-comments/${writingId}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const addComment = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/gallery-comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ writingId, content: newComment }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/gallery-comments", writingId] });
+      setNewComment("");
+    },
+  });
+
+  return (
+    <div className="mt-12 pt-8 border-t border-white/[0.08]">
+      <h3 className="font-display text-xl text-white/70 italic mb-6" data-testid="text-comments-heading">
+        Reflections
+      </h3>
+
+      <div className="mb-8">
+        <textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Share your thoughts on this piece..."
+          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 text-white/70 text-sm font-serif placeholder:text-white/25 focus:outline-none focus:border-white/20 transition-colors resize-none min-h-[80px]"
+          data-testid="textarea-comment"
+        />
+        <div className="flex justify-end mt-2">
+          <button
+            onClick={() => addComment.mutate()}
+            disabled={!newComment.trim() || addComment.isPending}
+            className="px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest border border-white/[0.15] text-white/60 hover:text-white/80 hover:border-white/25 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            data-testid="button-submit-comment"
+          >
+            {addComment.isPending ? "Posting..." : "Leave a reflection"}
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {comments.map((c: any) => (
+          <div key={c.id} className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4" data-testid={`comment-${c.id}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-serif text-sm text-white/60">{c.authorName || "Anonymous"}</span>
+              <span className="text-white/20">·</span>
+              <span className="font-mono text-[9px] text-white/30">
+                {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+              </span>
+            </div>
+            <p className="font-serif text-sm text-white/50 leading-relaxed">{c.content}</p>
+          </div>
+        ))}
+        {comments.length === 0 && (
+          <p className="font-serif text-sm text-white/25 italic text-center py-6" data-testid="text-no-comments">
+            No reflections yet. Be the first to share your thoughts.
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

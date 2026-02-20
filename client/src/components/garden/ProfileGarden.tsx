@@ -5,6 +5,7 @@ import { User, ChevronDown, ChevronLeft, Feather } from "lucide-react";
 import type { Writing } from "@shared/schema";
 import { VisibilityBadge } from "./PlantingFlow";
 import { ResonanceBar, MarginaliaSection, TendButton } from "./SocialFeatures";
+import { ContentRenderer } from "./RichEditor";
 
 function timeAgo(date: string | Date | null | undefined) {
   if (!date) return "";
@@ -138,9 +139,7 @@ export default function ProfileGarden({ userId, onBack }: { userId: string; onBa
                         {piece.title || "Untitled"}
                       </h3>
                       {!isExpanded && piece.content && (
-                        <p className="text-sm font-serif text-white/25 line-clamp-1">
-                          {piece.content.slice(0, 150)}
-                        </p>
+                        <ContentRenderer content={piece.content} maxLength={150} className="text-sm font-serif text-white/25 line-clamp-1" />
                       )}
                       <div className="flex items-center gap-3">
                         <span className="font-mono text-[9px] uppercase tracking-widest text-white/15">{piece.genre}</span>
@@ -167,12 +166,7 @@ export default function ProfileGarden({ userId, onBack }: { userId: string; onBa
                       className="overflow-hidden"
                     >
                       <div className="px-5 pb-5 space-y-3 border-t border-white/[0.04] pt-4">
-                        <p className="text-base font-serif text-white/45 leading-[1.9] whitespace-pre-wrap">
-                          {piece.content.slice(0, 1500)}
-                          {piece.content.length > 1500 && (
-                            <span className="text-white/20 italic"> ...continues</span>
-                          )}
-                        </p>
+                        <ContentRenderer content={piece.content} maxLength={1500} className="text-base font-serif text-white/45 leading-[1.9]" />
                         <div className="flex items-center gap-4">
                           <span className="font-mono text-[9px] text-white/20 tracking-widest">
                             {wordCount(piece.content)} words

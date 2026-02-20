@@ -1053,6 +1053,32 @@ export const soilEntries = pgTable("soil_entries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// === GALLERY COMMENTS ===
+
+export const galleryComments = pgTable("gallery_comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").notNull().references(() => writings.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  parentId: varchar("parent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGalleryCommentSchema = createInsertSchema(galleryComments).omit({ id: true, userId: true, createdAt: true });
+export type GalleryComment = typeof galleryComments.$inferSelect;
+
+// === DAILY WRITING PROMPTS ===
+
+export const dailyPrompts = pgTable("daily_prompts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  text: text("text").notNull(),
+  category: text("category").notNull().default("freewrite"),
+  activeDate: timestamp("active_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type DailyPrompt = typeof dailyPrompts.$inferSelect;
+
 // Insert schemas
 export const insertOpportunityTrackerSchema = createInsertSchema(opportunityTracker).omit({ id: true, userId: true, createdAt: true });
 export const insertCommonsShareSchema = createInsertSchema(commonsShares).omit({ id: true, userId: true, sharedAt: true });

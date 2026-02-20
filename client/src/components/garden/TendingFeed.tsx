@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sprout, Feather } from "lucide-react";
 import { VisibilityBadge } from "./PlantingFlow";
 import { ResonanceBar } from "./SocialFeatures";
+import { ContentRenderer } from "./RichEditor";
 
 function timeAgo(date: string | Date | null | undefined) {
   if (!date) return "";
@@ -196,9 +197,7 @@ export default function TendingFeed({ onViewProfile }: { onViewProfile?: (userId
                     </h3>
 
                     {piece.content && (
-                      <p className="text-sm font-serif text-white/30 line-clamp-2 leading-relaxed">
-                        {piece.content.slice(0, 200)}
-                      </p>
+                      <ContentRenderer content={piece.content} maxLength={200} className="text-sm font-serif text-white/30 line-clamp-2 leading-relaxed" />
                     )}
 
                     <div className="flex items-center gap-3 pt-1">

@@ -43,6 +43,7 @@
 @layer base {
   html {
     scroll-behavior: auto; /* Disabled for Lenis */
+    overflow-x: hidden;
   }
   * {
     @apply border-border;
@@ -671,34 +672,44 @@
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── High Contrast ── */
-.a11y-high-contrast {
+html.a11y-high-contrast {
   --color-foreground: #ffffff !important;
   --color-background: #000000 !important;
 }
-.a11y-high-contrast body {
+html.a11y-high-contrast body {
   color: #ffffff !important;
   background: #000000 !important;
 }
-.a11y-high-contrast * {
-  border-color: rgba(255, 255, 255, 0.4) !important;
+html.a11y-high-contrast * {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
 }
-.a11y-high-contrast p,
-.a11y-high-contrast span,
-.a11y-high-contrast h1,
-.a11y-high-contrast h2,
-.a11y-high-contrast h3,
-.a11y-high-contrast h4,
-.a11y-high-contrast h5,
-.a11y-high-contrast h6,
-.a11y-high-contrast li,
-.a11y-high-contrast td,
-.a11y-high-contrast th,
-.a11y-high-contrast label,
-.a11y-high-contrast a {
+html.a11y-high-contrast p,
+html.a11y-high-contrast span,
+html.a11y-high-contrast h1,
+html.a11y-high-contrast h2,
+html.a11y-high-contrast h3,
+html.a11y-high-contrast h4,
+html.a11y-high-contrast h5,
+html.a11y-high-contrast h6,
+html.a11y-high-contrast a,
+html.a11y-high-contrast button,
+html.a11y-high-contrast label,
+html.a11y-high-contrast li,
+html.a11y-high-contrast td,
+html.a11y-high-contrast th {
   color: #ffffff !important;
   opacity: 1 !important;
 }
-.a11y-high-contrast button {
+html.a11y-high-contrast .text-white\/20,
+html.a11y-high-contrast .text-white\/25,
+html.a11y-high-contrast .text-white\/30,
+html.a11y-high-contrast .text-white\/35,
+html.a11y-high-contrast .text-white\/40,
+html.a11y-high-contrast .text-white\/50 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+html.a11y-high-contrast button {
   border: 2px solid #ffffff !important;
 }
 
@@ -1226,4 +1237,54 @@
 .a11y-plain-mode [class*="border-amber"],
 .a11y-plain-mode [class*="border-cyan"] {
   border-color: #d1d5db !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT THEME (Global toggle via Navigation)
+   ═══════════════════════════════════════════════════════════════ */
+html.light-theme {
+  --color-background: #f0eeea;
+  --color-foreground: #2d2d2d;
+  --color-card: #e8e6e2;
+  --color-card-foreground: #2d2d2d;
+  --color-popover: #f0eeea;
+  --color-popover-foreground: #2d2d2d;
+  --color-primary: #2d2d2d;
+  --color-primary-foreground: #f0eeea;
+  --color-secondary: #5a5a5a;
+  --color-secondary-foreground: #f0eeea;
+  --color-muted: #ddd9d3;
+  --color-muted-foreground: #6b6b6b;
+  --color-accent: #a0522d;
+  --color-accent-foreground: #f0eeea;
+  --color-border: #d4d0ca;
+  --color-input: #d4d0ca;
+  --color-ring: #a0522d;
+}
+
+html.light-theme .text-white\/25,
+html.light-theme .text-white\/30,
+html.light-theme .text-white\/35,
+html.light-theme .text-white\/40,
+html.light-theme .text-white\/50 {
+  color: rgba(45, 45, 45, 0.6) !important;
+}
+html.light-theme .text-white\/60,
+html.light-theme .text-white\/70,
+html.light-theme .text-white\/80,
+html.light-theme .text-white\/85,
+html.light-theme .text-white\/90 {
+  color: rgba(45, 45, 45, 0.85) !important;
+}
+html.light-theme .bg-white\/\[0\.03\],
+html.light-theme .bg-white\/\[0\.04\],
+html.light-theme .bg-white\/\[0\.05\] {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+html.light-theme .border-white\/\[0\.06\],
+html.light-theme .border-white\/\[0\.08\],
+html.light-theme .border-white\/5,
+html.light-theme .border-white\/10,
+html.light-theme .border-white\/15 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }

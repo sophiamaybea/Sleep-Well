@@ -26,8 +26,12 @@ import {
   insertReadingShelfSchema,
   courses, courseLessons,
   insertExhibitResponseSchema, insertExhibitReflectionSchema,
+  galleryComments, users,
 } from "@shared/schema";
 import { z } from "zod";
+import { db } from "./db";
+import { eq, and, sql } from "drizzle-orm";
+import { dailyPrompts } from "@shared/schema";
 
 const joinMoonlitReadingSchema = z.object({
   writingId: z.string().optional(),
@@ -366,6 +370,71 @@ export async function registerRoutes(
       res.json(prompt);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch random prompt" });
+    }
+  });
+
+  // === DAILY PROMPT ===
+  app.get("/api/daily-prompt", async (req, res) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      let [prompt] = await db.select().from(dailyPrompts)
+        .where(and(
+          sql`${dailyPrompts.activeDate} >= ${today}`,
+          sql`${dailyPrompts.activeDate} < ${tomorrow}`
+        ))
+        .limit(1);
+
+      if (!prompt) {
+        const promptTexts = [
+          "Write about a door you've never opened.",
+          "Describe a color without naming it.",
+          "What would your younger self think of you now?",
+          "Write from the perspective of an object in your room.",
+          "Begin with: 'The last time I was truly lost...'",
+          "Write about a sound that changed everything.",
+          "Describe someone you've forgotten but shouldn't have.",
+          "What lives at the bottom of the deepest ocean?",
+          "Write a letter to someone you'll never send.",
+          "Describe the space between two heartbeats.",
+          "Write about the first thing you remember seeing.",
+          "What would silence look like if it had a shape?",
+          "Describe a meal that changed your life.",
+          "Write about something you found that wasn't yours.",
+          "Begin with: 'In the garden of my mind...'",
+          "Write about a promise you made to yourself.",
+          "Describe the moment just before dawn.",
+          "What does your shadow do when you're not looking?",
+          "Write about a word you wish existed.",
+          "Describe the taste of a memory.",
+          "Write about someone waiting.",
+          "What grows in the cracks of sidewalks?",
+          "Describe a conversation you overheard.",
+          "Write about the space between two people.",
+          "Begin with: 'I never told anyone about...'",
+          "Write about what the rain remembers.",
+          "Describe your hands from the perspective of something they've held.",
+          "What would you find in a museum of lost things?",
+          "Write about a bridge, real or imagined.",
+          "Describe the feeling of almost remembering something.",
+        ];
+        const idx = Math.floor((today.getTime() / 86400000)) % promptTexts.length;
+        const categories = ["freewrite", "poetry", "fiction", "reflection", "observation"];
+        const catIdx = Math.floor((today.getTime() / 86400000)) % categories.length;
+
+        [prompt] = await db.insert(dailyPrompts).values({
+          text: promptTexts[idx],
+          category: categories[catIdx],
+          activeDate: today,
+        }).returning();
+      }
+
+      res.json(prompt);
+    } catch (e) {
+      res.status(500).json({ error: "Failed to fetch daily prompt" });
     }
   });
 
@@ -3500,6 +3569,61 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete soil entry" });
+    }
+  });
+
+  // === GALLERY COMMENTS ===
+  app.get("/api/gallery-comments/:writingId", async (req, res) => {
+    try {
+      const { writingId } = req.params;
+      const comments = await db.select({
+        id: galleryComments.id,
+        writingId: galleryComments.writingId,
+        userId: galleryComments.userId,
+        content: galleryComments.content,
+        parentId: galleryComments.parentId,
+        createdAt: galleryComments.createdAt,
+        authorName: users.firstName,
+      })
+      .from(galleryComments)
+      .leftJoin(users, eq(galleryComments.userId, users.id))
+      .where(eq(galleryComments.writingId, writingId))
+      .orderBy(galleryComments.createdAt);
+      res.json(comments);
+    } catch (e) {
+      res.status(500).json({ error: "Failed to fetch comments" });
+    }
+  });
+
+  app.post("/api/gallery-comments", async (req: any, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+    try {
+      const { writingId, content, parentId } = req.body;
+      if (!writingId || !content?.trim()) return res.status(400).json({ error: "Missing required fields" });
+      const userId = req.user.claims?.sub || req.user.id;
+      const [comment] = await db.insert(galleryComments).values({
+        writingId,
+        userId,
+        content: content.trim(),
+        parentId: parentId || null,
+      }).returning();
+      res.json(comment);
+    } catch (e) {
+      res.status(500).json({ error: "Failed to create comment" });
+    }
+  });
+
+  app.delete("/api/gallery-comments/:id", async (req: any, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+    try {
+      const comment = await db.select().from(galleryComments).where(eq(galleryComments.id, req.params.id)).limit(1);
+      if (!comment.length) return res.status(404).json({ error: "Comment not found" });
+      const userId = req.user.claims?.sub || req.user.id;
+      if (comment[0].userId !== userId) return res.status(403).json({ error: "Not authorized" });
+      await db.delete(galleryComments).where(eq(galleryComments.id, req.params.id));
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: "Failed to delete comment" });
     }
   });
 

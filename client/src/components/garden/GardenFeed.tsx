@@ -5,6 +5,7 @@ import { Globe, Filter, ChevronDown, User, Eye, Sparkles, BookOpen, Feather } fr
 import type { Writing } from "@shared/schema";
 import { VisibilityBadge } from "./PlantingFlow";
 import { ResonanceBar, MarginaliaSection, TendButton } from "./SocialFeatures";
+import { ContentRenderer } from "./RichEditor";
 
 function timeAgo(date: string | Date | null | undefined) {
   if (!date) return "";
@@ -224,11 +225,8 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
                         {piece.title || "Untitled"}
                       </h3>
 
-                      <div className="prose-content">
-                        <p className={`text-base font-serif text-white/60 leading-relaxed ${!isExpanded ? "line-clamp-3" : ""}`}>
-                          {isExpanded ? piece.content : piece.content.slice(0, 240)}
-                          {!isExpanded && piece.content.length > 240 && "..."}
-                        </p>
+                      <div className={`prose-content ${!isExpanded ? "line-clamp-3" : ""}`}>
+                        <ContentRenderer content={piece.content} maxLength={isExpanded ? undefined : 240} className="text-base font-serif text-white/60 leading-relaxed" />
                       </div>
 
                       <div className="flex items-center gap-3 pt-2">

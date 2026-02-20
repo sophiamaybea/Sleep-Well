@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, BookOpen, Bookmark, Heart, Plus, Trash2, Check, ChevronDown, Sparkles, Eye } from "lucide-react";
 import { timeAgo, apiFetch, GlassCard, PageHeader, ActionButton, LoadingSkeleton, EmptyState, TabGroup, FormField, inputClass, textareaClass, Badge } from "./GardenUI";
+import { stripHtml } from "./RichEditor";
 
 type GalleryWriting = {
   id: string;
@@ -66,7 +67,7 @@ const staggerContainer = {
 
 const staggerItem = {
   hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 export function GalleryPage() {
@@ -197,7 +198,7 @@ export function GalleryPage() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm font-serif text-white/30 line-clamp-2 mb-4 leading-relaxed">{w.content?.slice(0, 200)}</p>
+                  <p className="text-sm font-serif text-white/30 line-clamp-2 mb-4 leading-relaxed">{stripHtml(w.content || "").slice(0, 200)}</p>
                   <div className="flex gap-2">
                     <ActionButton
                       onClick={() => addToQueue.mutate(w.id)}
@@ -328,7 +329,7 @@ export function ReadingQueuePage() {
                         </Badge>
                       </div>
                       {item.writing?.content && (
-                        <p className="text-sm font-serif text-white/25 line-clamp-1 mt-2.5 leading-relaxed">{item.writing.content.slice(0, 150)}</p>
+                        <p className="text-sm font-serif text-white/25 line-clamp-1 mt-2.5 leading-relaxed">{stripHtml(item.writing.content || "").slice(0, 150)}</p>
                       )}
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
@@ -455,7 +456,7 @@ export function ExplorePage() {
                     />
                     <div className="relative z-10 p-5">
                       <h3 className="text-base font-display font-light italic text-white/70 truncate mb-2">{w.title || "Untitled"}</h3>
-                      <p className="text-xs font-serif text-white/25 line-clamp-3 mb-3 leading-relaxed">{w.content?.slice(0, 120)}</p>
+                      <p className="text-xs font-serif text-white/25 line-clamp-3 mb-3 leading-relaxed">{stripHtml(w.content || "").slice(0, 120)}</p>
                       <span className="font-mono text-[9px] text-white/15">{timeAgo(w.publishedAt || w.createdAt)}</span>
                     </div>
                     <div
@@ -545,7 +546,7 @@ export function SavedPage() {
                       <Badge color={colors.accent}>{item.writing?.genre}</Badge>
                       <span className="font-mono text-[9px] text-white/15">{timeAgo(item.savedAt)}</span>
                     </div>
-                    <p className="text-xs font-serif text-white/25 line-clamp-3 leading-relaxed">{item.writing?.content?.slice(0, 150)}</p>
+                    <p className="text-xs font-serif text-white/25 line-clamp-3 leading-relaxed">{stripHtml(item.writing?.content || "").slice(0, 150)}</p>
                   </div>
                   <div className="relative z-10 mt-auto px-5 pb-5 pt-3 border-t border-white/[0.04]">
                     <ActionButton

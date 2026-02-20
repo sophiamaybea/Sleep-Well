@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,6 +9,22 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, isLoading, isAuthenticated } = useAuth();
+  const [isLight, setIsLight] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") === "light";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isLight) {
+      document.documentElement.classList.add("light-theme");
+      localStorage.setItem("theme", "light");
+    } else {
+      document.documentElement.classList.remove("light-theme");
+      localStorage.setItem("theme", "dark");
+    }
+  }, [isLight]);
 
   const { data: roleData } = useQuery<{ role: string; tier: string }>({
     queryKey: ["/api/user/role"],
@@ -23,6 +39,23 @@ export default function Navigation() {
 
   const isEditorOrEIC = roleData?.role === "editor" || roleData?.role === "editor_in_chief";
   const isEIC = roleData?.role === "editor_in_chief";
+
+  const { data: notifData } = useQuery<{ unread: number; notifications: any[] }>({
+    queryKey: ["/api/notifications"],
+    queryFn: async () => {
+      const [notifRes, countRes] = await Promise.all([
+        fetch("/api/notifications", { credentials: "include" }),
+        fetch("/api/notifications/unread-count", { credentials: "include" }),
+      ]);
+      const notifications = notifRes.ok ? await notifRes.json() : [];
+      const countData = countRes.ok ? await countRes.json() : { count: 0 };
+      return { unread: countData.count, notifications: notifications.slice(0, 10) };
+    },
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const [showNotifs, setShowNotifs] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,7 +85,7 @@ export default function Navigation() {
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
 
-          <div className={`hidden xl:flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
+          <div className={`hidden lg:flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
             {menuItems.map((item) =>
               item.isPage ? (
                 <Link
@@ -75,6 +108,51 @@ export default function Navigation() {
                   <span className="absolute -bottom-1 left-1/2 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0" />
                 </a>
               )
+            )}
+            <button
+              onClick={() => setIsLight(!isLight)}
+              className="p-2 text-white/50 hover:text-white/80 transition-colors"
+              data-testid="button-theme-toggle"
+              title={isLight ? "Switch to dark mode" : "Switch to light mode"}
+            >
+              {isLight ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
+            {user && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifs(!showNotifs)}
+                  className="p-2 text-white/50 hover:text-white/80 transition-colors relative"
+                  data-testid="button-notifications"
+                >
+                  <Bell size={16} />
+                  {(notifData?.unread || 0) > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 text-[8px] font-mono text-black flex items-center justify-center">
+                      {notifData!.unread > 9 ? "9+" : notifData!.unread}
+                    </span>
+                  )}
+                </button>
+                {showNotifs && (
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 max-h-80 overflow-y-auto">
+                    <div className="p-3 border-b border-white/[0.06]">
+                      <h3 className="font-display text-sm text-white/70 italic">Wind Chimes</h3>
+                    </div>
+                    <div className="p-2">
+                      {(notifData?.notifications || []).length === 0 ? (
+                        <p className="text-center py-4 font-serif text-sm text-white/25 italic">All quiet in the garden</p>
+                      ) : (
+                        (notifData?.notifications || []).map((n: any) => (
+                          <div key={n.id} className={`p-3 rounded-lg mb-1 ${n.isRead ? "opacity-60" : "bg-white/[0.03]"}`} data-testid={`notification-${n.id}`}>
+                            <p className="font-serif text-xs text-white/60">{n.message}</p>
+                            <span className="font-mono text-[8px] text-white/25 mt-1 block">
+                              {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             <span className="w-[1px] h-4 bg-white/10" />
             {!isLoading && (
@@ -111,7 +189,7 @@ export default function Navigation() {
 
           <button 
             onClick={() => setIsOpen(true)}
-            className="xl:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors mix-blend-difference"
+            className="lg:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors mix-blend-difference"
           >
             <Menu />
           </button>

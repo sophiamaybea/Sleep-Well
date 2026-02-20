@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import StarBackground from "@/components/StarBackground";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ChevronDown, Sprout, Leaf, TreePine, Users, Sparkles, BookOpen, Crown, Plus, Minus } from "lucide-react";
+import { ChevronDown, Sprout, Leaf, TreePine, Users, Sparkles, BookOpen, Crown, Plus, Minus, Feather, PenLine, FileText, RotateCcw, Send } from "lucide-react";
 
 interface FAQItem {
   question: string;
@@ -315,6 +315,122 @@ export default function FieldGuide() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </section>
+
+        <section className="py-16 px-6 md:px-12 border-t border-white/[0.04]" data-testid="craft-notes-section">
+          <div className="max-w-3xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <span className="font-mono text-[10px] tracking-[0.4em] text-white/35 uppercase block mb-4">
+                Cultivate Your Craft
+              </span>
+              <h2 className="text-4xl md:text-5xl font-display font-light italic text-white/85 mb-4" data-testid="craft-notes-title">
+                Craft Notes
+              </h2>
+              <p className="font-serif italic text-white/45 max-w-lg mx-auto leading-relaxed">
+                Seeds of wisdom for your writing practice — brief, actionable guidance to help your work grow.
+              </p>
+            </motion.div>
+
+            <div className="space-y-12">
+              {[
+                {
+                  title: "Poetry Tips",
+                  icon: <Feather className="w-5 h-5" />,
+                  color: "text-rose-400",
+                  borderColor: "border-rose-500/15",
+                  bgColor: "bg-rose-500/[0.03]",
+                  tips: [
+                    { heading: "Read your poem aloud", body: "Sound is the skeleton of a poem. Read every draft aloud at least once — your ear will catch what your eye forgives. Listen for rhythm breaks, accidental rhymes, and where breath naturally falls." },
+                    { heading: "Cut the first stanza", body: "Many poems don't truly begin until the second or third stanza. The opening lines are often throat-clearing. Try removing them entirely and see if the poem stands stronger." },
+                    { heading: "Earn your abstractions", body: "Words like 'love,' 'death,' and 'beauty' carry so much weight they often collapse under it. Ground abstract ideas in concrete images first — let the reader arrive at the feeling through specifics." },
+                  ],
+                },
+                {
+                  title: "Fiction Fundamentals",
+                  icon: <PenLine className="w-5 h-5" />,
+                  color: "text-emerald-400",
+                  borderColor: "border-emerald-500/15",
+                  bgColor: "bg-emerald-500/[0.03]",
+                  tips: [
+                    { heading: "Enter scenes late, leave early", body: "Skip the arrivals and departures. Start in the middle of the action and cut before the scene resolves completely. This keeps the narrative taut and trusts the reader to fill gaps." },
+                    { heading: "Give characters contradictions", body: "A generous person who steals. A coward who speaks truth. Characters become real when they contain opposing forces. Consistency is for résumés, not fiction." },
+                    { heading: "Dialogue is not conversation", body: "Real speech is full of filler, repetition, and dead ends. Fictional dialogue should feel natural but do work — reveal character, advance plot, or create tension. Every line should earn its place." },
+                  ],
+                },
+                {
+                  title: "Essay Writing",
+                  icon: <FileText className="w-5 h-5" />,
+                  color: "text-amber-400",
+                  borderColor: "border-amber-500/15",
+                  bgColor: "bg-amber-500/[0.03]",
+                  tips: [
+                    { heading: "Follow your obsessions", body: "The best essays begin with a question you can't stop thinking about. Don't write what you already know — write toward what puzzles you. The essay is a thinking tool, not a display case." },
+                    { heading: "Weave the personal and the universal", body: "A memoir detail grounds the reader; a wider observation gives them a reason to care. Alternate between close-up and wide-angle — your specific experience illuminating a shared truth." },
+                    { heading: "Let the structure surprise", body: "Not every essay needs five paragraphs or a linear argument. Try fragments, numbered sections, braided narratives, or associative leaps. Let the form mirror the content's energy." },
+                  ],
+                },
+                {
+                  title: "Revision Strategies",
+                  icon: <RotateCcw className="w-5 h-5" />,
+                  color: "text-violet-400",
+                  borderColor: "border-violet-500/15",
+                  bgColor: "bg-violet-500/[0.03]",
+                  tips: [
+                    { heading: "Let it rest before you revise", body: "Distance is a revision tool. Put your draft away for at least a day — a week is better. When you return, you'll read with fresh eyes and notice patterns invisible during composition." },
+                    { heading: "Revise for one thing at a time", body: "Don't try to fix everything in a single pass. Read once for structure, once for language, once for rhythm. Layered revision is slower but catches problems that scattered editing misses." },
+                    { heading: "Read it backwards", body: "Start from the last paragraph and read each section in reverse order. This breaks your familiarity with the flow and forces you to evaluate each passage on its own terms." },
+                  ],
+                },
+                {
+                  title: "Getting Published",
+                  icon: <Send className="w-5 h-5" />,
+                  color: "text-teal-400",
+                  borderColor: "border-teal-500/15",
+                  bgColor: "bg-teal-500/[0.03]",
+                  tips: [
+                    { heading: "Read the journals you submit to", body: "Before sending work, read at least three recent pieces from the publication. Understanding their aesthetic isn't gaming the system — it's respect for the conversation you're joining." },
+                    { heading: "Track your submissions", body: "Keep a simple spreadsheet: what you sent, where, when, and the result. Patterns emerge — you'll learn which venues respond to your voice and where to focus energy." },
+                    { heading: "Rejection is data, not judgment", body: "A rejection means that piece wasn't right for that venue at that time. It says nothing about your talent. Keep submitting, keep revising, and remember that every published writer has a stack of rejections behind them." },
+                  ],
+                },
+              ].map((section, si) => (
+                <motion.div
+                  key={section.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  viewport={{ once: true }}
+                  data-testid={`craft-section-${section.title.toLowerCase().replace(/\s/g, '-')}`}
+                >
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className={`w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center ${section.color}`}>
+                      {section.icon}
+                    </div>
+                    <h3 className="font-display text-xl md:text-2xl italic text-white/80">{section.title}</h3>
+                  </div>
+
+                  <div className={`rounded-2xl border ${section.borderColor} ${section.bgColor} backdrop-blur-sm overflow-hidden`}>
+                    {section.tips.map((tip, ti) => (
+                      <div
+                        key={ti}
+                        className={`px-6 md:px-8 py-5 ${ti < section.tips.length - 1 ? "border-b border-white/[0.04]" : ""}`}
+                        data-testid={`craft-tip-${si}-${ti}`}
+                      >
+                        <h4 className="font-serif text-white/75 font-medium mb-2">{tip.heading}</h4>
+                        <p className="font-serif text-sm text-white/40 leading-relaxed">{tip.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 

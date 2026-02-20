@@ -68,9 +68,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <CustomCursor />
         <SmoothScroll>
           <NoiseOverlay />
-          <CustomCursor />
           <Toaster />
           <Router />
           <AccessibilityToolbar />

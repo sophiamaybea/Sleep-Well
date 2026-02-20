@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import StarBackground from "@/components/StarBackground";
 import { motion } from "framer-motion";
 import { ChevronDown, BookOpen, Leaf, Eye, Sprout, Wind, Feather, Users } from "lucide-react";
+import { Link } from "wouter";
 
 export default function About() {
   return (
@@ -180,13 +181,13 @@ export default function About() {
               viewport={{ once: true }}
               className="text-center"
             >
-              <a
+              <Link
                 href="/garden"
                 className="inline-block px-10 py-4 bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-emerald-200/80 hover:bg-emerald-500/20 hover:text-emerald-100 transition-all duration-300 rounded-full"
                 data-testid="cta-enter-garden"
               >
                 Enter the Garden
-              </a>
+              </Link>
             </motion.div>
           </div>
         </section>

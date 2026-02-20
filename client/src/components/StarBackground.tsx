@@ -37,7 +37,7 @@ class WebGLErrorBoundary extends Component<{ children: ReactNode; fallback: Reac
   render() { return this.state.hasError ? this.props.fallback : this.props.children; }
 }
 
-function StarField({ count = 3000 }) {
+function StarField({ count = 1200 }) {
   const points = useRef<THREE.Points>(null!);
 
   const positions = useMemo(() => {
@@ -72,10 +72,10 @@ function StarField({ count = 3000 }) {
       <PointMaterial
         transparent
         color="#ede9e3"
-        size={0.08}
+        size={0.06}
         sizeAttenuation={true}
         depthWrite={false}
-        opacity={0.6}
+        opacity={0.35}
         blending={THREE.AdditiveBlending}
       />
     </Points>
@@ -84,12 +84,12 @@ function StarField({ count = 3000 }) {
 
 function CSSStarFallback() {
   const stars = useMemo(() => {
-    return Array.from({ length: 200 }, (_, i) => ({
+    return Array.from({ length: 80 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: 0.5 + Math.random() * 2,
-      opacity: 0.2 + Math.random() * 0.6,
+      opacity: 0.15 + Math.random() * 0.3,
       duration: 2 + Math.random() * 4,
       delay: Math.random() * 3,
     }));
@@ -165,8 +165,12 @@ export default function StarBackground() {
     <div className="fixed inset-0 z-0 pointer-events-none bg-background">
       {webgl && !contextLost && !canvasReady && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-1 h-1 rounded-full bg-white/30 animate-pulse" />
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-12 h-12">
+              <div className="absolute inset-0 rounded-full border border-white/10 border-t-white/40 animate-spin" />
+              <div className="absolute inset-2 rounded-full border border-white/5 border-b-white/20 animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}} />
+            </div>
+            <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/30">Preparing the night sky...</p>
           </div>
         </div>
       )}

@@ -17,6 +17,7 @@ import type { Writing, WritingSnapshot } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useAccessibility } from "@/hooks/use-accessibility";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
@@ -643,7 +644,44 @@ function DeskResonanceCount({ writingId }: { writingId: string }) {
   );
 }
 
-function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating, myFlags, flagMutation, userTier }: {
+function DailyPromptCard({ onWriteFromPrompt }: { onWriteFromPrompt: (prompt: string) => void }) {
+  const { data: prompt } = useQuery<{ id: string; text: string; category: string }>({
+    queryKey: ["/api/daily-prompt"],
+    queryFn: async () => {
+      const res = await fetch("/api/daily-prompt", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  if (!prompt) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-6 p-5 rounded-2xl border border-amber-500/10 bg-gradient-to-br from-amber-950/15 via-transparent to-emerald-950/10"
+      data-testid="card-daily-prompt"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles size={14} className="text-amber-400/60" />
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-amber-400/50">Today's Prompt</span>
+        <span className="ml-auto font-mono text-[8px] uppercase tracking-widest text-white/20">{prompt.category}</span>
+      </div>
+      <p className="font-display text-lg text-white/75 italic leading-relaxed mb-4">{prompt.text}</p>
+      <button
+        onClick={() => onWriteFromPrompt(prompt.text)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 text-amber-400/60 hover:text-amber-400/80 hover:border-amber-500/30 transition-all"
+        data-testid="button-write-from-prompt"
+      >
+        <PenLine size={11} />
+        Write from this prompt
+      </button>
+    </motion.div>
+  );
+}
+
+function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuickUpdate, isCreating, myFlags, flagMutation, userTier, onWriteFromPrompt }: {
   writings: Writing[];
   onOpenWriting: (w: Writing) => void;
   onCreateNew: () => void;
@@ -653,6 +691,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   myFlags: any[];
   flagMutation: any;
   userTier: string;
+  onWriteFromPrompt: (prompt: string) => void;
 }) {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -751,6 +790,49 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         <p className="font-serif text-[10px] text-white/25 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
       </div>
       <PublishInvitations />
+
+      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />
+
+      {writings.length > 0 && (() => {
+        const totalWords = writings.reduce((a, w) => a + wordCount(w.content), 0);
+        const avgLength = Math.round(totalWords / writings.length);
+        const longestPiece = writings.reduce((best, w) => {
+          const wc = wordCount(w.content);
+          return wc > (best.wc || 0) ? { title: w.title, wc } : best;
+        }, { title: "", wc: 0 } as { title: string; wc: number });
+        const readingTimeMin = Math.max(1, Math.round(totalWords / 200));
+        return (
+          <div className="mb-6 p-4 rounded-xl border border-emerald-800/15 bg-emerald-950/10" data-testid="writing-analytics">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen size={14} className="text-emerald-400/50" />
+              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/35">Writing Analytics</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-pieces">
+                <span className="font-mono text-lg text-emerald-300/70 block">{writings.length}</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">{writings.length === 1 ? "Piece" : "Pieces"}</span>
+              </div>
+              <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-words">
+                <span className="font-mono text-lg text-amber-300/70 block">{totalWords.toLocaleString()}</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">Words</span>
+              </div>
+              <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-avg-length">
+                <span className="font-mono text-lg text-teal-300/70 block">{avgLength.toLocaleString()}</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">Avg Words</span>
+              </div>
+              <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-reading-time">
+                <span className="font-mono text-lg text-violet-300/70 block">{readingTimeMin}</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">Min Read</span>
+              </div>
+            </div>
+            {longestPiece.wc > 0 && (
+              <p className="font-serif text-[10px] text-white/25 mt-2 italic text-center" data-testid="stat-longest">
+                Longest piece: "{longestPiece.title || "Untitled"}" — {longestPiece.wc.toLocaleString()} words
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
@@ -1239,7 +1321,8 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [editTags, setEditTags] = useState<string[]>((writing as any).tags || []);
   const [tagInput, setTagInput] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
-  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">("medium");
+  const [fontSizeValue, setFontSizeValue] = useState(18);
+  const [editorFont, setEditorFont] = useState<"serif" | "display" | "typewriter" | "mono" | "sans">("serif");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCompostConfirm, setShowCompostConfirm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -1301,9 +1384,18 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           Back
         </button>
         <div className="flex items-center gap-3">
-          <span className={`font-mono text-[9px] tracking-widest transition-all duration-300 ${
+          <span className={`font-mono text-[9px] tracking-widest transition-all duration-300 flex items-center gap-1 ${
             saveStatus === "saving" ? "text-amber-400/70" : saveStatus === "saved" ? "text-emerald-400/70" : "text-white/40"
           }`}>
+            {saveStatus === "saved" && (
+              <motion.span
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              >
+                <Check size={11} strokeWidth={3} />
+              </motion.span>
+            )}
             {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : "Editing..."}
           </span>
           <span className="font-mono text-[9px] tracking-widest text-white/50">{wordCount(editContent)} words</span>
@@ -1403,16 +1495,17 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               { id: "ready_to_show", label: "Ready", tip: "Polished and ready to share with the world" },
               { id: "dormant", label: "Dormant", tip: "Sleeping pieces — not abandoned, just waiting" },
             ] as const).map((s) => (
+            <Tooltip key={s.id}>
+              <TooltipTrigger asChild>
               <button
-                key={s.id}
                 onClick={() => {
-                  const prev = editStage;
+                  const prev = prevStageRef.current;
                   setEditStage(s.id);
+                  prevStageRef.current = s.id;
                   if (s.id === "ready_to_show" && prev !== "ready_to_show") {
                     setShowBloomCelebration(true);
                   }
                 }}
-                title={s.tip}
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                   editStage === s.id
                     ? `${stageColors[s.id]} ${stageAccent[s.id]}`
@@ -1423,6 +1516,11 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                 {stageIcons[s.id]}
                 {s.label}
               </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                <p className="text-xs">{s.tip}</p>
+              </TooltipContent>
+            </Tooltip>
             ))}
           </div>
           <span className="w-px h-4 bg-white/[0.04]" />
@@ -1603,30 +1701,57 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           )}
         </AnimatePresence>
 
-        <div className="flex items-center gap-1 mb-3 px-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-white/30 mr-2">Size</span>
-          {(["small", "medium", "large"] as const).map((size) => (
-            <button
-              key={size}
-              onClick={() => setFontSize(size)}
-              className={`px-2 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors ${
-                fontSize === size
-                  ? "bg-white/10 text-white/70 border border-white/15"
-                  : "text-white/30 hover:text-white/50 border border-transparent"
-              }`}
-              data-testid={`button-fontsize-${size}`}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-        <div className={fontSize === "small" ? "text-sm" : fontSize === "large" ? "text-lg" : "text-base"}>
-          <RichEditor
-            content={editContent}
-            onChange={setEditContent}
-            placeholder="Begin writing..."
-            autoFocus
-          />
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 mt-4">
+          <div className="flex items-center gap-4 mb-3 px-1 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Size</span>
+              <input
+                type="range"
+                min="14"
+                max="24"
+                value={fontSizeValue}
+                onChange={(e) => setFontSizeValue(parseInt(e.target.value))}
+                className="w-20 h-1 appearance-none bg-white/10 rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white/60 [&::-webkit-slider-thumb]:hover:bg-white/80 [&::-webkit-slider-thumb]:transition-colors"
+                data-testid="slider-fontsize"
+              />
+              <span className="font-mono text-[9px] text-white/30 w-6">{fontSizeValue}</span>
+            </div>
+            <span className="w-px h-4 bg-white/[0.04]" />
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Font</span>
+              <div className="flex gap-1">
+                {([
+                  { id: "serif", label: "Serif", font: "'Lora', serif" },
+                  { id: "display", label: "Display", font: "'Cormorant Garamond', serif" },
+                  { id: "typewriter", label: "Typewriter", font: "'Special Elite', 'Courier New', monospace" },
+                  { id: "mono", label: "Mono", font: "'Space Mono', monospace" },
+                  { id: "sans", label: "Sans", font: "'Inter', sans-serif" },
+                ] as const).map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setEditorFont(f.id)}
+                    className={`px-2 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors ${
+                      editorFont === f.id
+                        ? "bg-white/10 text-white/70 border border-white/15"
+                        : "text-white/30 hover:text-white/50 border border-transparent"
+                    }`}
+                    style={{ fontFamily: f.font }}
+                    data-testid={`button-font-${f.id}`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ fontSize: `${fontSizeValue}px`, fontFamily: editorFont === "serif" ? "'Lora', serif" : editorFont === "display" ? "'Cormorant Garamond', serif" : editorFont === "typewriter" ? "'Special Elite', 'Courier New', monospace" : editorFont === "mono" ? "'Space Mono', monospace" : "'Inter', sans-serif" }}>
+            <RichEditor
+              content={editContent}
+              onChange={setEditContent}
+              placeholder="Begin writing..."
+              autoFocus
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -3616,6 +3741,10 @@ export default function Garden() {
       queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
       setActiveWriting(null);
       setIsEditing(false);
+      toast({ title: "Deleted", description: "Your writing has been permanently removed." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete writing. Please try again.", variant: "destructive" });
     },
   });
 
@@ -3989,6 +4118,20 @@ export default function Garden() {
                   myFlags={myFlags}
                   flagMutation={flagMutation}
                   userTier={userTier}
+                  onWriteFromPrompt={async (promptText: string) => {
+                    const res = await fetch("/api/writings", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify({ title: "Untitled", content: `<p>${promptText}</p><p></p>`, genre: "poetry", stage: "raw_seed", readiness: "raw_seed", visibility: "personal" }),
+                    });
+                    if (!res.ok) { toast({ title: "Failed to create piece", variant: "destructive" }); return; }
+                    const data = await res.json();
+                    queryClient.invalidateQueries({ queryKey: ["/api/writings"] });
+                    setActiveWriting(data);
+                    setIsEditing(true);
+                    toast({ title: "Writing from prompt", description: "Start writing!", duration: 2000 });
+                  }}
                 />
               ) : activeZone === "reading-room" ? (
                 <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} onGoToRoom={(room) => setActiveRoom(room)} />

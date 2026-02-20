@@ -1,0 +1,19 @@
+I have beta testing feedback from users that needs to be implemented. Here are ALL the bugs and improvements needed. Please implement them ALL:
+
+BUG FIXES:
+1. Writing area in Garden needs a differentiated background from the page background - add a subtle solid color background to the writing/text area so it stands out from the dark background
+2. Mobile navigation is hard - horizontal scrolling required to see all options at top. Fix responsive layout so all nav options are accessible on mobile without horizontal scrolling
+3. Background particles are distracting and contrast is too low - reduce particle count/opacity and improve text contrast throughout the site
+4. Custom cursor position is offset from actual mouse position - fix the custom cursor so it aligns properly with the mouse pointer
+5. Text saves as block after clicking enter - fix the enter key behavior in the writing editor so it creates proper line breaks instead of blocks
+6. Accessibility features don't work properly - contrast toggle only affects some elements. Fix so it affects ALL text and UI elements consistently
+7. Mobile view is very wonky - fix all mobile responsive issues across the site
+8. About page 'explore' button warps/animates the page but doesn't actually navigate anywhere - fix it to navigate to the correct page
+9. Re-entering the Garden causes crashes with 'try again later' errors - fix garden re-entry to work reliably
+10. 'Too many requests' error on login - reduce rate limiting or add better error handling for login attempts
+11. Submit/save button gives no visual feedback or acknowledgement - add a toast notification or visual confirmation when work is saved/submitted
+12. Page refresh logs user out - fix session persistence so refreshing doesn't lose the session
+13. Delete button doesn't work on pieces - fix the delete functionality
+14. 'Tend this garden' button doesn't work when clicked - fix the tend garden button to perform its action
+15. Bloom confetti animation keeps triggering when clicking other stage buttons - fix so bloom animation only plays for the bloom stage, not when switching between stages
+16. Had to click 3-4 times to access Garden/Gallery from About page - fix navigation links on About page to work on first click

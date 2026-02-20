@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Flower2, Droplets, Zap, Leaf, Sprout, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "@/hooks/use-toast";
 
 function timeAgo(date: string | Date | null | undefined) {
   if (!date) return "";
@@ -354,6 +355,9 @@ export function TendButton({
       queryClient.invalidateQueries({ queryKey: ["/api/tending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tending-feed"] });
     },
+    onError: () => {
+      toast({ title: "Could not tend this garden", description: "Please try again later.", variant: "destructive" });
+    },
   });
 
   const untendMutation = useMutation({
@@ -371,13 +375,19 @@ export function TendButton({
       queryClient.invalidateQueries({ queryKey: ["/api/tending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tending-feed"] });
     },
+    onError: () => {
+      toast({ title: "Could not untend this garden", description: "Please try again later.", variant: "destructive" });
+    },
   });
+
+  const isPending = tendMutation.isPending || untendMutation.isPending;
 
   if (!user || user.id === gardenerId) return null;
 
   const isTending = data?.isTending || false;
 
   const handleClick = () => {
+    if (isPending) return;
     if (isTending) {
       untendMutation.mutate();
     } else {
@@ -388,10 +398,13 @@ export function TendButton({
   return (
     <motion.button
       onClick={handleClick}
-      whileTap={{ scale: 1.15 }}
-      whileHover={{ scale: 1.05 }}
+      disabled={isPending}
+      whileTap={{ scale: isPending ? 1 : 1.15 }}
+      whileHover={{ scale: isPending ? 1 : 1.05 }}
       className={`inline-flex items-center gap-2 rounded-full border font-mono uppercase tracking-widest transition-all ${
         size === "sm" ? "px-3 py-1.5 text-[9px]" : "px-4 py-2 text-[10px]"
+      } ${
+        isPending ? "opacity-50 cursor-not-allowed" : ""
       } ${
         isTending
           ? "border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-400/80 shadow-[0_0_12px_rgba(16,185,129,0.1)]"
@@ -400,7 +413,7 @@ export function TendButton({
       data-testid={`button-tend-${gardenerId}`}
     >
       <Sprout size={size === "sm" ? 12 : 14} />
-      {isTending ? "Tending ✓" : "Tend this Garden"}
+      {isPending ? "..." : isTending ? "Tending ✓" : "Tend this Garden"}
     </motion.button>
   );
 }
