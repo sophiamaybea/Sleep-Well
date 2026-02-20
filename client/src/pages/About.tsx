@@ -58,7 +58,8 @@ export default function About() {
           </motion.div>
         </section>
 
-        <section className="py-32 px-6 md:px-12" data-testid="section-identity">
+        {/* PART 1 - THE JOURNAL */}
+        <section className="py-32 px-6 md:px-12" data-testid="section-the-journal">
           <div className="max-w-4xl mx-auto space-y-20">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -67,17 +68,17 @@ export default function About() {
               viewport={{ once: true }}
               className="text-center space-y-8"
             >
-              <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">The Journal</span>
+              <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Institutional</span>
               <h2 className="text-3xl md:text-5xl font-display font-light italic leading-tight">
-                We publish writing that<br />
-                <span className="text-amber-400/80">we can't stop thinking about.</span>
+                The Journal<br />
+                <span className="text-amber-400/80">We publish writing that we can't stop thinking about.</span>
               </h2>
               <p className="font-serif text-white/50 text-lg leading-relaxed max-w-2xl mx-auto">
                 The Page Gallery Journal is a literary journal that publishes thematic print editions. Each issue is assembled by hand — selected, sequenced, and designed with the care of a gallery exhibition. We believe print is not dead; it's a deliberate act.
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 gap-8">
               {[
                 {
                   icon: <BookOpen className="w-6 h-6 text-amber-400/70" />,
@@ -88,11 +89,6 @@ export default function About() {
                   icon: <Eye className="w-6 h-6 text-amber-400/70" />,
                   title: "Curatorial Eye",
                   description: "Every piece is chosen because an editor read it and couldn't leave it alone. We don't accept slush. We discover."
-                },
-                {
-                  icon: <Feather className="w-6 h-6 text-amber-400/70" />,
-                  title: "Open Calls & Garden Scouting",
-                  description: "We source work through themed open calls and by reading Gardens. Either way, nothing is published without your explicit consent."
                 }
               ].map((card, i) => (
                 <motion.div
@@ -112,21 +108,78 @@ export default function About() {
                 </motion.div>
               ))}
             </div>
+
+            <div className="space-y-16 pt-12">
+              <div className="text-center space-y-4">
+                <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Editorial Model</span>
+                <h3 className="text-2xl md:text-4xl font-display font-light italic">How We Find Work</h3>
+              </div>
+              
+              <div className="space-y-12">
+                {[
+                  { step: "01", title: "Open Calls", detail: "Each print edition has a theme. We publish open calls with clear deadlines. Anyone can submit. Every submission is read by at least two editors." },
+                  { step: "02", title: "Garden Scouting", detail: "Our editors also browse the Garden — reading freely, following their instincts. When they find something that resonates, they note it privately." },
+                  { step: "03", title: "Invitation & Consent", detail: "If an editor wants to include your work, they reach out directly. Nothing is ever published without your explicit agreement. We ask. Always." },
+                  { step: "04", title: "Publication", detail: "Selected work appears in a print edition — designed, typeset, and printed as a physical object. Your name, your words, given the care they deserve." },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.step}
+                    initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    viewport={{ once: true }}
+                    className="flex gap-8 items-start"
+                    data-testid={`editorial-step-${item.step}`}
+                  >
+                    <span className="font-mono text-3xl text-amber-400/20 font-light shrink-0">{item.step}</span>
+                    <div className="space-y-2">
+                      <h3 className="font-display text-2xl italic text-white/80">{item.title}</h3>
+                      <p className="font-serif text-white/40 leading-relaxed">{item.detail}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-8 pt-12">
+              <div className="text-center space-y-4">
+                <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Submitting for Print</span>
+                <h3 className="text-2xl md:text-4xl font-display font-light italic">How to Get Published</h3>
+              </div>
+              <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 md:p-12 space-y-6">
+                <p className="font-serif text-white/55 text-lg leading-relaxed">
+                  To be considered for our print editions, you need to be part of the Garden — which is completely free to join. When we announce open calls for upcoming issues, you can submit your work directly through the platform.
+                </p>
+                <p className="font-serif text-white/55 text-lg leading-relaxed">
+                  Our editors also read the Gardens, discovering work that resonates. If they find something they'd like to feature, they'll always reach out to you first. Nothing is ever published without your explicit consent.
+                </p>
+                <p className="font-serif text-amber-400/60 text-lg leading-relaxed italic">
+                  Join the Garden, write freely, and when the time is right — let your work bloom.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="py-32 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-garden">
-          <div className="max-w-4xl mx-auto space-y-16">
+        {/* VISUAL SEPARATION */}
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        </div>
+
+        {/* PART 2 - THE GARDEN */}
+        <section className="py-32 px-6 md:px-12" data-testid="section-the-garden-about">
+          <div className="max-w-4xl mx-auto space-y-20">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
               viewport={{ once: true }}
-              className="text-center space-y-6"
+              className="text-center space-y-8"
             >
-              <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">The Garden</span>
-              <h2 className="text-3xl md:text-5xl font-display font-light italic">
-                A Place to Write, Not Perform
+              <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">Metaphorical</span>
+              <h2 className="text-3xl md:text-5xl font-display font-light italic leading-tight">
+                The Garden<br />
+                <span className="text-emerald-400/80">A Place to Write, Not Perform</span>
               </h2>
               <p className="font-serif text-white/50 text-lg leading-relaxed max-w-2xl mx-auto">
                 Alongside the Journal, we tend a collaborative writing platform — the Garden. It's where writers plant their work, nurture their practice, and connect with a community that values process over product.
@@ -174,127 +227,49 @@ export default function About() {
               ))}
             </div>
 
+            <div className="space-y-8 pt-12">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className="max-w-3xl mx-auto text-center space-y-8"
+              >
+                <Sprout className="w-8 h-8 text-emerald-400/50 mx-auto" />
+                <h3 className="text-3xl md:text-5xl font-display font-light italic leading-tight">
+                  Why a Garden?
+                </h3>
+                <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 md:p-12 space-y-6 text-left">
+                  <p className="font-serif text-white/50 leading-relaxed text-lg">
+                    A garden is patient. It doesn't demand perfection on a deadline. Seeds become sprouts, sprouts become blooms — each at their own pace.
+                  </p>
+                  <p className="font-serif text-white/50 leading-relaxed text-lg">
+                    We chose the garden metaphor because writing is cultivation, not manufacturing. Your Garden is where drafts live, where experiments grow, where half-formed ideas have permission to exist without judgment.
+                  </p>
+                  <p className="font-serif text-amber-400/60 leading-relaxed text-lg italic">
+                    The garden doesn't rush. Neither do we.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               viewport={{ once: true }}
-              className="text-center"
+              className="text-center pt-12"
             >
               <Link
-                href="/garden"
-                className="inline-block px-10 py-4 bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-emerald-200/80 hover:bg-emerald-500/20 hover:text-emerald-100 transition-all duration-300 rounded-full"
-                data-testid="cta-enter-garden"
+                href="/how-it-works"
+                className="inline-flex items-center gap-3 font-mono text-sm uppercase tracking-widest text-emerald-400/60 hover:text-emerald-400 transition-colors group"
+                data-testid="link-see-how-garden-works"
               >
-                Enter the Garden
+                See how the Garden works
+                <ChevronDown size={16} className="group-hover:translate-y-1 transition-transform rotate-[-90deg]" />
               </Link>
             </motion.div>
           </div>
-        </section>
-
-        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-submit-for-print">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto space-y-8"
-          >
-            <div className="text-center space-y-4">
-              <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Submitting for Print</span>
-              <h2 className="text-3xl md:text-5xl font-display font-light italic">
-                How to Get Published
-              </h2>
-            </div>
-            <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 md:p-12 space-y-6">
-              <p className="font-serif text-white/55 text-lg leading-relaxed">
-                To be considered for our print editions, you need to be part of the Garden — which is completely free to join. When we announce open calls for upcoming issues, you can submit your work directly through the platform.
-              </p>
-              <p className="font-serif text-white/55 text-lg leading-relaxed">
-                Our editors also read the Gardens, discovering work that resonates. If they find something they'd like to feature, they'll always reach out to you first. Nothing is ever published without your explicit consent.
-              </p>
-              <p className="font-serif text-amber-400/60 text-lg leading-relaxed italic">
-                Join the Garden, write freely, and when the time is right — let your work bloom.
-              </p>
-              <div className="flex flex-wrap gap-4 pt-4 justify-center">
-                <Link
-                  href="/garden"
-                  className="px-8 py-4 bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-amber-200/80 hover:bg-amber-500/20 hover:text-amber-100 transition-all duration-300 rounded-full"
-                  data-testid="cta-join-garden-submit"
-                >
-                  Join the Garden
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        </section>
-
-        <section className="py-32 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-editorial-model">
-          <div className="max-w-4xl mx-auto space-y-16">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-              viewport={{ once: true }}
-              className="text-center space-y-6"
-            >
-              <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Editorial Model</span>
-              <h2 className="text-3xl md:text-5xl font-display font-light italic">
-                How We Find Work
-              </h2>
-            </motion.div>
-
-            <div className="space-y-12">
-              {[
-                { step: "01", title: "Open Calls", detail: "Each print edition has a theme. We publish open calls with clear deadlines. Anyone can submit. Every submission is read by at least two editors." },
-                { step: "02", title: "Garden Scouting", detail: "Our editors also browse the Garden — reading freely, following their instincts. When they find something that resonates, they note it privately." },
-                { step: "03", title: "Invitation & Consent", detail: "If an editor wants to include your work, they reach out directly. Nothing is ever published without your explicit agreement. We ask. Always." },
-                { step: "04", title: "Publication", detail: "Selected work appears in a print edition — designed, typeset, and printed as a physical object. Your name, your words, given the care they deserve." },
-              ].map((item, i) => (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  viewport={{ once: true }}
-                  className="flex gap-8 items-start"
-                  data-testid={`editorial-step-${item.step}`}
-                >
-                  <span className="font-mono text-3xl text-amber-400/20 font-light shrink-0">{item.step}</span>
-                  <div className="space-y-2">
-                    <h3 className="font-display text-2xl italic text-white/80">{item.title}</h3>
-                    <p className="font-serif text-white/40 leading-relaxed">{item.detail}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-32 px-6 md:px-12 border-t border-white/[0.04]">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto text-center space-y-8"
-          >
-            <Sprout className="w-8 h-8 text-emerald-400/50 mx-auto" />
-            <h2 className="text-3xl md:text-5xl font-display font-light italic leading-tight">
-              Why a Garden?
-            </h2>
-            <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 md:p-12 space-y-6 text-left">
-              <p className="font-serif text-white/50 leading-relaxed text-lg">
-                A garden is patient. It doesn't demand perfection on a deadline. Seeds become sprouts, sprouts become blooms — each at their own pace.
-              </p>
-              <p className="font-serif text-white/50 leading-relaxed text-lg">
-                We chose the garden metaphor because writing is cultivation, not manufacturing. Your Garden is where drafts live, where experiments grow, where half-formed ideas have permission to exist without judgment.
-              </p>
-              <p className="font-serif text-amber-400/60 leading-relaxed text-lg italic">
-                The garden doesn't rush. Neither do we.
-              </p>
-            </div>
-          </motion.div>
         </section>
       </main>
 
