@@ -64,8 +64,8 @@ export default function Home() {
       
       <main className="relative z-10">
         <Hero />
-        <GardenIntro />
         <Featured />
+        <GardenIntro />
       </main>
 
       <div className="relative z-10">

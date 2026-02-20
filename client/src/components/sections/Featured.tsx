@@ -44,10 +44,10 @@ export default function Featured() {
             transition={{ duration: 1.2 }}
             viewport={{ once: true }}
           >
-            In Bloom
+            Latest
           </motion.span>
           <h2 className="text-5xl md:text-6xl font-display font-light tracking-tight">
-            Read the Journal
+            From the Journal
           </h2>
           <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto leading-relaxed">
             Planted in the Garden. Chosen because they wouldn't let go.

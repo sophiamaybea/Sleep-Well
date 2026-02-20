@@ -148,21 +148,28 @@ export default function Hero() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.0, duration: 0.8 }}
                 viewport={{ once: true }}
-                className="flex flex-wrap gap-4 pt-4"
+                className="flex flex-wrap items-center gap-6 pt-4"
               >
                 <Link
-                  href="/about"
-                  className="px-8 py-4 bg-white/[0.06] border border-white/[0.12] backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white/80 hover:bg-white/[0.12] hover:text-white transition-all duration-300 rounded-full"
-                  data-testid="cta-the-journal"
+                  href="/in-bloom"
+                  className="px-10 py-5 bg-white text-[#0d1e2d] font-mono text-sm uppercase tracking-[0.2em] hover:bg-white/90 transition-all duration-300 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.1)] font-bold"
+                  data-testid="cta-read-journal"
                 >
-                  The Journal
+                  Read the Journal
                 </Link>
                 <Link
                   href="/garden"
-                  className="px-8 py-4 bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-amber-200/80 hover:bg-amber-500/20 hover:text-amber-100 transition-all duration-300 rounded-full"
-                  data-testid="cta-enter-garden"
+                  className="px-8 py-4 bg-white/[0.06] border border-white/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white/80 hover:bg-white/12 hover:text-white transition-all duration-300 rounded-full"
+                  data-testid="cta-start-writing"
                 >
-                  Enter the Garden
+                  Start Writing
+                </Link>
+                <Link
+                  href="/about"
+                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40 hover:text-white/70 transition-colors border-b border-transparent hover:border-white/20 pb-1 ml-2"
+                  data-testid="cta-about-us"
+                >
+                  About Us
                 </Link>
               </motion.div>
             </div>
