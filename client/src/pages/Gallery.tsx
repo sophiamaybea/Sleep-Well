@@ -136,11 +136,11 @@ export default function Gallery() {
             <div className="flex items-center justify-center gap-3">
               <Flower2 size={28} className="text-amber-400/40" />
               <h1 className="text-5xl md:text-7xl font-display font-light tracking-tight italic">
-                In Bloom
+                In Bloom (Published Works)
               </h1>
             </div>
             <p className="text-lg font-serif italic text-white/45 max-w-xl mx-auto leading-relaxed">
-              Work that has flowered — planted in the garden, selected by the editors, shared with consent.
+              This is the public journal. Here you can read stories and poems that have been selected for publication.
             </p>
             <div className="flex items-center justify-center gap-4 pt-2">
               <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />

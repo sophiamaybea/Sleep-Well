@@ -38,17 +38,17 @@ function BloomDoodle() {
 }
 
 const stageColors: Record<string, { glow: string; border: string; text: string }> = {
-  Seed: {
+  "Seed (Private Draft)": {
     glow: "rgba(251,191,36,0.15)",
     border: "hover:border-amber-400/40",
     text: "group-hover:text-amber-300",
   },
-  Sprout: {
+  "Sprout (Editing)": {
     glow: "rgba(52,211,153,0.15)",
     border: "hover:border-emerald-400/40",
     text: "group-hover:text-emerald-300",
   },
-  Bloom: {
+  "Bloom (Public)": {
     glow: "rgba(244,114,182,0.15)",
     border: "hover:border-pink-400/40",
     text: "group-hover:text-pink-300",
