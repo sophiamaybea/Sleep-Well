@@ -40,6 +40,23 @@ export default function Navigation() {
   const isEditorOrEIC = roleData?.role === "editor" || roleData?.role === "editor_in_chief";
   const isEIC = roleData?.role === "editor_in_chief";
 
+  const [showNotifs, setShowNotifs] = useState(false);
+
+  const { data: notifData } = useQuery<{ unread: number; notifications: any[] }>({
+    queryKey: ["/api/notifications"],
+    queryFn: async () => {
+      const [notifRes, countRes] = await Promise.all([
+        fetch("/api/notifications", { credentials: "include" }),
+        fetch("/api/notifications/unread-count", { credentials: "include" }),
+      ]);
+      const notifications = notifRes.ok ? await notifRes.json() : [];
+      const countData = countRes.ok ? await countRes.json() : { count: 0 };
+      return { unread: countData.count, notifications: notifications.slice(0, 10) };
+    },
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
   const publicMenuItems = [
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true },
@@ -139,14 +156,14 @@ export default function Navigation() {
             <span className="w-[1px] h-4 bg-white/10" />
 
             {!isLoading && (
-              isAuthenticated ? (
+              isAuthenticated && user ? (
                 <div className="relative group/user">
                   <button className="flex items-center gap-2 p-1 pl-3 rounded-full border border-white/10 hover:border-white/20 transition-all bg-white/5" data-testid="nav-user-dropdown">
                     <span className="font-mono text-[9px] uppercase tracking-widest text-white/70">
-                      {user.username.slice(0, 1) || "U"}
+                      {(user as any).username?.slice(0, 1) || (user as any).email?.slice(0, 1) || "U"}
                     </span>
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500/20 to-teal-500/20 border border-white/10 flex items-center justify-center overflow-hidden">
-                      <span className="text-[10px] text-white/40">{user.username.slice(0, 1).toUpperCase()}</span>
+                      <span className="text-[10px] text-white/40">{(user as any).username?.slice(0, 1).toUpperCase() || (user as any).email?.slice(0, 1).toUpperCase() || "U"}</span>
                     </div>
                   </button>
                   
@@ -216,7 +233,7 @@ export default function Navigation() {
               <div className="w-12 h-[1px] bg-white/10 mx-auto my-4" />
               
               {!isLoading && (
-                isAuthenticated ? (
+                isAuthenticated && user ? (
                   <>
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
                       <Link href={`/writer/${user.id}`} onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/60 hover:text-white italic hover:scale-105 transition-transform">
