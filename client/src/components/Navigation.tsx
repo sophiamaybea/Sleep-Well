@@ -42,7 +42,7 @@ export default function Navigation() {
 
   const [showNotifs, setShowNotifs] = useState(false);
 
-  const { data: notifData } = useQuery<{ unread: number; notifications: any[] }>({
+  const { data: notifData, isLoading: isNotifsLoading } = useQuery<{ unread: number; notifications: any[] }>({
     queryKey: ["/api/notifications"],
     queryFn: async () => {
       const [notifRes, countRes] = await Promise.all([
@@ -87,7 +87,7 @@ export default function Navigation() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           <Link href="/" className="relative group">
             <span className="font-display font-medium text-2xl tracking-tight italic mix-blend-difference text-white">
-              The Page Gallery & Garden
+              The Page Gallery Journal
             </span>
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>

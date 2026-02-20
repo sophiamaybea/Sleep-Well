@@ -2915,7 +2915,7 @@ export async function registerRoutes(
           return res.status(400).json({ message: `Entry exceeds word limit of ${challenge.wordLimit} words` });
         }
       }
-      const entry = await storage.submitChallengeEntry(req.user.claims.sub, {
+      const entry = await storage.submitChallengeEntry((req.user as any).claims.sub, {
         challengeId: req.params.id,
         title,
         content,
@@ -2930,7 +2930,7 @@ export async function registerRoutes(
   app.delete("/api/challenges/:id/entries/:entryId", async (req, res) => {
     if (!req.user) return res.status(401).json({ message: "Not authenticated" });
     try {
-      await storage.withdrawChallengeEntry(req.user.claims.sub, req.params.entryId);
+      await storage.withdrawChallengeEntry((req.user as any).claims.sub, req.params.entryId);
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -2940,7 +2940,7 @@ export async function registerRoutes(
   app.get("/api/challenges/:id/my-entry", async (req, res) => {
     if (!req.user) return res.status(401).json({ message: "Not authenticated" });
     try {
-      const entry = await storage.getUserChallengeEntry(req.user.claims.sub, req.params.id);
+      const entry = await storage.getUserChallengeEntry((req.user as any).claims.sub, req.params.id);
       res.json(entry);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -2958,7 +2958,7 @@ export async function registerRoutes(
       if (!isVotingOpen) return res.status(400).json({ message: "Voting is not open for this challenge" });
       const { entryId } = req.body;
       if (!entryId) return res.status(400).json({ message: "Entry ID is required" });
-      const vote = await storage.voteChallengeEntry(req.user.claims.sub, req.params.id, entryId);
+      const vote = await storage.voteChallengeEntry((req.user as any).claims.sub, req.params.id, entryId);
       res.json(vote);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2968,7 +2968,7 @@ export async function registerRoutes(
   app.delete("/api/challenges/:id/votes/:entryId", async (req, res) => {
     if (!req.user) return res.status(401).json({ message: "Not authenticated" });
     try {
-      await storage.unvoteChallengeEntry(req.user.claims.sub, req.params.id, req.params.entryId);
+      await storage.unvoteChallengeEntry((req.user as any).claims.sub, req.params.id, req.params.entryId);
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -2978,7 +2978,7 @@ export async function registerRoutes(
   app.get("/api/challenges/:id/my-votes", async (req, res) => {
     if (!req.user) return res.status(401).json({ message: "Not authenticated" });
     try {
-      const votes = await storage.getUserChallengeVotes(req.user.claims.sub, req.params.id);
+      const votes = await storage.getUserChallengeVotes((req.user as any).claims.sub, req.params.id);
       res.json(votes);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
