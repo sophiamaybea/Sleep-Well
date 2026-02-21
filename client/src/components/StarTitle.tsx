@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 
 interface Star {
   x: number;
@@ -21,18 +21,25 @@ export default function StarTitle() {
   const starsRef = useRef<Star[]>([]);
   const rafRef = useRef(0);
   const progressRef = useRef(0);
-  const [isReturning] = useState(() => {
-    try { return !!localStorage.getItem("pgj-visited"); } catch { return false; }
-  });
 
-  const { scrollYProgress } = useScroll({
-    target: wrapRef,
-    offset: ["start start", "end start"],
-  });
-  const smooth = useSpring(scrollYProgress, { stiffness: 40, damping: 18 });
-  const hintOpacity = useTransform(smooth, [0, 0.08], [1, 0]);
 
-  useEffect(() => smooth.on("change", (v) => { progressRef.current = v; }), [smooth]);
+  // Time-based auto animation on mount
+  useEffect(() => {
+    const duration = 2500; // 2.5 seconds
+    const start = performance.now();
+    let cancelled = false;
+    function tick() {
+      if (cancelled) return;
+      const elapsed = performance.now() - start;
+      const t = Math.min(elapsed / duration, 1);
+      // Ease out cubic for smooth deceleration
+      const eased = 1 - Math.pow(1 - t, 3);
+      progressRef.current = eased;
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const cvs = canvasRef.current;
@@ -159,55 +166,15 @@ export default function StarTitle() {
     };
   }, []);
 
-  const handleSkip = () => {
-    const el = wrapRef.current;
-    if (!el) return;
-    try { localStorage.setItem("pgj-visited", "true"); } catch {}
-    const bottom = el.offsetTop + el.offsetHeight;
-    window.scrollTo({ top: bottom - window.innerHeight * 0.2, behavior: "smooth" });
-  };
 
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const handleScrollMark = () => {
-      const rect = el.getBoundingClientRect();
-      const totalH = el.offsetHeight;
-      const scrolled = -rect.top;
-      if (scrolled > totalH * 0.5) {
-        try { localStorage.setItem("pgj-visited", "true"); } catch {}
-      }
-    };
-    window.addEventListener("scroll", handleScrollMark, { passive: true });
-    return () => window.removeEventListener("scroll", handleScrollMark);
-  }, []);
 
-  useEffect(() => {
-    if (isReturning) {
-      const timer = setTimeout(() => handleSkip(), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isReturning]);
+
 
   return (
-    <div ref={wrapRef} className={`${isReturning ? 'h-[80vh]' : 'h-[220vh]'} w-full relative mb-[-20vh]`}>
+    <div ref={wrapRef} className="h-[70vh] w-full relative">
       <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-        <motion.div
-          style={{ opacity: hintOpacity }}
-          className="absolute bottom-20 flex flex-col items-center gap-3"
-        >
-          <span className="font-mono text-[10px] tracking-[0.3em] text-white/40 animate-pulse pointer-events-none">
-            SCROLL TO REVEAL
-          </span>
-          <button
-            onClick={handleSkip}
-            className="font-mono text-[9px] tracking-[0.2em] text-white/25 hover:text-white/50 transition-colors uppercase pointer-events-auto"
-            data-testid="button-skip-animation"
-          >
-            Skip
-          </button>
-        </motion.div>
+
       </div>
     </div>
   );
