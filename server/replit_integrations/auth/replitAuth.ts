@@ -130,7 +130,19 @@ export async function setupAuth(app: Express) {
       });
     });
   } else {
-    // Local session-based auth for Railway/production
+    app.get("/api/login", (_req, res) => {
+      res.redirect("/");
+    });
+
+    app.get("/api/logout", (req, res) => {
+      req.session.destroy((err) => {
+        if (err) console.error("Logout error:", err);
+        res.redirect("/");
+      });
+    });
+  }
+
+  // Email/password authentication (works in all environments)
     app.post("/api/login", async (req, res) => {
       try {
         const { email, password } = req.body;
@@ -189,18 +201,6 @@ export async function setupAuth(app: Express) {
         return res.status(500).json({ message: "Internal server error" });
       }
     });
-
-    app.get("/api/login", (_req, res) => {
-      res.redirect("/");
-    });
-
-    app.get("/api/logout", (req, res) => {
-      req.session.destroy((err) => {
-        if (err) console.error("Logout error:", err);
-        res.redirect("/");
-      });
-    });
-  }
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
