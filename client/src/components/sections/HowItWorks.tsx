@@ -55,7 +55,7 @@ export default function HowItWorks() {
           <span className="font-mono text-xs tracking-[0.3em] opacity-40 block uppercase">
             03 — Process
           </span>
-          <h2 className="text-5xl md:text-7xl font-display font-light tracking-tight">
+          <h2 className="text-5xl md:text-7xl font-display font-light tracking-normal">
             {content.howItWorks.title}
           </h2>
           <p className="text-lg font-mono text-secondary uppercase tracking-widest opacity-50">

@@ -37,7 +37,7 @@ export default function Manifesto() {
     <Section id="manifesto" className="bg-transparent text-primary relative overflow-hidden py-40">
       <motion.div
         style={{ y, opacity: bgTextOpacity }}
-        className="absolute top-0 left-0 w-full h-[150%] pointer-events-none select-none font-display text-[12vw] leading-none break-all mix-blend-overlay text-center"
+        className="absolute top-0 left-0 w-full h-[150%] pointer-events-none select-none font-display text-[12vw] leading-snug break-all mix-blend-overlay text-center"
       >
         WRITING WRITING WRITING WRITING WRITING WRITING
       </motion.div>

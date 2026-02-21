@@ -46,7 +46,7 @@ export default function Featured() {
           >
             Latest
           </motion.span>
-          <h2 className="text-5xl md:text-6xl font-display font-light tracking-tight">
+          <h2 className="text-5xl md:text-6xl font-display font-light tracking-normal">
             From the Journal
           </h2>
           <p className="font-serif text-[13px] text-white/40 tracking-wide mt-2">

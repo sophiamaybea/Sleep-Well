@@ -1520,7 +1520,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           value={editTitle}
           onChange={(e) => setEditTitle(e.target.value)}
           placeholder="Title..."
-          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-tight text-white/90 placeholder:text-white/25 focus:outline-none border-none italic"
+          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-normal text-white/90 placeholder:text-white/25 focus:outline-none border-none italic"
           data-testid="input-title"
         />
 

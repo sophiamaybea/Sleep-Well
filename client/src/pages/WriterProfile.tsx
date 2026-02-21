@@ -135,7 +135,7 @@ export default function WriterProfile() {
             )}
             <div className="flex-grow min-w-0">
               <h1
-                className="text-3xl md:text-4xl font-display font-light italic text-white/90 tracking-tight leading-tight"
+                className="text-3xl md:text-4xl font-display font-light italic text-white/90 tracking-normal leading-normal"
                 data-testid="text-writer-name"
               >
                 {fullName}

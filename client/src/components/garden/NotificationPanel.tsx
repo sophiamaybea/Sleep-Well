@@ -127,7 +127,7 @@ export default function NotificationPanel() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <h1
-              className="text-3xl md:text-4xl font-display font-light tracking-tight italic text-white/90"
+              className="text-3xl md:text-4xl font-display font-light tracking-normal italic text-white/90"
               data-testid="heading-notifications"
             >
               Whispers

@@ -76,7 +76,7 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
               <Globe size={14} />
               <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Members Only</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90" data-testid="heading-garden-feed">
+            <h1 className="text-3xl md:text-5xl font-display font-light tracking-normal italic text-white/90" data-testid="heading-garden-feed">
               The Garden Gallery
             </h1>
             <p className="text-base font-serif text-white/30 mt-2">
@@ -215,13 +215,13 @@ export default function GardenFeed({ onViewProfile }: { onViewProfile?: (userId:
                           </div>
                           <div className="flex flex-col">
                             <span className="font-serif text-sm font-medium text-white/80 group-hover:text-white transition-colors">{piece.authorName || "Anonymous"}</span>
-                            <span className="font-mono text-[9px] text-white/20 uppercase tracking-tighter">{timeAgo(piece.updatedAt)}</span>
+                            <span className="font-mono text-[9px] text-white/20 uppercase tracking-normaler">{timeAgo(piece.updatedAt)}</span>
                           </div>
                         </button>
                         <span className="font-mono text-[9px] text-white/15">{timeAgo(piece.updatedAt)}</span>
                       </div>
 
-                      <h3 className="text-xl font-display font-medium text-white/90 leading-tight">
+                      <h3 className="text-xl font-display font-medium text-white/90 leading-normal">
                         {piece.title || "Untitled"}
                       </h3>
 

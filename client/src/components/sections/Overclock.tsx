@@ -82,7 +82,7 @@ export default function Overclock() {
             <span className="w-2 h-2 bg-white rounded-full animate-ping" />
             {content.overclock.eyebrow}
           </span>
-          <h2 className="text-5xl md:text-7xl font-display font-bold leading-none tracking-tight">
+          <h2 className="text-5xl md:text-7xl font-display font-bold leading-snug tracking-normal">
             BE ON THE <br/>
             <span className="text-stroke text-transparent relative">
               CLOCK

@@ -14,7 +14,7 @@ export default function Privacy() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="text-4xl md:text-5xl font-display font-light tracking-tight italic mb-12">
+          <h1 className="text-4xl md:text-5xl font-display font-light tracking-normal italic mb-12">
             Privacy Policy
           </h1>
           <div className="prose prose-invert max-w-none space-y-8 text-white/70 leading-relaxed">

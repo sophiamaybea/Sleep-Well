@@ -150,7 +150,7 @@ export default function Commons() {
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.5, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-tight italic"
+              className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-normal italic"
               data-testid="text-commons-title"
             >
               The Commons
@@ -319,7 +319,7 @@ function SharedGardenTab({
           >
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-lg font-display font-light italic text-white/80 group-hover:text-white transition-colors leading-tight" data-testid={`text-title-${item.writingId}`}>
+                <h3 className="text-lg font-display font-light italic text-white/80 group-hover:text-white transition-colors leading-normal" data-testid={`text-title-${item.writingId}`}>
                   {item.title}
                 </h3>
                 <motion.div

@@ -134,7 +134,7 @@ export function PageHeader({
       <div className="flex items-end justify-between gap-6 flex-wrap">
         <div>
           <h1
-            className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90 mb-2"
+            className="text-3xl md:text-5xl font-display font-light tracking-normal italic text-white/90 mb-2"
             data-testid={testId}
           >
             {title}

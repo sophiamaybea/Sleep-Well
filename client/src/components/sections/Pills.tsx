@@ -10,7 +10,7 @@ export default function Pills() {
           <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-60">
             {content.pills.eyebrow}
           </span>
-          <h2 className="text-5xl md:text-7xl font-display font-bold leading-none tracking-tight">
+          <h2 className="text-5xl md:text-7xl font-display font-bold leading-snug tracking-normal">
             PILLS <br/>
             <span className="text-stroke text-transparent">THE SHORTCUT</span><br/>
             TRAP

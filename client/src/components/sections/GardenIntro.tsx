@@ -197,7 +197,7 @@ export default function GardenIntro() {
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
               transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
               viewport={{ once: true, margin: "50px" }}
-              className="text-5xl md:text-7xl font-display font-light tracking-tight italic relative"
+              className="text-5xl md:text-7xl font-display font-light tracking-normal italic relative"
               data-testid="heading-garden-intro"
             >
               The Garden

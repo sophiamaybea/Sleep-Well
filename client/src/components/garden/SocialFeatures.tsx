@@ -226,7 +226,7 @@ export function MarginaliaSection({ writingId, authorId }: { writingId: string; 
               <span className="font-serif text-xs font-bold text-white/80">
                 {note.userName || "Anonymous"}
               </span>
-              <span className="font-mono text-[8px] text-white/20 uppercase tracking-tighter">
+              <span className="font-mono text-[8px] text-white/20 uppercase tracking-normaler">
                 {timeAgo(note.createdAt)}
               </span>
             </div>

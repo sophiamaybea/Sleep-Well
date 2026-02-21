@@ -373,7 +373,7 @@ export default function SignIn() {
               className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c4a24d]/50 to-transparent mx-auto"
             />
 
-            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light italic tracking-tight text-white/90 leading-[1.05]">
+            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light italic tracking-normal text-white/90 leading-[1.05]">
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

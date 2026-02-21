@@ -86,7 +86,7 @@ export default function Greenhouse() {
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.5, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-tight italic"
+              className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-normal italic"
               data-testid="greenhouse-title"
             >
               The Greenhouse

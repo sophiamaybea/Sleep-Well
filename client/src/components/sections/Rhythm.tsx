@@ -28,7 +28,7 @@ export default function Rhythm() {
         </div>
 
         <div className="border border-secondary/30 bg-secondary/10 px-8 py-4 rounded-full backdrop-blur-sm">
-          <p className="font-mono text-lg md:text-xl font-bold tracking-tighter text-secondary">
+          <p className="font-mono text-lg md:text-xl font-bold tracking-normaler text-secondary">
             {content.rhythm.stat}
           </p>
         </div>

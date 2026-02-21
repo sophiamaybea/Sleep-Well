@@ -141,7 +141,7 @@ function ChallengeList({ onSelect }: { onSelect: (id: string) => void }) {
                 )}
               </div>
 
-              <h3 className="font-display text-lg text-white/85 mb-2 group-hover:text-white/95 transition-colors leading-tight" data-testid={`text-challenge-title-${challenge.id}`}>
+              <h3 className="font-display text-lg text-white/85 mb-2 group-hover:text-white/95 transition-colors leading-normal" data-testid={`text-challenge-title-${challenge.id}`}>
                 {challenge.title}
               </h3>
 

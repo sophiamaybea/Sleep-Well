@@ -135,7 +135,7 @@ export default function Gallery() {
             </span>
             <div className="flex items-center justify-center gap-3">
               <Flower2 size={28} className="text-amber-400/40" />
-              <h1 className="text-5xl md:text-7xl font-display font-light tracking-tight italic text-white/90">
+              <h1 className="text-5xl md:text-7xl font-display font-light tracking-normal italic text-white/90">
                 The Journal
               </h1>
             </div>
@@ -297,7 +297,7 @@ export default function Gallery() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-2 min-w-0 flex-1">
-                          <h3 className="text-2xl md:text-3xl font-display font-light tracking-tight text-white/75 group-hover:text-white transition-colors duration-300 italic">
+                          <h3 className="text-2xl md:text-3xl font-display font-light tracking-normal text-white/75 group-hover:text-white transition-colors duration-300 italic">
                             {contributor.name}
                           </h3>
                           <div className="flex items-center gap-4 flex-wrap">
@@ -376,7 +376,7 @@ export default function Gallery() {
                               </span>
                             </div>
 
-                            <h3 className="text-3xl md:text-5xl font-display font-light tracking-tight text-white/80 group-hover:text-white transition-colors duration-500 italic leading-[1.15]">
+                            <h3 className="text-3xl md:text-5xl font-display font-light tracking-normal text-white/80 group-hover:text-white transition-colors duration-500 italic leading-[1.15]">
                               {item.title}
                             </h3>
 
@@ -429,7 +429,7 @@ export default function Gallery() {
 
                         <div className="flex items-center justify-between gap-4">
                           <div className="space-y-2 min-w-0">
-                            <h3 className="text-xl md:text-2xl font-display font-light tracking-tight text-white/70 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
+                            <h3 className="text-xl md:text-2xl font-display font-light tracking-normal text-white/70 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
                               {item.title}
                             </h3>
                             <div className="flex items-center gap-4">
@@ -675,7 +675,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
               <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lightMode ? "text-stone-400" : "text-amber-200/30"}`}>
                 {piece.genre} · {readingTime} min read
               </span>
-              <h1 className={`text-3xl md:text-5xl font-display font-light italic leading-tight ${lightMode ? "text-stone-800" : "text-white/90"}`}>
+              <h1 className={`text-3xl md:text-5xl font-display font-light italic leading-normal ${lightMode ? "text-stone-800" : "text-white/90"}`}>
                 {piece.title}
               </h1>
               <div className="flex items-center gap-4">

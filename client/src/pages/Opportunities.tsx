@@ -247,7 +247,7 @@ export default function Opportunities() {
             <span className="font-mono text-[10px] tracking-[0.4em] text-amber-200/25 block uppercase">
               For Writers Who Submit
             </span>
-            <h1 className="text-5xl md:text-7xl font-display font-light tracking-tight italic" data-testid="text-page-title">
+            <h1 className="text-5xl md:text-7xl font-display font-light tracking-normal italic" data-testid="text-page-title">
               Curated Opportunities
             </h1>
             <p className="text-lg font-serif italic text-white/45 max-w-xl mx-auto leading-relaxed">

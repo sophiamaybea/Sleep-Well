@@ -26,7 +26,7 @@ export default function About() {
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.5, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-tight italic"
+              className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-normal italic"
               data-testid="about-title"
             >
               About Us
@@ -69,7 +69,7 @@ export default function About() {
               className="text-center space-y-8"
             >
               <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Institutional</span>
-              <h2 className="text-3xl md:text-5xl font-display font-light italic leading-tight">
+              <h2 className="text-3xl md:text-5xl font-display font-light italic leading-normal">
                 The Journal<br />
                 <span className="text-amber-400/80">We publish writing that we can't stop thinking about.</span>
               </h2>
@@ -177,7 +177,7 @@ export default function About() {
               className="text-center space-y-8"
             >
               <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">Metaphorical</span>
-              <h2 className="text-3xl md:text-5xl font-display font-light italic leading-tight">
+              <h2 className="text-3xl md:text-5xl font-display font-light italic leading-normal">
                 The Garden<br />
                 <span className="text-emerald-400/80">A Place to Write, Not Perform</span>
               </h2>
@@ -236,7 +236,7 @@ export default function About() {
                 className="max-w-3xl mx-auto text-center space-y-8"
               >
                 <Sprout className="w-8 h-8 text-emerald-400/50 mx-auto" />
-                <h3 className="text-3xl md:text-5xl font-display font-light italic leading-tight">
+                <h3 className="text-3xl md:text-5xl font-display font-light italic leading-normal">
                   Why a Garden?
                 </h3>
                 <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 md:p-12 space-y-6 text-left">

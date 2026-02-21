@@ -82,7 +82,7 @@ export default function TendingFeed({ onViewProfile }: { onViewProfile?: (userId
           <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Following</span>
         </div>
         <h1
-          className="text-3xl md:text-5xl font-display font-light tracking-tight italic text-white/90"
+          className="text-3xl md:text-5xl font-display font-light tracking-normal italic text-white/90"
           data-testid="heading-tending-feed"
         >
           Gardens I Tend

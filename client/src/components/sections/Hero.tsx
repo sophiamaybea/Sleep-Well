@@ -118,7 +118,7 @@ export default function Hero() {
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true, margin: "-50px" }}
               >
-                <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-light leading-[1.1] tracking-tight text-white/90 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-light leading-[1.1] tracking-normal text-white/90 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
                   <motion.span
                     initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
                     whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}

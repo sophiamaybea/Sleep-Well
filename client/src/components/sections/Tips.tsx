@@ -11,7 +11,7 @@ export default function Tips() {
           <span className="font-mono text-xs tracking-[0.2em] opacity-60 block">
             {content.tips.eyebrow}
           </span>
-          <h2 className="text-5xl md:text-6xl font-display font-bold leading-none">
+          <h2 className="text-5xl md:text-6xl font-display font-bold leading-snug">
             IT'S TIME <br/>TO LEARN
           </h2>
           <p className="text-xl font-mono border-t border-primary-foreground/20 pt-8 opacity-80">
@@ -37,7 +37,7 @@ export default function Tips() {
                   <Check size={16} />
                 </div>
               </div>
-              <h3 className="text-xl font-display font-bold mb-3 uppercase tracking-tight">
+              <h3 className="text-xl font-display font-bold mb-3 uppercase tracking-normal">
                 {tip.title}
               </h3>
               <p className="opacity-70 leading-relaxed">

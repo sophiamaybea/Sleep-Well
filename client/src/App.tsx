@@ -27,7 +27,7 @@ import FieldGuide from "@/pages/FieldGuide";
 import Greenhouse from "@/pages/Nursery";
 
 import SmoothScroll from "@/components/SmoothScroll";
-import CustomCursor from "@/components/CustomCursor";
+// import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 
@@ -68,7 +68,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <CustomCursor />
+        {/* <CustomCursor /> */}
         <SmoothScroll>
           <NoiseOverlay />
           <Toaster />

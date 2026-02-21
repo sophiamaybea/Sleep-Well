@@ -245,7 +245,7 @@ function CourseCard({ course, index, onSelect }: { course: CourseListItem; index
           )}
         </div>
 
-        <h3 className="font-display text-xl sm:text-2xl text-white/85 mb-3 group-hover:text-white/95 transition-colors leading-tight italic" data-testid={`text-course-title-${course.id}`}>
+        <h3 className="font-display text-xl sm:text-2xl text-white/85 mb-3 group-hover:text-white/95 transition-colors leading-normal italic" data-testid={`text-course-title-${course.id}`}>
           {course.title}
         </h3>
 
@@ -483,7 +483,7 @@ function CourseDetailView({ courseId, onBack, onSelectLesson }: {
             )}
           </div>
 
-          <h2 className="font-display text-3xl sm:text-4xl text-white/90 italic mb-4 leading-tight" data-testid="text-course-detail-title">
+          <h2 className="font-display text-3xl sm:text-4xl text-white/90 italic mb-4 leading-normal" data-testid="text-course-detail-title">
             {course.title}
           </h2>
 
@@ -1294,7 +1294,7 @@ function LessonView({ courseId, lessonId, onBack, onNavigate }: {
       >
         <div className="px-7 sm:px-10 pt-8 sm:pt-10 pb-3">
           <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/20 mb-3">Lesson {lesson.currentIndex}</p>
-          <h2 className="font-display text-2xl sm:text-3xl text-white/90 italic leading-tight" data-testid="text-lesson-title">
+          <h2 className="font-display text-2xl sm:text-3xl text-white/90 italic leading-normal" data-testid="text-lesson-title">
             {lesson.title}
           </h2>
           <div className="w-12 h-[1px] bg-white/10 mt-5" />

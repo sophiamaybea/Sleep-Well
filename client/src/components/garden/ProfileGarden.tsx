@@ -75,7 +75,7 @@ export default function ProfileGarden({ userId, onBack }: { userId: string; onBa
             <User size={28} />
           </div>
           <div className="flex-grow">
-            <h1 className="text-3xl md:text-4xl font-display font-light tracking-tight italic text-white/85" data-testid="heading-profile-name">
+            <h1 className="text-3xl md:text-4xl font-display font-light tracking-normal italic text-white/85" data-testid="heading-profile-name">
               {authorName}'s Garden
             </h1>
             <p className="font-serif text-white/30 mt-1">
