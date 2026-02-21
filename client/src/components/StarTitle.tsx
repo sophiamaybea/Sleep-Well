@@ -171,8 +171,8 @@ export default function StarTitle() {
 
 
   return (
-    <div ref={wrapRef} className="h-[70vh] w-full relative">
-      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+    <div ref={wrapRef} className="h-screen w-full relative">
+      <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center overflow-hidden">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
       </div>
