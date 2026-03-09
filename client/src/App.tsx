@@ -3,64 +3,89 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
-import Garden from "@/pages/Garden";
-import WriterProfile from "@/pages/WriterProfile";
-import PublicGarden from "@/pages/PublicGarden";
-import EditorStudio from "@/pages/EditorStudio";
-import InBloom from "@/pages/Gallery";
-import About from "@/pages/About";
-import Courses from "@/pages/Courses";
-import Seasons from "@/pages/Challenges";
-import EICDashboard from "@/pages/EICDashboard";
-import EditorOnboarding from "@/pages/EditorOnboarding";
-import SignIn from "@/pages/SignIn";
-import Privacy from "@/pages/Privacy";
-import Terms from "@/pages/Terms";
-import Exhibit from "@/pages/Exhibit";
-import Exhibits from "@/pages/Exhibits";
-import Opportunities from "@/pages/Opportunities";
-import Commons from "@/pages/Commons";
-import HowItWorks from "@/pages/HowItWorks";
-import FieldGuide from "@/pages/FieldGuide";
-import Greenhouse from "@/pages/Nursery";
+import { lazy, Suspense } from "react";
 
 import SmoothScroll from "@/components/SmoothScroll";
-// import CustomCursor from "@/components/CustomCursor";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
+import OnboardingModal from "@/components/OnboardingModal";
+
+const Home = lazy(() => import("@/pages/Home"));
+const Garden = lazy(() => import("@/pages/Garden"));
+const WriterProfile = lazy(() => import("@/pages/WriterProfile"));
+const PublicGarden = lazy(() => import("@/pages/PublicGarden"));
+const EditorStudio = lazy(() => import("@/pages/EditorStudio"));
+const InBloom = lazy(() => import("@/pages/Gallery"));
+const About = lazy(() => import("@/pages/About"));
+const Courses = lazy(() => import("@/pages/Courses"));
+const EICDashboard = lazy(() => import("@/pages/EICDashboard"));
+const MindWalks = lazy(() => import("@/pages/MindWalks"));
+const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
+const SignIn = lazy(() => import("@/pages/SignIn"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const Terms = lazy(() => import("@/pages/Terms"));
+const Commons = lazy(() => import("@/pages/Commons"));
+const HowItWorks = lazy(() => import("@/pages/HowItWorks"));
+const GardenInfo = lazy(() => import("@/pages/GardenInfo"));
+const FieldGuide = lazy(() => import("@/pages/FieldGuide"));
+const Greenhouse = lazy(() => import("@/pages/Nursery"));
+const EditProfile = lazy(() => import("@/pages/EditProfile"));
+const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
+const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+
+function PageLoader() {
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ backgroundColor: "#060d06" }}
+    >
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border border-amber-500/20 border-t-amber-500/50 animate-spin" />
+        </div>
+        <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/30">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/sign-in" component={SignIn} />
-      <Route path="/garden" component={Garden} />
-      <Route path="/writer/:id" component={WriterProfile} />
-      <Route path="/public-garden/:userId" component={PublicGarden} />
-      <Route path="/in-bloom" component={InBloom} />
-      <Route path="/gallery" component={InBloom} />
-      <Route path="/editor-studio" component={EditorStudio} />
-      <Route path="/about" component={About} />
-      <Route path="/courses" component={Courses} />
-      <Route path="/seasons" component={Seasons} />
-      <Route path="/challenges" component={Seasons} />
-      <Route path="/eic-dashboard" component={EICDashboard} />
-      <Route path="/editor-onboarding" component={EditorOnboarding} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/exhibits" component={Exhibits} />
-      <Route path="/exhibits/:slug" component={Exhibit} />
-      <Route path="/opportunities" component={Opportunities} />
-      <Route path="/commons" component={Commons} />
-      <Route path="/how-it-works" component={HowItWorks} />
-      <Route path="/field-guide" component={FieldGuide} />
-      <Route path="/greenhouse" component={Greenhouse} />
-      <Route path="/nursery" component={Greenhouse} />
-      <Route path="/publications" component={InBloom} />
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/sign-in" component={SignIn} />
+        <Route path="/garden" component={Garden} />
+        <Route path="/garden/:username" component={PublicGarden} />
+        <Route path="/edit-profile" component={EditProfile} />
+        <Route path="/writer/:id" component={WriterProfile} />
+        <Route path="/public-garden/:userId" component={PublicGarden} />
+        <Route path="/in-bloom" component={InBloom} />
+        <Route path="/gallery" component={InBloom} />
+          <Route path="/mind-walks" component={MindWalks} />
+          <Route path="/mind-walks/:slug" component={MindWalks} />
+        <Route path="/editor-studio" component={EditorStudio} />
+        <Route path="/about" component={About} />
+        <Route path="/courses" component={Courses} />
+        <Route path="/eic-dashboard" component={EICDashboard} />
+        <Route path="/editor-onboarding" component={EditorOnboarding} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/commons" component={Commons} />
+        <Route path="/how-it-works" component={HowItWorks} />
+          <Route path="/garden-info" component={GardenInfo} />
+        <Route path="/field-guide" component={FieldGuide} />
+        <Route path="/garden-guide" component={GardenGuide} />
+        <Route path="/greenhouse" component={Greenhouse} />
+        <Route path="/nursery" component={Greenhouse} />
+        <Route path="/publications" component={InBloom} />
+        <Route path="/contact-editors" component={ContactEditors} />
+        <Route path="/" component={Home} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
@@ -68,11 +93,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {/* <CustomCursor /> */}
         <SmoothScroll>
           <NoiseOverlay />
           <Toaster />
           <Router />
+          <OnboardingModal />
           <AccessibilityToolbar />
         </SmoothScroll>
       </TooltipProvider>

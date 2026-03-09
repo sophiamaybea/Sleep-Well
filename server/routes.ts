@@ -1,37 +1,90 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, BorderStyle } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  AlignmentType,
+  HeadingLevel,
+  BorderStyle,
+} from "docx";
 import { randomUUID } from "crypto";
 import { storage } from "./storage";
-import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import {
-  insertWritingSchema, updateWritingSchema,
-  insertReadingQueueSchema, insertSavedPieceSchema, insertPollinationSchema,
-  insertRitualSessionSchema, insertCompostSchema, insertGrowthJournalSchema,
-  insertInnerWeatherSchema, insertReflectionSchema, insertCircleSchema,
-  insertCircleMessageSchema, insertMoonlitReadingSchema, insertRootInfluenceSchema,
-  insertResonanceSchema, insertMarginaliaSchema,
-  insertTableTopicSchema, insertTableReplySchema,
-  insertWorkshopExerciseSchema, insertWorkshopResponseSchema,
-  insertSwapRequestSchema, insertSwapFeedbackSchema, insertMicroSwapSchema,
-  insertGreenhouseEntrySchema, insertPublishRequestSchema,
-  insertRequestMessageSchema, insertIssueSchema, insertIssuePieceSchema,
+  setupAuth,
+  registerAuthRoutes,
+  isAuthenticated,
+} from "./replit_integrations/auth";
+import {
+  insertWritingSchema,
+  updateWritingSchema,
+  insertReadingQueueSchema,
+  insertSavedPieceSchema,
+  insertPollinationSchema,
+  insertRitualSessionSchema,
+  insertCompostSchema,
+  insertGrowthJournalSchema,
+  insertInnerWeatherSchema,
+  insertReflectionSchema,
+  insertCircleSchema,
+  insertCircleMessageSchema,
+  insertMoonlitReadingSchema,
+  insertRootInfluenceSchema,
+  insertResonanceSchema,
+  insertMarginaliaSchema,
+  insertTableTopicSchema,
+  insertTableReplySchema,
+  insertWorkshopExerciseSchema,
+  insertWorkshopResponseSchema,
+  insertSwapRequestSchema,
+  insertSwapFeedbackSchema,
+  insertMicroSwapSchema,
+  insertGreenhouseEntrySchema,
+  insertPublishRequestSchema,
+  insertRequestMessageSchema,
+  insertIssueSchema,
+  insertIssuePieceSchema,
   insertEditorNoteSchema,
-  insertCircleIntentionSchema, insertCircleCelebrationSchema,
-  insertRejectionWallSchema, insertOpportunitySchema, insertOpportunityNoteSchema,
-  insertPromptPotluckSchema, insertCircleShareSchema, insertIdeaDropSchema,
+  insertCircleIntentionSchema,
+  insertCircleCelebrationSchema,
+  insertRejectionWallSchema,
+  insertOpportunitySchema,
+  insertOpportunityNoteSchema,
+  insertPromptPotluckSchema,
+  insertCircleShareSchema,
+  insertIdeaDropSchema,
   insertCircleMicroResponseSchema,
-  insertEditorialFlagSchema, insertEditorsWalkSchema,
-  insertFirstReaderDropSchema, insertFirstReaderResponseSchema,
+  insertEditorialFlagSchema,
+  insertSubmissionCallSchema,
+  insertFirstReaderDropSchema,
+  insertFirstReaderResponseSchema,
   insertReadingShelfSchema,
-  courses, courseLessons,
-  insertExhibitResponseSchema, insertExhibitReflectionSchema,
-  galleryComments, users,
+  courses,
+  courseLessons,
+  insertExhibitResponseSchema,
+  insertExhibitReflectionSchema,
+  galleryComments,
+  users,
+  insertSiteContentSchema,
+  siteContent,
+  prompts as promptsTable,
+  appreciations,
+  letters,
+  echoes,
+  whispers,
+  insertLetterSchema,
+  insertContactMessageSchema,
+  insertConversationSchema,
+  insertChatMessageSchema,
+  insertMindWalkThemeSchema,
+  insertMindWalkFragmentSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, desc, count } from "drizzle-orm";
 import { dailyPrompts } from "@shared/schema";
+import { circles, circleMembers } from "@shared/schema";
 
 const joinMoonlitReadingSchema = z.object({
   writingId: z.string().optional(),
@@ -42,10 +95,12 @@ const publishRequestResponseSchema = z.object({
 });
 
 async function isEditor(req: any, res: any, next: any) {
-    // Populate req.user from session for non-Replit auth
+  // Populate req.user from session for non-Replit auth
   if (!req.user?.claims?.sub) {
     const sessionUser = (req.session as any)?.user;
-    if (sessionUser) { (req as any).user = sessionUser; }
+    if (sessionUser) {
+      (req as any).user = sessionUser;
+    }
   }
   if (!req.user?.claims?.sub) {
     return res.status(401).json({ message: "Not authenticated" });
@@ -58,10 +113,12 @@ async function isEditor(req: any, res: any, next: any) {
 }
 
 async function isEditorInChief(req: any, res: any, next: any) {
-    // Populate req.user from session for non-Replit auth
+  // Populate req.user from session for non-Replit auth
   if (!req.user?.claims?.sub) {
     const sessionUser = (req.session as any)?.user;
-    if (sessionUser) { (req as any).user = sessionUser; }
+    if (sessionUser) {
+      (req as any).user = sessionUser;
+    }
   }
   if (!req.user?.claims?.sub) {
     return res.status(401).json({ message: "Not authenticated" });
@@ -79,7 +136,7 @@ const replantResponseSchema = z.object({
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  app: Express,
 ): Promise<Server> {
   await setupAuth(app);
   registerAuthRoutes(app);
@@ -87,6 +144,49 @@ export async function registerRoutes(
   // === HEALTH CHECK ===
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // === SEO: ROBOTS.TXT ===
+  app.get("/robots.txt", (_req, res) => {
+    res
+      .type("text/plain")
+      .send(
+        `User-agent: *\nAllow: /\nDisallow: /garden\nDisallow: /edit-profile\nDisallow: /editor-studio\nDisallow: /eic-dashboard\nDisallow: /api/\n\nSitemap: ${_req.protocol}://${_req.get("host")}/sitemap.xml`,
+      );
+  });
+
+  // === SEO: SITEMAP.XML ===
+  app.get("/sitemap.xml", (_req, res) => {
+    const baseUrl = `${_req.protocol}://${_req.get("host")}`;
+    const pages = [
+      { path: "/", priority: "1.0", changefreq: "weekly" },
+      { path: "/about", priority: "0.8", changefreq: "monthly" },
+      { path: "/in-bloom", priority: "0.9", changefreq: "weekly" },
+      { path: "/seasons", priority: "0.7", changefreq: "weekly" },
+      { path: "/how-it-works", priority: "0.8", changefreq: "monthly" },
+      { path: "/field-guide", priority: "0.6", changefreq: "monthly" },
+      { path: "/greenhouse", priority: "0.6", changefreq: "monthly" },
+      { path: "/commons", priority: "0.7", changefreq: "daily" },
+      { path: "/opportunities", priority: "0.7", changefreq: "weekly" },
+      { path: "/exhibits", priority: "0.7", changefreq: "weekly" },
+      { path: "/courses", priority: "0.6", changefreq: "monthly" },
+      { path: "/sign-in", priority: "0.5", changefreq: "yearly" },
+      { path: "/privacy", priority: "0.3", changefreq: "yearly" },
+      { path: "/terms", priority: "0.3", changefreq: "yearly" },
+      { path: "/editor-onboarding", priority: "0.4", changefreq: "yearly" },
+    ];
+    const today = new Date().toISOString().split("T")[0];
+    const urls = pages
+      .map(
+        (p) =>
+          `  <url>\n    <loc>${baseUrl}${p.path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`,
+      )
+      .join("\n");
+    res
+      .type("application/xml")
+      .send(
+        `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`,
+      );
   });
 
   // === WRITINGS ===
@@ -105,7 +205,13 @@ export async function registerRoutes(
     try {
       const userId = req.user.claims.sub;
       const parsed = insertWritingSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid writing data", errors: parsed.error.flatten() });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({
+            message: "Invalid writing data",
+            errors: parsed.error.flatten(),
+          });
       const writing = await storage.createWriting(userId, parsed.data);
       res.status(201).json(writing);
     } catch (error) {
@@ -118,13 +224,25 @@ export async function registerRoutes(
     try {
       const userId = req.user.claims.sub;
       const parsed = updateWritingSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid update data", errors: parsed.error.flatten() });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({
+            message: "Invalid update data",
+            errors: parsed.error.flatten(),
+          });
 
       if (parsed.data.readiness) {
         const current = await storage.getWriting(req.params.id);
-        if (current && current.authorId === userId && current.readiness !== parsed.data.readiness) {
+        if (
+          current &&
+          current.authorId === userId &&
+          current.readiness !== parsed.data.readiness
+        ) {
           const plainText = current.content.replace(/<[^>]*>/g, "");
-          const wc = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+          const wc = plainText.trim()
+            ? plainText.trim().split(/\s+/).length
+            : 0;
           await storage.createSnapshot({
             writingId: current.id,
             title: current.title,
@@ -135,8 +253,13 @@ export async function registerRoutes(
         }
       }
 
-      const writing = await storage.updateWriting(req.params.id, userId, parsed.data);
-      if (!writing) return res.status(404).json({ message: "Writing not found" });
+      const writing = await storage.updateWriting(
+        req.params.id,
+        userId,
+        parsed.data,
+      );
+      if (!writing)
+        return res.status(404).json({ message: "Writing not found" });
       res.json(writing);
     } catch (error) {
       console.error("Error updating writing:", error);
@@ -144,24 +267,30 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/writings/:id/snapshots", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const writing = await storage.getWriting(req.params.id);
-      if (!writing || writing.authorId !== userId) return res.status(404).json({ message: "Writing not found" });
-      const snapshots = await storage.getSnapshots(req.params.id);
-      res.json(snapshots);
-    } catch (error) {
-      console.error("Error fetching snapshots:", error);
-      res.status(500).json({ message: "Failed to fetch snapshots" });
-    }
-  });
+  app.get(
+    "/api/writings/:id/snapshots",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing || writing.authorId !== userId)
+          return res.status(404).json({ message: "Writing not found" });
+        const snapshots = await storage.getSnapshots(req.params.id);
+        res.json(snapshots);
+      } catch (error) {
+        console.error("Error fetching snapshots:", error);
+        res.status(500).json({ message: "Failed to fetch snapshots" });
+      }
+    },
+  );
 
   app.delete("/api/writings/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const deleted = await storage.deleteWriting(req.params.id, userId);
-      if (!deleted) return res.status(404).json({ message: "Writing not found" });
+      if (!deleted)
+        return res.status(404).json({ message: "Writing not found" });
       res.json({ message: "Writing deleted" });
     } catch (error) {
       console.error("Error deleting writing:", error);
@@ -169,29 +298,36 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/writings/bulk/empty", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const count = await storage.deleteEmptyWritings(userId);
-      res.json({ deleted: count });
-    } catch (error) {
-      console.error("Error cleaning up empty drafts:", error);
-      res.status(500).json({ message: "Failed to clean up drafts" });
-    }
-  });
+  app.delete(
+    "/api/writings/bulk/empty",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const count = await storage.deleteEmptyWritings(userId);
+        res.json({ deleted: count });
+      } catch (error) {
+        console.error("Error cleaning up empty drafts:", error);
+        res.status(500).json({ message: "Failed to clean up drafts" });
+      }
+    },
+  );
 
   // === GALLERY ===
   app.get("/api/gallery", async (req, res) => {
     try {
       const { q, genre } = req.query;
       if (q) {
-        const results = await storage.searchPublishedWritings(q as string, genre as string | undefined);
+        const results = await storage.searchPublishedWritings(
+          q as string,
+          genre as string | undefined,
+        );
         return res.json(results);
       }
       const published = await storage.getPublishedWritings();
       if (genre && typeof genre === "string") {
         const filtered = published.filter(
-          (p: any) => p.genre && p.genre.toLowerCase() === genre.toLowerCase()
+          (p: any) => p.genre && p.genre.toLowerCase() === genre.toLowerCase(),
         );
         return res.json(filtered);
       }
@@ -219,8 +355,13 @@ export async function registerRoutes(
   app.get("/api/garden-feed", isAuthenticated, async (req: any, res) => {
     try {
       const { readiness, genre, editorial } = req.query;
-      const filters: { readiness?: string; genre?: string; editorialOnly?: boolean } = {};
-      if (readiness && readiness !== "all") filters.readiness = readiness as string;
+      const filters: {
+        readiness?: string;
+        genre?: string;
+        editorialOnly?: boolean;
+      } = {};
+      if (readiness && readiness !== "all")
+        filters.readiness = readiness as string;
       if (genre && genre !== "all") filters.genre = genre as string;
       if (editorial === "true") filters.editorialOnly = true;
       const feed = await storage.getGardenFeed(filters);
@@ -231,16 +372,32 @@ export async function registerRoutes(
     }
   });
 
-  // === PROFILE GARDEN ===
-  app.get("/api/garden-profile/:userId", isAuthenticated, async (req: any, res) => {
+  // === TAG-BASED DISCOVERY ===
+  app.get("/api/discovery", isAuthenticated, async (req: any, res) => {
     try {
-      const writings = await storage.getProfileGarden(req.params.userId);
-      res.json(writings);
+      const userId = req.user.claims.sub;
+      const feed = await storage.getDiscoveryFeed(userId);
+      res.json(feed);
     } catch (error) {
-      console.error("Error fetching profile garden:", error);
-      res.status(500).json({ message: "Failed to fetch profile garden" });
+      console.error("Error fetching discovery feed:", error);
+      res.status(500).json({ message: "Failed to fetch discovery feed" });
     }
   });
+
+  // === PROFILE GARDEN ===
+  app.get(
+    "/api/garden-profile/:userId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const writings = await storage.getProfileGarden(req.params.userId);
+        res.json(writings);
+      } catch (error) {
+        console.error("Error fetching profile garden:", error);
+        res.status(500).json({ message: "Failed to fetch profile garden" });
+      }
+    },
+  );
 
   // === CIRCLE FEED ===
   app.get("/api/circle-feed", isAuthenticated, async (req: any, res) => {
@@ -267,31 +424,99 @@ export async function registerRoutes(
   app.post("/api/reading-queue", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertReadingQueueSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const item = await storage.addToReadingQueue(req.user.claims.sub, parsed.data.writingId);
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const item = await storage.addToReadingQueue(
+        req.user.claims.sub,
+        parsed.data.writingId,
+      );
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to add to reading queue" });
     }
   });
 
-  app.delete("/api/reading-queue/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const deleted = await storage.removeFromReadingQueue(req.user.claims.sub, req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Removed" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to remove" });
-    }
-  });
+  app.delete(
+    "/api/reading-queue/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.removeFromReadingQueue(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Removed" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to remove" });
+      }
+    },
+  );
 
-  app.patch("/api/reading-queue/:id/read", isAuthenticated, async (req: any, res) => {
+  app.patch(
+    "/api/reading-queue/:id/read",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const item = await storage.markQueueItemRead(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!item) return res.status(404).json({ message: "Not found" });
+        res.json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update" });
+      }
+    },
+  );
+
+  // === READING NOTES (annotation → seed) ===
+  app.post("/api/reading-notes", isAuthenticated, async (req: any, res) => {
     try {
-      const item = await storage.markQueueItemRead(req.user.claims.sub, req.params.id);
-      if (!item) return res.status(404).json({ message: "Not found" });
-      res.json(item);
+      const userId = req.user.claims.sub;
+      const schema = z.object({
+        sourceWritingId: z.string(),
+        sourceTitle: z.string().optional(),
+        highlightText: z.string().optional(),
+        note: z.string().min(1),
+      });
+      const parsed = schema.safeParse(req.body);
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+
+      const { sourceWritingId, sourceTitle, highlightText, note } = parsed.data;
+
+      const contentParts: string[] = [];
+      if (highlightText) {
+        contentParts.push(`<blockquote><p>${highlightText}</p></blockquote>`);
+      }
+      contentParts.push(`<p>${note}</p>`);
+      if (sourceTitle) {
+        contentParts.push(
+          `<p><em>— Reading note from "${sourceTitle}"</em></p>`,
+        );
+      }
+
+      const title = highlightText
+        ? `Note: "${highlightText.slice(0, 60)}${highlightText.length > 60 ? "…" : ""}"`
+        : `Reading note on "${sourceTitle || "a piece"}"`;
+
+      const writing = await storage.createWriting(userId, {
+        title,
+        content: contentParts.join("\n"),
+        stage: "seed",
+        genre: "fragment",
+        tags: ["reading-note", `source:${sourceWritingId}`],
+      });
+
+      res.status(201).json(writing);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update" });
+      console.error("Error creating reading note:", error);
+      res.status(500).json({ message: "Failed to create reading note" });
     }
   });
 
@@ -308,8 +533,14 @@ export async function registerRoutes(
   app.post("/api/saved", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertSavedPieceSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const item = await storage.savePiece(req.user.claims.sub, parsed.data.writingId);
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const item = await storage.savePiece(
+        req.user.claims.sub,
+        parsed.data.writingId,
+      );
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to save piece" });
@@ -318,7 +549,10 @@ export async function registerRoutes(
 
   app.delete("/api/saved/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.unsavePiece(req.user.claims.sub, req.params.id);
+      const deleted = await storage.unsavePiece(
+        req.user.claims.sub,
+        req.params.id,
+      );
       if (!deleted) return res.status(404).json({ message: "Not found" });
       res.json({ message: "Removed" });
     } catch (error) {
@@ -327,18 +561,26 @@ export async function registerRoutes(
   });
 
   // === POLLINATION ===
-  app.get("/api/pollinations/received", isAuthenticated, async (req: any, res) => {
-    try {
-      const items = await storage.getPollinationsReceived(req.user.claims.sub);
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pollinations" });
-    }
-  });
+  app.get(
+    "/api/pollinations/received",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const items = await storage.getPollinationsReceived(
+          req.user.claims.sub,
+        );
+        res.json(items);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch pollinations" });
+      }
+    },
+  );
 
   app.get("/api/pollinations/:writingId", async (req, res) => {
     try {
-      const items = await storage.getPollinationsForWriting(req.params.writingId);
+      const items = await storage.getPollinationsForWriting(
+        req.params.writingId,
+      );
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch pollinations" });
@@ -348,8 +590,15 @@ export async function registerRoutes(
   app.post("/api/pollinations", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertPollinationSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const item = await storage.createPollination(req.user.claims.sub, { writingId: parsed.data.writingId, affirmation: parsed.data.affirmation, highlightText: parsed.data.highlightText ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const item = await storage.createPollination(req.user.claims.sub, {
+        writingId: parsed.data.writingId,
+        affirmation: parsed.data.affirmation,
+        highlightText: parsed.data.highlightText ?? undefined,
+      });
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to create pollination" });
@@ -370,7 +619,9 @@ export async function registerRoutes(
   app.get("/api/prompts/random", async (req, res) => {
     try {
       const { category } = req.query;
-      const prompt = await storage.getRandomPrompt(category as string | undefined);
+      const prompt = await storage.getRandomPrompt(
+        category as string | undefined,
+      );
       if (!prompt) return res.status(404).json({ message: "No prompts found" });
       res.json(prompt);
     } catch (error) {
@@ -386,11 +637,15 @@ export async function registerRoutes(
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      let [prompt] = await db.select().from(dailyPrompts)
-        .where(and(
-          sql`${dailyPrompts.activeDate} >= ${today}`,
-          sql`${dailyPrompts.activeDate} < ${tomorrow}`
-        ))
+      let [prompt] = await db
+        .select()
+        .from(dailyPrompts)
+        .where(
+          and(
+            sql`${dailyPrompts.activeDate} >= ${today}`,
+            sql`${dailyPrompts.activeDate} < ${tomorrow}`,
+          ),
+        )
         .limit(1);
 
       if (!prompt) {
@@ -426,20 +681,133 @@ export async function registerRoutes(
           "Write about a bridge, real or imagined.",
           "Describe the feeling of almost remembering something.",
         ];
-        const idx = Math.floor((today.getTime() / 86400000)) % promptTexts.length;
-        const categories = ["freewrite", "poetry", "fiction", "reflection", "observation"];
-        const catIdx = Math.floor((today.getTime() / 86400000)) % categories.length;
+        const idx = Math.floor(today.getTime() / 86400000) % promptTexts.length;
+        const categories = [
+          "freewrite",
+          "poetry",
+          "fiction",
+          "reflection",
+          "observation",
+        ];
+        const catIdx =
+          Math.floor(today.getTime() / 86400000) % categories.length;
 
-        [prompt] = await db.insert(dailyPrompts).values({
-          text: promptTexts[idx],
-          category: categories[catIdx],
-          activeDate: today,
-        }).returning();
+        [prompt] = await db
+          .insert(dailyPrompts)
+          .values({
+            text: promptTexts[idx],
+            category: categories[catIdx],
+            activeDate: today,
+          })
+          .returning();
       }
 
       res.json(prompt);
     } catch (e) {
       res.status(500).json({ error: "Failed to fetch daily prompt" });
+    }
+  });
+
+  app.get("/api/daily-prompts/recent", async (req, res) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const existingPrompts = await db
+        .select()
+        .from(dailyPrompts)
+        .where(
+          and(
+            sql`${dailyPrompts.activeDate} >= ${sevenDaysAgo}`,
+            sql`${dailyPrompts.activeDate} < ${tomorrow}`,
+          ),
+        );
+
+      const promptTexts = [
+        "Write about a door you've never opened.",
+        "Describe a color without naming it.",
+        "What would your younger self think of you now?",
+        "Write from the perspective of an object in your room.",
+        "Begin with: 'The last time I was truly lost...'",
+        "Write about a sound that changed everything.",
+        "Describe someone you've forgotten but shouldn't have.",
+        "What lives at the bottom of the deepest ocean?",
+        "Write a letter to someone you'll never send.",
+        "Describe the space between two heartbeats.",
+        "Write about the first thing you remember seeing.",
+        "What would silence look like if it had a shape?",
+        "Describe a meal that changed your life.",
+        "Write about something you found that wasn't yours.",
+        "Begin with: 'In the garden of my mind...'",
+        "Write about a promise you made to yourself.",
+        "Describe the moment just before dawn.",
+        "What does your shadow do when you're not looking?",
+        "Write about a word you wish existed.",
+        "Describe the taste of a memory.",
+        "Write about someone waiting.",
+        "What grows in the cracks of sidewalks?",
+        "Describe a conversation you overheard.",
+        "Write about the space between two people.",
+        "Begin with: 'I never told anyone about...'",
+        "Write about what the rain remembers.",
+        "Describe your hands from the perspective of something they've held.",
+        "What would you find in a museum of lost things?",
+        "Write about a bridge, real or imagined.",
+        "Describe the feeling of almost remembering something.",
+      ];
+      const categories = [
+        "freewrite",
+        "poetry",
+        "fiction",
+        "reflection",
+        "observation",
+      ];
+
+      const existingByDate = new Map<string, (typeof existingPrompts)[0]>();
+      for (const p of existingPrompts) {
+        const d = new Date(p.activeDate);
+        d.setHours(0, 0, 0, 0);
+        existingByDate.set(d.toISOString(), p);
+      }
+
+      const results: typeof existingPrompts = [];
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        const key = date.toISOString();
+
+        const existing = existingByDate.get(key);
+        if (existing) {
+          results.push(existing);
+        } else {
+          const idx =
+            Math.floor(date.getTime() / 86400000) % promptTexts.length;
+          const catIdx =
+            Math.floor(date.getTime() / 86400000) % categories.length;
+
+          const [newPrompt] = await db
+            .insert(dailyPrompts)
+            .values({
+              text: promptTexts[idx],
+              category: categories[catIdx],
+              activeDate: date,
+            })
+            .returning();
+          results.push(newPrompt);
+        }
+      }
+
+      res.json(results);
+    } catch (e) {
+      res.status(500).json({ error: "Failed to fetch recent daily prompts" });
     }
   });
 
@@ -455,8 +823,15 @@ export async function registerRoutes(
   app.post("/api/rituals", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertRitualSessionSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const session = await storage.createRitualSession(req.user.claims.sub, { output: parsed.data.output || "", durationMinutes: parsed.data.durationMinutes || 10, promptId: parsed.data.promptId ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const session = await storage.createRitualSession(req.user.claims.sub, {
+        output: parsed.data.output || "",
+        durationMinutes: parsed.data.durationMinutes || 10,
+        promptId: parsed.data.promptId ?? undefined,
+      });
       res.status(201).json(session);
     } catch (error) {
       res.status(500).json({ message: "Failed to create ritual session" });
@@ -476,27 +851,43 @@ export async function registerRoutes(
   app.post("/api/compost", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertCompostSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.createCompostEntry(req.user.claims.sub, { content: parsed.data.content, sourceWritingId: parsed.data.sourceWritingId ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const entry = await storage.createCompostEntry(req.user.claims.sub, {
+        content: parsed.data.content,
+        sourceWritingId: parsed.data.sourceWritingId ?? undefined,
+      });
       res.status(201).json(entry);
     } catch (error) {
       res.status(500).json({ message: "Failed to create compost entry" });
     }
   });
 
-  app.patch("/api/compost/:id/recycle", isAuthenticated, async (req: any, res) => {
-    try {
-      const entry = await storage.recycleCompostEntry(req.user.claims.sub, req.params.id);
-      if (!entry) return res.status(404).json({ message: "Not found" });
-      res.json(entry);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to recycle" });
-    }
-  });
+  app.patch(
+    "/api/compost/:id/recycle",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const entry = await storage.recycleCompostEntry(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!entry) return res.status(404).json({ message: "Not found" });
+        res.json(entry);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to recycle" });
+      }
+    },
+  );
 
   app.delete("/api/compost/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.deleteCompostEntry(req.user.claims.sub, req.params.id);
+      const deleted = await storage.deleteCompostEntry(
+        req.user.claims.sub,
+        req.params.id,
+      );
       if (!deleted) return res.status(404).json({ message: "Not found" });
       res.json({ message: "Deleted" });
     } catch (error) {
@@ -517,23 +908,36 @@ export async function registerRoutes(
   app.post("/api/growth-journal", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertGrowthJournalSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const item = await storage.createGrowthJournalEntry(req.user.claims.sub, { entry: parsed.data.entry, linkedWritingId: parsed.data.linkedWritingId ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const item = await storage.createGrowthJournalEntry(req.user.claims.sub, {
+        entry: parsed.data.entry,
+        linkedWritingId: parsed.data.linkedWritingId ?? undefined,
+      });
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to create journal entry" });
     }
   });
 
-  app.delete("/api/growth-journal/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteGrowthJournalEntry(req.user.claims.sub, req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Deleted" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete" });
-    }
-  });
+  app.delete(
+    "/api/growth-journal/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteGrowthJournalEntry(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete" });
+      }
+    },
+  );
 
   app.get("/api/submissions", isAuthenticated, async (req: any, res) => {
     try {
@@ -553,14 +957,21 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/submissions/by-writing/:writingId", isAuthenticated, async (req: any, res) => {
-    try {
-      const subs = await storage.getSubmissionsByWriting(req.user.claims.sub, req.params.writingId);
-      res.json(subs);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch submissions" });
-    }
-  });
+  app.get(
+    "/api/submissions/by-writing/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const subs = await storage.getSubmissionsByWriting(
+          req.user.claims.sub,
+          req.params.writingId,
+        );
+        res.json(subs);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch submissions" });
+      }
+    },
+  );
 
   app.post("/api/submissions", isAuthenticated, async (req: any, res) => {
     try {
@@ -573,192 +984,88 @@ export async function registerRoutes(
 
   app.patch("/api/submissions/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const sub = await storage.updateSubmission(req.params.id, req.user.claims.sub, req.body);
-      if (!sub) return res.status(404).json({ message: "Submission not found" });
+      const sub = await storage.updateSubmission(
+        req.params.id,
+        req.user.claims.sub,
+        req.body,
+      );
+      if (!sub)
+        return res.status(404).json({ message: "Submission not found" });
       res.json(sub);
     } catch (error) {
       res.status(500).json({ message: "Failed to update submission" });
     }
   });
 
-  // === GENRE GENIE ===
-  app.get("/api/genre-genie/suggestions", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const suggestions = await storage.getGenreSuggestions(userId);
-      res.json(suggestions);
-    } catch (error) {
-      console.error("Error fetching genre suggestions:", error);
-      res.status(500).json({ message: "Failed to fetch genre suggestions" });
-    }
-  });
-
-  app.post("/api/genre-genie/suggest", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { writingId, content } = req.body;
-      
-      if (!content && !writingId) {
-        return res.status(400).json({ message: "Content or writingId is required" });
-      }
-
-      let textToAnalyze = content;
-      if (writingId) {
-        const writing = await storage.getWriting(writingId);
-        if (writing) {
-          textToAnalyze = writing.content.replace(/<[^>]*>/g, "");
-        }
-      }
-
-      if (!textToAnalyze || textToAnalyze.trim().length < 20) {
-        return res.status(400).json({ message: "Please provide at least a few sentences for the Genre Genie to analyze." });
-      }
-
-      let result: { suggestedGenre: string; explanation: string; conventions: string; inspiration: string } | null = null;
-
-      const openaiKey = process.env.OPENAI_API_KEY;
-      if (openaiKey) {
-        try {
-          const OpenAI = (await import("openai")).default;
-          const openai = new OpenAI({ apiKey: openaiKey });
-
-          const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content: `You are Genre Genie, a literary genre expert for The Page Gallery Journal. Analyze the provided writing and suggest the most fitting literary genre or form. Respond in JSON with exactly these keys:
-- "suggestedGenre": A specific genre or form (e.g., "Lyric Poetry", "Flash Fiction", "Personal Essay", "Prose Poetry", "Micro-memoir", "Speculative Fiction", "Literary Realism")
-- "explanation": 2-3 sentences explaining why this genre fits the writing's voice, structure, and themes
-- "conventions": Key conventions and craft elements of this genre that the writer is already using or could explore
-- "inspiration": Suggest 2-3 specific authors or works in this genre that share a similar sensibility, with brief notes on why
-
-Keep the tone warm and encouraging, like a knowledgeable literary friend. Respond ONLY with valid JSON, no markdown.`
-              },
-              {
-                role: "user",
-                content: `Please analyze this writing and suggest a genre:\n\n${textToAnalyze.substring(0, 3000)}`
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 500,
-          });
-
-          const raw = completion.choices[0]?.message?.content || "";
-          try {
-            const parsed = JSON.parse(raw);
-            result = {
-              suggestedGenre: String(parsed.suggestedGenre || "Creative Writing"),
-              explanation: String(parsed.explanation || ""),
-              conventions: String(parsed.conventions || ""),
-              inspiration: String(parsed.inspiration || ""),
-            };
-          } catch {
-            result = {
-              suggestedGenre: "Creative Writing",
-              explanation: raw.substring(0, 300),
-              conventions: "The Genre Genie had trouble formatting its response. Try again!",
-              inspiration: "",
-            };
-          }
-        } catch (aiError) {
-          console.error("OpenAI Genre Genie error, falling back to heuristics:", aiError);
-        }
-      }
-      
-      if (!result) {
-        const text = textToAnalyze.toLowerCase();
-        const hasLineBreaks = (textToAnalyze.match(/\n/g) || []).length > 5;
-        const avgSentenceLen = textToAnalyze.split(/[.!?]+/).filter(Boolean).length;
-        const wordCount = textToAnalyze.split(/\s+/).length;
-
-        if (hasLineBreaks && wordCount < 300) {
-          result = {
-            suggestedGenre: "Poetry",
-            explanation: "Your writing uses deliberate line breaks and compact imagery, which are hallmarks of poetic form. The concentrated language suggests each word is carefully chosen for rhythm and meaning.",
-            conventions: "Consider exploring enjambment, caesura, and stanzaic structure. Strong imagery and figurative language — metaphor, simile, personification — are your tools here.",
-            inspiration: "Look into Mary Oliver's nature poetry, Ocean Vuong's lyric intensity, or Ada Limón's grounded observations for kindred voices.",
-          };
-        } else if (wordCount < 1000) {
-          result = {
-            suggestedGenre: "Flash Fiction",
-            explanation: "The brevity and narrative compression of your piece align with flash fiction — a form that demands every sentence carry weight. Your writing hints at a larger world beyond the page.",
-            conventions: "Flash fiction thrives on implication, a single resonant image, and endings that reverberate. Aim for a moment of change or revelation in miniature.",
-            inspiration: "Explore Diane Williams' micro-fictions, Lydia Davis' precise brevity, or Stuart Dybek's lyric flash pieces.",
-          };
-        } else if (text.includes("i ") || text.includes("my ") || text.includes("we ")) {
-          result = {
-            suggestedGenre: "Personal Essay",
-            explanation: "The first-person perspective and reflective tone suggest a personal essay — writing that uses lived experience as a lens for larger meaning. Your voice carries authenticity and introspection.",
-            conventions: "The personal essay braids scene, reflection, and research. Look for the universal in the particular. Let your specific story illuminate something shared.",
-            inspiration: "Consider reading Leslie Jamison's 'The Empathy Exams,' Roxane Gay's essay collections, or James Baldwin's personal nonfiction.",
-          };
-        } else {
-          result = {
-            suggestedGenre: "Literary Fiction",
-            explanation: "Your writing demonstrates attention to language and character that places it in the realm of literary fiction — stories that prioritize depth of human experience over plot mechanics.",
-            conventions: "Literary fiction values interiority, nuanced character development, and prose style. Subtext and ambiguity are strengths, not weaknesses.",
-            inspiration: "Explore Marilynne Robinson's contemplative prose, George Saunders' compassionate satire, or Carmen Maria Machado's inventive forms.",
-          };
-        }
-      }
-
-      const suggestion = await storage.createGenreSuggestion(userId, {
-        writingId: writingId || undefined,
-        suggestedGenre: result!.suggestedGenre,
-        explanation: result!.explanation,
-        conventions: result!.conventions,
-        inspiration: result!.inspiration,
-      });
-
-      res.status(201).json(suggestion);
-    } catch (error) {
-      console.error("Error generating genre suggestion:", error);
-      res.status(500).json({ message: "Failed to generate genre suggestion" });
-    }
-  });
-
   app.delete("/api/submissions/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.deleteSubmission(req.params.id, req.user.claims.sub);
-      if (!deleted) return res.status(404).json({ message: "Submission not found" });
+      const deleted = await storage.deleteSubmission(
+        req.params.id,
+        req.user.claims.sub,
+      );
+      if (!deleted)
+        return res.status(404).json({ message: "Submission not found" });
       res.json({ ok: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete submission" });
     }
   });
 
-  app.post("/api/submissions/:id/accept", isAuthenticated, async (req: any, res) => {
-    try {
-      const sub = await storage.updateSubmission(req.params.id, req.user.claims.sub, {
-        status: "accepted",
-        respondedAt: new Date(),
-      });
-      if (!sub) return res.status(404).json({ message: "Submission not found" });
-      const otherSubs = sub.writingId
-        ? await storage.getSubmissionsByWriting(req.user.claims.sub, sub.writingId)
-        : [];
-      const pendingElsewhere = otherSubs.filter(s => s.id !== sub.id && s.status === "pending");
-      res.json({ submission: sub, pendingElsewhere });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to accept submission" });
-    }
-  });
+  app.post(
+    "/api/submissions/:id/accept",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const sub = await storage.updateSubmission(
+          req.params.id,
+          req.user.claims.sub,
+          {
+            status: "accepted",
+            respondedAt: new Date(),
+          },
+        );
+        if (!sub)
+          return res.status(404).json({ message: "Submission not found" });
+        const otherSubs = sub.writingId
+          ? await storage.getSubmissionsByWriting(
+              req.user.claims.sub,
+              sub.writingId,
+            )
+          : [];
+        const pendingElsewhere = otherSubs.filter(
+          (s) => s.id !== sub.id && s.status === "pending",
+        );
+        res.json({ submission: sub, pendingElsewhere });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to accept submission" });
+      }
+    },
+  );
 
-  app.post("/api/submissions/bulk-withdraw", isAuthenticated, async (req: any, res) => {
-    try {
-      const { submissionIds } = req.body;
-      if (!Array.isArray(submissionIds)) return res.status(400).json({ message: "submissionIds array required" });
-      const results = await Promise.all(
-        submissionIds.map((id: string) =>
-          storage.updateSubmission(id, req.user.claims.sub, { status: "withdrawn", respondedAt: new Date() })
-        )
-      );
-      res.json({ updated: results.filter(Boolean).length });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to bulk withdraw" });
-    }
-  });
+  app.post(
+    "/api/submissions/bulk-withdraw",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { submissionIds } = req.body;
+        if (!Array.isArray(submissionIds))
+          return res
+            .status(400)
+            .json({ message: "submissionIds array required" });
+        const results = await Promise.all(
+          submissionIds.map((id: string) =>
+            storage.updateSubmission(id, req.user.claims.sub, {
+              status: "withdrawn",
+              respondedAt: new Date(),
+            }),
+          ),
+        );
+        res.json({ updated: results.filter(Boolean).length });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to bulk withdraw" });
+      }
+    },
+  );
 
   // === INNER WEATHER ===
   app.get("/api/inner-weather", isAuthenticated, async (req: any, res) => {
@@ -773,8 +1080,15 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/inner-weather", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertInnerWeatherSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.createInnerWeatherEntry(req.user.claims.sub, { mood: parsed.data.mood, energy: parsed.data.energy ?? 5, note: parsed.data.note ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const entry = await storage.createInnerWeatherEntry(req.user.claims.sub, {
+        mood: parsed.data.mood,
+        energy: parsed.data.energy ?? 5,
+        note: parsed.data.note ?? undefined,
+      });
       res.status(201).json(entry);
     } catch (error) {
       res.status(500).json({ message: "Failed to create weather entry" });
@@ -794,8 +1108,15 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/reflections", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertReflectionSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.createReflection(req.user.claims.sub, { topic: parsed.data.topic, body: parsed.data.body, linkedWritingId: parsed.data.linkedWritingId ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const entry = await storage.createReflection(req.user.claims.sub, {
+        topic: parsed.data.topic,
+        body: parsed.data.body,
+        linkedWritingId: parsed.data.linkedWritingId ?? undefined,
+      });
       res.status(201).json(entry);
     } catch (error) {
       res.status(500).json({ message: "Failed to create reflection" });
@@ -804,7 +1125,10 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.delete("/api/reflections/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.deleteReflection(req.user.claims.sub, req.params.id);
+      const deleted = await storage.deleteReflection(
+        req.user.claims.sub,
+        req.params.id,
+      );
       if (!deleted) return res.status(404).json({ message: "Not found" });
       res.json({ message: "Deleted" });
     } catch (error) {
@@ -835,23 +1159,37 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/root-influences", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertRootInfluenceSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const influence = await storage.createRootInfluence(req.user.claims.sub, { name: parsed.data.name, category: parsed.data.category ?? undefined, note: parsed.data.note ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const influence = await storage.createRootInfluence(req.user.claims.sub, {
+        name: parsed.data.name,
+        category: parsed.data.category ?? undefined,
+        note: parsed.data.note ?? undefined,
+      });
       res.status(201).json(influence);
     } catch (error) {
       res.status(500).json({ message: "Failed to create influence" });
     }
   });
 
-  app.delete("/api/root-influences/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteRootInfluence(req.user.claims.sub, req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Deleted" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete" });
-    }
-  });
+  app.delete(
+    "/api/root-influences/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteRootInfluence(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete" });
+      }
+    },
+  );
 
   // === CIRCLES ===
   app.get("/api/circles", isAuthenticated, async (req: any, res) => {
@@ -866,8 +1204,14 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/circles", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertCircleSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const circle = await storage.createCircle(req.user.claims.sub, parsed.data);
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const circle = await storage.createCircle(
+        req.user.claims.sub,
+        parsed.data,
+      );
       res.status(201).json(circle);
     } catch (error) {
       res.status(500).json({ message: "Failed to create circle" });
@@ -882,42 +1226,70 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
       if (memberCount >= circle.maxMembers) {
         return res.status(400).json({ message: "This circle is full" });
       }
-      const member = await storage.joinCircle(req.user.claims.sub, req.params.id);
+      const member = await storage.joinCircle(
+        req.user.claims.sub,
+        req.params.id,
+      );
       res.status(201).json(member);
     } catch (error) {
       res.status(500).json({ message: "Failed to join circle" });
     }
   });
 
-  app.delete("/api/circles/:id/leave", isAuthenticated, async (req: any, res) => {
-    try {
-      const left = await storage.leaveCircle(req.user.claims.sub, req.params.id);
-      if (!left) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Left circle" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to leave circle" });
-    }
-  });
+  app.delete(
+    "/api/circles/:id/leave",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const left = await storage.leaveCircle(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!left) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Left circle" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to leave circle" });
+      }
+    },
+  );
 
-  app.get("/api/circles/:id/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const messages = await storage.getCircleMessages(req.params.id);
-      res.json(messages);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch messages" });
-    }
-  });
+  app.get(
+    "/api/circles/:id/messages",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const messages = await storage.getCircleMessages(req.params.id);
+        res.json(messages);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch messages" });
+      }
+    },
+  );
 
-  app.post("/api/circles/:id/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertCircleMessageSchema.safeParse({ ...req.body, circleId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const msg = await storage.createCircleMessage(req.user.claims.sub, { circleId: parsed.data.circleId, content: parsed.data.content, writingId: parsed.data.writingId ?? undefined });
-      res.status(201).json(msg);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
+  app.post(
+    "/api/circles/:id/messages",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertCircleMessageSchema.safeParse({
+          ...req.body,
+          circleId: req.params.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const msg = await storage.createCircleMessage(req.user.claims.sub, {
+          circleId: parsed.data.circleId,
+          content: parsed.data.content,
+          writingId: parsed.data.writingId ?? undefined,
+        });
+        res.status(201).json(msg);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to send message" });
+      }
+    },
+  );
 
   // === CIRCLE SHARES ===
   app.get("/api/circles/:id/shares", isAuthenticated, async (req: any, res) => {
@@ -929,61 +1301,107 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/circles/:id/shares", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertCircleShareSchema.safeParse({ ...req.body, circleId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const share = await storage.createCircleShare(req.user.claims.sub, { circleId: parsed.data.circleId, writingId: parsed.data.writingId ?? undefined, weekOf: parsed.data.weekOf });
-      res.status(201).json(share);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create share" });
-    }
-  });
+  app.post(
+    "/api/circles/:id/shares",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertCircleShareSchema.safeParse({
+          ...req.body,
+          circleId: req.params.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const share = await storage.createCircleShare(req.user.claims.sub, {
+          circleId: parsed.data.circleId,
+          writingId: parsed.data.writingId ?? undefined,
+          weekOf: parsed.data.weekOf,
+        });
+        res.status(201).json(share);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create share" });
+      }
+    },
+  );
 
-  app.get("/api/circles/:id/current-sharer", isAuthenticated, async (req: any, res) => {
-    try {
-      const sharer = await storage.getCurrentSharer(req.params.id);
-      res.json(sharer);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get current sharer" });
-    }
-  });
+  app.get(
+    "/api/circles/:id/current-sharer",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const sharer = await storage.getCurrentSharer(req.params.id);
+        res.json(sharer);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to get current sharer" });
+      }
+    },
+  );
 
-  app.get("/api/circles/:id/members", isAuthenticated, async (req: any, res) => {
-    try {
-      const members = await storage.getCircleMembers(req.params.id);
-      res.json(members);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch members" });
-    }
-  });
+  app.get(
+    "/api/circles/:id/members",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const members = await storage.getCircleMembers(req.params.id);
+        res.json(members);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch members" });
+      }
+    },
+  );
 
   // === CIRCLE MICRO-PROMPTS ===
-  app.get("/api/circles/:id/micro-prompt", isAuthenticated, async (req: any, res) => {
-    try {
-      const members = await storage.getCircleMembers(req.params.id);
-      const isMember = members.some((m: any) => m.userId === req.user.claims.sub);
-      if (!isMember) return res.status(403).json({ message: "Not a member of this circle" });
-      const prompt = await storage.getCircleWeeklyPrompt(req.params.id);
-      res.json(prompt);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch micro-prompt" });
-    }
-  });
+  app.get(
+    "/api/circles/:id/micro-prompt",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const members = await storage.getCircleMembers(req.params.id);
+        const isMember = members.some(
+          (m: any) => m.userId === req.user.claims.sub,
+        );
+        if (!isMember)
+          return res
+            .status(403)
+            .json({ message: "Not a member of this circle" });
+        const prompt = await storage.getCircleWeeklyPrompt(req.params.id);
+        res.json(prompt);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch micro-prompt" });
+      }
+    },
+  );
 
-  app.post("/api/circles/:id/micro-prompt/respond", isAuthenticated, async (req: any, res) => {
-    try {
-      const members = await storage.getCircleMembers(req.params.id);
-      const isMember = members.some((m: any) => m.userId === req.user.claims.sub);
-      if (!isMember) return res.status(403).json({ message: "Not a member of this circle" });
-      const parsed = insertCircleMicroResponseSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const response = await storage.respondToCircleMicroPrompt(req.user.claims.sub, parsed.data);
-      res.status(201).json(response);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to submit response" });
-    }
-  });
+  app.post(
+    "/api/circles/:id/micro-prompt/respond",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const members = await storage.getCircleMembers(req.params.id);
+        const isMember = members.some(
+          (m: any) => m.userId === req.user.claims.sub,
+        );
+        if (!isMember)
+          return res
+            .status(403)
+            .json({ message: "Not a member of this circle" });
+        const parsed = insertCircleMicroResponseSchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const response = await storage.respondToCircleMicroPrompt(
+          req.user.claims.sub,
+          parsed.data,
+        );
+        res.status(201).json(response);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to submit response" });
+      }
+    },
+  );
 
   // === MOONLIT READINGS ===
   app.get("/api/moonlit-readings", isAuthenticated, async (req: any, res) => {
@@ -998,9 +1416,15 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/moonlit-readings", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertMoonlitReadingSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
       const reading = await storage.createMoonlitReading(req.user.claims.sub, {
-        ...parsed.data, scheduledAt: parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : undefined,
+        ...parsed.data,
+        scheduledAt: parsed.data.scheduledAt
+          ? new Date(parsed.data.scheduledAt)
+          : undefined,
       });
       res.status(201).json(reading);
     } catch (error) {
@@ -1008,26 +1432,44 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/moonlit-readings/:id/join", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = joinMoonlitReadingSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const participant = await storage.joinMoonlitReading(req.user.claims.sub, req.params.id, parsed.data.writingId);
-      res.status(201).json(participant);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to join reading" });
-    }
-  });
+  app.post(
+    "/api/moonlit-readings/:id/join",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = joinMoonlitReadingSchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const participant = await storage.joinMoonlitReading(
+          req.user.claims.sub,
+          req.params.id,
+          parsed.data.writingId,
+        );
+        res.status(201).json(participant);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to join reading" });
+      }
+    },
+  );
 
-  app.delete("/api/moonlit-readings/:id/leave", isAuthenticated, async (req: any, res) => {
-    try {
-      const left = await storage.leaveMoonlitReading(req.user.claims.sub, req.params.id);
-      if (!left) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Left reading" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to leave reading" });
-    }
-  });
+  app.delete(
+    "/api/moonlit-readings/:id/leave",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const left = await storage.leaveMoonlitReading(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!left) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Left reading" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to leave reading" });
+      }
+    },
+  );
 
   // === REPLANT REQUESTS ===
   app.get("/api/replant-requests", isAuthenticated, async (req: any, res) => {
@@ -1039,45 +1481,70 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.patch("/api/replant-requests/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = replantResponseSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const request = await storage.respondToReplantRequest(req.user.claims.sub, req.params.id, parsed.data.status);
-      if (!request) return res.status(404).json({ message: "Not found" });
-      res.json(request);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to respond" });
-    }
-  });
+  app.patch(
+    "/api/replant-requests/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = replantResponseSchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const request = await storage.respondToReplantRequest(
+          req.user.claims.sub,
+          req.params.id,
+          parsed.data.status,
+        );
+        if (!request) return res.status(404).json({ message: "Not found" });
+        res.json(request);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to respond" });
+      }
+    },
+  );
 
   // === TENDING (FOLLOWS) ===
-  app.post("/api/tending/:gardenerId", isAuthenticated, async (req: any, res) => {
-    try {
-      const tenderId = req.user.claims.sub;
-      const { gardenerId } = req.params;
-      if (tenderId === gardenerId) return res.status(400).json({ message: "Cannot tend your own garden" });
-      const result = await storage.tendGarden(tenderId, gardenerId);
-      await storage.createNotification(gardenerId, {
-        type: "new_tender",
-        actorId: tenderId,
-        message: "started tending your garden",
-      });
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to tend garden" });
-    }
-  });
+  app.post(
+    "/api/tending/:gardenerId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const tenderId = req.user.claims.sub;
+        const { gardenerId } = req.params;
+        if (tenderId === gardenerId)
+          return res
+            .status(400)
+            .json({ message: "Cannot tend your own garden" });
+        const result = await storage.tendGarden(tenderId, gardenerId);
+        await storage.createNotification(gardenerId, {
+          type: "new_tender",
+          actorId: tenderId,
+          message: "started tending your garden",
+        });
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to tend garden" });
+      }
+    },
+  );
 
-  app.delete("/api/tending/:gardenerId", isAuthenticated, async (req: any, res) => {
-    try {
-      const result = await storage.untendGarden(req.user.claims.sub, req.params.gardenerId);
-      if (!result) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Untended garden" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to untend" });
-    }
-  });
+  app.delete(
+    "/api/tending/:gardenerId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const result = await storage.untendGarden(
+          req.user.claims.sub,
+          req.params.gardenerId,
+        );
+        if (!result) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Untended garden" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to untend" });
+      }
+    },
+  );
 
   app.get("/api/tending", isAuthenticated, async (req: any, res) => {
     try {
@@ -1097,14 +1564,21 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/tending/check/:gardenerId", isAuthenticated, async (req: any, res) => {
-    try {
-      const isTending = await storage.isTending(req.user.claims.sub, req.params.gardenerId);
-      res.json({ isTending });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to check tending" });
-    }
-  });
+  app.get(
+    "/api/tending/check/:gardenerId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const isTending = await storage.isTending(
+          req.user.claims.sub,
+          req.params.gardenerId,
+        );
+        res.json({ isTending });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to check tending" });
+      }
+    },
+  );
 
   app.get("/api/tending-feed", isAuthenticated, async (req: any, res) => {
     try {
@@ -1115,26 +1589,52 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/tending-count/:userId", isAuthenticated, async (req: any, res) => {
-    try {
-      const count = await storage.getTendingCount(req.params.userId);
-      res.json({ count });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch count" });
-    }
-  });
+  app.get(
+    "/api/tending-count/:userId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const count = await storage.getTendingCount(req.params.userId);
+        res.json({ count });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch count" });
+      }
+    },
+  );
 
   // === RESONANCES (REACTIONS) ===
   app.post("/api/resonances", isAuthenticated, async (req: any, res) => {
     try {
       const { writingId, type } = req.body;
-      if (!writingId || !type) return res.status(400).json({ message: "writingId and type are required" });
-      const validTypes = ["glow", "pressed_flower", "dewdrop", "firefly", "roots"];
-      if (!validTypes.includes(type)) return res.status(400).json({ message: "Invalid resonance type" });
+      if (!writingId || !type)
+        return res
+          .status(400)
+          .json({ message: "writingId and type are required" });
+      const validTypes = [
+        "glow",
+        "pressed_flower",
+        "dewdrop",
+        "firefly",
+        "roots",
+        "tended",
+        "spark",
+        "fog",
+        "seedling",
+      ];
+      if (!validTypes.includes(type))
+        return res.status(400).json({ message: "Invalid resonance type" });
       const writing = await storage.getWriting(writingId);
-      if (!writing) return res.status(404).json({ message: "Writing not found" });
-      if (writing.authorId === req.user.claims.sub) return res.status(400).json({ message: "Cannot resonate with your own work" });
-      const result = await storage.addResonance(req.user.claims.sub, writingId, type);
+      if (!writing)
+        return res.status(404).json({ message: "Writing not found" });
+      if (writing.authorId === req.user.claims.sub)
+        return res
+          .status(400)
+          .json({ message: "Cannot resonate with your own work" });
+      const result = await storage.addResonance(
+        req.user.claims.sub,
+        writingId,
+        type,
+      );
       const authorId = writing.authorId;
       await storage.createNotification(authorId, {
         type: "resonance",
@@ -1151,39 +1651,71 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.delete("/api/resonances", isAuthenticated, async (req: any, res) => {
     try {
       const { writingId, type } = req.body;
-      if (!writingId || !type) return res.status(400).json({ message: "writingId and type are required" });
-      const result = await storage.removeResonance(req.user.claims.sub, writingId, type);
+      if (!writingId || !type)
+        return res
+          .status(400)
+          .json({ message: "writingId and type are required" });
+      const result = await storage.removeResonance(
+        req.user.claims.sub,
+        writingId,
+        type,
+      );
       res.json({ removed: result });
     } catch (error) {
       res.status(500).json({ message: "Failed to remove resonance" });
     }
   });
 
-  app.get("/api/resonances/:writingId", isAuthenticated, async (req: any, res) => {
-    try {
-      const resonances = await storage.getResonancesForWriting(req.params.writingId);
-      const userResonances = await storage.getUserResonances(req.user.claims.sub, req.params.writingId);
-      res.json({ resonances, userResonances });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch resonances" });
-    }
-  });
+  app.get(
+    "/api/resonances/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const resonances = await storage.getResonancesForWriting(
+          req.params.writingId,
+        );
+        const userResonances = await storage.getUserResonances(
+          req.user.claims.sub,
+          req.params.writingId,
+        );
+        res.json({ resonances, userResonances });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch resonances" });
+      }
+    },
+  );
 
   // === MARGINALIA (COMMENTS) ===
-  app.get("/api/marginalia/:writingId", isAuthenticated, async (req: any, res) => {
-    try {
-      const items = await storage.getMarginaliaForWriting(req.params.writingId);
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch marginalia" });
-    }
-  });
+  app.get(
+    "/api/marginalia/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const items = await storage.getMarginaliaForWriting(
+          req.params.writingId,
+          userId,
+        );
+        res.json(items);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch marginalia" });
+      }
+    },
+  );
 
   app.post("/api/marginalia", isAuthenticated, async (req: any, res) => {
     try {
       const { writingId, content, parentId, highlightText } = req.body;
-      if (!writingId || !content) return res.status(400).json({ message: "writingId and content are required" });
-      const result = await storage.createMarginalia(req.user.claims.sub, { writingId, content, parentId, highlightText });
+      if (!writingId || !content)
+        return res
+          .status(400)
+          .json({ message: "writingId and content are required" });
+      const result = await storage.createMarginalia(req.user.claims.sub, {
+        writingId,
+        content,
+        parentId,
+        highlightText,
+      });
       const writing = await storage.getWriting(writingId);
       if (writing && writing.authorId !== req.user.claims.sub) {
         await storage.createNotification(writing.authorId, {
@@ -1201,7 +1733,10 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.delete("/api/marginalia/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const result = await storage.deleteMarginalia(req.user.claims.sub, req.params.id);
+      const result = await storage.deleteMarginalia(
+        req.user.claims.sub,
+        req.params.id,
+      );
       if (!result) return res.status(404).json({ message: "Not found" });
       res.json({ message: "Deleted" });
     } catch (error) {
@@ -1209,49 +1744,111 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
+  app.patch(
+    "/api/marginalia/:id/surface",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const result = await storage.surfaceMarginalia(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!result)
+          return res
+            .status(404)
+            .json({ message: "Not found or not authorized" });
+        res.json({ message: "Surfaced" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to surface marginalia" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/marginalia/:id/unsurface",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const result = await storage.unsurfaceMarginalia(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!result)
+          return res
+            .status(404)
+            .json({ message: "Not found or not authorized" });
+        res.json({ message: "Unsurfaced" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to unsurface marginalia" });
+      }
+    },
+  );
+
   // === NOTIFICATIONS ===
   app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
       const unreadOnly = req.query.unread === "true";
-      const items = await storage.getNotifications(req.user.claims.sub, unreadOnly);
+      const items = await storage.getNotifications(
+        req.user.claims.sub,
+        unreadOnly,
+      );
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch notifications" });
     }
   });
 
-  app.get("/api/notifications/unread-count", isAuthenticated, async (req: any, res) => {
-    try {
-      const count = await storage.getUnreadNotificationCount(req.user.claims.sub);
-      res.json({ count });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch count" });
-    }
-  });
+  app.get(
+    "/api/notifications/unread-count",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const count = await storage.getUnreadNotificationCount(
+          req.user.claims.sub,
+        );
+        res.json({ count });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch count" });
+      }
+    },
+  );
 
-  app.patch("/api/notifications/:id/read", isAuthenticated, async (req: any, res) => {
-    try {
-      const result = await storage.markNotificationRead(req.user.claims.sub, req.params.id);
-      res.json({ success: result });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to mark read" });
-    }
-  });
+  app.patch(
+    "/api/notifications/:id/read",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const result = await storage.markNotificationRead(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        res.json({ success: result });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to mark read" });
+      }
+    },
+  );
 
-  app.patch("/api/notifications/read-all", isAuthenticated, async (req: any, res) => {
-    try {
-      await storage.markAllNotificationsRead(req.user.claims.sub);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to mark all read" });
-    }
-  });
+  app.patch(
+    "/api/notifications/read-all",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        await storage.markAllNotificationsRead(req.user.claims.sub);
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to mark all read" });
+      }
+    },
+  );
 
   // === TABLES (DISCUSSION THREADS) ===
   app.get("/api/tables", async (req, res) => {
     try {
       const { category } = req.query;
-      const topics = await storage.getTableTopics(category as string | undefined);
+      const topics = await storage.getTableTopics(
+        category as string | undefined,
+      );
       res.json(topics);
     } catch (error) {
       console.error("Error fetching table topics:", error);
@@ -1274,7 +1871,10 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const userId = req.user.claims.sub;
       const parsed = insertTableTopicSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
       const topic = await storage.createTableTopic(userId, parsed.data);
       res.status(201).json(topic);
     } catch (error) {
@@ -1293,18 +1893,32 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/tables/:id/replies", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const parsed = insertTableReplySchema.safeParse({ ...req.body, topicId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const reply = await storage.createTableReply(userId, { topicId: req.params.id, content: parsed.data.content, parentId: parsed.data.parentId ?? undefined });
-      res.status(201).json(reply);
-    } catch (error) {
-      console.error("Error creating table reply:", error);
-      res.status(500).json({ message: "Failed to create table reply" });
-    }
-  });
+  app.post(
+    "/api/tables/:id/replies",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const parsed = insertTableReplySchema.safeParse({
+          ...req.body,
+          topicId: req.params.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const reply = await storage.createTableReply(userId, {
+          topicId: req.params.id,
+          content: parsed.data.content,
+          parentId: parsed.data.parentId ?? undefined,
+        });
+        res.status(201).json(reply);
+      } catch (error) {
+        console.error("Error creating table reply:", error);
+        res.status(500).json({ message: "Failed to create table reply" });
+      }
+    },
+  );
 
   // === CAFÉ ===
   app.get("/api/cafe/today", async (req, res) => {
@@ -1327,18 +1941,26 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/cafe/questions/:id/responses", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const content = req.body.content?.trim();
-      if (!content) return res.status(400).json({ message: "Content is required" });
-      const response = await storage.createCafeResponse(userId, { questionId: req.params.id, content });
-      res.status(201).json(response);
-    } catch (error) {
-      console.error("Error creating café response:", error);
-      res.status(500).json({ message: "Failed to create response" });
-    }
-  });
+  app.post(
+    "/api/cafe/questions/:id/responses",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const content = req.body.content?.trim();
+        if (!content)
+          return res.status(400).json({ message: "Content is required" });
+        const response = await storage.createCafeResponse(userId, {
+          questionId: req.params.id,
+          content,
+        });
+        res.status(201).json(response);
+      } catch (error) {
+        console.error("Error creating café response:", error);
+        res.status(500).json({ message: "Failed to create response" });
+      }
+    },
+  );
 
   app.get("/api/cafe/past", async (req, res) => {
     try {
@@ -1354,7 +1976,8 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.get("/api/workshop/prompt-of-day", async (req, res) => {
     try {
       const prompt = await storage.getPromptOfDay();
-      if (!prompt) return res.status(404).json({ message: "No exercises available" });
+      if (!prompt)
+        return res.status(404).json({ message: "No exercises available" });
       res.json(prompt);
     } catch (error) {
       console.error("Error fetching prompt of the day:", error);
@@ -1375,7 +1998,9 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.get("/api/workshop", async (req, res) => {
     try {
       const { category } = req.query;
-      const exercises = await storage.getWorkshopExercises(category as string | undefined);
+      const exercises = await storage.getWorkshopExercises(
+        category as string | undefined,
+      );
       res.json(exercises);
     } catch (error) {
       console.error("Error fetching workshop exercises:", error);
@@ -1387,8 +2012,16 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const userId = req.user.claims.sub;
       const parsed = insertWorkshopExerciseSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const exercise = await storage.createWorkshopExercise(userId, { title: parsed.data.title, prompt: parsed.data.prompt, category: parsed.data.category, durationMinutes: parsed.data.durationMinutes ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const exercise = await storage.createWorkshopExercise(userId, {
+        title: parsed.data.title,
+        prompt: parsed.data.prompt,
+        category: parsed.data.category,
+        durationMinutes: parsed.data.durationMinutes ?? undefined,
+      });
       res.status(201).json(exercise);
     } catch (error) {
       console.error("Error creating workshop exercise:", error);
@@ -1406,18 +2039,31 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/workshop/:id/responses", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const parsed = insertWorkshopResponseSchema.safeParse({ ...req.body, exerciseId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const response = await storage.createWorkshopResponse(userId, { exerciseId: req.params.id, content: parsed.data.content });
-      res.status(201).json(response);
-    } catch (error) {
-      console.error("Error creating workshop response:", error);
-      res.status(500).json({ message: "Failed to create workshop response" });
-    }
-  });
+  app.post(
+    "/api/workshop/:id/responses",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const parsed = insertWorkshopResponseSchema.safeParse({
+          ...req.body,
+          exerciseId: req.params.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const response = await storage.createWorkshopResponse(userId, {
+          exerciseId: req.params.id,
+          content: parsed.data.content,
+        });
+        res.status(201).json(response);
+      } catch (error) {
+        console.error("Error creating workshop response:", error);
+        res.status(500).json({ message: "Failed to create workshop response" });
+      }
+    },
+  );
 
   // === SWAP (BETA READING EXCHANGE) ===
   app.get("/api/swaps", async (req, res) => {
@@ -1435,7 +2081,10 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const userId = req.user.claims.sub;
       const parsed = insertSwapRequestSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
       const swap = await storage.createSwapRequest(userId, {
         writingId: parsed.data.writingId,
         genre: parsed.data.genre,
@@ -1454,9 +2103,11 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const userId = req.user.claims.sub;
       const { writingId } = req.body;
-      if (!writingId) return res.status(400).json({ message: "writingId is required" });
+      if (!writingId)
+        return res.status(400).json({ message: "writingId is required" });
       const swap = await storage.matchSwap(req.params.id, userId, writingId);
-      if (!swap) return res.status(404).json({ message: "Swap request not found" });
+      if (!swap)
+        return res.status(404).json({ message: "Swap request not found" });
       res.json(swap);
     } catch (error) {
       console.error("Error matching swap:", error);
@@ -1474,26 +2125,48 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/swaps/:id/feedback", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const parsed = insertSwapFeedbackSchema.safeParse({ ...req.body, swapId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const feedback = await storage.createSwapFeedback(userId, { swapId: parsed.data.swapId, toUserId: parsed.data.toUserId, strengths: parsed.data.strengths, suggestions: parsed.data.suggestions, favoriteLines: parsed.data.favoriteLines ?? undefined });
-      res.status(201).json(feedback);
-    } catch (error) {
-      console.error("Error creating swap feedback:", error);
-      res.status(500).json({ message: "Failed to create swap feedback" });
-    }
-  });
+  app.post(
+    "/api/swaps/:id/feedback",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const parsed = insertSwapFeedbackSchema.safeParse({
+          ...req.body,
+          swapId: req.params.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const feedback = await storage.createSwapFeedback(userId, {
+          swapId: parsed.data.swapId,
+          toUserId: parsed.data.toUserId,
+          strengths: parsed.data.strengths,
+          suggestions: parsed.data.suggestions,
+          favoriteLines: parsed.data.favoriteLines ?? undefined,
+        });
+        res.status(201).json(feedback);
+      } catch (error) {
+        console.error("Error creating swap feedback:", error);
+        res.status(500).json({ message: "Failed to create swap feedback" });
+      }
+    },
+  );
 
   // === MICRO-SWAP ===
   app.post("/api/micro-swaps", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const parsed = insertMicroSwapSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const swap = await storage.createMicroSwap(userId, { fragment: parsed.data.fragment, genre: parsed.data.genre ?? undefined });
+      if (!parsed.success)
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: parsed.error.flatten() });
+      const swap = await storage.createMicroSwap(userId, {
+        fragment: parsed.data.fragment,
+        genre: parsed.data.genre ?? undefined,
+      });
       res.status(201).json(swap);
     } catch (error) {
       console.error("Error creating micro-swap:", error);
@@ -1512,25 +2185,36 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/micro-swaps/:id/respond", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { response } = req.body;
-      if (!response || typeof response !== "string") return res.status(400).json({ message: "Response is required" });
-      const swap = await storage.respondToMicroSwap(req.params.id, userId, response);
-      if (!swap) return res.status(404).json({ message: "Micro-swap not found" });
-      res.json(swap);
-    } catch (error) {
-      console.error("Error responding to micro-swap:", error);
-      res.status(500).json({ message: "Failed to respond to micro-swap" });
-    }
-  });
+  app.post(
+    "/api/micro-swaps/:id/respond",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const { response } = req.body;
+        if (!response || typeof response !== "string")
+          return res.status(400).json({ message: "Response is required" });
+        const swap = await storage.respondToMicroSwap(
+          req.params.id,
+          userId,
+          response,
+        );
+        if (!swap)
+          return res.status(404).json({ message: "Micro-swap not found" });
+        res.json(swap);
+      } catch (error) {
+        console.error("Error responding to micro-swap:", error);
+        res.status(500).json({ message: "Failed to respond to micro-swap" });
+      }
+    },
+  );
 
   // === WRITER PROFILE ===
   app.get("/api/writer/:id", async (req, res) => {
     try {
       const profile = await storage.getWriterProfile(req.params.id);
-      if (!profile) return res.status(404).json({ message: "Writer not found" });
+      if (!profile)
+        return res.status(404).json({ message: "Writer not found" });
       res.json(profile);
     } catch (error) {
       console.error("Error fetching writer profile:", error);
@@ -1542,12 +2226,98 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const userId = req.user.claims.sub;
       const { bio } = req.body;
-      if (typeof bio !== "string") return res.status(400).json({ message: "bio must be a string" });
+      if (typeof bio !== "string")
+        return res.status(400).json({ message: "bio must be a string" });
       const result = await storage.updateBio(userId, bio);
       res.json(result);
     } catch (error) {
       console.error("Error updating bio:", error);
       res.status(500).json({ message: "Failed to update bio" });
+    }
+  });
+
+  app.patch("/api/user/onboarding", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { displayName, bio } = req.body;
+      if (
+        !displayName ||
+        typeof displayName !== "string" ||
+        displayName.trim().length === 0
+      ) {
+        return res.status(400).json({ message: "Username is required" });
+      }
+      if (displayName.trim().length > 100) {
+        return res
+          .status(400)
+          .json({ message: "Username must be 100 characters or fewer" });
+      }
+      if (
+        bio !== undefined &&
+        typeof bio === "string" &&
+        bio.trim().length > 500
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Bio must be 500 characters or fewer" });
+      }
+      const updated = await storage.completeOnboarding(userId, {
+        displayName: displayName.trim(),
+        bio: typeof bio === "string" ? bio.trim() : undefined,
+      });
+      if (!updated) return res.status(404).json({ message: "User not found" });
+      const { passwordHash, ...safeUser } = updated;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      res.status(500).json({ message: "Failed to complete onboarding" });
+    }
+  });
+
+  app.patch("/api/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { displayName, bio, isAnonymous } = req.body;
+      if (
+        displayName !== undefined &&
+        (typeof displayName !== "string" || displayName.trim().length > 100)
+      ) {
+        return res
+          .status(400)
+          .json({
+            message: "Display name must be a string of 100 characters or fewer",
+          });
+      }
+      if (
+        bio !== undefined &&
+        (typeof bio !== "string" || bio.trim().length > 500)
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Bio must be a string of 500 characters or fewer" });
+      }
+      if (isAnonymous === false) {
+        const existingUser = await storage.getUser(userId);
+        if (existingUser && existingUser.isAnonymous) {
+          return res
+            .status(400)
+            .json({
+              message: "Anonymous mode cannot be turned off once enabled",
+            });
+        }
+      }
+      const updated = await storage.updateProfile(userId, {
+        displayName:
+          typeof displayName === "string" ? displayName.trim() : undefined,
+        bio: typeof bio === "string" ? bio.trim() : undefined,
+        isAnonymous: isAnonymous === true ? true : undefined,
+      });
+      if (!updated) return res.status(404).json({ message: "User not found" });
+      const { passwordHash, ...safeUser } = updated;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
 
@@ -1562,16 +2332,278 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/editorial/publish/:writingId", isAuthenticated, async (req: any, res) => {
-    try {
-      const result = await storage.publishWritingByEditor(req.params.writingId);
-      if (!result) return res.status(404).json({ message: "Writing not found" });
-      res.json(result);
-    } catch (error) {
-      console.error("Error publishing writing:", error);
-      res.status(500).json({ message: "Failed to publish writing" });
-    }
-  });
+  app.post(
+    "/api/editorial/publish/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const result = await storage.publishWritingByEditor(
+          req.params.writingId,
+        );
+        if (!result)
+          return res.status(404).json({ message: "Writing not found" });
+        res.json(result);
+      } catch (error) {
+        console.error("Error publishing writing:", error);
+        res.status(500).json({ message: "Failed to publish writing" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/editor/publish-external",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { title, content, genre, authorName, authorId } = req.body;
+        if (!title || !content || !genre || !authorName) {
+          return res
+            .status(400)
+            .json({
+              message: "Title, content, genre, and author name are required",
+            });
+        }
+        const piece = await storage.publishExternalPiece({
+          title,
+          content,
+          genre,
+          authorName,
+          authorId,
+        });
+        res.json(piece);
+      } catch (error) {
+        console.error("Error publishing external piece:", error);
+        res.status(500).json({ message: "Failed to publish external piece" });
+      }
+    },
+  );
+
+  // === SUBMISSION CALLS ===
+
+  app.get(
+    "/api/editor/submission-calls",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const calls = await storage.getSubmissionCalls();
+        res.json(calls);
+      } catch (error) {
+        console.error("Failed to fetch submission calls:", error);
+        res.status(500).json({ message: "Failed to fetch submission calls" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/editor/submission-calls",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const {
+          title,
+          description,
+          theme,
+          prompt,
+          issueId,
+          startsAt,
+          endsAt,
+          flagLimit,
+          status,
+        } = req.body;
+        if (!title || !startsAt || !endsAt) {
+          return res
+            .status(400)
+            .json({ message: "Title, startsAt, and endsAt are required" });
+        }
+        const call = await storage.createSubmissionCall(req.user.claims.sub, {
+          title,
+          description: description || null,
+          theme: theme || null,
+          prompt: prompt || null,
+          issueId: issueId || null,
+          startsAt: new Date(startsAt),
+          endsAt: new Date(endsAt),
+          flagLimit: flagLimit || 3,
+          status: status || "open",
+        });
+        res.json(call);
+      } catch (error) {
+        console.error("Failed to create submission call:", error);
+        res.status(500).json({ message: "Failed to create submission call" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/editor/submission-calls/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const updated = await storage.updateSubmissionCall(
+          req.params.id,
+          req.body,
+        );
+        if (!updated)
+          return res.status(404).json({ message: "Submission call not found" });
+        res.json(updated);
+      } catch (error) {
+        console.error("Failed to update submission call:", error);
+        res.status(500).json({ message: "Failed to update submission call" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/editor/submission-calls/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteSubmissionCall(req.params.id);
+        if (!deleted)
+          return res.status(404).json({ message: "Submission call not found" });
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Failed to delete submission call:", error);
+        res.status(500).json({ message: "Failed to delete submission call" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/editor/submission-calls/:id/responses",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const responses = await storage.getSubmissionCallResponses(
+          req.params.id,
+        );
+        res.json(responses);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch responses" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/editor/submission-call-responses/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { status } = req.body;
+        if (!status)
+          return res.status(400).json({ message: "Status is required" });
+        const updated = await storage.updateSubmissionCallResponseStatus(
+          req.params.id,
+          status,
+        );
+        if (!updated)
+          return res.status(404).json({ message: "Response not found" });
+        res.json(updated);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update response status" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/submission-calls/open",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const calls = await storage.getOpenSubmissionCalls();
+        res.json(calls);
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to fetch open submission calls" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/submission-calls/:id/respond",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { writingId, note } = req.body;
+        const call = await storage.getSubmissionCall(req.params.id);
+        if (!call || call.status !== "open") {
+          return res
+            .status(400)
+            .json({ message: "This submission call is not open" });
+        }
+        if (writingId) {
+          const writing = await storage.getWriting(writingId);
+          if (!writing || writing.authorId !== req.user.claims.sub) {
+            return res
+              .status(403)
+              .json({ message: "You can only submit your own writings" });
+          }
+        }
+        const response = await storage.createSubmissionCallResponse(
+          req.user.claims.sub,
+          {
+            callId: req.params.id,
+            writingId: writingId || null,
+            note: note || null,
+          },
+        );
+        res.json(response);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to submit response" });
+      }
+    },
+  );
+
+  // === GALLERY OPT-IN ===
+
+  app.patch(
+    "/api/writings/:id/gallery-opt-in",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== req.user.claims.sub)
+          return res.status(403).json({ message: "Not authorized" });
+        const { galleryOptIn } = req.body;
+        const updated = await storage.updateWriting(
+          req.params.id,
+          req.user.claims.sub,
+          {
+            galleryOptIn: !!galleryOptIn,
+            galleryOptInAt: galleryOptIn ? new Date() : null,
+          } as any,
+        );
+        res.json(updated);
+      } catch (error) {
+        console.error("Failed to update gallery opt-in:", error);
+        res.status(500).json({ message: "Failed to update gallery opt-in" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/editor/gallery-opt-ins",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const writings = await storage.getGalleryOptInWritings();
+        res.json(writings);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch gallery opt-ins" });
+      }
+    },
+  );
 
   // === EDITOR STUDIO ===
 
@@ -1584,289 +2616,469 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/editor/overview", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const overview = await storage.getEditorOverview(req.user.claims.sub);
-      res.json(overview);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch editor overview" });
-    }
-  });
+  app.get(
+    "/api/editor/overview",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const overview = await storage.getEditorOverview(req.user.claims.sub);
+        res.json(overview);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch editor overview" });
+      }
+    },
+  );
 
-  app.get("/api/editor/garden-stream", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const { genre, readiness, search, quiet } = req.query;
-      const filters: any = {};
-      if (genre && genre !== "all") filters.genre = genre;
-      if (readiness && readiness !== "all") filters.readiness = readiness;
-      if (search) filters.search = search;
-      if (quiet === "true") filters.quiet = true;
-      const stream = await storage.getEditorGardenStream(filters);
-      res.json(stream);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch garden stream" });
-    }
-  });
+  app.get(
+    "/api/editor/garden-stream",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { genre, readiness, search, quiet } = req.query;
+        const filters: any = {};
+        if (genre && genre !== "all") filters.genre = genre;
+        if (readiness && readiness !== "all") filters.readiness = readiness;
+        if (search) filters.search = search;
+        if (quiet === "true") filters.quiet = true;
+        const stream = await storage.getEditorGardenStream(filters);
+        res.json(stream);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch garden stream" });
+      }
+    },
+  );
 
-  app.get("/api/editor/greenhouse", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const entries = await storage.getGreenhouseEntries(req.user.claims.sub);
-      res.json(entries);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch greenhouse entries" });
-    }
-  });
+  app.get(
+    "/api/editor/greenhouse",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const entries = await storage.getGreenhouseEntries(req.user.claims.sub);
+        res.json(entries);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch greenhouse entries" });
+      }
+    },
+  );
 
-  app.post("/api/editor/greenhouse", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const parsed = insertGreenhouseEntrySchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.addToGreenhouse(req.user.claims.sub, {
-        writingId: parsed.data.writingId,
-        issueId: parsed.data.issueId ?? undefined,
-        themeFolder: parsed.data.themeFolder ?? undefined,
-        priority: parsed.data.priority ?? undefined,
-        internalNote: parsed.data.internalNote ?? undefined,
-      });
-      res.status(201).json(entry);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to add to greenhouse" });
-    }
-  });
+  app.post(
+    "/api/editor/greenhouse",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const parsed = insertGreenhouseEntrySchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const entry = await storage.addToGreenhouse(req.user.claims.sub, {
+          writingId: parsed.data.writingId,
+          issueId: parsed.data.issueId ?? undefined,
+          themeFolder: parsed.data.themeFolder ?? undefined,
+          priority: parsed.data.priority ?? undefined,
+          internalNote: parsed.data.internalNote ?? undefined,
+        });
+        res.status(201).json(entry);
+      } catch (error) {
+        console.error("Failed to add to greenhouse:", error);
+        res.status(500).json({ message: "Failed to add to greenhouse" });
+      }
+    },
+  );
 
-  app.patch("/api/editor/greenhouse/:id", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const entry = await storage.updateGreenhouseEntry(req.user.claims.sub, req.params.id, req.body);
-      if (!entry) return res.status(404).json({ message: "Not found" });
-      res.json(entry);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update greenhouse entry" });
-    }
-  });
+  app.patch(
+    "/api/editor/greenhouse/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const entry = await storage.updateGreenhouseEntry(
+          req.user.claims.sub,
+          req.params.id,
+          req.body,
+        );
+        if (!entry) return res.status(404).json({ message: "Not found" });
+        res.json(entry);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update greenhouse entry" });
+      }
+    },
+  );
 
-  app.delete("/api/editor/greenhouse/:id", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const removed = await storage.removeFromGreenhouse(req.user.claims.sub, req.params.id);
-      if (!removed) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Removed from greenhouse" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to remove from greenhouse" });
-    }
-  });
+  app.delete(
+    "/api/editor/greenhouse/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const removed = await storage.removeFromGreenhouse(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!removed) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Removed from greenhouse" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to remove from greenhouse" });
+      }
+    },
+  );
 
-  app.get("/api/editor/requests", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const { status } = req.query;
-      const filters: any = { editorId: req.user.claims.sub };
-      if (status) filters.status = status;
-      const requests = await storage.getPublishRequests(filters);
-      res.json(requests);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch publish requests" });
-    }
-  });
+  app.get(
+    "/api/editor/requests",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { status } = req.query;
+        const filters: any = { editorId: req.user.claims.sub };
+        if (status) filters.status = status;
+        const requests = await storage.getPublishRequests(filters);
+        res.json(requests);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch publish requests" });
+      }
+    },
+  );
 
   app.get("/api/author/requests", isAuthenticated, async (req: any, res) => {
     try {
-      const requests = await storage.getAuthorPublishRequests(req.user.claims.sub);
+      const requests = await storage.getAuthorPublishRequests(
+        req.user.claims.sub,
+      );
       res.json(requests);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch author requests" });
     }
   });
 
-  app.post("/api/editor/requests", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const parsed = insertPublishRequestSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const request = await storage.createPublishRequest(req.user.claims.sub, {
-        writingId: parsed.data.writingId,
-        authorId: req.body.authorId,
-        issueId: parsed.data.issueId ?? undefined,
-        editorNote: parsed.data.editorNote ?? undefined,
-        proposedDate: parsed.data.proposedDate ?? undefined,
-        rightsDuration: parsed.data.rightsDuration ?? undefined,
-        payment: parsed.data.payment ?? undefined,
-      });
-      res.status(201).json(request);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create publish request" });
-    }
-  });
+  app.post(
+    "/api/editor/requests",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const parsed = insertPublishRequestSchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const request = await storage.createPublishRequest(
+          req.user.claims.sub,
+          {
+            writingId: parsed.data.writingId,
+            authorId: req.body.authorId,
+            issueId: parsed.data.issueId ?? undefined,
+            editorNote: parsed.data.editorNote ?? undefined,
+            proposedDate: parsed.data.proposedDate ?? undefined,
+            rightsDuration: parsed.data.rightsDuration ?? undefined,
+            payment: parsed.data.payment ?? undefined,
+          },
+        );
+        res.status(201).json(request);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create publish request" });
+      }
+    },
+  );
 
-  app.patch("/api/author/requests/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = publishRequestResponseSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const request = await storage.respondToPublishRequest(req.user.claims.sub, req.params.id, parsed.data.status);
-      if (!request) return res.status(404).json({ message: "Not found" });
-      res.json(request);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to respond to publish request" });
-    }
-  });
+  app.patch(
+    "/api/author/requests/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = publishRequestResponseSchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const request = await storage.respondToPublishRequest(
+          req.user.claims.sub,
+          req.params.id,
+          parsed.data.status,
+        );
+        if (!request) return res.status(404).json({ message: "Not found" });
+        res.json(request);
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to respond to publish request" });
+      }
+    },
+  );
 
-  app.get("/api/editor/requests/:id/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const messages = await storage.getRequestMessages(req.params.id);
-      res.json(messages);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch messages" });
-    }
-  });
+  app.get(
+    "/api/editor/requests/:id/messages",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const messages = await storage.getRequestMessages(req.params.id);
+        res.json(messages);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch messages" });
+      }
+    },
+  );
 
-  app.post("/api/editor/requests/:id/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertRequestMessageSchema.safeParse({ ...req.body, requestId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const message = await storage.createRequestMessage(req.user.claims.sub, { requestId: req.params.id, content: parsed.data.content });
-      res.status(201).json(message);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
+  app.post(
+    "/api/editor/requests/:id/messages",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertRequestMessageSchema.safeParse({
+          ...req.body,
+          requestId: req.params.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const message = await storage.createRequestMessage(
+          req.user.claims.sub,
+          { requestId: req.params.id, content: parsed.data.content },
+        );
+        res.status(201).json(message);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to send message" });
+      }
+    },
+  );
 
-  app.get("/api/editor/issues", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const allIssues = await storage.getIssues();
-      res.json(allIssues);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch issues" });
-    }
-  });
+  app.get(
+    "/api/editor/issues",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const allIssues = await storage.getIssues();
+        res.json(allIssues);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch issues" });
+      }
+    },
+  );
 
-  app.get("/api/editor/issues/:id", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const issue = await storage.getIssue(req.params.id);
-      if (!issue) return res.status(404).json({ message: "Issue not found" });
-      res.json(issue);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch issue" });
-    }
-  });
+  app.get(
+    "/api/editor/issues/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const issue = await storage.getIssue(req.params.id);
+        if (!issue) return res.status(404).json({ message: "Issue not found" });
+        res.json(issue);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch issue" });
+      }
+    },
+  );
 
-  app.post("/api/editor/issues", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const parsed = insertIssueSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const issue = await storage.createIssue(req.user.claims.sub, {
-        title: parsed.data.title,
-        subtitle: parsed.data.subtitle ?? undefined,
-        themeNote: parsed.data.themeNote ?? undefined,
-        publishDate: parsed.data.publishDate ? new Date(parsed.data.publishDate) : undefined,
-      });
-      res.status(201).json(issue);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create issue" });
-    }
-  });
+  app.post(
+    "/api/editor/issues",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const parsed = insertIssueSchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const issue = await storage.createIssue(req.user.claims.sub, {
+          title: parsed.data.title,
+          subtitle: parsed.data.subtitle ?? undefined,
+          themeNote: parsed.data.themeNote ?? undefined,
+          publishDate: parsed.data.publishDate
+            ? new Date(parsed.data.publishDate)
+            : undefined,
+        });
+        res.status(201).json(issue);
+      } catch (error) {
+        console.error("Failed to create issue:", error);
+        res.status(500).json({ message: "Failed to create issue" });
+      }
+    },
+  );
 
-  app.patch("/api/editor/issues/:id", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const data: any = { ...req.body };
-      if (data.publishDate) data.publishDate = new Date(data.publishDate);
-      const issue = await storage.updateIssue(req.params.id, data);
-      if (!issue) return res.status(404).json({ message: "Issue not found" });
-      res.json(issue);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update issue" });
-    }
-  });
+  app.patch(
+    "/api/editor/issues/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const data: any = { ...req.body };
+        if (data.publishDate) data.publishDate = new Date(data.publishDate);
+        const issue = await storage.updateIssue(req.params.id, data);
+        if (!issue) return res.status(404).json({ message: "Issue not found" });
+        res.json(issue);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update issue" });
+      }
+    },
+  );
 
-  app.get("/api/editor/issues/:id/pieces", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const pieces = await storage.getIssuePieces(req.params.id);
-      res.json(pieces);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch issue pieces" });
-    }
-  });
+  app.get(
+    "/api/editor/issues/:id/pieces",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const pieces = await storage.getIssuePieces(req.params.id);
+        res.json(pieces);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch issue pieces" });
+      }
+    },
+  );
 
-  app.post("/api/editor/issues/:id/pieces", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const parsed = insertIssuePieceSchema.safeParse({ ...req.body, issueId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const piece = await storage.addPieceToIssue({
-        issueId: req.params.id,
-        writingId: parsed.data.writingId,
-        sortOrder: parsed.data.sortOrder ?? undefined,
-      });
-      res.status(201).json(piece);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to add piece to issue" });
-    }
-  });
+  app.post(
+    "/api/editor/issues/:id/pieces",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const parsed = insertIssuePieceSchema.safeParse({
+          ...req.body,
+          issueId: req.params.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const piece = await storage.addPieceToIssue({
+          issueId: req.params.id,
+          writingId: parsed.data.writingId,
+          sortOrder: parsed.data.sortOrder ?? undefined,
+        });
+        res.status(201).json(piece);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to add piece to issue" });
+      }
+    },
+  );
 
-  app.patch("/api/editor/issues/:id/pieces/:pieceId", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const piece = await storage.updateIssuePiece(req.params.pieceId, req.body);
-      if (!piece) return res.status(404).json({ message: "Piece not found" });
-      res.json(piece);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update piece" });
-    }
-  });
+  app.patch(
+    "/api/editor/issues/:id/pieces/:pieceId",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const piece = await storage.updateIssuePiece(
+          req.params.pieceId,
+          req.body,
+        );
+        if (!piece) return res.status(404).json({ message: "Piece not found" });
+        res.json(piece);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update piece" });
+      }
+    },
+  );
 
-  app.delete("/api/editor/issues/:id/pieces/:pieceId", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const removed = await storage.removePieceFromIssue(req.params.pieceId);
-      if (!removed) return res.status(404).json({ message: "Piece not found" });
-      res.json({ message: "Removed from issue" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to remove piece" });
-    }
-  });
+  app.delete(
+    "/api/editor/issues/:id/pieces/:pieceId",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const removed = await storage.removePieceFromIssue(req.params.pieceId);
+        if (!removed)
+          return res.status(404).json({ message: "Piece not found" });
+        res.json({ message: "Removed from issue" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to remove piece" });
+      }
+    },
+  );
 
-  app.post("/api/editor/issues/:id/publish", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const issue = await storage.publishIssue(req.params.id);
-      if (!issue) return res.status(404).json({ message: "Issue not found" });
-      res.json(issue);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to publish issue" });
-    }
-  });
+  app.post(
+    "/api/editor/issues/:id/publish",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const issue = await storage.publishIssue(req.params.id);
+        if (!issue) return res.status(404).json({ message: "Issue not found" });
+        res.json(issue);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to publish issue" });
+      }
+    },
+  );
 
-  app.get("/api/editor/notes/:writingId", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const notes = await storage.getEditorNotes(req.params.writingId);
-      res.json(notes);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch editor notes" });
-    }
-  });
+  app.get(
+    "/api/editor/notes/:writingId",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const notes = await storage.getEditorNotes(req.params.writingId);
+        res.json(notes);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch editor notes" });
+      }
+    },
+  );
 
-  app.post("/api/editor/notes", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const parsed = insertEditorNoteSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const note = await storage.createEditorNote(req.user.claims.sub, parsed.data);
-      res.status(201).json(note);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create editor note" });
-    }
-  });
+  app.post(
+    "/api/editor/notes",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const parsed = insertEditorNoteSchema.safeParse(req.body);
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const note = await storage.createEditorNote(
+          req.user.claims.sub,
+          parsed.data,
+        );
+        res.status(201).json(note);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create editor note" });
+      }
+    },
+  );
 
-  app.delete("/api/editor/notes/:id", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteEditorNote(req.user.claims.sub, req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Deleted" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete editor note" });
-    }
-  });
+  app.delete(
+    "/api/editor/notes/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteEditorNote(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete editor note" });
+      }
+    },
+  );
 
-  app.post("/api/editor/promote", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const { userId } = req.body;
-      if (!userId) return res.status(400).json({ message: "userId is required" });
-      await storage.setEditorRole(userId, "editor");
-      res.json({ message: "User promoted to editor" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to promote user" });
-    }
-  });
+  app.post(
+    "/api/editor/promote",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { userId } = req.body;
+        if (!userId)
+          return res.status(400).json({ message: "userId is required" });
+        await storage.setEditorRole(userId, "editor");
+        res.json({ message: "User promoted to editor" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to promote user" });
+      }
+    },
+  );
 
   // === CURATED OPPORTUNITIES ===
   app.get("/api/curated-opportunities", async (req, res) => {
@@ -1874,89 +3086,153 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
       const items = await storage.getCuratedOpportunities();
       res.json(items);
     } catch (error) {
+      console.error("Failed to get curated opportunities:", error);
       res.status(500).json({ message: "Failed to get curated opportunities" });
     }
   });
 
-  app.post("/api/editor/opportunities", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const { title, link, outlet, deadline, payRate, genres, notes } = req.body;
-      if (!title) return res.status(400).json({ message: "Title is required" });
-      const item = await storage.createCuratedOpportunity(req.user.claims.sub, {
-        title, link, outlet, deadline, payRate, genres, notes,
-      });
-      res.status(201).json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create curated opportunity" });
-    }
-  });
+  app.post(
+    "/api/editor/opportunities",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { title, link, outlet, deadline, payRate, genres, notes } =
+          req.body;
+        if (!title)
+          return res.status(400).json({ message: "Title is required" });
+        const item = await storage.createCuratedOpportunity(
+          req.user.claims.sub,
+          {
+            title,
+            link,
+            outlet,
+            deadline,
+            payRate,
+            genres,
+            notes,
+          },
+        );
+        res.status(201).json(item);
+      } catch (error) {
+        console.error("Failed to create curated opportunity:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to create curated opportunity" });
+      }
+    },
+  );
 
-  app.delete("/api/editor/opportunities/:id", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteCuratedOpportunity(req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Deleted" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete curated opportunity" });
-    }
-  });
+  app.delete(
+    "/api/editor/opportunities/:id",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteCuratedOpportunity(req.params.id);
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted" });
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to delete curated opportunity" });
+      }
+    },
+  );
 
   // === CIRCLE INTENTIONS ===
-  app.get("/api/circles/:circleId/intentions", isAuthenticated, async (req: any, res) => {
-    try {
-      const items = await storage.getCircleIntentions(req.params.circleId);
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get intentions" });
-    }
-  });
+  app.get(
+    "/api/circles/:circleId/intentions",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const items = await storage.getCircleIntentions(req.params.circleId);
+        res.json(items);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to get intentions" });
+      }
+    },
+  );
 
-  app.post("/api/circles/:circleId/intentions", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertCircleIntentionSchema.safeParse({ ...req.body, circleId: req.params.circleId });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createCircleIntention(req.user.claims.sub, parsed.data);
-      res.status(201).json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create intention" });
-    }
-  });
+  app.post(
+    "/api/circles/:circleId/intentions",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertCircleIntentionSchema.safeParse({
+          ...req.body,
+          circleId: req.params.circleId,
+        });
+        if (!parsed.success)
+          return res.status(400).json({ message: "Invalid data" });
+        const item = await storage.createCircleIntention(
+          req.user.claims.sub,
+          parsed.data,
+        );
+        res.status(201).json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create intention" });
+      }
+    },
+  );
 
-  app.delete("/api/circle-intentions/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteCircleIntention(req.user.claims.sub, req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Deleted" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete intention" });
-    }
-  });
+  app.delete(
+    "/api/circle-intentions/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteCircleIntention(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete intention" });
+      }
+    },
+  );
 
   // === CIRCLE CELEBRATIONS ===
-  app.get("/api/circles/:circleId/celebrations", isAuthenticated, async (req: any, res) => {
-    try {
-      const items = await storage.getCircleCelebrations(req.params.circleId);
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get celebrations" });
-    }
-  });
+  app.get(
+    "/api/circles/:circleId/celebrations",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const items = await storage.getCircleCelebrations(req.params.circleId);
+        res.json(items);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to get celebrations" });
+      }
+    },
+  );
 
-  app.post("/api/circles/:circleId/celebrations", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertCircleCelebrationSchema.safeParse({ ...req.body, circleId: req.params.circleId });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createCircleCelebration(req.user.claims.sub, {
-        circleId: parsed.data.circleId,
-        type: parsed.data.type,
-        message: parsed.data.message ?? undefined,
-        value: parsed.data.value ?? undefined,
-      });
-      res.status(201).json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create celebration" });
-    }
-  });
+  app.post(
+    "/api/circles/:circleId/celebrations",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertCircleCelebrationSchema.safeParse({
+          ...req.body,
+          circleId: req.params.circleId,
+        });
+        if (!parsed.success)
+          return res.status(400).json({ message: "Invalid data" });
+        const item = await storage.createCircleCelebration(
+          req.user.claims.sub,
+          {
+            circleId: parsed.data.circleId,
+            type: parsed.data.type,
+            message: parsed.data.message ?? undefined,
+            value: parsed.data.value ?? undefined,
+          },
+        );
+        res.status(201).json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create celebration" });
+      }
+    },
+  );
 
   // === REJECTION WALL ===
   app.get("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
@@ -1971,23 +3247,38 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertRejectionWallSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createRejectionWallEntry(req.user.claims.sub, parsed.data);
+      if (!parsed.success)
+        return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createRejectionWallEntry(
+        req.user.claims.sub,
+        parsed.data,
+      );
       res.status(201).json(item);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create rejection wall entry" });
+      res
+        .status(500)
+        .json({ message: "Failed to create rejection wall entry" });
     }
   });
 
-  app.delete("/api/rejection-wall/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteRejectionWallEntry(req.user.claims.sub, req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Deleted" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete rejection wall entry" });
-    }
-  });
+  app.delete(
+    "/api/rejection-wall/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteRejectionWallEntry(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted" });
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to delete rejection wall entry" });
+      }
+    },
+  );
 
   // === OPPORTUNITIES ===
   app.get("/api/opportunities", isAuthenticated, async (req: any, res) => {
@@ -2002,7 +3293,8 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertOpportunitySchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      if (!parsed.success)
+        return res.status(400).json({ message: "Invalid data" });
       const item = await storage.createOpportunity(req.user.claims.sub, {
         title: parsed.data.title,
         link: parsed.data.link ?? undefined,
@@ -2020,60 +3312,100 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.delete("/api/opportunities/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteOpportunity(req.user.claims.sub, req.params.id);
-      if (!deleted) return res.status(404).json({ message: "Not found" });
-      res.json({ message: "Deleted" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete opportunity" });
-    }
-  });
+  app.delete(
+    "/api/opportunities/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteOpportunity(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!deleted) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted" });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete opportunity" });
+      }
+    },
+  );
 
-  app.get("/api/opportunities/:id/notes", isAuthenticated, async (req: any, res) => {
-    try {
-      const notes = await storage.getOpportunityNotes(req.params.id);
-      res.json(notes);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get notes" });
-    }
-  });
+  app.get(
+    "/api/opportunities/:id/notes",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const notes = await storage.getOpportunityNotes(req.params.id);
+        res.json(notes);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to get notes" });
+      }
+    },
+  );
 
-  app.post("/api/opportunities/:id/notes", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertOpportunityNoteSchema.safeParse({ ...req.body, opportunityId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const note = await storage.createOpportunityNote(req.user.claims.sub, parsed.data);
-      res.status(201).json(note);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create note" });
-    }
-  });
+  app.post(
+    "/api/opportunities/:id/notes",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertOpportunityNoteSchema.safeParse({
+          ...req.body,
+          opportunityId: req.params.id,
+        });
+        if (!parsed.success)
+          return res.status(400).json({ message: "Invalid data" });
+        const note = await storage.createOpportunityNote(
+          req.user.claims.sub,
+          parsed.data,
+        );
+        res.status(201).json(note);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create note" });
+      }
+    },
+  );
 
   // === PROMPT POTLUCK ===
-  app.get("/api/circles/:circleId/potluck", isAuthenticated, async (req: any, res) => {
-    try {
-      const items = await storage.getPromptPotluckItems(req.params.circleId);
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get potluck items" });
-    }
-  });
+  app.get(
+    "/api/circles/:circleId/potluck",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const items = await storage.getPromptPotluckItems(req.params.circleId);
+        res.json(items);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to get potluck items" });
+      }
+    },
+  );
 
-  app.post("/api/circles/:circleId/potluck", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertPromptPotluckSchema.safeParse({ ...req.body, circleId: req.params.circleId });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createPromptPotluckItem(req.user.claims.sub, parsed.data);
-      res.status(201).json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create potluck item" });
-    }
-  });
+  app.post(
+    "/api/circles/:circleId/potluck",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertPromptPotluckSchema.safeParse({
+          ...req.body,
+          circleId: req.params.circleId,
+        });
+        if (!parsed.success)
+          return res.status(400).json({ message: "Invalid data" });
+        const item = await storage.createPromptPotluckItem(
+          req.user.claims.sub,
+          parsed.data,
+        );
+        res.status(201).json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create potluck item" });
+      }
+    },
+  );
 
   app.delete("/api/potluck/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.deletePromptPotluckItem(req.user.claims.sub, req.params.id);
+      const deleted = await storage.deletePromptPotluckItem(
+        req.user.claims.sub,
+        req.params.id,
+      );
       if (!deleted) return res.status(404).json({ message: "Not found" });
       res.json({ message: "Deleted" });
     } catch (error) {
@@ -2081,59 +3413,107 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/circles/:circleId/potluck/random", isAuthenticated, async (req: any, res) => {
-    try {
-      const item = await storage.getRandomPotluckItem(req.params.circleId);
-      if (!item) return res.status(404).json({ message: "No items in potluck" });
-      res.json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get random potluck item" });
-    }
-  });
+  app.get(
+    "/api/circles/:circleId/potluck/random",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const item = await storage.getRandomPotluckItem(req.params.circleId);
+        if (!item)
+          return res.status(404).json({ message: "No items in potluck" });
+        res.json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to get random potluck item" });
+      }
+    },
+  );
 
   // === QUIET READS ===
-  app.get("/api/quiet-read/:writingId", isAuthenticated, async (req: any, res) => {
+  app.get(
+    "/api/quiet-read/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const hasRead = await storage.hasQuietRead(
+          userId,
+          req.params.writingId,
+        );
+        res.json({ hasRead });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to check quiet read" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/quiet-read/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const result = await storage.addQuietRead(userId, req.params.writingId);
+        res.status(201).json(result);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to add quiet read" });
+      }
+    },
+  );
+
+  app.post("/api/quiet-read-counts", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const hasRead = await storage.hasQuietRead(userId, req.params.writingId);
-      res.json({ hasRead });
+      const { writingIds } = req.body;
+      if (!Array.isArray(writingIds) || writingIds.length === 0)
+        return res.json({});
+      const limitedIds = writingIds
+        .filter((id: any) => typeof id === "string")
+        .slice(0, 100);
+      const userWritings = await storage.getWritingsByAuthor(userId);
+      const ownedIds = new Set(userWritings.map((w) => w.id));
+      const authorizedIds = limitedIds.filter((id: string) => ownedIds.has(id));
+      if (authorizedIds.length === 0) return res.json({});
+      const counts = await storage.getQuietReadCounts(authorizedIds);
+      res.json(counts);
     } catch (error) {
-      res.status(500).json({ message: "Failed to check quiet read" });
+      res.status(500).json({ message: "Failed to fetch read counts" });
     }
   });
 
-  app.post("/api/quiet-read/:writingId", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const result = await storage.addQuietRead(userId, req.params.writingId);
-      res.status(201).json(result);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to add quiet read" });
-    }
-  });
+  app.get(
+    "/api/writings/:id/whispers",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Not authorized" });
+        const whispers = await storage.getQuietReadWhispers(req.params.id);
+        res.json(whispers);
+      } catch (error) {
+        console.error("Error fetching whispers:", error);
+        res.status(500).json({ message: "Failed to fetch whispers" });
+      }
+    },
+  );
 
-  app.get("/api/writings/:id/whispers", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const writing = await storage.getWriting(req.params.id);
-      if (!writing) return res.status(404).json({ message: "Writing not found" });
-      if (writing.authorId !== userId) return res.status(403).json({ message: "Not authorized" });
-      const whispers = await storage.getQuietReadWhispers(req.params.id);
-      res.json(whispers);
-    } catch (error) {
-      console.error("Error fetching whispers:", error);
-      res.status(500).json({ message: "Failed to fetch whispers" });
-    }
-  });
-
-  app.get("/api/quietly-read/:writingId", isAuthenticated, async (req: any, res) => {
-    try {
-      const hasBeenRead = await storage.hasBeenQuietlyRead(req.params.writingId);
-      res.json({ hasBeenRead });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to check quiet read status" });
-    }
-  });
+  app.get(
+    "/api/quietly-read/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const hasBeenRead = await storage.hasBeenQuietlyRead(
+          req.params.writingId,
+        );
+        res.json({ hasBeenRead });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to check quiet read status" });
+      }
+    },
+  );
 
   // === IDEA DROPS ===
   app.get("/api/idea-drops", isAuthenticated, async (req: any, res) => {
@@ -2148,27 +3528,44 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/idea-drops", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertIdeaDropSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createIdeaDrop(req.user.claims.sub, parsed.data);
+      if (!parsed.success)
+        return res.status(400).json({ message: "Invalid data" });
+      const item = await storage.createIdeaDrop(
+        req.user.claims.sub,
+        parsed.data,
+      );
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to create idea drop" });
     }
   });
 
-  app.post("/api/idea-drops/:id/adopt", isAuthenticated, async (req: any, res) => {
-    try {
-      const item = await storage.adoptIdeaDrop(req.user.claims.sub, req.params.id);
-      if (!item) return res.status(404).json({ message: "Not found or already adopted" });
-      res.json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to adopt idea drop" });
-    }
-  });
+  app.post(
+    "/api/idea-drops/:id/adopt",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const item = await storage.adoptIdeaDrop(
+          req.user.claims.sub,
+          req.params.id,
+        );
+        if (!item)
+          return res
+            .status(404)
+            .json({ message: "Not found or already adopted" });
+        res.json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to adopt idea drop" });
+      }
+    },
+  );
 
   app.delete("/api/idea-drops/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.deleteIdeaDrop(req.user.claims.sub, req.params.id);
+      const deleted = await storage.deleteIdeaDrop(
+        req.user.claims.sub,
+        req.params.id,
+      );
       if (!deleted) return res.status(404).json({ message: "Not found" });
       res.json({ message: "Deleted" });
     } catch (error) {
@@ -2176,77 +3573,131 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/writings/:id/export-docx", isAuthenticated, async (req: any, res) => {
-    try {
-      const writing = await storage.getWriting(req.params.id);
-      if (!writing) return res.status(404).json({ message: "Writing not found" });
-      if (writing.authorId !== req.user.claims.sub) return res.status(403).json({ message: "Forbidden" });
+  app.get(
+    "/api/writings/:id/export-docx",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== req.user.claims.sub)
+          return res.status(403).json({ message: "Forbidden" });
 
-      const user = await storage.getUser(req.user.claims.sub);
-      const authorName = user?.firstName || "Author";
-      const plainContent = (writing.content || "")
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<\/p>/gi, "\n\n")
-        .replace(/<[^>]+>/g, "")
-        .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-        .trim();
-      const words = plainContent.split(/\s+/).filter(Boolean);
-      const wordCount = words.length;
-      const roundedCount = Math.round(wordCount / 100) * 100 || wordCount;
-      const paragraphs = plainContent.split(/\n{2,}/).filter(Boolean);
+        const user = await storage.getUser(req.user.claims.sub);
+        const authorName = user?.firstName || "Author";
+        const plainContent = (writing.content || "")
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<\/p>/gi, "\n\n")
+          .replace(/<[^>]+>/g, "")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .trim();
+        const words = plainContent.split(/\s+/).filter(Boolean);
+        const wordCount = words.length;
+        const roundedCount = Math.round(wordCount / 100) * 100 || wordCount;
+        const paragraphs = plainContent.split(/\n{2,}/).filter(Boolean);
 
-      const headerParagraphs: Paragraph[] = [
-        new Paragraph({
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 0 },
-          children: [new TextRun({ text: authorName, font: "Courier New", size: 24 })],
-        }),
-        new Paragraph({
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 0 },
-          children: [new TextRun({ text: `Approx. ${roundedCount} words`, font: "Courier New", size: 24 })],
-        }),
-        ...Array(4).fill(null).map(() => new Paragraph({ spacing: { after: 0 }, children: [] })),
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 400 },
-          children: [new TextRun({ text: writing.title || "Untitled", font: "Courier New", size: 24, bold: false })],
-        }),
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 400 },
-          children: [new TextRun({ text: `by ${authorName}`, font: "Courier New", size: 24 })],
-        }),
-        new Paragraph({ spacing: { after: 0 }, children: [] }),
-      ];
+        const headerParagraphs: Paragraph[] = [
+          new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0 },
+            children: [
+              new TextRun({ text: authorName, font: "Courier New", size: 24 }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0 },
+            children: [
+              new TextRun({
+                text: `Approx. ${roundedCount} words`,
+                font: "Courier New",
+                size: 24,
+              }),
+            ],
+          }),
+          ...Array(4)
+            .fill(null)
+            .map(() => new Paragraph({ spacing: { after: 0 }, children: [] })),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 },
+            children: [
+              new TextRun({
+                text: writing.title || "Untitled",
+                font: "Courier New",
+                size: 24,
+                bold: false,
+              }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 },
+            children: [
+              new TextRun({
+                text: `by ${authorName}`,
+                font: "Courier New",
+                size: 24,
+              }),
+            ],
+          }),
+          new Paragraph({ spacing: { after: 0 }, children: [] }),
+        ];
 
-      const bodyParagraphs = paragraphs.map((p, i) => new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { line: 480, after: 0 },
-        indent: i > 0 ? { firstLine: 720 } : undefined,
-        children: [new TextRun({ text: p.replace(/\n/g, " ").trim(), font: "Courier New", size: 24 })],
-      }));
+        const bodyParagraphs = paragraphs.map(
+          (p, i) =>
+            new Paragraph({
+              alignment: AlignmentType.LEFT,
+              spacing: { line: 480, after: 0 },
+              indent: i > 0 ? { firstLine: 720 } : undefined,
+              children: [
+                new TextRun({
+                  text: p.replace(/\n/g, " ").trim(),
+                  font: "Courier New",
+                  size: 24,
+                }),
+              ],
+            }),
+        );
 
-      const doc = new Document({
-        sections: [{
-          properties: {
-            page: {
-              margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+        const doc = new Document({
+          sections: [
+            {
+              properties: {
+                page: {
+                  margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+                },
+              },
+              children: [...headerParagraphs, ...bodyParagraphs],
             },
-          },
-          children: [...headerParagraphs, ...bodyParagraphs],
-        }],
-      });
+          ],
+        });
 
-      const buffer = await Packer.toBuffer(doc);
-      const filename = (writing.title || "untitled").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 60);
-      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-      res.setHeader("Content-Disposition", `attachment; filename="${filename}.docx"`);
-      res.send(buffer);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to export" });
-    }
-  });
+        const buffer = await Packer.toBuffer(doc);
+        const filename = (writing.title || "untitled")
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .slice(0, 60);
+        res.setHeader(
+          "Content-Type",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        );
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${filename}.docx"`,
+        );
+        res.send(buffer);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to export" });
+      }
+    },
+  );
 
   // === PRESENCE ===
   app.post("/api/presence", isAuthenticated, async (req: any, res) => {
@@ -2275,7 +3726,8 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.get("/api/public-garden/:userId", async (req, res) => {
     try {
       const profile = await storage.getPublicGarden(req.params.userId);
-      if (!profile) return res.status(404).json({ message: "Writer not found" });
+      if (!profile)
+        return res.status(404).json({ message: "Writer not found" });
       res.json(profile);
     } catch (error) {
       console.error("Error fetching public garden:", error);
@@ -2288,18 +3740,29 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const userId = req.user.claims.sub;
       const { writingId } = req.body;
-      if (!writingId) return res.status(400).json({ message: "writingId is required" });
+      if (!writingId)
+        return res.status(400).json({ message: "writingId is required" });
 
-      const walk = await storage.getActiveEditorsWalk();
-      const flagLimit = walk ? walk.flagLimit : 1;
+      const call = await storage.getActiveSubmissionCall();
+      const flagLimit = call ? call.flagLimit : 1;
       const activeCount = await storage.getActiveFlagCount(userId);
       if (activeCount >= flagLimit) {
-        return res.status(400).json({ message: walk ? `You can flag up to ${flagLimit} pieces during the Editors Walk` : "You can only flag one piece at a time" });
+        return res
+          .status(400)
+          .json({
+            message: call
+              ? `You can flag up to ${flagLimit} pieces during the Submission Call`
+              : "You can only flag one piece at a time",
+          });
       }
 
       const tier = await storage.getUserTier(userId);
       const isPaidFlag = tier === "paid";
-      const flag = await storage.createEditorialFlag(userId, writingId, isPaidFlag);
+      const flag = await storage.createEditorialFlag(
+        userId,
+        writingId,
+        isPaidFlag,
+      );
       res.status(201).json(flag);
     } catch (error) {
       console.error("Error creating editorial flag:", error);
@@ -2307,91 +3770,123 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/editorial-flags/mine", isAuthenticated, async (req: any, res) => {
-    try {
-      const flags = await storage.getMyFlags(req.user.claims.sub);
-      res.json(flags);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch flags" });
-    }
-  });
+  app.get(
+    "/api/editorial-flags/mine",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const flags = await storage.getMyFlags(req.user.claims.sub);
+        res.json(flags);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch flags" });
+      }
+    },
+  );
 
-  app.get("/api/editor/flagged-queue", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const queue = await storage.getFlaggedQueue();
-      res.json(queue);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch flagged queue" });
-    }
-  });
+  app.get(
+    "/api/editorial-feedback/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.writingId);
+        if (!writing || writing.authorId !== userId)
+          return res.status(404).json({ message: "Not found" });
+        const notes = await storage.getEditorNotes(req.params.writingId);
+        const flags = await storage.getMyFlags(userId);
+        const flag = flags.find(
+          (f: any) => f.writingId === req.params.writingId,
+        );
+        res.json({ notes, flag: flag || null });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch editorial feedback" });
+      }
+    },
+  );
 
-  app.post("/api/editor/flags/:id/seen", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const flag = await storage.markFlagSeen(req.params.id, req.user.claims.sub);
-      if (!flag) return res.status(404).json({ message: "Flag not found" });
-      await storage.createNotification(flag.authorId, {
-        type: "editor_paused",
-        actorId: req.user.claims.sub,
-        message: "An editor paused on your piece",
-        writingId: flag.writingId,
-      });
-      res.json(flag);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to mark flag as seen" });
-    }
-  });
+  app.get(
+    "/api/editor/flagged-queue",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const queue = await storage.getFlaggedQueue();
+        res.json(queue);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch flagged queue" });
+      }
+    },
+  );
 
-  app.post("/api/editor/flags/:id/respond", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const { response } = req.body;
-      if (!response || typeof response !== "string") return res.status(400).json({ message: "response is required" });
-      const flag = await storage.respondToFlag(req.params.id, req.user.claims.sub, response);
-      if (!flag) return res.status(404).json({ message: "Flag not found" });
-      await storage.createNotification(flag.authorId, {
-        type: "flag_response",
-        actorId: req.user.claims.sub,
-        message: response,
-        writingId: flag.writingId,
-      });
-      res.json(flag);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to respond to flag" });
-    }
-  });
+  app.post(
+    "/api/editor/flags/:id/seen",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const flag = await storage.markFlagSeen(
+          req.params.id,
+          req.user.claims.sub,
+        );
+        if (!flag) return res.status(404).json({ message: "Flag not found" });
+        await storage.createNotification(flag.authorId, {
+          type: "editor_paused",
+          actorId: req.user.claims.sub,
+          message: "An editor paused on your piece",
+          writingId: flag.writingId,
+        });
+        res.json(flag);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to mark flag as seen" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/editor/flags/:id/respond",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { response } = req.body;
+        if (!response || typeof response !== "string")
+          return res.status(400).json({ message: "response is required" });
+        const flag = await storage.respondToFlag(
+          req.params.id,
+          req.user.claims.sub,
+          response,
+        );
+        if (!flag) return res.status(404).json({ message: "Flag not found" });
+        const noteType = response.startsWith("[Closed]")
+          ? "decision"
+          : "general_feedback";
+        await storage.createEditorNote(req.user.claims.sub, {
+          writingId: flag.writingId,
+          content: response,
+          noteType,
+        });
+        await storage.createNotification(flag.authorId, {
+          type: "flag_response",
+          actorId: req.user.claims.sub,
+          message: response,
+          writingId: flag.writingId,
+        });
+        res.json(flag);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to respond to flag" });
+      }
+    },
+  );
 
   // === EDITORS WALK ===
-  app.get("/api/editors-walk/active", async (req, res) => {
+  app.get("/api/submission-calls/active", async (req, res) => {
     try {
-      const walk = await storage.getActiveEditorsWalk();
-      res.json(walk);
+      const call = await storage.getActiveSubmissionCall();
+      res.json(call);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch active walk" });
-    }
-  });
-
-  app.get("/api/editors-walk", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const walks = await storage.getEditorsWalks();
-      res.json(walks);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch walks" });
-    }
-  });
-
-  app.post("/api/editors-walk", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const { title, description, startsAt, endsAt, flagLimit } = req.body;
-      if (!title || !startsAt || !endsAt) return res.status(400).json({ message: "title, startsAt, and endsAt are required" });
-      const walk = await storage.createEditorsWalk(req.user.claims.sub, {
-        title,
-        description,
-        startsAt: new Date(startsAt),
-        endsAt: new Date(endsAt),
-        flagLimit: flagLimit || 3,
-      });
-      res.status(201).json(walk);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create walk" });
+      res
+        .status(500)
+        .json({ message: "Failed to fetch active submission call" });
     }
   });
 
@@ -2406,54 +3901,79 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   // === MANUAL SNAPSHOTS ===
-  app.post("/api/writings/:id/snapshot", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const tier = await storage.getUserTier(userId);
-      if (tier !== "paid") return res.status(403).json({ message: "Manual snapshots are a Cultivator feature" });
-      const writing = await storage.getWriting(req.params.id);
-      if (!writing) return res.status(404).json({ message: "Writing not found" });
-      if (writing.authorId !== userId) return res.status(403).json({ message: "Forbidden" });
+  app.post(
+    "/api/writings/:id/snapshot",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const tier = await storage.getUserTier(userId);
+        if (tier !== "paid")
+          return res
+            .status(403)
+            .json({ message: "Manual snapshots are a Cultivator feature" });
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Forbidden" });
 
-      const { note } = req.body;
-      const wordCount = (writing.content || "").replace(/<[^>]+>/g, "").trim().split(/\s+/).filter(Boolean).length;
-      const snapshot = await storage.createSnapshot({
-        writingId: writing.id,
-        title: writing.title,
-        content: writing.content,
-        readiness: writing.readiness,
-        wordCount,
-        snapshotNote: note || undefined,
-        isManual: true,
-      });
-      res.status(201).json(snapshot);
-    } catch (error) {
-      console.error("Error creating manual snapshot:", error);
-      res.status(500).json({ message: "Failed to create snapshot" });
-    }
-  });
+        const { note } = req.body;
+        const wordCount = (writing.content || "")
+          .replace(/<[^>]+>/g, "")
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean).length;
+        const snapshot = await storage.createSnapshot({
+          writingId: writing.id,
+          title: writing.title,
+          content: writing.content,
+          readiness: writing.readiness,
+          wordCount,
+          snapshotNote: note || undefined,
+          isManual: true,
+        });
+        res.status(201).json(snapshot);
+      } catch (error) {
+        console.error("Error creating manual snapshot:", error);
+        res.status(500).json({ message: "Failed to create snapshot" });
+      }
+    },
+  );
 
   // === SMART SWAP MATCHING ===
-  app.post("/api/swaps/:id/smart-match", isAuthenticated, async (req: any, res) => {
-    try {
-      const tier = await storage.getUserTier(req.user.claims.sub);
-      if (tier !== "paid") return res.status(403).json({ message: "Smart matching is a Cultivator feature" });
-      const match = await storage.findSmartSwapMatch(req.params.id);
-      if (!match) return res.json({ match: null, message: "No compatible matches found yet" });
+  app.post(
+    "/api/swaps/:id/smart-match",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const tier = await storage.getUserTier(req.user.claims.sub);
+        if (tier !== "paid")
+          return res
+            .status(403)
+            .json({ message: "Smart matching is a Cultivator feature" });
+        const match = await storage.findSmartSwapMatch(req.params.id);
+        if (!match)
+          return res.json({
+            match: null,
+            message: "No compatible matches found yet",
+          });
 
-      const writing = await storage.getWriting(match.writingId);
-      res.json({ match, writingTitle: writing?.title });
-    } catch (error) {
-      console.error("Error finding smart match:", error);
-      res.status(500).json({ message: "Failed to find match" });
-    }
-  });
+        const writing = await storage.getWriting(match.writingId);
+        res.json({ match, writingTitle: writing?.title });
+      } catch (error) {
+        console.error("Error finding smart match:", error);
+        res.status(500).json({ message: "Failed to find match" });
+      }
+    },
+  );
 
   // === FIRST READER ===
   app.post("/api/first-reader", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertFirstReaderDropSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      if (!parsed.success)
+        return res.status(400).json({ message: "Invalid data" });
       const drop = await storage.createFirstReaderDrop(req.user.claims.sub, {
         content: parsed.data.content,
         genre: parsed.data.genre ?? undefined,
@@ -2484,21 +4004,32 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/first-reader/:id/respond", isAuthenticated, async (req: any, res) => {
-    try {
-      const parsed = insertFirstReaderResponseSchema.safeParse({ ...req.body, dropId: req.params.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
-      const response = await storage.createFirstReaderResponse(req.user.claims.sub, {
-        dropId: parsed.data.dropId,
-        aliveSignal: parsed.data.aliveSignal,
-        strikingLine: parsed.data.strikingLine ?? undefined,
-        oneSuggestion: parsed.data.oneSuggestion ?? undefined,
-      });
-      res.status(201).json(response);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to respond" });
-    }
-  });
+  app.post(
+    "/api/first-reader/:id/respond",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const parsed = insertFirstReaderResponseSchema.safeParse({
+          ...req.body,
+          dropId: req.params.id,
+        });
+        if (!parsed.success)
+          return res.status(400).json({ message: "Invalid data" });
+        const response = await storage.createFirstReaderResponse(
+          req.user.claims.sub,
+          {
+            dropId: parsed.data.dropId,
+            aliveSignal: parsed.data.aliveSignal,
+            strikingLine: parsed.data.strikingLine ?? undefined,
+            oneSuggestion: parsed.data.oneSuggestion ?? undefined,
+          },
+        );
+        res.status(201).json(response);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to respond" });
+      }
+    },
+  );
 
   // === READING SHELF ===
   app.get("/api/reading-shelf", isAuthenticated, async (req, res) => {
@@ -2513,7 +4044,8 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/reading-shelf", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertReadingShelfSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+      if (!parsed.success)
+        return res.status(400).json({ message: "Invalid data" });
       const entry = await storage.addToReadingShelf(req.user.claims.sub, {
         bookTitle: parsed.data.bookTitle,
         author: parsed.data.author ?? undefined,
@@ -2535,64 +4067,109 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/editor/writer-profile/:authorId", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const writings = await storage.getWriterProfileForEditor(req.params.authorId);
-      const user = await storage.getUser(req.params.authorId);
-      res.json({ 
-        writer: user ? { id: user.id, firstName: user.firstName, lastName: user.lastName, bio: user.bio, profileImageUrl: user.profileImageUrl } : null,
-        writings 
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch writer profile" });
-    }
-  });
+  app.get(
+    "/api/editor/writer-profile/:authorId",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const writings = await storage.getWriterProfileForEditor(
+          req.params.authorId,
+        );
+        const user = await storage.getUser(req.params.authorId);
+        res.json({
+          writer: user
+            ? {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                bio: user.bio,
+                profileImageUrl: user.profileImageUrl,
+              }
+            : null,
+          writings,
+        });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch writer profile" });
+      }
+    },
+  );
 
-  app.post("/api/editor/handoff", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const { writingId, targetEditorId, note } = req.body;
-      if (!writingId || !targetEditorId) return res.status(400).json({ message: "writingId and targetEditorId required" });
-      await storage.createNotification(targetEditorId, {
-        type: "editor_handoff",
-        actorId: req.user.claims.sub,
-        message: note || "An editor wants you to look at this piece",
-        writingId,
-      });
-      res.json({ ok: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create handoff" });
-    }
-  });
+  app.post(
+    "/api/editor/handoff",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const { writingId, targetEditorId, note } = req.body;
+        if (!writingId || !targetEditorId)
+          return res
+            .status(400)
+            .json({ message: "writingId and targetEditorId required" });
+        await storage.createNotification(targetEditorId, {
+          type: "editor_handoff",
+          actorId: req.user.claims.sub,
+          message: note || "An editor wants you to look at this piece",
+          writingId,
+        });
+        res.json({ ok: true });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create handoff" });
+      }
+    },
+  );
 
-  app.get("/api/editor/editors-list", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const editors = await storage.getEditors();
-      res.json(editors.filter((e: any) => e.id !== req.user.claims.sub));
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch editors" });
-    }
-  });
+  app.get(
+    "/api/editor/editors-list",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const editors = await storage.getEditors();
+        res.json(editors.filter((e: any) => e.id !== req.user.claims.sub));
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch editors" });
+      }
+    },
+  );
 
-  app.get("/api/editor/greenhouse/all", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const entries = await storage.getAllGreenhouseEntries();
-      res.json(entries);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch all greenhouse entries" });
-    }
-  });
+  app.get(
+    "/api/editor/greenhouse/all",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const entries = await storage.getAllGreenhouseEntries();
+        res.json(entries);
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to fetch all greenhouse entries" });
+      }
+    },
+  );
 
-  app.get("/api/editors-walk/:id/queue", isAuthenticated, isEditor, async (req: any, res) => {
-    try {
-      const walk = await storage.getEditorsWalkById(req.params.id);
-      if (!walk) return res.status(404).json({ message: "Walk not found" });
-      const stream = await storage.getEditorGardenStream({ readiness: "ready_to_show" });
-      const flags = await storage.getFlaggedQueue();
-      res.json({ walk, stream, flags });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch walk queue" });
-    }
-  });
+  app.get(
+    "/api/submission-calls/:id/queue",
+    isAuthenticated,
+    isEditor,
+    async (req: any, res) => {
+      try {
+        const call = await storage.getSubmissionCall(req.params.id);
+        if (!call)
+          return res.status(404).json({ message: "Submission call not found" });
+        const stream = await storage.getEditorGardenStream({
+          readiness: "ready_to_show",
+        });
+        const flags = await storage.getFlaggedQueue();
+        res.json({ call, stream, flags });
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to fetch submission call queue" });
+      }
+    },
+  );
 
   app.get("/api/credits", isAuthenticated, async (req: any, res) => {
     try {
@@ -2605,7 +4182,9 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.get("/api/credits/reversions", isAuthenticated, async (req: any, res) => {
     try {
-      const reversions = await storage.getUpcomingReversions(req.user.claims.sub);
+      const reversions = await storage.getUpcomingReversions(
+        req.user.claims.sub,
+      );
       res.json(reversions);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch reversions" });
@@ -2614,7 +4193,10 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.post("/api/credits", isAuthenticated, async (req: any, res) => {
     try {
-      const credit = await storage.createPublicationCredit(req.user.claims.sub, req.body);
+      const credit = await storage.createPublicationCredit(
+        req.user.claims.sub,
+        req.body,
+      );
       res.json(credit);
     } catch (error) {
       res.status(500).json({ message: "Failed to create credit" });
@@ -2623,7 +4205,11 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.patch("/api/credits/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const credit = await storage.updatePublicationCredit(req.params.id, req.user.claims.sub, req.body);
+      const credit = await storage.updatePublicationCredit(
+        req.params.id,
+        req.user.claims.sub,
+        req.body,
+      );
       if (!credit) return res.status(404).json({ message: "Credit not found" });
       res.json(credit);
     } catch (error) {
@@ -2633,8 +4219,12 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.delete("/api/credits/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.deletePublicationCredit(req.params.id, req.user.claims.sub);
-      if (!deleted) return res.status(404).json({ message: "Credit not found" });
+      const deleted = await storage.deletePublicationCredit(
+        req.params.id,
+        req.user.claims.sub,
+      );
+      if (!deleted)
+        return res.status(404).json({ message: "Credit not found" });
       res.json({ ok: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete credit" });
@@ -2643,41 +4233,71 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.get("/api/cover-letters", isAuthenticated, async (req: any, res) => {
     try {
-      const templates = await storage.getCoverLetterTemplates(req.user.claims.sub);
+      const templates = await storage.getCoverLetterTemplates(
+        req.user.claims.sub,
+      );
       res.json(templates);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch cover letter templates" });
+      res
+        .status(500)
+        .json({ message: "Failed to fetch cover letter templates" });
     }
   });
 
   app.post("/api/cover-letters", isAuthenticated, async (req: any, res) => {
     try {
-      const template = await storage.createCoverLetterTemplate(req.user.claims.sub, req.body);
+      const template = await storage.createCoverLetterTemplate(
+        req.user.claims.sub,
+        req.body,
+      );
       res.json(template);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create cover letter template" });
+      res
+        .status(500)
+        .json({ message: "Failed to create cover letter template" });
     }
   });
 
-  app.patch("/api/cover-letters/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const template = await storage.updateCoverLetterTemplate(req.params.id, req.user.claims.sub, req.body);
-      if (!template) return res.status(404).json({ message: "Template not found" });
-      res.json(template);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update cover letter template" });
-    }
-  });
+  app.patch(
+    "/api/cover-letters/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const template = await storage.updateCoverLetterTemplate(
+          req.params.id,
+          req.user.claims.sub,
+          req.body,
+        );
+        if (!template)
+          return res.status(404).json({ message: "Template not found" });
+        res.json(template);
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to update cover letter template" });
+      }
+    },
+  );
 
-  app.delete("/api/cover-letters/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const deleted = await storage.deleteCoverLetterTemplate(req.params.id, req.user.claims.sub);
-      if (!deleted) return res.status(404).json({ message: "Template not found" });
-      res.json({ ok: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete cover letter template" });
-    }
-  });
+  app.delete(
+    "/api/cover-letters/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const deleted = await storage.deleteCoverLetterTemplate(
+          req.params.id,
+          req.user.claims.sub,
+        );
+        if (!deleted)
+          return res.status(404).json({ message: "Template not found" });
+        res.json({ ok: true });
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to delete cover letter template" });
+      }
+    },
+  );
 
   app.get("/api/writer-bio", isAuthenticated, async (req: any, res) => {
     try {
@@ -2716,13 +4336,21 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
       let tier = "free";
       if (userId) {
         const userAccesses = await storage.getUserCourseAccesses(userId);
-        accesses = userAccesses.map(a => a.courseId);
+        accesses = userAccesses.map((a) => a.courseId);
         tier = await storage.getUserTier(userId);
       }
-      const result = allCourses.map(c => ({
+      const result = allCourses.map((c) => ({
         ...c,
-        hasAccess: tier === "cultivator" && c.includedInCultivator ? true : accesses.includes(c.id),
-        accessReason: tier === "cultivator" && c.includedInCultivator ? "cultivator" : accesses.includes(c.id) ? "purchased" : null,
+        hasAccess:
+          tier === "cultivator" && c.includedInCultivator
+            ? true
+            : accesses.includes(c.id),
+        accessReason:
+          tier === "cultivator" && c.includedInCultivator
+            ? "cultivator"
+            : accesses.includes(c.id)
+              ? "purchased"
+              : null,
       }));
       res.json(result);
     } catch (error) {
@@ -2742,8 +4370,14 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
       if (userId) {
         const tier = await storage.getUserTier(userId);
         const purchased = await storage.hasUserCourseAccess(userId, course.id);
-        hasAccess = (tier === "cultivator" && course.includedInCultivator) || purchased;
-        accessReason = tier === "cultivator" && course.includedInCultivator ? "cultivator" : purchased ? "purchased" : null;
+        hasAccess =
+          (tier === "cultivator" && course.includedInCultivator) || purchased;
+        accessReason =
+          tier === "cultivator" && course.includedInCultivator
+            ? "cultivator"
+            : purchased
+              ? "purchased"
+              : null;
         if (hasAccess) {
           progress = await storage.getLessonProgress(userId, course.id);
         }
@@ -2752,12 +4386,12 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
         ...course,
         hasAccess,
         accessReason,
-        lessons: lessons.map(l => ({
+        lessons: lessons.map((l) => ({
           id: l.id,
           title: l.title,
           sortOrder: l.sortOrder,
           hasWritingPrompt: !!l.writingPrompt,
-          completed: progress.some(p => p.lessonId === l.id),
+          completed: progress.some((p) => p.lessonId === l.id),
         })),
         completedCount: progress.length,
       });
@@ -2766,132 +4400,291 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/courses/:courseId/lessons/:lessonId", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const course = await storage.getCourse(req.params.courseId);
-      if (!course) return res.status(404).json({ message: "Course not found" });
-      const tier = await storage.getUserTier(userId);
-      const purchased = await storage.hasUserCourseAccess(userId, course.id);
-      const hasAccess = (tier === "cultivator" && course.includedInCultivator) || purchased;
-      if (!hasAccess) return res.status(403).json({ message: "You don't have access to this course" });
-      const lesson = await storage.getCourseLesson(req.params.lessonId);
-      if (!lesson || lesson.courseId !== course.id) return res.status(404).json({ message: "Lesson not found" });
-      const progress = await storage.getLessonProgress(userId, course.id);
-      const allLessons = await storage.getCourseLessons(course.id);
-      const currentIndex = allLessons.findIndex(l => l.id === lesson.id);
-      res.json({
-        ...lesson,
-        completed: progress.some(p => p.lessonId === lesson.id),
-        prevLessonId: currentIndex > 0 ? allLessons[currentIndex - 1].id : null,
-        nextLessonId: currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1].id : null,
-        totalLessons: allLessons.length,
-        currentIndex: currentIndex + 1,
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch lesson" });
-    }
-  });
+  app.get(
+    "/api/courses/:courseId/lessons/:lessonId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const course = await storage.getCourse(req.params.courseId);
+        if (!course)
+          return res.status(404).json({ message: "Course not found" });
+        const tier = await storage.getUserTier(userId);
+        const purchased = await storage.hasUserCourseAccess(userId, course.id);
+        const hasAccess =
+          (tier === "cultivator" && course.includedInCultivator) || purchased;
+        if (!hasAccess)
+          return res
+            .status(403)
+            .json({ message: "You don't have access to this course" });
+        const lesson = await storage.getCourseLesson(req.params.lessonId);
+        if (!lesson || lesson.courseId !== course.id)
+          return res.status(404).json({ message: "Lesson not found" });
+        const progress = await storage.getLessonProgress(userId, course.id);
+        const allLessons = await storage.getCourseLessons(course.id);
+        const currentIndex = allLessons.findIndex((l) => l.id === lesson.id);
+        res.json({
+          ...lesson,
+          completed: progress.some((p) => p.lessonId === lesson.id),
+          prevLessonId:
+            currentIndex > 0 ? allLessons[currentIndex - 1].id : null,
+          nextLessonId:
+            currentIndex < allLessons.length - 1
+              ? allLessons[currentIndex + 1].id
+              : null,
+          totalLessons: allLessons.length,
+          currentIndex: currentIndex + 1,
+        });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch lesson" });
+      }
+    },
+  );
 
-  app.post("/api/courses/:courseId/purchase", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const course = await storage.getCourse(req.params.courseId);
-      if (!course) return res.status(404).json({ message: "Course not found" });
-      const access = await storage.grantCourseAccess(userId, course.id, "purchased");
-      res.json({ ok: true, access });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to purchase course" });
-    }
-  });
+  app.post(
+    "/api/courses/:courseId/purchase",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const course = await storage.getCourse(req.params.courseId);
+        if (!course)
+          return res.status(404).json({ message: "Course not found" });
+        const access = await storage.grantCourseAccess(
+          userId,
+          course.id,
+          "purchased",
+        );
+        res.json({ ok: true, access });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to purchase course" });
+      }
+    },
+  );
 
-  app.post("/api/courses/:courseId/lessons/:lessonId/complete", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const p = await storage.markLessonComplete(userId, req.params.lessonId, req.params.courseId);
-      res.json(p);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to mark lesson complete" });
-    }
-  });
+  app.post(
+    "/api/courses/:courseId/lessons/:lessonId/complete",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const p = await storage.markLessonComplete(
+          userId,
+          req.params.lessonId,
+          req.params.courseId,
+        );
+        res.json(p);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to mark lesson complete" });
+      }
+    },
+  );
 
-  app.delete("/api/courses/:courseId/lessons/:lessonId/complete", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      await storage.unmarkLessonComplete(userId, req.params.lessonId);
-      res.json({ ok: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to unmark lesson" });
-    }
-  });
+  app.delete(
+    "/api/courses/:courseId/lessons/:lessonId/complete",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        await storage.unmarkLessonComplete(userId, req.params.lessonId);
+        res.json({ ok: true });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to unmark lesson" });
+      }
+    },
+  );
 
   app.post("/api/courses/seed", async (_req: any, res) => {
     try {
       const existing = await storage.getCourses();
-      if (existing.length > 0) return res.json({ message: "Courses already seeded", count: existing.length });
+      if (existing.length > 0)
+        return res.json({
+          message: "Courses already seeded",
+          count: existing.length,
+        });
 
       const { db: dbInst } = await import("./db");
 
-      const [c1] = await dbInst.insert(courses).values({
-        title: "The Architecture of a Poem",
-        description: "Explore how poems are built from the ground up. This course covers line breaks, stanza structure, rhythm, and how form shapes meaning. Ideal for poets who want to move beyond free verse or deepen their understanding of why poems look and sound the way they do.",
-        instructor: "The Page Gallery",
-        genre: "poetry",
-        price: 12,
-        includedInCultivator: true,
-        isPublished: true,
-        sortOrder: 1,
-      }).returning();
+      const [c1] = await dbInst
+        .insert(courses)
+        .values({
+          title: "The Architecture of a Poem",
+          description:
+            "Explore how poems are built from the ground up. This course covers line breaks, stanza structure, rhythm, and how form shapes meaning. Ideal for poets who want to move beyond free verse or deepen their understanding of why poems look and sound the way they do.",
+          instructor: "The Page Gallery",
+          genre: "poetry",
+          price: 12,
+          includedInCultivator: true,
+          isPublished: true,
+          sortOrder: 1,
+        })
+        .returning();
 
-      const [c2] = await dbInst.insert(courses).values({
-        title: "Writing the Lyric Essay",
-        description: "The lyric essay lives at the intersection of poetry and prose. Learn to write essays that privilege image, rhythm, and associative leaps over linear argument. We'll study published examples and practice braiding, fragmentation, and the art of meaningful white space.",
-        instructor: "The Page Gallery",
-        genre: "essay",
-        price: 15,
-        includedInCultivator: true,
-        isPublished: true,
-        sortOrder: 2,
-      }).returning();
+      const [c2] = await dbInst
+        .insert(courses)
+        .values({
+          title: "Writing the Lyric Essay",
+          description:
+            "The lyric essay lives at the intersection of poetry and prose. Learn to write essays that privilege image, rhythm, and associative leaps over linear argument. We'll study published examples and practice braiding, fragmentation, and the art of meaningful white space.",
+          instructor: "The Page Gallery",
+          genre: "essay",
+          price: 15,
+          includedInCultivator: true,
+          isPublished: true,
+          sortOrder: 2,
+        })
+        .returning();
 
-      const [c3] = await dbInst.insert(courses).values({
-        title: "Revision as Discovery",
-        description: "Revision isn't just fixing mistakes — it's a creative act. This course teaches you to see revision as a way to discover what your piece is really about. Through practical exercises and a structured revision process, you'll learn to transform rough drafts into polished work.",
-        instructor: "The Page Gallery",
-        genre: "craft",
-        price: 10,
-        includedInCultivator: true,
-        isPublished: true,
-        sortOrder: 3,
-      }).returning();
+      const [c3] = await dbInst
+        .insert(courses)
+        .values({
+          title: "Revision as Discovery",
+          description:
+            "Revision isn't just fixing mistakes — it's a creative act. This course teaches you to see revision as a way to discover what your piece is really about. Through practical exercises and a structured revision process, you'll learn to transform rough drafts into polished work.",
+          instructor: "The Page Gallery",
+          genre: "craft",
+          price: 10,
+          includedInCultivator: true,
+          isPublished: true,
+          sortOrder: 3,
+        })
+        .returning();
 
       const poemLessons = [
-        { courseId: c1.id, title: "Why Form Matters", content: "<h2>Why Form Matters</h2><p>Every poem has a form, even if that form is \"free.\" In this opening lesson, we explore the relationship between a poem's shape on the page and the experience of reading it.</p><p>Consider how a single word on a line creates emphasis. How a long, breathless sentence without line breaks creates urgency. How white space creates silence.</p><p>Form is not decoration — it is meaning. The way you break a line changes what a reader sees, hears, and feels.</p><h3>Key Concepts</h3><ul><li><strong>Line breaks</strong> control pacing and emphasis</li><li><strong>Stanza breaks</strong> create pauses and shifts</li><li><strong>Visual shape</strong> signals tone before a single word is read</li></ul><p>As you read poems this week, pay attention not just to <em>what</em> they say, but to <em>how they look</em> on the page. That shape is part of the poem's meaning.</p>", writingPrompt: "Take a paragraph you've written recently — any paragraph — and break it into lines. Try three different arrangements. How does each version change the feeling?", sortOrder: 1 },
-        { courseId: c1.id, title: "The Line Break as Instrument", content: "<h2>The Line Break as Instrument</h2><p>The line break is the most powerful tool unique to poetry. Prose has sentences and paragraphs. Poetry has <em>lines</em>.</p><p>A line break can:</p><ul><li>Create suspense by splitting a phrase across two lines</li><li>Produce double meanings through enjambment</li><li>Control the reader's breath and rhythm</li><li>Emphasize the last word of a line (the \"end-word\")</li></ul><h3>Enjambment vs. End-Stop</h3><p>An <strong>end-stopped line</strong> completes a thought at the line break: <em>\"The door was closed.\"</em></p><p>An <strong>enjambed line</strong> carries the thought across: <em>\"The door was closed / but not locked.\"</em> Here, \"closed\" lands with finality — then the next line reverses it.</p><p>Master poets use this tension deliberately. Every line break is a tiny decision about meaning.</p>", writingPrompt: "Write a 10-line poem where every line break creates a small surprise or shift in meaning. Read each line alone before reading it with the next.", sortOrder: 2 },
-        { courseId: c1.id, title: "Stanza and Breath", content: "<h2>Stanza and Breath</h2><p>The word \"stanza\" comes from the Italian for \"room.\" Each stanza is a room in your poem — a contained space with its own atmosphere.</p><p>Stanza breaks create silence on the page. They tell the reader: pause here. Let what you just read settle.</p><h3>Common Stanza Forms</h3><ul><li><strong>Couplets</strong> (2 lines): Intimate, paired, conversational</li><li><strong>Tercets</strong> (3 lines): Dynamic, restless, forward-moving</li><li><strong>Quatrains</strong> (4 lines): Balanced, stable, traditional</li><li><strong>Irregular stanzas</strong>: Organic, following the poem's natural breath</li></ul><p>There are no rules about which to use. But your choice should be deliberate. A poem in couplets feels different from the same poem in one block — even if the words are identical.</p>", writingPrompt: "Take a poem you've written and restructure it into couplets, then tercets, then one continuous block. Which version serves the poem best? Write a brief note about why.", sortOrder: 3 },
-        { courseId: c1.id, title: "Sound and Rhythm", content: "<h2>Sound and Rhythm</h2><p>Poetry is an oral art. Even when read silently, poems activate the reader's inner voice. Sound is not separate from meaning — it <em>is</em> meaning.</p><h3>Tools of Sound</h3><ul><li><strong>Alliteration</strong>: Repeated initial consonants (<em>\"the slow, soft sound\"</em>)</li><li><strong>Assonance</strong>: Repeated vowel sounds (<em>\"the low moan of the old road\"</em>)</li><li><strong>Consonance</strong>: Repeated consonant sounds (<em>\"the click of the clock\"</em>)</li><li><strong>Internal rhyme</strong>: Rhyme within a line, not just at the end</li></ul><p>Rhythm emerges from the interplay of stressed and unstressed syllables. You don't need to write in strict meter, but you should <em>hear</em> the rhythm of your lines.</p><p>Read your poems aloud. Always. Your ear will catch what your eye misses.</p>", writingPrompt: "Write a short poem (8-12 lines) that uses sound as its primary organizing principle. Choose a dominant sound — a vowel or consonant — and let it recur throughout. Don't force rhyme; let the sound guide you.", sortOrder: 4 },
-        { courseId: c1.id, title: "Putting It All Together", content: "<h2>Putting It All Together</h2><p>You now have four tools: line breaks, stanza structure, sound, and rhythm. The art of poetry is knowing when and how to use each one.</p><p>Great poems don't use every tool at once. They make choices. A spare, quiet poem might rely on line breaks and white space. A musical poem might prioritize sound and rhythm. A narrative poem might use stanzas like paragraphs.</p><h3>Your Process</h3><ol><li>Write the first draft without worrying about form</li><li>Read it aloud and listen for its natural rhythm</li><li>Experiment with line breaks — where does the poem want to pause?</li><li>Try different stanza structures</li><li>Polish the sounds — remove any that clash with the poem's tone</li></ol><p>Form is not a cage. It is a garden trellis — something for the poem to grow on.</p>", writingPrompt: "Write a poem of 16-20 lines that consciously uses at least three of the tools from this course. After writing, annotate it: mark where you made deliberate choices about line breaks, stanza structure, sound, or rhythm.", sortOrder: 5 },
+        {
+          courseId: c1.id,
+          title: "Why Form Matters",
+          content:
+            "<h2>Why Form Matters</h2><p>Every poem has a form, even if that form is \"free.\" In this opening lesson, we explore the relationship between a poem's shape on the page and the experience of reading it.</p><p>Consider how a single word on a line creates emphasis. How a long, breathless sentence without line breaks creates urgency. How white space creates silence.</p><p>Form is not decoration — it is meaning. The way you break a line changes what a reader sees, hears, and feels.</p><h3>Key Concepts</h3><ul><li><strong>Line breaks</strong> control pacing and emphasis</li><li><strong>Stanza breaks</strong> create pauses and shifts</li><li><strong>Visual shape</strong> signals tone before a single word is read</li></ul><p>As you read poems this week, pay attention not just to <em>what</em> they say, but to <em>how they look</em> on the page. That shape is part of the poem's meaning.</p>",
+          writingPrompt:
+            "Take a paragraph you've written recently — any paragraph — and break it into lines. Try three different arrangements. How does each version change the feeling?",
+          sortOrder: 1,
+        },
+        {
+          courseId: c1.id,
+          title: "The Line Break as Instrument",
+          content:
+            '<h2>The Line Break as Instrument</h2><p>The line break is the most powerful tool unique to poetry. Prose has sentences and paragraphs. Poetry has <em>lines</em>.</p><p>A line break can:</p><ul><li>Create suspense by splitting a phrase across two lines</li><li>Produce double meanings through enjambment</li><li>Control the reader\'s breath and rhythm</li><li>Emphasize the last word of a line (the "end-word")</li></ul><h3>Enjambment vs. End-Stop</h3><p>An <strong>end-stopped line</strong> completes a thought at the line break: <em>"The door was closed."</em></p><p>An <strong>enjambed line</strong> carries the thought across: <em>"The door was closed / but not locked."</em> Here, "closed" lands with finality — then the next line reverses it.</p><p>Master poets use this tension deliberately. Every line break is a tiny decision about meaning.</p>',
+          writingPrompt:
+            "Write a 10-line poem where every line break creates a small surprise or shift in meaning. Read each line alone before reading it with the next.",
+          sortOrder: 2,
+        },
+        {
+          courseId: c1.id,
+          title: "Stanza and Breath",
+          content:
+            '<h2>Stanza and Breath</h2><p>The word "stanza" comes from the Italian for "room." Each stanza is a room in your poem — a contained space with its own atmosphere.</p><p>Stanza breaks create silence on the page. They tell the reader: pause here. Let what you just read settle.</p><h3>Common Stanza Forms</h3><ul><li><strong>Couplets</strong> (2 lines): Intimate, paired, conversational</li><li><strong>Tercets</strong> (3 lines): Dynamic, restless, forward-moving</li><li><strong>Quatrains</strong> (4 lines): Balanced, stable, traditional</li><li><strong>Irregular stanzas</strong>: Organic, following the poem\'s natural breath</li></ul><p>There are no rules about which to use. But your choice should be deliberate. A poem in couplets feels different from the same poem in one block — even if the words are identical.</p>',
+          writingPrompt:
+            "Take a poem you've written and restructure it into couplets, then tercets, then one continuous block. Which version serves the poem best? Write a brief note about why.",
+          sortOrder: 3,
+        },
+        {
+          courseId: c1.id,
+          title: "Sound and Rhythm",
+          content:
+            '<h2>Sound and Rhythm</h2><p>Poetry is an oral art. Even when read silently, poems activate the reader\'s inner voice. Sound is not separate from meaning — it <em>is</em> meaning.</p><h3>Tools of Sound</h3><ul><li><strong>Alliteration</strong>: Repeated initial consonants (<em>"the slow, soft sound"</em>)</li><li><strong>Assonance</strong>: Repeated vowel sounds (<em>"the low moan of the old road"</em>)</li><li><strong>Consonance</strong>: Repeated consonant sounds (<em>"the click of the clock"</em>)</li><li><strong>Internal rhyme</strong>: Rhyme within a line, not just at the end</li></ul><p>Rhythm emerges from the interplay of stressed and unstressed syllables. You don\'t need to write in strict meter, but you should <em>hear</em> the rhythm of your lines.</p><p>Read your poems aloud. Always. Your ear will catch what your eye misses.</p>',
+          writingPrompt:
+            "Write a short poem (8-12 lines) that uses sound as its primary organizing principle. Choose a dominant sound — a vowel or consonant — and let it recur throughout. Don't force rhyme; let the sound guide you.",
+          sortOrder: 4,
+        },
+        {
+          courseId: c1.id,
+          title: "Putting It All Together",
+          content:
+            "<h2>Putting It All Together</h2><p>You now have four tools: line breaks, stanza structure, sound, and rhythm. The art of poetry is knowing when and how to use each one.</p><p>Great poems don't use every tool at once. They make choices. A spare, quiet poem might rely on line breaks and white space. A musical poem might prioritize sound and rhythm. A narrative poem might use stanzas like paragraphs.</p><h3>Your Process</h3><ol><li>Write the first draft without worrying about form</li><li>Read it aloud and listen for its natural rhythm</li><li>Experiment with line breaks — where does the poem want to pause?</li><li>Try different stanza structures</li><li>Polish the sounds — remove any that clash with the poem's tone</li></ol><p>Form is not a cage. It is a garden trellis — something for the poem to grow on.</p>",
+          writingPrompt:
+            "Write a poem of 16-20 lines that consciously uses at least three of the tools from this course. After writing, annotate it: mark where you made deliberate choices about line breaks, stanza structure, sound, or rhythm.",
+          sortOrder: 5,
+        },
       ];
 
       const essayLessons = [
-        { courseId: c2.id, title: "What Is a Lyric Essay?", content: "<h2>What Is a Lyric Essay?</h2><p>The lyric essay is a hybrid form — it borrows from poetry's attention to language and image while maintaining prose's capacity for exploration and argument.</p><p>Unlike a traditional essay, the lyric essay doesn't follow a linear path from thesis to evidence to conclusion. Instead, it moves by association, circling its subject, approaching from multiple angles.</p><h3>Characteristics</h3><ul><li>Emphasis on <strong>image</strong> over argument</li><li><strong>White space</strong> as structural element</li><li><strong>Fragmentation</strong> — sections that don't connect obviously but resonate</li><li><strong>Braiding</strong> — weaving multiple threads</li><li>A willingness to <strong>not know</strong> the answer</li></ul><p>The lyric essay trusts the reader to make connections. It is generous in its ambiguity.</p>", writingPrompt: "Write a one-page piece about a place that matters to you. Don't explain why it matters. Instead, describe it in precise, sensory detail. Let the images carry the emotion.", sortOrder: 1 },
-        { courseId: c2.id, title: "The Art of Braiding", content: "<h2>The Art of Braiding</h2><p>Braiding is the technique of weaving two or more seemingly unrelated threads through an essay, allowing them to illuminate each other through proximity.</p><p>For example, an essay might alternate between:</p><ul><li>A memory of learning to swim</li><li>Research about the physics of buoyancy</li><li>A meditation on trust</li></ul><p>No thread explains the others. But together, they create a meaning that none could achieve alone.</p><h3>How to Braid</h3><ol><li>Identify 2-3 threads that feel connected to you, even if you can't explain why</li><li>Write each thread separately first</li><li>Cut each thread into fragments</li><li>Arrange the fragments, alternating threads</li><li>Let the juxtapositions create new meaning</li></ol>", writingPrompt: "Choose two subjects that seem unrelated (e.g., your grandmother's kitchen and the migration patterns of birds). Write about each for 10 minutes. Then weave them together, alternating paragraphs. What emerges in the space between them?", sortOrder: 2 },
-        { courseId: c2.id, title: "Fragment and White Space", content: "<h2>Fragment and White Space</h2><p>In the lyric essay, what you leave out is as important as what you include. White space — the gaps between sections — is not emptiness. It is silence, breath, invitation.</p><p>Fragmentation is the art of breaking a continuous narrative into pieces and trusting the reader to assemble meaning from the arrangement.</p><h3>Types of Fragmentation</h3><ul><li><strong>Numbered sections</strong>: Creates a sense of accumulation</li><li><strong>Titled sections</strong>: Each fragment becomes a small room</li><li><strong>Untitled breaks</strong>: The most open, most ambiguous</li><li><strong>Single-sentence sections</strong>: Maximum emphasis</li></ul><p>White space asks the reader to participate. It says: <em>something happened here that I cannot or will not say. Fill it with your own understanding.</em></p>", writingPrompt: "Write about a difficult experience in exactly 7 numbered fragments. Each fragment should be no more than 3 sentences. Let the white space between fragments do the emotional work.", sortOrder: 3 },
-        { courseId: c2.id, title: "Image as Argument", content: "<h2>Image as Argument</h2><p>In a lyric essay, you don't argue with logic. You argue with images. A precisely rendered image can carry more conviction than any thesis statement.</p><p>This is the poet's gift to the essayist: the understanding that a well-chosen detail can stand for an entire worldview.</p><h3>The Objective Correlative</h3><p>T.S. Eliot called this the \"objective correlative\" — an object or image that evokes a specific emotion without naming it.</p><p>Instead of writing \"I was lonely,\" you write: \"The kitchen table had four chairs but only one placemat.\"</p><p>The image does the work. The reader feels the loneliness without being told to.</p>", writingPrompt: "Write a 500-word essay about an emotion without ever naming the emotion. Use only images, objects, and sensory details. See if a reader can identify the feeling from the images alone.", sortOrder: 4 },
+        {
+          courseId: c2.id,
+          title: "What Is a Lyric Essay?",
+          content:
+            "<h2>What Is a Lyric Essay?</h2><p>The lyric essay is a hybrid form — it borrows from poetry's attention to language and image while maintaining prose's capacity for exploration and argument.</p><p>Unlike a traditional essay, the lyric essay doesn't follow a linear path from thesis to evidence to conclusion. Instead, it moves by association, circling its subject, approaching from multiple angles.</p><h3>Characteristics</h3><ul><li>Emphasis on <strong>image</strong> over argument</li><li><strong>White space</strong> as structural element</li><li><strong>Fragmentation</strong> — sections that don't connect obviously but resonate</li><li><strong>Braiding</strong> — weaving multiple threads</li><li>A willingness to <strong>not know</strong> the answer</li></ul><p>The lyric essay trusts the reader to make connections. It is generous in its ambiguity.</p>",
+          writingPrompt:
+            "Write a one-page piece about a place that matters to you. Don't explain why it matters. Instead, describe it in precise, sensory detail. Let the images carry the emotion.",
+          sortOrder: 1,
+        },
+        {
+          courseId: c2.id,
+          title: "The Art of Braiding",
+          content:
+            "<h2>The Art of Braiding</h2><p>Braiding is the technique of weaving two or more seemingly unrelated threads through an essay, allowing them to illuminate each other through proximity.</p><p>For example, an essay might alternate between:</p><ul><li>A memory of learning to swim</li><li>Research about the physics of buoyancy</li><li>A meditation on trust</li></ul><p>No thread explains the others. But together, they create a meaning that none could achieve alone.</p><h3>How to Braid</h3><ol><li>Identify 2-3 threads that feel connected to you, even if you can't explain why</li><li>Write each thread separately first</li><li>Cut each thread into fragments</li><li>Arrange the fragments, alternating threads</li><li>Let the juxtapositions create new meaning</li></ol>",
+          writingPrompt:
+            "Choose two subjects that seem unrelated (e.g., your grandmother's kitchen and the migration patterns of birds). Write about each for 10 minutes. Then weave them together, alternating paragraphs. What emerges in the space between them?",
+          sortOrder: 2,
+        },
+        {
+          courseId: c2.id,
+          title: "Fragment and White Space",
+          content:
+            "<h2>Fragment and White Space</h2><p>In the lyric essay, what you leave out is as important as what you include. White space — the gaps between sections — is not emptiness. It is silence, breath, invitation.</p><p>Fragmentation is the art of breaking a continuous narrative into pieces and trusting the reader to assemble meaning from the arrangement.</p><h3>Types of Fragmentation</h3><ul><li><strong>Numbered sections</strong>: Creates a sense of accumulation</li><li><strong>Titled sections</strong>: Each fragment becomes a small room</li><li><strong>Untitled breaks</strong>: The most open, most ambiguous</li><li><strong>Single-sentence sections</strong>: Maximum emphasis</li></ul><p>White space asks the reader to participate. It says: <em>something happened here that I cannot or will not say. Fill it with your own understanding.</em></p>",
+          writingPrompt:
+            "Write about a difficult experience in exactly 7 numbered fragments. Each fragment should be no more than 3 sentences. Let the white space between fragments do the emotional work.",
+          sortOrder: 3,
+        },
+        {
+          courseId: c2.id,
+          title: "Image as Argument",
+          content:
+            '<h2>Image as Argument</h2><p>In a lyric essay, you don\'t argue with logic. You argue with images. A precisely rendered image can carry more conviction than any thesis statement.</p><p>This is the poet\'s gift to the essayist: the understanding that a well-chosen detail can stand for an entire worldview.</p><h3>The Objective Correlative</h3><p>T.S. Eliot called this the "objective correlative" — an object or image that evokes a specific emotion without naming it.</p><p>Instead of writing "I was lonely," you write: "The kitchen table had four chairs but only one placemat."</p><p>The image does the work. The reader feels the loneliness without being told to.</p>',
+          writingPrompt:
+            "Write a 500-word essay about an emotion without ever naming the emotion. Use only images, objects, and sensory details. See if a reader can identify the feeling from the images alone.",
+          sortOrder: 4,
+        },
       ];
 
       const revisionLessons = [
-        { courseId: c3.id, title: "Seeing Your Draft Freshly", content: "<h2>Seeing Your Draft Freshly</h2><p>The hardest part of revision is seeing what's actually on the page instead of what you intended to put there. Your brain fills in gaps, smooths over rough transitions, and hears rhythms that aren't there yet.</p><h3>Techniques for Fresh Eyes</h3><ul><li><strong>Time</strong>: Put the draft away for at least 24 hours</li><li><strong>Format change</strong>: Print it, change the font, or read it on your phone</li><li><strong>Read aloud</strong>: Your ear catches what your eye skips</li><li><strong>Read backward</strong>: Start from the last paragraph and work up</li><li><strong>Ask someone else</strong>: A reader who doesn't know your intentions</li></ul><p>Revision begins with honest seeing. Before you can improve a piece, you must understand what it actually is — not what you hoped it would be.</p>", writingPrompt: "Take a piece you wrote at least a week ago. Read it aloud and mark every place where you stumble, pause, or feel uncertain. Those marks are your revision map.", sortOrder: 1 },
-        { courseId: c3.id, title: "Finding the Real Subject", content: "<h2>Finding the Real Subject</h2><p>Most first drafts are about finding out what you want to say. The real subject often appears in the last paragraph — the place where you finally arrived at what matters.</p><h3>The Iceberg Principle</h3><p>Hemingway said that if a writer knows something well enough, they can omit it and the reader will still feel it. Your first draft is the research. Your revision is the iceberg — finding what to keep above water and what to submerge.</p><p>Look for:</p><ul><li>The sentence that surprises you</li><li>The image that keeps returning</li><li>The question you're circling but haven't asked directly</li><li>The place where the energy shifts</li></ul><p>Often, the real piece begins where the draft gets uncomfortable or unexpected.</p>", writingPrompt: "Read through a draft and highlight the three sentences that feel most alive, surprising, or true. Now write a new draft that starts from one of those sentences. Let the discovery lead.", sortOrder: 2 },
-        { courseId: c3.id, title: "Structural Revision", content: "<h2>Structural Revision</h2><p>Before polishing sentences, look at the larger architecture. Does the piece move in the right direction? Does it earn its ending?</p><h3>Questions for Structure</h3><ul><li>What is the <strong>first line</strong> doing? Does it earn the reader's attention?</li><li>Where does the piece <strong>sag</strong>? Mark any section where your attention drifts</li><li>Is the <strong>ending</strong> where the piece arrives, or where you ran out of things to say?</li><li>Could any section be <strong>cut entirely</strong> without losing meaning?</li><li>What happens if you <strong>rearrange</strong> the sections?</li></ul><p>Be ruthless about cutting. Every word should earn its place. A shorter, tighter piece is almost always stronger than a longer, looser one.</p>", writingPrompt: "Take a piece and outline it — one sentence per paragraph or section. Now rearrange the outline into a different order. Try at least two arrangements. Which one creates the most tension or surprise?", sortOrder: 3 },
-        { courseId: c3.id, title: "Sentence-Level Craft", content: "<h2>Sentence-Level Craft</h2><p>Once the structure is solid, turn to the sentences themselves. Good prose is built one sentence at a time.</p><h3>What to Look For</h3><ul><li><strong>Verb strength</strong>: Replace \"was\" + adjective with a specific verb. \"She was angry\" → \"She slammed the door.\"</li><li><strong>Unnecessary words</strong>: Cut \"very,\" \"really,\" \"just,\" \"that\" (when possible)</li><li><strong>Sentence variety</strong>: Mix short and long. A short sentence after a long one creates emphasis.</li><li><strong>Specificity</strong>: \"Bird\" → \"starling.\" \"Tree\" → \"silver birch.\" \"Said\" → sometimes just \"said\" is best.</li><li><strong>Sound</strong>: Read aloud. Does the prose have rhythm?</li></ul><p>Don't edit for style before you've edited for truth. Make it honest first, then make it beautiful.</p>", writingPrompt: "Choose a paragraph from your work and revise it three times: once for verbs (make every verb as specific as possible), once for cuts (remove every unnecessary word), and once for sound (read aloud and adjust for rhythm).", sortOrder: 4 },
+        {
+          courseId: c3.id,
+          title: "Seeing Your Draft Freshly",
+          content:
+            "<h2>Seeing Your Draft Freshly</h2><p>The hardest part of revision is seeing what's actually on the page instead of what you intended to put there. Your brain fills in gaps, smooths over rough transitions, and hears rhythms that aren't there yet.</p><h3>Techniques for Fresh Eyes</h3><ul><li><strong>Time</strong>: Put the draft away for at least 24 hours</li><li><strong>Format change</strong>: Print it, change the font, or read it on your phone</li><li><strong>Read aloud</strong>: Your ear catches what your eye skips</li><li><strong>Read backward</strong>: Start from the last paragraph and work up</li><li><strong>Ask someone else</strong>: A reader who doesn't know your intentions</li></ul><p>Revision begins with honest seeing. Before you can improve a piece, you must understand what it actually is — not what you hoped it would be.</p>",
+          writingPrompt:
+            "Take a piece you wrote at least a week ago. Read it aloud and mark every place where you stumble, pause, or feel uncertain. Those marks are your revision map.",
+          sortOrder: 1,
+        },
+        {
+          courseId: c3.id,
+          title: "Finding the Real Subject",
+          content:
+            "<h2>Finding the Real Subject</h2><p>Most first drafts are about finding out what you want to say. The real subject often appears in the last paragraph — the place where you finally arrived at what matters.</p><h3>The Iceberg Principle</h3><p>Hemingway said that if a writer knows something well enough, they can omit it and the reader will still feel it. Your first draft is the research. Your revision is the iceberg — finding what to keep above water and what to submerge.</p><p>Look for:</p><ul><li>The sentence that surprises you</li><li>The image that keeps returning</li><li>The question you're circling but haven't asked directly</li><li>The place where the energy shifts</li></ul><p>Often, the real piece begins where the draft gets uncomfortable or unexpected.</p>",
+          writingPrompt:
+            "Read through a draft and highlight the three sentences that feel most alive, surprising, or true. Now write a new draft that starts from one of those sentences. Let the discovery lead.",
+          sortOrder: 2,
+        },
+        {
+          courseId: c3.id,
+          title: "Structural Revision",
+          content:
+            "<h2>Structural Revision</h2><p>Before polishing sentences, look at the larger architecture. Does the piece move in the right direction? Does it earn its ending?</p><h3>Questions for Structure</h3><ul><li>What is the <strong>first line</strong> doing? Does it earn the reader's attention?</li><li>Where does the piece <strong>sag</strong>? Mark any section where your attention drifts</li><li>Is the <strong>ending</strong> where the piece arrives, or where you ran out of things to say?</li><li>Could any section be <strong>cut entirely</strong> without losing meaning?</li><li>What happens if you <strong>rearrange</strong> the sections?</li></ul><p>Be ruthless about cutting. Every word should earn its place. A shorter, tighter piece is almost always stronger than a longer, looser one.</p>",
+          writingPrompt:
+            "Take a piece and outline it — one sentence per paragraph or section. Now rearrange the outline into a different order. Try at least two arrangements. Which one creates the most tension or surprise?",
+          sortOrder: 3,
+        },
+        {
+          courseId: c3.id,
+          title: "Sentence-Level Craft",
+          content:
+            '<h2>Sentence-Level Craft</h2><p>Once the structure is solid, turn to the sentences themselves. Good prose is built one sentence at a time.</p><h3>What to Look For</h3><ul><li><strong>Verb strength</strong>: Replace "was" + adjective with a specific verb. "She was angry" → "She slammed the door."</li><li><strong>Unnecessary words</strong>: Cut "very," "really," "just," "that" (when possible)</li><li><strong>Sentence variety</strong>: Mix short and long. A short sentence after a long one creates emphasis.</li><li><strong>Specificity</strong>: "Bird" → "starling." "Tree" → "silver birch." "Said" → sometimes just "said" is best.</li><li><strong>Sound</strong>: Read aloud. Does the prose have rhythm?</li></ul><p>Don\'t edit for style before you\'ve edited for truth. Make it honest first, then make it beautiful.</p>',
+          writingPrompt:
+            "Choose a paragraph from your work and revise it three times: once for verbs (make every verb as specific as possible), once for cuts (remove every unnecessary word), and once for sound (read aloud and adjust for rhythm).",
+          sortOrder: 4,
+        },
       ];
 
-      await dbInst.insert(courseLessons).values([...poemLessons, ...essayLessons, ...revisionLessons]);
+      await dbInst
+        .insert(courseLessons)
+        .values([...poemLessons, ...essayLessons, ...revisionLessons]);
 
       res.json({ message: "Courses seeded successfully", count: 3 });
     } catch (error: any) {
-      res.status(500).json({ message: "Failed to seed courses", error: error.message });
+      res
+        .status(500)
+        .json({ message: "Failed to seed courses", error: error.message });
     }
   });
 
@@ -2906,42 +4699,72 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.get("/api/courses/:courseId/my-rating", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const rating = await storage.getUserCourseRating(userId, req.params.courseId);
-      res.json(rating);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch your rating" });
-    }
-  });
-
-  app.post("/api/courses/:courseId/ratings", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { rating, review } = req.body;
-      if (!rating || rating < 1 || rating > 5) return res.status(400).json({ message: "Rating must be between 1 and 5" });
-      const hasAccess = await storage.hasUserCourseAccess(userId, req.params.courseId);
-      const user = await storage.getUser(userId);
-      const isCultivator = user?.tier === "cultivator";
-      const course = await storage.getCourse(req.params.courseId);
-      if (!course) return res.status(404).json({ message: "Course not found" });
-      if (!hasAccess && !(isCultivator && course.includedInCultivator)) {
-        return res.status(403).json({ message: "You must have access to the course to rate it" });
+  app.get(
+    "/api/courses/:courseId/my-rating",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const rating = await storage.getUserCourseRating(
+          userId,
+          req.params.courseId,
+        );
+        res.json(rating);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch your rating" });
       }
-      const result = await storage.upsertCourseRating(userId, req.params.courseId, rating, review);
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to save rating" });
-    }
-  });
+    },
+  );
+
+  app.post(
+    "/api/courses/:courseId/ratings",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const { rating, review } = req.body;
+        if (!rating || rating < 1 || rating > 5)
+          return res
+            .status(400)
+            .json({ message: "Rating must be between 1 and 5" });
+        const hasAccess = await storage.hasUserCourseAccess(
+          userId,
+          req.params.courseId,
+        );
+        const user = await storage.getUser(userId);
+        const isCultivator = user?.tier === "cultivator";
+        const course = await storage.getCourse(req.params.courseId);
+        if (!course)
+          return res.status(404).json({ message: "Course not found" });
+        if (!hasAccess && !(isCultivator && course.includedInCultivator)) {
+          return res
+            .status(403)
+            .json({ message: "You must have access to the course to rate it" });
+        }
+        const result = await storage.upsertCourseRating(
+          userId,
+          req.params.courseId,
+          rating,
+          review,
+        );
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to save rating" });
+      }
+    },
+  );
 
   // === EXERCISE RESPONSES ===
-  async function verifyCourseAccess(userId: string, courseId: string, lessonId: string): Promise<{ ok: boolean; message?: string }> {
+  async function verifyCourseAccess(
+    userId: string,
+    courseId: string,
+    lessonId: string,
+  ): Promise<{ ok: boolean; message?: string }> {
     const course = await storage.getCourse(courseId);
     if (!course) return { ok: false, message: "Course not found" };
     const lesson = await storage.getCourseLesson(lessonId);
-    if (!lesson || lesson.courseId !== courseId) return { ok: false, message: "Lesson not found in this course" };
+    if (!lesson || lesson.courseId !== courseId)
+      return { ok: false, message: "Lesson not found in this course" };
     const purchased = await storage.hasUserCourseAccess(userId, courseId);
     const user = await storage.getUser(userId);
     const isCultivator = user?.tier === "cultivator";
@@ -2951,56 +4774,101 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     return { ok: true };
   }
 
-  app.get("/api/courses/:courseId/lessons/:lessonId/exercise", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const access = await verifyCourseAccess(userId, req.params.courseId, req.params.lessonId);
-      if (!access.ok) return res.status(403).json({ message: access.message });
-      const response = await storage.getExerciseResponse(userId, req.params.lessonId);
-      res.json(response);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch exercise response" });
-    }
-  });
+  app.get(
+    "/api/courses/:courseId/lessons/:lessonId/exercise",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const access = await verifyCourseAccess(
+          userId,
+          req.params.courseId,
+          req.params.lessonId,
+        );
+        if (!access.ok)
+          return res.status(403).json({ message: access.message });
+        const response = await storage.getExerciseResponse(
+          userId,
+          req.params.lessonId,
+        );
+        res.json(response);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch exercise response" });
+      }
+    },
+  );
 
-  app.post("/api/courses/:courseId/lessons/:lessonId/exercise", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const access = await verifyCourseAccess(userId, req.params.courseId, req.params.lessonId);
-      if (!access.ok) return res.status(403).json({ message: access.message });
-      const { content } = req.body;
-      if (typeof content !== "string") return res.status(400).json({ message: "Content is required" });
-      const result = await storage.saveExerciseResponse(userId, req.params.courseId, req.params.lessonId, content);
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to save exercise response" });
-    }
-  });
+  app.post(
+    "/api/courses/:courseId/lessons/:lessonId/exercise",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const access = await verifyCourseAccess(
+          userId,
+          req.params.courseId,
+          req.params.lessonId,
+        );
+        if (!access.ok)
+          return res.status(403).json({ message: access.message });
+        const { content } = req.body;
+        if (typeof content !== "string")
+          return res.status(400).json({ message: "Content is required" });
+        const result = await storage.saveExerciseResponse(
+          userId,
+          req.params.courseId,
+          req.params.lessonId,
+          content,
+        );
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to save exercise response" });
+      }
+    },
+  );
 
-  app.post("/api/courses/:courseId/lessons/:lessonId/save-to-garden", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const access = await verifyCourseAccess(userId, req.params.courseId, req.params.lessonId);
-      if (!access.ok) return res.status(403).json({ message: access.message });
-      const { title } = req.body;
-      if (!title || typeof title !== "string") return res.status(400).json({ message: "Title is required" });
-      const result = await storage.saveExerciseToGarden(userId, req.params.courseId, req.params.lessonId, title);
-      res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || "Failed to save to garden" });
-    }
-  });
+  app.post(
+    "/api/courses/:courseId/lessons/:lessonId/save-to-garden",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const access = await verifyCourseAccess(
+          userId,
+          req.params.courseId,
+          req.params.lessonId,
+        );
+        if (!access.ok)
+          return res.status(403).json({ message: access.message });
+        const { title } = req.body;
+        if (!title || typeof title !== "string")
+          return res.status(400).json({ message: "Title is required" });
+        const result = await storage.saveExerciseToGarden(
+          userId,
+          req.params.courseId,
+          req.params.lessonId,
+          title,
+        );
+        res.json(result);
+      } catch (error: any) {
+        res
+          .status(500)
+          .json({ message: error.message || "Failed to save to garden" });
+      }
+    },
+  );
 
   // === CHALLENGES ===
   app.get("/api/challenges", async (_req, res) => {
     try {
       const allChallenges = await storage.getChallenges();
       const now = new Date();
-      const withStatus = allChallenges.map(c => {
+      const withStatus = allChallenges.map((c) => {
         let computedStatus = c.status;
         if (now < c.startsAt) computedStatus = "upcoming";
         else if (now >= c.startsAt && now <= c.endsAt) computedStatus = "open";
-        else if (c.votingEndsAt && now > c.endsAt && now <= c.votingEndsAt) computedStatus = "voting";
+        else if (c.votingEndsAt && now > c.endsAt && now <= c.votingEndsAt)
+          computedStatus = "voting";
         else computedStatus = "closed";
         return { ...c, status: computedStatus };
       });
@@ -3013,12 +4881,19 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.get("/api/challenges/:id", async (req, res) => {
     try {
       const challenge = await storage.getChallenge(req.params.id);
-      if (!challenge) return res.status(404).json({ message: "Challenge not found" });
+      if (!challenge)
+        return res.status(404).json({ message: "Challenge not found" });
       const now = new Date();
       let computedStatus = challenge.status;
       if (now < challenge.startsAt) computedStatus = "upcoming";
-      else if (now >= challenge.startsAt && now <= challenge.endsAt) computedStatus = "open";
-      else if (challenge.votingEndsAt && now > challenge.endsAt && now <= challenge.votingEndsAt) computedStatus = "voting";
+      else if (now >= challenge.startsAt && now <= challenge.endsAt)
+        computedStatus = "open";
+      else if (
+        challenge.votingEndsAt &&
+        now > challenge.endsAt &&
+        now <= challenge.votingEndsAt
+      )
+        computedStatus = "voting";
       else computedStatus = "closed";
       res.json({ ...challenge, status: computedStatus });
     } catch (error: any) {
@@ -3036,28 +4911,44 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   app.post("/api/challenges/:id/entries", async (req, res) => {
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
     try {
       const challenge = await storage.getChallenge(req.params.id);
-      if (!challenge) return res.status(404).json({ message: "Challenge not found" });
+      if (!challenge)
+        return res.status(404).json({ message: "Challenge not found" });
       const now = new Date();
       if (now < challenge.startsAt || now > challenge.endsAt) {
-        return res.status(400).json({ message: "This challenge is not currently accepting entries" });
+        return res
+          .status(400)
+          .json({
+            message: "This challenge is not currently accepting entries",
+          });
       }
       const { title, content, writingId } = req.body;
-      if (!title || !content) return res.status(400).json({ message: "Title and content are required" });
+      if (!title || !content)
+        return res
+          .status(400)
+          .json({ message: "Title and content are required" });
       if (challenge.wordLimit) {
         const wordCount = content.trim().split(/\s+/).length;
         if (wordCount > challenge.wordLimit) {
-          return res.status(400).json({ message: `Entry exceeds word limit of ${challenge.wordLimit} words` });
+          return res
+            .status(400)
+            .json({
+              message: `Entry exceeds word limit of ${challenge.wordLimit} words`,
+            });
         }
       }
-      const entry = await storage.submitChallengeEntry((req.user as any).claims.sub, {
-        challengeId: req.params.id,
-        title,
-        content,
-        writingId,
-      });
+      const entry = await storage.submitChallengeEntry(
+        (req.user as any).claims.sub,
+        {
+          challengeId: req.params.id,
+          title,
+          content,
+          writingId,
+        },
+      );
       res.json(entry);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3065,9 +4956,13 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   app.delete("/api/challenges/:id/entries/:entryId", async (req, res) => {
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
     try {
-      await storage.withdrawChallengeEntry((req.user as any).claims.sub, req.params.entryId);
+      await storage.withdrawChallengeEntry(
+        (req.user as any).claims.sub,
+        req.params.entryId,
+      );
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -3075,9 +4970,13 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   app.get("/api/challenges/:id/my-entry", async (req, res) => {
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
     try {
-      const entry = await storage.getUserChallengeEntry((req.user as any).claims.sub, req.params.id);
+      const entry = await storage.getUserChallengeEntry(
+        (req.user as any).claims.sub,
+        req.params.id,
+      );
       res.json(entry);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -3085,17 +4984,30 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   app.post("/api/challenges/:id/votes", async (req, res) => {
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
     try {
       const challenge = await storage.getChallenge(req.params.id);
-      if (!challenge) return res.status(404).json({ message: "Challenge not found" });
+      if (!challenge)
+        return res.status(404).json({ message: "Challenge not found" });
       const now = new Date();
-      const isVotingOpen = (challenge.votingEndsAt && now > challenge.endsAt && now <= challenge.votingEndsAt) ||
+      const isVotingOpen =
+        (challenge.votingEndsAt &&
+          now > challenge.endsAt &&
+          now <= challenge.votingEndsAt) ||
         (now >= challenge.startsAt && now <= challenge.endsAt);
-      if (!isVotingOpen) return res.status(400).json({ message: "Voting is not open for this challenge" });
+      if (!isVotingOpen)
+        return res
+          .status(400)
+          .json({ message: "Voting is not open for this challenge" });
       const { entryId } = req.body;
-      if (!entryId) return res.status(400).json({ message: "Entry ID is required" });
-      const vote = await storage.voteChallengeEntry((req.user as any).claims.sub, req.params.id, entryId);
+      if (!entryId)
+        return res.status(400).json({ message: "Entry ID is required" });
+      const vote = await storage.voteChallengeEntry(
+        (req.user as any).claims.sub,
+        req.params.id,
+        entryId,
+      );
       res.json(vote);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3103,9 +5015,14 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   app.delete("/api/challenges/:id/votes/:entryId", async (req, res) => {
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
     try {
-      await storage.unvoteChallengeEntry((req.user as any).claims.sub, req.params.id, req.params.entryId);
+      await storage.unvoteChallengeEntry(
+        (req.user as any).claims.sub,
+        req.params.id,
+        req.params.entryId,
+      );
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -3113,9 +5030,13 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   app.get("/api/challenges/:id/my-votes", async (req, res) => {
-    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user)
+      return res.status(401).json({ message: "Not authenticated" });
     try {
-      const votes = await storage.getUserChallengeVotes((req.user as any).claims.sub, req.params.id);
+      const votes = await storage.getUserChallengeVotes(
+        (req.user as any).claims.sub,
+        req.params.id,
+      );
       res.json(votes);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -3123,21 +5044,27 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   // === PAUSE STONES ===
-  app.post("/api/writings/:id/pause-stone", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const stone = await storage.addPauseStone(req.params.id, userId);
-      res.status(201).json(stone);
-    } catch (error) {
-      console.error("Error adding pause stone:", error);
-      res.status(500).json({ message: "Failed to add pause stone" });
-    }
-  });
+  app.post(
+    "/api/writings/:id/pause-stone",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const stone = await storage.addPauseStone(req.params.id, userId);
+        res.status(201).json(stone);
+      } catch (error) {
+        console.error("Error adding pause stone:", error);
+        res.status(500).json({ message: "Failed to add pause stone" });
+      }
+    },
+  );
 
   app.get("/api/writings/:id/pause-stones", async (req: any, res) => {
     try {
       const count = await storage.getPauseStoneCount(req.params.id);
-      const hasPlaced = req.user?.claims?.sub ? await storage.hasUserPausedStone(req.params.id, req.user.claims.sub) : false;
+      const hasPlaced = req.user?.claims?.sub
+        ? await storage.hasUserPausedStone(req.params.id, req.user.claims.sub)
+        : false;
       res.json({ count, hasPlaced });
     } catch (error) {
       console.error("Error fetching pause stones:", error);
@@ -3148,7 +5075,8 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/writings/pause-stone-counts", async (req, res) => {
     try {
       const { writingIds } = req.body;
-      if (!Array.isArray(writingIds)) return res.status(400).json({ message: "writingIds array required" });
+      if (!Array.isArray(writingIds))
+        return res.status(400).json({ message: "writingIds array required" });
       const counts = await storage.getPauseStoneCounts(writingIds);
       res.json(counts);
     } catch (error) {
@@ -3158,20 +5086,28 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   // === COMPOST ENHANCEMENTS ===
-  app.post("/api/writings/:id/compost", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const entries = await storage.compostWriting(req.params.id, userId);
-      res.json({ fragments: entries.length, entries });
-    } catch (error: any) {
-      console.error("Error composting writing:", error);
-      res.status(400).json({ message: error.message || "Failed to compost writing" });
-    }
-  });
+  app.post(
+    "/api/writings/:id/compost",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const entries = await storage.compostWriting(req.params.id, userId);
+        res.json({ fragments: entries.length, entries });
+      } catch (error: any) {
+        console.error("Error composting writing:", error);
+        res
+          .status(400)
+          .json({ message: error.message || "Failed to compost writing" });
+      }
+    },
+  );
 
   app.get("/api/compost/pile", async (req, res) => {
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const limit = req.query.limit
+        ? parseInt(req.query.limit as string)
+        : undefined;
       const pile = await storage.getCompostPile(limit);
       res.json(pile);
     } catch (error) {
@@ -3190,17 +5126,21 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/compost/:id/recycle", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const entry = await storage.recycleCompostEntry(userId, req.params.id);
-      if (!entry) return res.status(404).json({ message: "Not found" });
-      res.json(entry);
-    } catch (error) {
-      console.error("Error recycling compost entry:", error);
-      res.status(500).json({ message: "Failed to recycle compost entry" });
-    }
-  });
+  app.post(
+    "/api/compost/:id/recycle",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const entry = await storage.recycleCompostEntry(userId, req.params.id);
+        if (!entry) return res.status(404).json({ message: "Not found" });
+        res.json(entry);
+      } catch (error) {
+        console.error("Error recycling compost entry:", error);
+        res.status(500).json({ message: "Failed to recycle compost entry" });
+      }
+    },
+  );
 
   // === GARDEN PRESENCE ===
   app.post("/api/garden/presence", isAuthenticated, async (req: any, res) => {
@@ -3252,12 +5192,26 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/eic/invite-editor", isEditorInChief, async (req: any, res) => {
     try {
       const { email } = req.body;
-      if (!email || typeof email !== "string") return res.status(400).json({ message: "Email is required" });
+      if (!email || typeof email !== "string")
+        return res.status(400).json({ message: "Email is required" });
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email.trim())) return res.status(400).json({ message: "Please enter a valid email address" });
+      if (!emailRegex.test(email.trim()))
+        return res
+          .status(400)
+          .json({ message: "Please enter a valid email address" });
       const existing = await storage.getEditorInvitations();
-      const duplicate = existing.find((inv) => inv.email === email.trim() && inv.status === "pending" && new Date(inv.expiresAt) > new Date());
-      if (duplicate) return res.status(400).json({ message: "An active invitation already exists for this email" });
+      const duplicate = existing.find(
+        (inv) =>
+          inv.email === email.trim() &&
+          inv.status === "pending" &&
+          new Date(inv.expiresAt) > new Date(),
+      );
+      if (duplicate)
+        return res
+          .status(400)
+          .json({
+            message: "An active invitation already exists for this email",
+          });
       const token = randomUUID();
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const invitation = await storage.createEditorInvitation({
@@ -3298,9 +5252,18 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
       const token = req.query.token as string;
       if (!token) return res.status(400).json({ message: "Token is required" });
       const invitation = await storage.getEditorInvitationByToken(token);
-      if (!invitation) return res.json({ valid: false, reason: "Invalid invitation token" });
-      if (invitation.status === "accepted") return res.json({ valid: false, reason: "This invitation has already been used" });
-      if (new Date() > invitation.expiresAt) return res.json({ valid: false, reason: "This invitation has expired" });
+      if (!invitation)
+        return res.json({ valid: false, reason: "Invalid invitation token" });
+      if (invitation.status === "accepted")
+        return res.json({
+          valid: false,
+          reason: "This invitation has already been used",
+        });
+      if (new Date() > invitation.expiresAt)
+        return res.json({
+          valid: false,
+          reason: "This invitation has expired",
+        });
       res.json({ valid: true, email: invitation.email });
     } catch (error) {
       console.error("Error validating token:", error);
@@ -3308,22 +5271,37 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/editor-onboarding/accept", isAuthenticated, async (req: any, res) => {
-    try {
-      const { token } = req.body;
-      if (!token) return res.status(400).json({ message: "Token is required" });
-      const invitation = await storage.getEditorInvitationByToken(token);
-      if (!invitation) return res.status(404).json({ message: "Invalid invitation token" });
-      if (invitation.status === "accepted") return res.status(400).json({ message: "This invitation has already been used" });
-      if (new Date() > invitation.expiresAt) return res.status(400).json({ message: "This invitation has expired" });
-      const userId = req.user.claims.sub;
-      await storage.acceptEditorInvitation(token, userId);
-      res.json({ success: true, message: "Welcome to the Editorial Studio!" });
-    } catch (error) {
-      console.error("Error accepting invitation:", error);
-      res.status(500).json({ message: "Failed to accept invitation" });
-    }
-  });
+  app.post(
+    "/api/editor-onboarding/accept",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { token } = req.body;
+        if (!token)
+          return res.status(400).json({ message: "Token is required" });
+        const invitation = await storage.getEditorInvitationByToken(token);
+        if (!invitation)
+          return res.status(404).json({ message: "Invalid invitation token" });
+        if (invitation.status === "accepted")
+          return res
+            .status(400)
+            .json({ message: "This invitation has already been used" });
+        if (new Date() > invitation.expiresAt)
+          return res
+            .status(400)
+            .json({ message: "This invitation has expired" });
+        const userId = req.user.claims.sub;
+        await storage.acceptEditorInvitation(token, userId);
+        res.json({
+          success: true,
+          message: "Welcome to the Editorial Studio!",
+        });
+      } catch (error) {
+        console.error("Error accepting invitation:", error);
+        res.status(500).json({ message: "Failed to accept invitation" });
+      }
+    },
+  );
 
   // === EXHIBITS ===
   app.get("/api/exhibits", async (req: any, res) => {
@@ -3331,18 +5309,39 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
       const allExhibits = await storage.getExhibits();
       const userId = req.user?.claims?.sub;
       if (userId) {
-        const withStatus = await Promise.all(allExhibits.map(async (exhibit) => {
-          const purchased = await storage.hasExhibitPurchase(userId, exhibit.id);
-          const progress = await storage.getExhibitProgress(userId, exhibit.id);
-          let status: "locked" | "available" | "in_progress" | "completed" = exhibit.price > 0 && !purchased ? "locked" : "available";
-          if (progress) {
-            status = progress.completedAt ? "completed" : "in_progress";
-          }
-          return { ...exhibit, purchased, status, currentScreen: progress?.currentScreen || null };
-        }));
+        const withStatus = await Promise.all(
+          allExhibits.map(async (exhibit) => {
+            const purchased = await storage.hasExhibitPurchase(
+              userId,
+              exhibit.id,
+            );
+            const progress = await storage.getExhibitProgress(
+              userId,
+              exhibit.id,
+            );
+            let status: "locked" | "available" | "in_progress" | "completed" =
+              exhibit.price > 0 && !purchased ? "locked" : "available";
+            if (progress) {
+              status = progress.completedAt ? "completed" : "in_progress";
+            }
+            return {
+              ...exhibit,
+              purchased,
+              status,
+              currentScreen: progress?.currentScreen || null,
+            };
+          }),
+        );
         return res.json(withStatus);
       }
-      res.json(allExhibits.map(e => ({ ...e, purchased: false, status: e.price > 0 ? "locked" : "available", currentScreen: null })));
+      res.json(
+        allExhibits.map((e) => ({
+          ...e,
+          purchased: false,
+          status: e.price > 0 ? "locked" : "available",
+          currentScreen: null,
+        })),
+      );
     } catch (error) {
       console.error("Error fetching exhibits:", error);
       res.status(500).json({ message: "Failed to fetch exhibits" });
@@ -3352,9 +5351,12 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.get("/api/exhibits/:slug", async (req: any, res) => {
     try {
       const exhibit = await storage.getExhibitBySlug(req.params.slug);
-      if (!exhibit || !exhibit.isPublished) return res.status(404).json({ message: "Exhibit not found" });
+      if (!exhibit || !exhibit.isPublished)
+        return res.status(404).json({ message: "Exhibit not found" });
       const userId = req.user?.claims?.sub;
-      const purchased = userId ? await storage.hasExhibitPurchase(userId, exhibit.id) : false;
+      const purchased = userId
+        ? await storage.hasExhibitPurchase(userId, exhibit.id)
+        : false;
       res.json({ ...exhibit, purchased });
     } catch (error) {
       console.error("Error fetching exhibit:", error);
@@ -3362,117 +5364,204 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/exhibits/:slug/purchase", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const exhibit = await storage.getExhibitBySlug(req.params.slug);
-      if (!exhibit) return res.status(404).json({ message: "Exhibit not found" });
-      const alreadyPurchased = await storage.hasExhibitPurchase(userId, exhibit.id);
-      if (alreadyPurchased) return res.json({ message: "Already purchased", purchased: true });
-      const purchase = await storage.createExhibitPurchase(userId, exhibit.id);
-      res.status(201).json(purchase);
-    } catch (error) {
-      console.error("Error purchasing exhibit:", error);
-      res.status(500).json({ message: "Failed to purchase exhibit" });
-    }
-  });
-
-  app.get("/api/exhibits/:slug/progress", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const exhibit = await storage.getExhibitBySlug(req.params.slug);
-      if (!exhibit || !exhibit.isPublished) return res.status(404).json({ message: "Exhibit not found" });
-      if (exhibit.price > 0) {
-        const purchased = await storage.hasExhibitPurchase(userId, exhibit.id);
-        if (!purchased) return res.status(403).json({ message: "Purchase required" });
+  app.post(
+    "/api/exhibits/:slug/purchase",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const exhibit = await storage.getExhibitBySlug(req.params.slug);
+        if (!exhibit)
+          return res.status(404).json({ message: "Exhibit not found" });
+        const alreadyPurchased = await storage.hasExhibitPurchase(
+          userId,
+          exhibit.id,
+        );
+        if (alreadyPurchased)
+          return res.json({ message: "Already purchased", purchased: true });
+        const purchase = await storage.createExhibitPurchase(
+          userId,
+          exhibit.id,
+        );
+        res.status(201).json(purchase);
+      } catch (error) {
+        console.error("Error purchasing exhibit:", error);
+        res.status(500).json({ message: "Failed to purchase exhibit" });
       }
-      const progress = await storage.getExhibitProgress(userId, exhibit.id);
-      res.json(progress || { currentScreen: 1, completedExercises: [], completedAt: null });
-    } catch (error) {
-      console.error("Error fetching exhibit progress:", error);
-      res.status(500).json({ message: "Failed to fetch progress" });
-    }
-  });
+    },
+  );
 
-  app.post("/api/exhibits/:slug/progress", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const exhibit = await storage.getExhibitBySlug(req.params.slug);
-      if (!exhibit || !exhibit.isPublished) return res.status(404).json({ message: "Exhibit not found" });
-      if (exhibit.price > 0) {
-        const purchased = await storage.hasExhibitPurchase(userId, exhibit.id);
-        if (!purchased) return res.status(403).json({ message: "Purchase required" });
+  app.get(
+    "/api/exhibits/:slug/progress",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const exhibit = await storage.getExhibitBySlug(req.params.slug);
+        if (!exhibit || !exhibit.isPublished)
+          return res.status(404).json({ message: "Exhibit not found" });
+        if (exhibit.price > 0) {
+          const purchased = await storage.hasExhibitPurchase(
+            userId,
+            exhibit.id,
+          );
+          if (!purchased)
+            return res.status(403).json({ message: "Purchase required" });
+        }
+        const progress = await storage.getExhibitProgress(userId, exhibit.id);
+        res.json(
+          progress || {
+            currentScreen: 1,
+            completedExercises: [],
+            completedAt: null,
+          },
+        );
+      } catch (error) {
+        console.error("Error fetching exhibit progress:", error);
+        res.status(500).json({ message: "Failed to fetch progress" });
       }
-      const { currentScreen, completedExercises, completedAt } = req.body;
-      const progressSchema = z.object({
-        currentScreen: z.number().int().min(1).optional(),
-        completedExercises: z.array(z.string()).optional(),
-        completedAt: z.string().nullable().optional(),
-      });
-      const parsed = progressSchema.safeParse({ currentScreen, completedExercises, completedAt });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const progress = await storage.upsertExhibitProgress(userId, exhibit.id, {
-        currentScreen: parsed.data.currentScreen,
-        completedExercises: parsed.data.completedExercises,
-        completedAt: parsed.data.completedAt ? new Date(parsed.data.completedAt) : undefined,
-      });
-      res.json(progress);
-    } catch (error) {
-      console.error("Error updating exhibit progress:", error);
-      res.status(500).json({ message: "Failed to update progress" });
-    }
-  });
+    },
+  );
 
-  app.post("/api/exhibits/:slug/responses", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const exhibit = await storage.getExhibitBySlug(req.params.slug);
-      if (!exhibit || !exhibit.isPublished) return res.status(404).json({ message: "Exhibit not found" });
-      if (exhibit.price > 0) {
-        const purchased = await storage.hasExhibitPurchase(userId, exhibit.id);
-        if (!purchased) return res.status(403).json({ message: "Purchase required" });
+  app.post(
+    "/api/exhibits/:slug/progress",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const exhibit = await storage.getExhibitBySlug(req.params.slug);
+        if (!exhibit || !exhibit.isPublished)
+          return res.status(404).json({ message: "Exhibit not found" });
+        if (exhibit.price > 0) {
+          const purchased = await storage.hasExhibitPurchase(
+            userId,
+            exhibit.id,
+          );
+          if (!purchased)
+            return res.status(403).json({ message: "Purchase required" });
+        }
+        const { currentScreen, completedExercises, completedAt } = req.body;
+        const progressSchema = z.object({
+          currentScreen: z.number().int().min(1).optional(),
+          completedExercises: z.array(z.string()).optional(),
+          completedAt: z.string().nullable().optional(),
+        });
+        const parsed = progressSchema.safeParse({
+          currentScreen,
+          completedExercises,
+          completedAt,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const progress = await storage.upsertExhibitProgress(
+          userId,
+          exhibit.id,
+          {
+            currentScreen: parsed.data.currentScreen,
+            completedExercises: parsed.data.completedExercises,
+            completedAt: parsed.data.completedAt
+              ? new Date(parsed.data.completedAt)
+              : undefined,
+          },
+        );
+        res.json(progress);
+      } catch (error) {
+        console.error("Error updating exhibit progress:", error);
+        res.status(500).json({ message: "Failed to update progress" });
       }
-      const parsed = insertExhibitResponseSchema.safeParse({ ...req.body, exhibitId: exhibit.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const response = await storage.saveExhibitResponse(userId, parsed.data);
-      res.status(201).json(response);
-    } catch (error) {
-      console.error("Error saving exhibit response:", error);
-      res.status(500).json({ message: "Failed to save response" });
-    }
-  });
+    },
+  );
 
-  app.get("/api/exhibits/:slug/responses", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const exhibit = await storage.getExhibitBySlug(req.params.slug);
-      if (!exhibit || !exhibit.isPublished) return res.status(404).json({ message: "Exhibit not found" });
-      const responses = await storage.getExhibitResponses(userId, exhibit.id);
-      res.json(responses);
-    } catch (error) {
-      console.error("Error fetching exhibit responses:", error);
-      res.status(500).json({ message: "Failed to fetch responses" });
-    }
-  });
-
-  app.post("/api/exhibits/:slug/reflections", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const exhibit = await storage.getExhibitBySlug(req.params.slug);
-      if (!exhibit || !exhibit.isPublished) return res.status(404).json({ message: "Exhibit not found" });
-      if (exhibit.price > 0) {
-        const purchased = await storage.hasExhibitPurchase(userId, exhibit.id);
-        if (!purchased) return res.status(403).json({ message: "Purchase required" });
+  app.post(
+    "/api/exhibits/:slug/responses",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const exhibit = await storage.getExhibitBySlug(req.params.slug);
+        if (!exhibit || !exhibit.isPublished)
+          return res.status(404).json({ message: "Exhibit not found" });
+        if (exhibit.price > 0) {
+          const purchased = await storage.hasExhibitPurchase(
+            userId,
+            exhibit.id,
+          );
+          if (!purchased)
+            return res.status(403).json({ message: "Purchase required" });
+        }
+        const parsed = insertExhibitResponseSchema.safeParse({
+          ...req.body,
+          exhibitId: exhibit.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const response = await storage.saveExhibitResponse(userId, parsed.data);
+        res.status(201).json(response);
+      } catch (error) {
+        console.error("Error saving exhibit response:", error);
+        res.status(500).json({ message: "Failed to save response" });
       }
-      const parsed = insertExhibitReflectionSchema.safeParse({ ...req.body, exhibitId: exhibit.id });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const reflection = await storage.saveExhibitReflection(userId, parsed.data);
-      res.status(201).json(reflection);
-    } catch (error) {
-      console.error("Error saving exhibit reflection:", error);
-      res.status(500).json({ message: "Failed to save reflection" });
-    }
-  });
+    },
+  );
+
+  app.get(
+    "/api/exhibits/:slug/responses",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const exhibit = await storage.getExhibitBySlug(req.params.slug);
+        if (!exhibit || !exhibit.isPublished)
+          return res.status(404).json({ message: "Exhibit not found" });
+        const responses = await storage.getExhibitResponses(userId, exhibit.id);
+        res.json(responses);
+      } catch (error) {
+        console.error("Error fetching exhibit responses:", error);
+        res.status(500).json({ message: "Failed to fetch responses" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/exhibits/:slug/reflections",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const exhibit = await storage.getExhibitBySlug(req.params.slug);
+        if (!exhibit || !exhibit.isPublished)
+          return res.status(404).json({ message: "Exhibit not found" });
+        if (exhibit.price > 0) {
+          const purchased = await storage.hasExhibitPurchase(
+            userId,
+            exhibit.id,
+          );
+          if (!purchased)
+            return res.status(403).json({ message: "Purchase required" });
+        }
+        const parsed = insertExhibitReflectionSchema.safeParse({
+          ...req.body,
+          exhibitId: exhibit.id,
+        });
+        if (!parsed.success)
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: parsed.error.flatten() });
+        const reflection = await storage.saveExhibitReflection(
+          userId,
+          parsed.data,
+        );
+        res.status(201).json(reflection);
+      } catch (error) {
+        console.error("Error saving exhibit reflection:", error);
+        res.status(500).json({ message: "Failed to save reflection" });
+      }
+    },
+  );
 
   app.get("/api/user/role", isAuthenticated, async (req: any, res) => {
     try {
@@ -3487,34 +5576,57 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   });
 
   // === OPPORTUNITY TRACKER ===
-  app.get("/api/opportunity-tracker", isAuthenticated, async (req: any, res) => {
-    try {
-      const items = await storage.getOpportunityTrackerItems(req.user.claims.sub);
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch tracker items" });
-    }
-  });
+  app.get(
+    "/api/opportunity-tracker",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const items = await storage.getOpportunityTrackerItems(
+          req.user.claims.sub,
+        );
+        res.json(items);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch tracker items" });
+      }
+    },
+  );
 
-  app.post("/api/opportunity-tracker", isAuthenticated, async (req: any, res) => {
-    try {
-      const { opportunityId, status, notes } = req.body;
-      if (!opportunityId || !status) return res.status(400).json({ message: "Missing fields" });
-      const item = await storage.upsertOpportunityTracker(req.user.claims.sub, opportunityId, status, notes);
-      res.json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update tracker" });
-    }
-  });
+  app.post(
+    "/api/opportunity-tracker",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { opportunityId, status, notes } = req.body;
+        if (!opportunityId || !status)
+          return res.status(400).json({ message: "Missing fields" });
+        const item = await storage.upsertOpportunityTracker(
+          req.user.claims.sub,
+          opportunityId,
+          status,
+          notes,
+        );
+        res.json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update tracker" });
+      }
+    },
+  );
 
-  app.delete("/api/opportunity-tracker/:opportunityId", isAuthenticated, async (req: any, res) => {
-    try {
-      await storage.deleteOpportunityTracker(req.user.claims.sub, req.params.opportunityId);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete tracker item" });
-    }
-  });
+  app.delete(
+    "/api/opportunity-tracker/:opportunityId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        await storage.deleteOpportunityTracker(
+          req.user.claims.sub,
+          req.params.opportunityId,
+        );
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete tracker item" });
+      }
+    },
+  );
 
   // === COMMONS ===
   app.get("/api/commons", async (_req, res) => {
@@ -3529,7 +5641,8 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/commons", isAuthenticated, async (req: any, res) => {
     try {
       const { writingId } = req.body;
-      if (!writingId) return res.status(400).json({ message: "Missing writingId" });
+      if (!writingId)
+        return res.status(400).json({ message: "Missing writingId" });
       const item = await storage.shareToCommons(req.user.claims.sub, writingId);
       res.json(item);
     } catch (error) {
@@ -3537,14 +5650,21 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.delete("/api/commons/:writingId", isAuthenticated, async (req: any, res) => {
-    try {
-      await storage.removeFromCommons(req.user.claims.sub, req.params.writingId);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to remove from commons" });
-    }
-  });
+  app.delete(
+    "/api/commons/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        await storage.removeFromCommons(
+          req.user.claims.sub,
+          req.params.writingId,
+        );
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to remove from commons" });
+      }
+    },
+  );
 
   // === BOUQUETS ===
   app.get("/api/bouquets", async (_req, res) => {
@@ -3570,23 +5690,36 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const { title, description, theme } = req.body;
       if (!title) return res.status(400).json({ message: "Title required" });
-      const bouquet = await storage.createBouquet(req.user.claims.sub, { title, description, theme });
+      const bouquet = await storage.createBouquet(req.user.claims.sub, {
+        title,
+        description,
+        theme,
+      });
       res.json(bouquet);
     } catch (error) {
       res.status(500).json({ message: "Failed to create bouquet" });
     }
   });
 
-  app.post("/api/bouquets/:id/items", isAuthenticated, async (req: any, res) => {
-    try {
-      const { writingId, note } = req.body;
-      if (!writingId) return res.status(400).json({ message: "WritingId required" });
-      const item = await storage.addBouquetItem(req.params.id, writingId, note);
-      res.json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to add item" });
-    }
-  });
+  app.post(
+    "/api/bouquets/:id/items",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { writingId, note } = req.body;
+        if (!writingId)
+          return res.status(400).json({ message: "WritingId required" });
+        const item = await storage.addBouquetItem(
+          req.params.id,
+          writingId,
+          note,
+        );
+        res.json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to add item" });
+      }
+    },
+  );
 
   app.delete("/api/bouquets/:id", isAuthenticated, async (req: any, res) => {
     try {
@@ -3630,7 +5763,10 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     try {
       const { title, description } = req.body;
       if (!title) return res.status(400).json({ message: "Title required" });
-      const board = await storage.createMoodboard(req.user.claims.sub, { title, description });
+      const board = await storage.createMoodboard(req.user.claims.sub, {
+        title,
+        description,
+      });
       res.json(board);
     } catch (error) {
       res.status(500).json({ message: "Failed to create moodboard" });
@@ -3639,7 +5775,11 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.patch("/api/moodboards/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const board = await storage.updateMoodboard(req.user.claims.sub, req.params.id, req.body);
+      const board = await storage.updateMoodboard(
+        req.user.claims.sub,
+        req.params.id,
+        req.body,
+      );
       if (!board) return res.status(404).json({ message: "Not found" });
       res.json(board);
     } catch (error) {
@@ -3647,23 +5787,31 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     }
   });
 
-  app.post("/api/moodboards/:id/items", isAuthenticated, async (req: any, res) => {
-    try {
-      const item = await storage.addMoodboardItem(req.params.id, req.body);
-      res.json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to add item" });
-    }
-  });
+  app.post(
+    "/api/moodboards/:id/items",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const item = await storage.addMoodboardItem(req.params.id, req.body);
+        res.json(item);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to add item" });
+      }
+    },
+  );
 
-  app.delete("/api/moodboards/:id/items/:itemId", isAuthenticated, async (req: any, res) => {
-    try {
-      await storage.deleteMoodboardItem(req.params.itemId);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete item" });
-    }
-  });
+  app.delete(
+    "/api/moodboards/:id/items/:itemId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        await storage.deleteMoodboardItem(req.params.itemId);
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete item" });
+      }
+    },
+  );
 
   app.delete("/api/moodboards/:id", isAuthenticated, async (req: any, res) => {
     try {
@@ -3687,8 +5835,13 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.post("/api/soil", isAuthenticated, async (req: any, res) => {
     try {
       const { content, entryType, tags } = req.body;
-      if (!content) return res.status(400).json({ message: "Content required" });
-      const entry = await storage.createSoilEntry(req.user.claims.sub, { content, entryType, tags });
+      if (!content)
+        return res.status(400).json({ message: "Content required" });
+      const entry = await storage.createSoilEntry(req.user.claims.sub, {
+        content,
+        entryType,
+        tags,
+      });
       res.json(entry);
     } catch (error) {
       res.status(500).json({ message: "Failed to create soil entry" });
@@ -3697,7 +5850,11 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
 
   app.patch("/api/soil/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const entry = await storage.updateSoilEntry(req.user.claims.sub, req.params.id, req.body);
+      const entry = await storage.updateSoilEntry(
+        req.user.claims.sub,
+        req.params.id,
+        req.body,
+      );
       if (!entry) return res.status(404).json({ message: "Not found" });
       res.json(entry);
     } catch (error) {
@@ -3718,19 +5875,20 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.get("/api/gallery-comments/:writingId", async (req, res) => {
     try {
       const { writingId } = req.params;
-      const comments = await db.select({
-        id: galleryComments.id,
-        writingId: galleryComments.writingId,
-        userId: galleryComments.userId,
-        content: galleryComments.content,
-        parentId: galleryComments.parentId,
-        createdAt: galleryComments.createdAt,
-        authorName: users.firstName,
-      })
-      .from(galleryComments)
-      .leftJoin(users, eq(galleryComments.userId, users.id))
-      .where(eq(galleryComments.writingId, writingId))
-      .orderBy(galleryComments.createdAt);
+      const comments = await db
+        .select({
+          id: galleryComments.id,
+          writingId: galleryComments.writingId,
+          userId: galleryComments.userId,
+          content: galleryComments.content,
+          parentId: galleryComments.parentId,
+          createdAt: galleryComments.createdAt,
+          authorName: users.firstName,
+        })
+        .from(galleryComments)
+        .leftJoin(users, eq(galleryComments.userId, users.id))
+        .where(eq(galleryComments.writingId, writingId))
+        .orderBy(galleryComments.createdAt);
       res.json(comments);
     } catch (e) {
       res.status(500).json({ error: "Failed to fetch comments" });
@@ -3741,14 +5899,18 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
     if (!req.user) return res.status(401).json({ error: "Not authenticated" });
     try {
       const { writingId, content, parentId } = req.body;
-      if (!writingId || !content?.trim()) return res.status(400).json({ error: "Missing required fields" });
+      if (!writingId || !content?.trim())
+        return res.status(400).json({ error: "Missing required fields" });
       const userId = req.user.claims?.sub || req.user.id;
-      const [comment] = await db.insert(galleryComments).values({
-        writingId,
-        userId,
-        content: content.trim(),
-        parentId: parentId || null,
-      }).returning();
+      const [comment] = await db
+        .insert(galleryComments)
+        .values({
+          writingId,
+          userId,
+          content: content.trim(),
+          parentId: parentId || null,
+        })
+        .returning();
       res.json(comment);
     } catch (e) {
       res.status(500).json({ error: "Failed to create comment" });
@@ -3758,14 +5920,1503 @@ Keep the tone warm and encouraging, like a knowledgeable literary friend. Respon
   app.delete("/api/gallery-comments/:id", async (req: any, res) => {
     if (!req.user) return res.status(401).json({ error: "Not authenticated" });
     try {
-      const comment = await db.select().from(galleryComments).where(eq(galleryComments.id, req.params.id)).limit(1);
-      if (!comment.length) return res.status(404).json({ error: "Comment not found" });
+      const comment = await db
+        .select()
+        .from(galleryComments)
+        .where(eq(galleryComments.id, req.params.id))
+        .limit(1);
+      if (!comment.length)
+        return res.status(404).json({ error: "Comment not found" });
       const userId = req.user.claims?.sub || req.user.id;
-      if (comment[0].userId !== userId) return res.status(403).json({ error: "Not authorized" });
-      await db.delete(galleryComments).where(eq(galleryComments.id, req.params.id));
+      if (comment[0].userId !== userId)
+        return res.status(403).json({ error: "Not authorized" });
+      await db
+        .delete(galleryComments)
+        .where(eq(galleryComments.id, req.params.id));
       res.json({ success: true });
     } catch (e) {
       res.status(500).json({ error: "Failed to delete comment" });
+    }
+  });
+
+  app.get(
+    "/api/writings/constellations",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const userWritings = await storage.getWritingsByAuthor(userId);
+
+        const tagMap = new Map<string, { id: string; title: string }[]>();
+        let totalTags = 0;
+
+        for (const w of userWritings) {
+          const tags = (w as any).tags || [];
+          for (const tag of tags) {
+            if (!tag) continue;
+            if (!tagMap.has(tag)) {
+              tagMap.set(tag, []);
+              totalTags++;
+            }
+            tagMap.get(tag)!.push({ id: w.id, title: w.title });
+          }
+        }
+
+        const tagFrequencies = Array.from(tagMap.entries())
+          .map(([tag, pieces]) => ({ tag, count: pieces.length, pieces }))
+          .sort((a, b) => b.count - a.count);
+
+        const pieceTags = new Map<string, string[]>();
+        for (const w of userWritings) {
+          const tags = ((w as any).tags || []).filter(Boolean);
+          if (tags.length > 0) {
+            pieceTags.set(w.id, tags);
+          }
+        }
+
+        const clusterMap = new Map<string, Set<string>>();
+        for (const [pieceId, tags] of pieceTags) {
+          for (let i = 0; i < tags.length; i++) {
+            for (let j = i + 1; j < tags.length; j++) {
+              const key = [tags[i], tags[j]].sort().join("||");
+              if (!clusterMap.has(key)) clusterMap.set(key, new Set());
+              clusterMap.get(key)!.add(pieceId);
+            }
+          }
+        }
+
+        const clusters: {
+          tags: string[];
+          pieces: { id: string; title: string }[];
+          summary: string;
+        }[] = [];
+        for (const [key, pieceIds] of clusterMap) {
+          if (pieceIds.size < 2) continue;
+          const tags = key.split("||");
+          const pieces = Array.from(pieceIds).map((id) => {
+            const w = userWritings.find((w) => w.id === id);
+            return { id, title: w?.title || "Untitled" };
+          });
+          const summary = `These ${tags.length} threads appear together across ${pieces.length} of your pieces — a recurring constellation around [${tags.join(", ")}].`;
+          clusters.push({ tags, pieces, summary });
+        }
+
+        clusters.sort((a, b) => b.pieces.length - a.pieces.length);
+
+        res.json({
+          tagFrequencies,
+          clusters: clusters.slice(0, 20),
+          totalPieces: userWritings.length,
+          totalTags,
+        });
+      } catch (error) {
+        console.error("Error fetching constellations:", error);
+        res.status(500).json({ message: "Failed to fetch constellations" });
+      }
+    },
+  );
+
+  app.get("/api/writings/harvest", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userWritings = await storage.getWritingsByAuthor(userId);
+
+      const tagFrequency: Record<
+        string,
+        { count: number; months: Set<string> }
+      > = {};
+      const monthlyData: Record<
+        string,
+        { pieceCount: number; wordCount: number; tags: Record<string, number> }
+      > = {};
+      const tagPairs: Record<string, Set<string>> = {};
+
+      let totalWords = 0;
+      let oldestPiece: string | null = null;
+      const monthsSet = new Set<string>();
+
+      for (const w of userWritings) {
+        const plainText = w.content.replace(/<[^>]*>/g, "");
+        const wc = plainText.trim() ? plainText.trim().split(/\s+/).length : 0;
+        totalWords += wc;
+
+        const created = w.createdAt ? new Date(w.createdAt) : new Date();
+        const monthKey = created.toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        });
+        monthsSet.add(monthKey);
+
+        if (
+          !oldestPiece ||
+          (w.createdAt && new Date(w.createdAt) < new Date(oldestPiece))
+        ) {
+          oldestPiece = w.createdAt
+            ? new Date(w.createdAt).toISOString()
+            : null;
+        }
+
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { pieceCount: 0, wordCount: 0, tags: {} };
+        }
+        monthlyData[monthKey].pieceCount++;
+        monthlyData[monthKey].wordCount += wc;
+
+        const tags = (w.tags || []).filter(Boolean);
+        for (const tag of tags) {
+          if (!tagFrequency[tag])
+            tagFrequency[tag] = { count: 0, months: new Set() };
+          tagFrequency[tag].count++;
+          tagFrequency[tag].months.add(monthKey);
+
+          if (!monthlyData[monthKey].tags[tag])
+            monthlyData[monthKey].tags[tag] = 0;
+          monthlyData[monthKey].tags[tag]++;
+        }
+
+        for (let i = 0; i < tags.length; i++) {
+          for (let j = i + 1; j < tags.length; j++) {
+            const pairKey = [tags[i], tags[j]].sort().join("||");
+            if (!tagPairs[pairKey]) tagPairs[pairKey] = new Set();
+            tagPairs[pairKey].add(w.id);
+          }
+        }
+      }
+
+      const recurringThemes = Object.entries(tagFrequency)
+        .filter(([, v]) => v.count >= 1)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 12)
+        .map(([tag, v]) => ({
+          tag,
+          count: v.count,
+          months: Array.from(v.months),
+        }));
+
+      const tagClusters = Object.entries(tagPairs)
+        .filter(([, pieces]) => pieces.size >= 2)
+        .sort((a, b) => b[1].size - a[1].size)
+        .slice(0, 8)
+        .map(([pairKey, pieces]) => {
+          const tags = pairKey.split("||");
+          return {
+            tags,
+            pieceCount: pieces.size,
+            summary: `This cluster of themes appears together across ${pieces.size} of your pieces — a pattern worth noticing.`,
+          };
+        });
+
+      const revisitedDrafts = userWritings
+        .filter(
+          (w) =>
+            w.updatedAt &&
+            w.createdAt &&
+            new Date(w.updatedAt).getTime() - new Date(w.createdAt).getTime() >
+              60000,
+        )
+        .map((w) => {
+          const snapshots = 1;
+          const timeDiff =
+            w.updatedAt && w.createdAt
+              ? Math.floor(
+                  (new Date(w.updatedAt).getTime() -
+                    new Date(w.createdAt).getTime()) /
+                    (1000 * 60 * 60 * 24),
+                )
+              : 0;
+          return {
+            id: w.id,
+            title: w.title,
+            revisitCount: Math.max(1, Math.min(timeDiff, 50)),
+            lastUpdated: w.updatedAt
+              ? new Date(w.updatedAt).toISOString()
+              : new Date().toISOString(),
+          };
+        })
+        .sort((a, b) => b.revisitCount - a.revisitCount)
+        .slice(0, 10);
+
+      const monthlyReflection = Object.entries(monthlyData)
+        .sort((a, b) => {
+          const da = new Date(a[0]);
+          const db = new Date(b[0]);
+          return db.getTime() - da.getTime();
+        })
+        .slice(0, 12)
+        .map(([month, data]) => ({
+          month,
+          pieceCount: data.pieceCount,
+          wordCount: data.wordCount,
+          dominantTags: Object.entries(data.tags)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([tag]) => tag),
+        }));
+
+      const themeShifts = monthlyReflection.map((m) => ({
+        month: m.month,
+        tags: m.dominantTags,
+      }));
+
+      res.json({
+        recurringThemes,
+        themeShifts,
+        revisitedDrafts,
+        tagClusters,
+        writingTime: {
+          totalPieces: userWritings.length,
+          totalWords,
+          avgWordsPerPiece:
+            userWritings.length > 0
+              ? Math.round(totalWords / userWritings.length)
+              : 0,
+          oldestPiece,
+          monthsActive: monthsSet.size,
+        },
+        monthlyReflection,
+      });
+    } catch (error) {
+      console.error("Error fetching harvest data:", error);
+      res.status(500).json({ message: "Failed to fetch harvest data" });
+    }
+  });
+
+  app.get(
+    "/api/noticing-prompts/responses",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const responses = await storage.getNoticingResponses(userId);
+        res.json(responses);
+      } catch (error) {
+        console.error("Error fetching noticing responses:", error);
+        res.status(500).json({ message: "Failed to fetch noticing responses" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/noticing-prompts/respond",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const { promptNumber, content, stage } = req.body;
+        if (
+          typeof promptNumber !== "number" ||
+          promptNumber < 1 ||
+          promptNumber > 100
+        ) {
+          return res.status(400).json({ message: "Invalid prompt number" });
+        }
+        if (!content || typeof content !== "string") {
+          return res.status(400).json({ message: "Content is required" });
+        }
+        const stageValue = stage || "seed";
+        const firstLine =
+          content.split("\n")[0]?.trim().substring(0, 80) ||
+          `Art of Noticing #${promptNumber}`;
+        const title = firstLine || `Art of Noticing #${promptNumber}`;
+
+        const existing = await storage.getNoticingResponses(userId);
+        const existingResponse = existing.find(
+          (r) => r.promptNumber === promptNumber,
+        );
+
+        let writingId = existingResponse?.writingId || undefined;
+        if (writingId) {
+          await storage.updateWriting(writingId, userId, {
+            title,
+            content: `<p>${content.replace(/\n/g, "</p><p>")}</p>`,
+            stage: stageValue,
+          });
+        } else {
+          const writing = await storage.createWriting(userId, {
+            title,
+            content: `<p>${content.replace(/\n/g, "</p><p>")}</p>`,
+            stage: stageValue,
+            genre: "observation",
+            readiness: "raw_seed",
+            visibility: "personal",
+            tags: ["art-of-noticing", `prompt-${promptNumber}`],
+          });
+          writingId = writing.id;
+        }
+
+        const response = await storage.upsertNoticingResponse(
+          userId,
+          promptNumber,
+          content,
+          stageValue,
+          writingId,
+        );
+        res.json(response);
+      } catch (error) {
+        console.error("Error saving noticing response:", error);
+        res.status(500).json({ message: "Failed to save response" });
+      }
+    },
+  );
+
+  // === CIRCLES (Writing Groups) ===
+
+  // Create a circle
+  app.post("/api/circles", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const { name, description } = req.body;
+    if (!name?.trim())
+      return res.status(400).json({ message: "Name is required" });
+    const [circle] = await db
+      .insert(circles)
+      .values({
+        name: name.trim(),
+        description: description || "",
+        createdById: req.user!.id,
+      })
+      .returning();
+    // Auto-add creator as admin member
+    await db.insert(circleMembers).values({
+      circleId: circle.id,
+      userId: req.user!.id,
+      role: "admin",
+    });
+    res.json(circle);
+  });
+
+  // List user circles
+  app.get("/api/circles", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const memberships = await db
+      .select()
+      .from(circleMembers)
+      .where(eq(circleMembers.userId, req.user!.id));
+    const userCircles = [];
+    for (const m of memberships) {
+      const [circle] = await db
+        .select()
+        .from(circles)
+        .where(eq(circles.id, m.circleId));
+      if (circle) {
+        const members = await db
+          .select()
+          .from(circleMembers)
+          .where(eq(circleMembers.circleId, circle.id));
+        userCircles.push({
+          ...circle,
+          role: m.role,
+          memberCount: members.length,
+        });
+      }
+    }
+    res.json(userCircles);
+  });
+
+  // Get circle details with members and shared pieces
+  app.get("/api/circles/:id", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const [circle] = await db
+      .select()
+      .from(circles)
+      .where(eq(circles.id, req.params.id));
+    if (!circle) return res.status(404).json({ message: "Circle not found" });
+    const members = await db
+      .select()
+      .from(circleMembers)
+      .where(eq(circleMembers.circleId, circle.id));
+    const isMember = members.some((m) => m.userId === req.user!.id);
+    if (!isMember) return res.status(403).json({ message: "Not a member" });
+    const memberDetails = [];
+    for (const m of members) {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, m.userId));
+      if (user)
+        memberDetails.push({
+          ...m,
+          username: user.username,
+          displayName: user.displayName,
+        });
+    }
+    const sharedPieces = await db
+      .select()
+      .from(writings)
+      .where(eq(writings.circleId, circle.id));
+    res.json({ ...circle, members: memberDetails, pieces: sharedPieces });
+  });
+
+  // Add member to circle by username
+  app.post("/api/circles/:id/members", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const { username } = req.body;
+    const [circle] = await db
+      .select()
+      .from(circles)
+      .where(eq(circles.id, req.params.id));
+    if (!circle) return res.status(404).json({ message: "Circle not found" });
+    const members = await db
+      .select()
+      .from(circleMembers)
+      .where(eq(circleMembers.circleId, circle.id));
+    const callerMembership = members.find((m) => m.userId === req.user!.id);
+    if (!callerMembership || callerMembership.role !== "admin")
+      return res.status(403).json({ message: "Only admins can add members" });
+    const [targetUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
+    if (!targetUser) return res.status(404).json({ message: "User not found" });
+    const existing = members.find((m) => m.userId === targetUser.id);
+    if (existing) return res.status(400).json({ message: "Already a member" });
+    const [member] = await db
+      .insert(circleMembers)
+      .values({
+        circleId: circle.id,
+        userId: targetUser.id,
+      })
+      .returning();
+    res.json(member);
+  });
+
+  // Remove member from circle
+  app.delete("/api/circles/:id/members/:userId", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const [circle] = await db
+      .select()
+      .from(circles)
+      .where(eq(circles.id, req.params.id));
+    if (!circle) return res.status(404).json({ message: "Circle not found" });
+    const members = await db
+      .select()
+      .from(circleMembers)
+      .where(eq(circleMembers.circleId, circle.id));
+    const callerMembership = members.find((m) => m.userId === req.user!.id);
+    const isAdmin = callerMembership?.role === "admin";
+    const isSelf = req.params.userId === req.user!.id;
+    if (!isAdmin && !isSelf)
+      return res.status(403).json({ message: "Not authorized" });
+    await db
+      .delete(circleMembers)
+      .where(
+        and(
+          eq(circleMembers.circleId, circle.id),
+          eq(circleMembers.userId, req.params.userId),
+        ),
+      );
+    res.json({ success: true });
+  });
+
+  // Delete circle (creator only)
+  app.delete("/api/circles/:id", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const [circle] = await db
+      .select()
+      .from(circles)
+      .where(eq(circles.id, req.params.id));
+    if (!circle) return res.status(404).json({ message: "Circle not found" });
+    if (circle.createdById !== req.user!.id)
+      return res.status(403).json({ message: "Only the creator can delete" });
+    await db.delete(circleMembers).where(eq(circleMembers.circleId, circle.id));
+    await db
+      .update(writings)
+      .set({ circleId: null })
+      .where(eq(writings.circleId, circle.id));
+    await db.delete(circles).where(eq(circles.id, circle.id));
+    res.json({ success: true });
+  });
+
+  // Update writing visibility
+  app.patch("/api/writings/:id/visibility", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const { visibility } = req.body;
+    if (!["personal", "circle", "public"].includes(visibility))
+      return res.status(400).json({ message: "Invalid visibility" });
+    const [writing] = await db
+      .select()
+      .from(writings)
+      .where(eq(writings.id, req.params.id));
+    if (!writing || writing.authorId !== req.user!.id)
+      return res.status(403).json({ message: "Not authorized" });
+    const [updated] = await db
+      .update(writings)
+      .set({ visibility })
+      .where(eq(writings.id, req.params.id))
+      .returning();
+    res.json(updated);
+  });
+
+  // Share writing to a circle
+  app.patch("/api/writings/:id/circle", async (req, res) => {
+    if (!req.isAuthenticated())
+      return res.status(401).json({ message: "Not authenticated" });
+    const { circleId: cId } = req.body;
+    const [writing] = await db
+      .select()
+      .from(writings)
+      .where(eq(writings.id, req.params.id));
+    if (!writing || writing.authorId !== req.user!.id)
+      return res.status(403).json({ message: "Not authorized" });
+    if (cId) {
+      const members = await db
+        .select()
+        .from(circleMembers)
+        .where(eq(circleMembers.circleId, cId));
+      if (!members.some((m) => m.userId === req.user!.id))
+        return res.status(403).json({ message: "Not a member of this circle" });
+    }
+    const [updated] = await db
+      .update(writings)
+      .set({ circleId: cId || null, visibility: cId ? "circle" : "personal" })
+      .where(eq(writings.id, req.params.id))
+      .returning();
+    res.json(updated);
+  });
+
+  // === PROMPTS MANAGEMENT ===
+
+  app.post("/api/editor/prompts", isEditor, async (req, res) => {
+    try {
+      const { text, category } = req.body;
+      if (!text || typeof text !== "string")
+        return res.status(400).json({ message: "Prompt text is required" });
+      const [created] = await db
+        .insert(promptsTable)
+        .values({ text: text.trim(), category: category || "freewrite" })
+        .returning();
+      res.json(created);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create prompt" });
+    }
+  });
+
+  app.put("/api/editor/prompts/:id", isEditor, async (req, res) => {
+    try {
+      const { text, category } = req.body;
+      if (!text || typeof text !== "string")
+        return res.status(400).json({ message: "Prompt text is required" });
+      const [updated] = await db
+        .update(promptsTable)
+        .set({ text: text.trim(), category: category || "freewrite" })
+        .where(eq(promptsTable.id, req.params.id))
+        .returning();
+      if (!updated)
+        return res.status(404).json({ message: "Prompt not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update prompt" });
+    }
+  });
+
+  app.delete("/api/editor/prompts/:id", isEditor, async (req, res) => {
+    try {
+      const [deleted] = await db
+        .delete(promptsTable)
+        .where(eq(promptsTable.id, req.params.id))
+        .returning();
+      if (!deleted)
+        return res.status(404).json({ message: "Prompt not found" });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete prompt" });
+    }
+  });
+
+  // === SITE CONTENT CMS ===
+
+  app.get("/api/site-content", isEditor, async (_req, res) => {
+    try {
+      const all = await storage.getAllSiteContent();
+      res.json(all);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch site content" });
+    }
+  });
+
+  app.get("/api/site-content/:pageKey", async (req, res) => {
+    try {
+      const rows = await storage.getSiteContentByPage(req.params.pageKey);
+      res.json(rows);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch site content" });
+    }
+  });
+
+  app.put("/api/site-content/:id", isEditor, async (req, res) => {
+    try {
+      const { content } = req.body;
+      if (typeof content !== "string")
+        return res.status(400).json({ message: "Content is required" });
+      const userId =
+        req.user?.claims?.sub || (req.session as any)?.user?.claims?.sub;
+      const updated = await storage.updateSiteContent(
+        req.params.id,
+        content,
+        userId,
+      );
+      if (!updated)
+        return res.status(404).json({ message: "Content not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update site content" });
+    }
+  });
+
+  app.post("/api/site-content", isEditor, async (req, res) => {
+    try {
+      const parsed = insertSiteContentSchema.parse(req.body);
+      const created = await storage.createSiteContent(parsed);
+      res.json(created);
+    } catch (err: any) {
+      if (err?.code === "23505")
+        return res
+          .status(409)
+          .json({ message: "Content for this page/section already exists" });
+      res.status(400).json({ message: err?.message || "Invalid data" });
+    }
+  });
+
+  app.delete("/api/site-content/:id", isEditorInChief, async (req, res) => {
+    try {
+      const deleted = await storage.deleteSiteContent(req.params.id);
+      if (!deleted)
+        return res.status(404).json({ message: "Content not found" });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete site content" });
+    }
+  });
+
+  app.get("/api/admin/user-count", async (_req, res) => {
+    try {
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users);
+      res.json({ count: Number(result[0].count) });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch user count" });
+    }
+  });
+
+  app.get("/api/admin/user-list", async (_req, res) => {
+    try {
+      const result = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          createdAt: users.createdAt,
+        })
+        .from(users)
+        .orderBy(sql`${users.createdAt} DESC`);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch user list" });
+    }
+  });
+
+  app.get("/api/admin/user-activity", async (_req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          u.id,
+          u.first_name,
+          u.last_name,
+          u.email,
+          u.role,
+          u.tier,
+          u.created_at,
+          COALESCE(w.writing_count, 0) AS writing_count,
+          COALESCE(w.published_count, 0) AS published_count,
+          w.stages_used,
+          w.genres_used,
+          COALESCE(iw.inner_weather_count, 0) AS inner_weather_count,
+          COALESCE(ce.compost_count, 0) AS compost_count,
+          COALESCE(tt.topic_count, 0) AS topic_count,
+          COALESCE(gh.greenhouse_count, 0) AS greenhouse_count,
+          (
+            COALESCE(w.writing_count, 0) +
+            COALESCE(iw.inner_weather_count, 0) +
+            COALESCE(ce.compost_count, 0) +
+            COALESCE(tt.topic_count, 0) +
+            COALESCE(gh.greenhouse_count, 0)
+          ) AS total_actions
+        FROM users u
+        LEFT JOIN (
+          SELECT author_id,
+            COUNT(*) AS writing_count,
+            COUNT(*) FILTER (WHERE is_published) AS published_count,
+            array_agg(DISTINCT stage) FILTER (WHERE stage IS NOT NULL) AS stages_used,
+            array_agg(DISTINCT genre) FILTER (WHERE genre IS NOT NULL) AS genres_used
+          FROM writings GROUP BY author_id
+        ) w ON w.author_id = u.id
+        LEFT JOIN (
+          SELECT user_id, COUNT(*) AS inner_weather_count
+          FROM inner_weather GROUP BY user_id
+        ) iw ON iw.user_id = u.id
+        LEFT JOIN (
+          SELECT user_id, COUNT(*) AS compost_count
+          FROM compost_entries GROUP BY user_id
+        ) ce ON ce.user_id = u.id
+        LEFT JOIN (
+          SELECT author_id, COUNT(*) AS topic_count
+          FROM table_topics GROUP BY author_id
+        ) tt ON tt.author_id = u.id
+        LEFT JOIN (
+          SELECT editor_id, COUNT(*) AS greenhouse_count
+          FROM greenhouse_entries GROUP BY editor_id
+        ) gh ON gh.editor_id = u.id
+        ORDER BY total_actions DESC, u.created_at DESC
+      `);
+      res.json(result.rows);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch user activity" });
+    }
+  });
+
+  // ── Appreciations ──
+  app.post(
+    "/api/appreciations/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writingId = req.params.writingId;
+        const existing = await db
+          .select()
+          .from(appreciations)
+          .where(
+            and(
+              eq(appreciations.userId, userId),
+              eq(appreciations.writingId, writingId),
+            ),
+          )
+          .limit(1);
+        if (existing.length > 0) {
+          await db
+            .delete(appreciations)
+            .where(
+              and(
+                eq(appreciations.userId, userId),
+                eq(appreciations.writingId, writingId),
+              ),
+            );
+          return res.json({ appreciated: false });
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayCount = await db.execute(sql`
+        SELECT COUNT(*) as total FROM appreciations
+        WHERE user_id = ${userId} AND created_at >= ${today}
+      `);
+        if (Number(todayCount.rows[0]?.total || 0) >= 5) {
+          return res
+            .status(429)
+            .json({
+              message:
+                "You've shared 5 admires today — save the rest for tomorrow",
+              capped: true,
+            });
+        }
+        await db.insert(appreciations).values({ userId, writingId });
+        res.json({ appreciated: true });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to toggle appreciation" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/appreciations/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writingId = req.params.writingId;
+        const [countResult] = await db
+          .select({ value: count() })
+          .from(appreciations)
+          .where(eq(appreciations.writingId, writingId));
+        const mine = await db
+          .select()
+          .from(appreciations)
+          .where(
+            and(
+              eq(appreciations.userId, userId),
+              eq(appreciations.writingId, writingId),
+            ),
+          )
+          .limit(1);
+        res.json({
+          count: countResult?.value || 0,
+          appreciated: mine.length > 0,
+        });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch appreciation" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/appreciations/my-count",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const result = await db.execute(sql`
+        SELECT COUNT(*) as total FROM appreciations a
+        JOIN writings w ON a.writing_id = w.id
+        WHERE w.author_id = ${userId}
+      `);
+        res.json({ count: Number(result.rows[0]?.total || 0) });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch appreciation count" });
+      }
+    },
+  );
+
+  // ── Letters to the Work ──
+  app.get("/api/letters/:writingId", isAuthenticated, async (req: any, res) => {
+    try {
+      const writingId = req.params.writingId;
+      const result = await db.execute(sql`
+        SELECT l.id, l.content, l.created_at as "createdAt",
+               u.display_name as "authorName", u.id as "authorId"
+        FROM letters l
+        JOIN users u ON l.user_id = u.id
+        WHERE l.writing_id = ${writingId}
+        ORDER BY l.created_at ASC
+      `);
+      res.json(result.rows);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch letters" });
+    }
+  });
+
+  app.post(
+    "/api/letters/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writingId = req.params.writingId;
+        const parsed = insertLetterSchema.safeParse({
+          writingId,
+          content: req.body?.content,
+        });
+        if (!parsed.success) {
+          return res.status(400).json({ message: "Letter cannot be empty" });
+        }
+        const [letter] = await db
+          .insert(letters)
+          .values({ userId, writingId, content: parsed.data.content.trim() })
+          .returning();
+        res.json(letter);
+      } catch (err) {
+        res.status(500).json({ message: "Failed to send letter" });
+      }
+    },
+  );
+
+  // ── Bookshelf (uses savedPieces) ──
+  app.get("/api/bookshelf", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const result = await db.execute(sql`
+        SELECT sp.id, sp.writing_id as "writingId", sp.saved_at as "savedAt",
+               w.title, w.content, w.genre, w.author_id as "authorId",
+               u.display_name as "authorName"
+        FROM saved_pieces sp
+        JOIN writings w ON sp.writing_id = w.id
+        JOIN users u ON w.author_id = u.id
+        WHERE sp.user_id = ${userId}
+        ORDER BY sp.saved_at DESC
+      `);
+      res.json(result.rows);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch bookshelf" });
+    }
+  });
+
+  app.post(
+    "/api/bookshelf/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writingId = req.params.writingId;
+        const existing = await db.execute(sql`
+        SELECT id FROM saved_pieces WHERE user_id = ${userId} AND writing_id = ${writingId} LIMIT 1
+      `);
+        if (existing.rows.length > 0) {
+          await db.execute(
+            sql`DELETE FROM saved_pieces WHERE user_id = ${userId} AND writing_id = ${writingId}`,
+          );
+          return res.json({ kept: false });
+        }
+        await db.execute(
+          sql`INSERT INTO saved_pieces (id, user_id, writing_id) VALUES (gen_random_uuid(), ${userId}, ${writingId})`,
+        );
+        res.json({ kept: true });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to toggle bookshelf" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/bookshelf/check/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writingId = req.params.writingId;
+        const existing = await db.execute(sql`
+        SELECT id FROM saved_pieces WHERE user_id = ${userId} AND writing_id = ${writingId} LIMIT 1
+      `);
+        res.json({ kept: existing.rows.length > 0 });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to check bookshelf" });
+      }
+    },
+  );
+
+  // ── Admire (5/day cap + admirers list) ──
+  app.get(
+    "/api/admires/today-count",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const result = await db.execute(sql`
+        SELECT COUNT(*) as total FROM appreciations
+        WHERE user_id = ${userId} AND created_at >= ${today}
+      `);
+        res.json({ count: Number(result.rows[0]?.total || 0) });
+      } catch (err) {
+        res
+          .status(500)
+          .json({ message: "Failed to fetch today's admire count" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/writings/:id/admirers",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Not authorized" });
+        const result = await db.execute(sql`
+        SELECT u.first_name as name, a.created_at as "createdAt"
+        FROM appreciations a
+        JOIN users u ON a.user_id = u.id
+        WHERE a.writing_id = ${req.params.id}
+        ORDER BY a.created_at DESC
+      `);
+        res.json(result.rows);
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch admirers" });
+      }
+    },
+  );
+
+  // ── Tended (monthly count for author) ──
+  app.get(
+    "/api/writings/:id/tended-count",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Not authorized" });
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        monthStart.setHours(0, 0, 0, 0);
+        const result = await db.execute(sql`
+        SELECT COUNT(*) as total FROM resonances
+        WHERE writing_id = ${req.params.id} AND type = 'tended'
+        AND created_at >= ${monthStart}
+      `);
+        res.json({ count: Number(result.rows[0]?.total || 0) });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch tended count" });
+      }
+    },
+  );
+
+  // ── Echo ──
+  app.post("/api/echoes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { writingId, echoedLine } = req.body;
+      if (!writingId || !echoedLine)
+        return res
+          .status(400)
+          .json({ message: "writingId and echoedLine required" });
+      const writing = await storage.getWriting(writingId);
+      if (!writing)
+        return res.status(404).json({ message: "Writing not found" });
+      if (writing.authorId === userId)
+        return res.status(400).json({ message: "Cannot echo your own work" });
+      const newWriting = await storage.createWriting(userId, {
+        title: "Echoed Fragment",
+        content: `<blockquote><em>${echoedLine}</em></blockquote>`,
+        genre: writing.genre || "fragment",
+        visibility: "personal",
+        readiness: "raw_seed",
+        tags: ["echo"],
+      });
+      const [echo] = await db
+        .insert(echoes)
+        .values({
+          userId,
+          writingId,
+          echoedLine,
+          createdWritingId: newWriting.id,
+        })
+        .returning();
+      res.status(201).json(echo);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create echo" });
+    }
+  });
+
+  app.get(
+    "/api/writings/:id/echo-count",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Not authorized" });
+        const result = await db.execute(sql`
+        SELECT COUNT(*) as total FROM echoes WHERE writing_id = ${req.params.id}
+      `);
+        const lineResults = await db.execute(sql`
+        SELECT echoed_line as "echoedLine", COUNT(*) as count
+        FROM echoes WHERE writing_id = ${req.params.id}
+        GROUP BY echoed_line ORDER BY count DESC LIMIT 5
+      `);
+        res.json({
+          totalEchoes: Number(result.rows[0]?.total || 0),
+          lines: lineResults.rows.map((r: any) => ({
+            line: r.echoedLine,
+            count: Number(r.count),
+          })),
+        });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch echo count" });
+      }
+    },
+  );
+
+  // ── Gentle Reactions (author-only view) ──
+  app.get(
+    "/api/writings/:id/gentle-reactions",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Not authorized" });
+        const result = await db.execute(sql`
+        SELECT type, COUNT(*) as count FROM resonances
+        WHERE writing_id = ${req.params.id} AND type IN ('spark', 'fog', 'seedling')
+        GROUP BY type
+      `);
+        const reactions: Record<string, number> = {};
+        for (const row of result.rows as any[]) {
+          reactions[row.type] = Number(row.count);
+        }
+        res.json(reactions);
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch gentle reactions" });
+      }
+    },
+  );
+
+  // ── Whisper ("What stayed with you?") ──
+  app.post(
+    "/api/whispers/:writingId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writingId = req.params.writingId;
+        const { content } = req.body;
+        if (!content || content.length > 280)
+          return res
+            .status(400)
+            .json({ message: "Content required (max 280 chars)" });
+        const writing = await storage.getWriting(writingId);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId === userId)
+          return res
+            .status(400)
+            .json({ message: "Cannot whisper to your own work" });
+        const [whisper] = await db
+          .insert(whispers)
+          .values({
+            fromUserId: userId,
+            writingId,
+            content,
+          })
+          .returning();
+        await storage.createNotification(writing.authorId, {
+          type: "whisper",
+          actorId: userId,
+          writingId,
+          message: `whispered about "${writing.title || "Untitled"}"`,
+        });
+        res.status(201).json(whisper);
+      } catch (err) {
+        res.status(500).json({ message: "Failed to send whisper" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/writings/:id/whisper-messages",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Not authorized" });
+        const result = await db.execute(sql`
+        SELECT w.content, w.created_at as "createdAt", u.first_name as "fromName"
+        FROM whispers w
+        JOIN users u ON w.from_user_id = u.id
+        WHERE w.writing_id = ${req.params.id}
+        ORDER BY w.created_at DESC
+      `);
+        res.json(result.rows);
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch whispers" });
+      }
+    },
+  );
+
+  // ── Save to Re-Read count (author only) ──
+  app.get(
+    "/api/writings/:id/save-count",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const writing = await storage.getWriting(req.params.id);
+        if (!writing)
+          return res.status(404).json({ message: "Writing not found" });
+        if (writing.authorId !== userId)
+          return res.status(403).json({ message: "Not authorized" });
+        const result = await db.execute(sql`
+        SELECT COUNT(*) as total FROM saved_pieces WHERE writing_id = ${req.params.id}
+      `);
+        res.json({ count: Number(result.rows[0]?.total || 0) });
+      } catch (err) {
+        res.status(500).json({ message: "Failed to fetch save count" });
+      }
+    },
+  );
+
+  app.post("/api/contact-messages", async (req: any, res) => {
+    try {
+      const parsed = insertContactMessageSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res
+          .status(400)
+          .json({ message: "Please fill in all fields correctly" });
+      }
+      const msg = await storage.createContactMessage(parsed.data);
+      res.json({ id: msg.id });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  app.post("/api/conversations", async (req: any, res) => {
+    try {
+      const { userName, userEmail, subject, message } = req.body;
+      if (
+        !userName?.trim() ||
+        !userEmail?.trim() ||
+        !subject?.trim() ||
+        !message?.trim()
+      ) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+      const conv = await storage.createConversation({
+        userName: userName.trim(),
+        userEmail: userEmail.trim(),
+        subject: subject.trim(),
+        status: "open",
+      });
+      await storage.addChatMessage({
+        conversationId: conv.id,
+        senderName: userName.trim(),
+        senderEmail: userEmail.trim(),
+        senderRole: "user",
+        message: message.trim(),
+      });
+      res.json(conv);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to start conversation" });
+    }
+  });
+
+  app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
+    try {
+      const convs = await storage.getConversations();
+      res.json(convs);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/conversations/:id", async (req: any, res) => {
+    try {
+      const conv = await storage.getConversation(req.params.id);
+      if (!conv)
+        return res.status(404).json({ message: "Conversation not found" });
+      res.json(conv);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch conversation" });
+    }
+  });
+
+  app.patch(
+    "/api/conversations/:id/status",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { status } = req.body;
+        if (!["open", "closed"].includes(status))
+          return res.status(400).json({ message: "Invalid status" });
+        const conv = await storage.updateConversationStatus(
+          req.params.id,
+          status,
+        );
+        if (!conv)
+          return res.status(404).json({ message: "Conversation not found" });
+        res.json(conv);
+      } catch (err) {
+        res.status(500).json({ message: "Failed to update status" });
+      }
+    },
+  );
+
+  app.get("/api/conversations/:id/messages", async (req: any, res) => {
+    try {
+      const msgs = await storage.getChatMessages(req.params.id);
+      res.json(msgs);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/conversations/:id/messages", async (req: any, res) => {
+    try {
+      const conv = await storage.getConversation(req.params.id);
+      if (!conv)
+        return res.status(404).json({ message: "Conversation not found" });
+      if (conv.status === "closed")
+        return res.status(400).json({ message: "This conversation is closed" });
+      const { senderName, senderEmail, senderRole, message } = req.body;
+      if (!senderName?.trim() || !message?.trim())
+        return res
+          .status(400)
+          .json({ message: "Name and message are required" });
+
+      let resolvedRole = "user";
+      if (senderRole === "editor") {
+        if (!req.user?.claims?.sub)
+          return res
+            .status(401)
+            .json({ message: "Authentication required to send as editor" });
+        const editorUser = await storage.getUser(req.user.claims.sub);
+        if (
+          !editorUser ||
+          !["editor", "editor_in_chief"].includes(editorUser.role || "")
+        ) {
+          return res.status(403).json({ message: "Editor role required" });
+        }
+        resolvedRole = "editor";
+      }
+
+      const msg = await storage.addChatMessage({
+        conversationId: req.params.id,
+        senderName: senderName.trim(),
+        senderEmail: (senderEmail || "").trim(),
+        senderRole: resolvedRole,
+        message: message.trim(),
+      });
+      res.json(msg);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // ===== Mind Walks =====
+  // Mind Walks - editor-initiated themed collections
+  app.get("/api/mind-walks", async (req, res) => {
+    const walks = await storage.getMindWalkThemes();
+    res.json(walks);
+  });
+
+  app.get("/api/mind-walks/open", async (req, res) => {
+    const walks = await storage.getOpenMindWalkThemes();
+    res.json(walks);
+  });
+
+  app.get("/api/mind-walks/:slug", async (req, res) => {
+    const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
+    if (!walk) return res.status(404).json({ error: "Walk not found" });
+    const fragments = await storage.getFragmentsByWalkId(walk.id);
+    res.json({ ...walk, fragments });
+  });
+
+  app.post("/api/mind-walks", async (req, res) => {
+    const { theme, prompt, editorId, editorName, durationDays } = req.body;
+    const slug = theme
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const closesAt = new Date();
+    closesAt.setDate(closesAt.getDate() + (durationDays || 7));
+    const walk = await storage.createMindWalkTheme({
+      theme,
+      prompt,
+      editorId,
+      editorName,
+      slug,
+      closesAt,
+    });
+    res.json(walk);
+  });
+
+  app.post("/api/mind-walks/:slug/fragments", async (req, res) => {
+    const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
+    if (!walk) return res.status(404).json({ error: "Walk not found" });
+    if (walk.status !== "open")
+      return res.status(400).json({ error: "Walk is closed" });
+    const { authorName, authorEmail, content } = req.body;
+    const fragment = await storage.createMindWalkFragment({
+      walkId: walk.id,
+      authorName,
+      authorEmail,
+      content,
+    });
+    res.json(fragment);
+  });
+
+  app.patch("/api/mind-walks/:slug/close", async (req, res) => {
+    const walk = await storage.closeMindWalkTheme(req.params.slug);
+    if (!walk) return res.status(404).json({ error: "Walk not found" });
+    res.json(walk);
+  });
+
+
+  // === MIND WALKS FRAGMENT MANAGEMENT ===
+  app.get("/api/mind-walks/:slug/fragments", async (req, res) => {
+    try {
+      const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
+      if (!walk) return res.status(404).json({ error: "Walk not found" });
+      const fragments = await storage.getFragmentsByWalkId(walk.id);
+      res.json(fragments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch fragments" });
+    }
+  });
+
+  app.patch("/api/mind-walks/fragments/:id", async (req: any, res) => {
+    try {
+      const { content } = req.body;
+      const updated = await storage.updateMindWalkFragment(req.params.id, content);
+      if (!updated) return res.status(404).json({ error: "Fragment not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update fragment" });
+    }
+  });
+
+  app.delete("/api/mind-walks/fragments/:id", async (req: any, res) => {
+    try {
+      await storage.deleteMindWalkFragment(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete fragment" });
+    }
+  });
+
+  app.patch("/api/mind-walks/:slug/theme", async (req: any, res) => {
+    try {
+      const updates: any = {};
+      if (req.body.theme) updates.theme = req.body.theme;
+      if (req.body.prompt) updates.prompt = req.body.prompt;
+      const updated = await storage.updateMindWalkTheme(req.params.slug, updates);
+      if (!updated) return res.status(404).json({ error: "Walk not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update walk" });
+    }
+  });
+
+  // === EDITOR BIO MANAGEMENT ===
+  app.get("/api/admin/users", async (req: any, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      res.json(allUsers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.patch("/api/admin/users/:userId/bio", async (req: any, res) => {
+    try {
+      const { bio } = req.body;
+      const user = await storage.updateUserBio(req.params.userId, bio);
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update bio" });
+    }
+  });
+
+  // === MIND WALKS GET API ===
+  app.get("/api/mind-walks", async (req, res) => {
+    try {
+      const themes = await storage.getMindWalkThemes();
+      res.json(themes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch mind walks" });
     }
   });
 

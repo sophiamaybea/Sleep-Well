@@ -4,25 +4,39 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { db } from "./db";
+import { db, runMigrations } from "./db";
 import { exhibits } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import {
+  seedSiteContent,
+  reseedSiteContent,
+  seedWelcomeNotifications,
+} from "./seedContent";
 
 const app = express();
 const httpServer = createServer(app);
-// Security headers
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false,
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: false,
+    frameguard: false,
+  }),
+);
 
 // Rate limiting for API routes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,
+  max: 2000,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many requests, please try again in a few minutes." },
+  handler: (_req: any, res: any) => {
+    res.status(429).json({
+      message: "You're moving fast! Please wait a moment before trying again.",
+      retryAfter: 30,
+    });
+  },
 });
 
 // Rate limit for auth routes - 30 attempts per 5 minutes
@@ -31,7 +45,12 @@ const authLimiter = rateLimit({
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many authentication attempts. Please wait a few minutes before trying again." },
+  handler: (_req: any, res: any) => {
+    res.status(429).json({
+      message: "Too many sign-in attempts. Please wait before trying again.",
+      retryAfter: 60,
+    });
+  },
 });
 
 app.use("/api", apiLimiter);
@@ -81,7 +100,8 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        const jsonStr = JSON.stringify(capturedJsonResponse);
+        logLine += ` :: ${jsonStr.length > 200 ? jsonStr.slice(0, 200) + "..." : jsonStr}`;
       }
 
       log(logLine);
@@ -89,6 +109,22 @@ app.use((req, res, next) => {
   });
 
   next();
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+});
+process.on("SIGTERM", () => {
+  console.error("SIGTERM received");
+});
+process.on("SIGINT", () => {
+  console.error("SIGINT received");
+});
+process.on("SIGHUP", () => {
+  console.error("SIGHUP received");
 });
 
 (async () => {
@@ -118,7 +154,10 @@ app.use((req, res, next) => {
   }
 
   async function seedExhibits() {
-    const existing = await db.select().from(exhibits).where(eq(exhibits.slug, "metaphor-as-migration"));
+    const existing = await db
+      .select()
+      .from(exhibits)
+      .where(eq(exhibits.slug, "metaphor-as-migration"));
     if (existing.length === 0) {
       await db.insert(exhibits).values({
         title: "Metaphor as Migration",
@@ -130,7 +169,16 @@ app.use((req, res, next) => {
       log("Seeded exhibit: Metaphor as Migration");
     }
   }
-  await seedExhibits().catch(err => console.error("Seed exhibits failed:", err));
+  await runMigrations().catch((err) => console.error("Migration failed:", err));
+  await seedExhibits().catch((err) =>
+    console.error("Seed exhibits failed:", err),
+  );
+  await seedSiteContent().catch((err) =>
+    console.error("Seed site content failed:", err),
+  );
+  await seedWelcomeNotifications().catch((err) =>
+    console.error("Seed notifications failed:", err),
+  );
 
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
