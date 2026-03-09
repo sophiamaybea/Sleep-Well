@@ -1520,28 +1520,6 @@ export interface IStorage {
   deleteMindWalkFragment(id: string): Promise<void>;
   updateMindWalkTheme(slug: string, updates: { theme?: string; prompt?: string }): Promise<MindWalkTheme | undefined>;
 
-  async updateMindWalkFragment(id: string, content: string) {
-    const [updated] = await db
-      .update(mindWalkFragments)
-      .set({ content })
-      .where(eq(mindWalkFragments.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteMindWalkFragment(id: string) {
-    await db.delete(mindWalkFragments).where(eq(mindWalkFragments.id, id));
-  }
-
-  async updateMindWalkTheme(slug: string, updates: { theme?: string; prompt?: string }) {
-    const [updated] = await db
-      .update(mindWalkThemes)
-      .set(updates)
-      .where(eq(mindWalkThemes.slug, slug))
-      .returning();
-    return updated;
-  }
-
   // Bio management
   updateUserBio(userId: string, bio: string): Promise<any>;
   getAllUsers(): Promise<any[]>;
