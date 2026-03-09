@@ -1,4 +1,4 @@
-import { sql } from "drizzle-oenrm";
+import { sql } from "drizzle-orm";
 import { boolean, index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
 // Session storage table.
