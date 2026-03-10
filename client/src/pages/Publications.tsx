@@ -13,43 +13,11 @@ interface Publication {
   buyLink?: string;
 }
 
-const currentIssues: Publication[] = [
-  {
-    title: "Issue One: Margins",
-    type: "Print Edition",
-    description: "Our inaugural issue explores the edges — of pages, of places, of what we're allowed to say. Featuring poetry, short fiction, and visual art from twelve emerging voices.",
-    coverColor: "from-amber-900/30 to-emerald-900/20",
-    status: "available",
-    buyLink: "#",
-  },
-  {
-    title: "Issue Two: Undergrowth",
-    type: "Print Edition",
-    description: "What grows beneath the surface? Prose and poetry that excavates the hidden, the buried, the deliberately forgotten. Ten writers unearth what lies below.",
-    coverColor: "from-emerald-900/30 to-teal-900/20",
-    status: "available",
-    buyLink: "#",
-  },
-];
+const currentIssues: Publication[] = [];
 
-const pastIssues: Publication[] = [
-  {
-    title: "Seed Chapbook: First Light",
-    type: "Limited Chapbook",
-    description: "A hand-stitched chapbook from our earliest garden. Five poets, twenty pages, one hundred copies.",
-    coverColor: "from-violet-900/20 to-indigo-900/20",
-    status: "out_of_print",
-  },
-];
+const pastIssues: Publication[] = [];
 
-const friends = [
-  { name: "Granta", description: "The magazine of new writing — literary journalism, memoir, fiction, and poetry from around the world.", link: "#" },
-  { name: "The White Review", description: "A quarterly arts and literature magazine publishing new fiction, poetry, interviews, essays, and visual art.", link: "#" },
-  { name: "Poetry London", description: "One of the UK's leading poetry magazines, publishing new poems and incisive reviews three times a year.", link: "#" },
-  { name: "Prototype", description: "An independent publisher committed to innovative forms of fiction, poetry, and creative non-fiction.", link: "#" },
-  { name: "Fitzcarraldo Editions", description: "An independent publisher specialising in long-form essay and literary fiction in translation.", link: "#" },
-  { name: "Cipher Press", description: "An independent publisher of boundary-pushing queer and feminist fiction and non-fiction.", link: "#" },
-];
+const friends = [];
 
 export default function Publications() {
   return (
