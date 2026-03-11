@@ -34,6 +34,11 @@ const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
+// V2 Redesign pages
+const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
+const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
+const V2Community = lazy(() => import("@/pages/V2Community"));
+
 function PageLoader() {
   return (
     <div
@@ -56,6 +61,10 @@ function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
+                  {/* V2 Redesign routes — live alongside existing pages */}
+          <Route path="/v2" component={V2Dashboard} />
+          <Route path="/v2/reading-room" component={V2ReadingRoom} />
+          <Route path="/v2/community" component={V2Community} />
         <Route path="/sign-in" component={SignIn} />
         <Route path="/garden" component={Garden} />
         <Route path="/garden/:username" component={PublicGarden} />
