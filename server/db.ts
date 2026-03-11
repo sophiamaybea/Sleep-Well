@@ -125,6 +125,12 @@ export async function runMigrations() {
       ALTER TABLE writings ADD COLUMN IF NOT EXISTS circle_id varchar REFERENCES circles(id);
     `);
     await pool.query(`
+      ALTER TABLE circles ADD COLUMN IF NOT EXISTS theme text;
+    `);
+    await pool.query(`
+      ALTER TABLE circles ADD COLUMN IF NOT EXISTS max_members integer NOT NULL DEFAULT 5;
+    `);
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS site_content (
         id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
         page_key text NOT NULL,
