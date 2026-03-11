@@ -65,6 +65,9 @@ export async function runMigrations() {
     await pool.query(`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_onboarding boolean NOT NULL DEFAULT false;
     `);
+      await pool.query(`
+            ALTER TABLE writings ADD COLUMN IF NOT EXISTS marginalia_visibility text NOT NULL DEFAULT 'public';
+              `);
     await pool.query(`
       ALTER TABLE writings ADD COLUMN IF NOT EXISTS gallery_opt_in boolean NOT NULL DEFAULT false;
     `);
