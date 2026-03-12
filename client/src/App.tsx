@@ -31,6 +31,9 @@ const EditProfile = lazy(() => import("@/pages/EditProfile"));
 const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
+const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
+const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
+const V2Community = lazy(() => import("@/pages/V2Community"));
 
 function PageLoader() {
   return (
@@ -76,6 +79,9 @@ function Router() {
         <Route path="/garden-guide" component={GardenGuide} />
         <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
+                    <Route path="/v2" component={V2Dashboard} />
+            <Route path="/v2/reading-room" component={V2ReadingRoom} />
+            <Route path="/v2/community" component={V2Community} />
         <Route path="/" component={Home} />
                             <Route component={NotFound} />
       </Switch>
