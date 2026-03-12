@@ -1,14 +1,14 @@
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
-CACHE_BUST = "v8-with-start"
+CACHE_BUST = "v9-devdeps"
 
 providers = ['node']
 
 [phases.install]
-cmds = ['npm install']
+cmds = ['npm install --include=dev']
 
 [phases.build]
-cmds = ['echo CACHE_BUST_V8 && rm -rf dist node_modules/.vite && npm run build']
+cmds = ['echo CACHE_BUST_V9 && rm -rf dist node_modules/.vite && npm run build']
 
 [start]
 cmd = 'npm run start'
