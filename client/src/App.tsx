@@ -79,6 +79,7 @@ function Router() {
         <Route path="/garden-guide" component={GardenGuide} />
         <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
+                    <Route path="/build-test-v3">{() => <div style={{color:'white',padding:'2rem',background:'#000'}}>BUILD TEST V3 - {new Date().toISOString()}</div>}</Route>
                     <Route path="/v2" component={V2Dashboard} />
             <Route path="/v2/reading-room" component={V2ReadingRoom} />
             <Route path="/v2/community" component={V2Community} />
