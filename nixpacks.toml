@@ -1,6 +1,6 @@
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
-CACHE_BUST = "v2-deploy-fix"
+CACHE_BUST = "esm-fix-v1"
 
 [phases.install]
 cmds = ['npm install --include=dev']
