@@ -6,4 +6,4 @@ NPM_CONFIG_LEGACY_PEER_DEPS = "true"
 cmds = ['npm install']
 
 [phases.build]
-    cmds = ['rm -rf dist node_modules/.vite && npm run build']
+        cmds = ['echo CACHE_BUST_V6 && rm -rf dist node_modules/.vite && npm run build']
