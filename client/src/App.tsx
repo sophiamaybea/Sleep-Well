@@ -19,7 +19,6 @@ const InBloom = lazy(() => import("@/pages/Gallery"));
 const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
 const EICDashboard = lazy(() => import("@/pages/EICDashboard"));
-const MindWalks = lazy(() => import("@/pages/MindWalks"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
@@ -28,22 +27,16 @@ const Commons = lazy(() => import("@/pages/Commons"));
 const HowItWorks = lazy(() => import("@/pages/HowItWorks"));
 const GardenInfo = lazy(() => import("@/pages/GardenInfo"));
 const FieldGuide = lazy(() => import("@/pages/FieldGuide"));
-const Greenhouse = lazy(() => import("@/pages/Nursery"));
 const EditProfile = lazy(() => import("@/pages/EditProfile"));
 const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
-// V2 Redesign pages
-const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
-const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
-const V2Community = lazy(() => import("@/pages/V2Community"));
-
 function PageLoader() {
   return (
     <div
       className="min-h-screen flex items-center justify-center"
-      style={{ backgroundColor: "#060d06" }}
+                      style={{ backgroundColor: "#060d06" }}
     >
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-10 h-10">
@@ -61,11 +54,6 @@ function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
-                  {/* V2 Redesign routes — live alongside existing pages */}
-            <Route path="/test-build">{() => <div style={{color:'white',padding:'2rem'}}>Build timestamp: BUILD_OK_V2</div>}</Route>
-        <Route path="/v2" component={V2Dashboard} />
-          <Route path="/v2/reading-room" component={V2ReadingRoom} />
-          <Route path="/v2/community" component={V2Community} />
         <Route path="/sign-in" component={SignIn} />
         <Route path="/garden" component={Garden} />
         <Route path="/garden/:username" component={PublicGarden} />
@@ -74,8 +62,6 @@ function Router() {
         <Route path="/public-garden/:userId" component={PublicGarden} />
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={InBloom} />
-          <Route path="/mind-walks" component={MindWalks} />
-          <Route path="/mind-walks/:slug" component={MindWalks} />
         <Route path="/editor-studio" component={EditorStudio} />
         <Route path="/about" component={About} />
         <Route path="/courses" component={Courses} />
@@ -88,12 +74,10 @@ function Router() {
           <Route path="/garden-info" component={GardenInfo} />
         <Route path="/field-guide" component={FieldGuide} />
         <Route path="/garden-guide" component={GardenGuide} />
-        <Route path="/greenhouse" component={Greenhouse} />
-        <Route path="/nursery" component={Greenhouse} />
         <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
         <Route path="/" component={Home} />
-        <Route component={NotFound} />
+                            <Route component={NotFound} />
       </Switch>
     </Suspense>
   );
