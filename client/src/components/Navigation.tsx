@@ -60,14 +60,12 @@ export default function Navigation() {
   const publicMenuItems = [
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
-    { label: "Seasons", href: "/seasons", isPage: true, tooltip: "Writing Challenges" },
     { label: "About", href: "/about", isPage: true },
   ];
 
   const writerMenuItems = [
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
-    { label: "Seasons", href: "/seasons", isPage: true, tooltip: "Writing Challenges" },
     { label: "My Garden", href: "/garden", isPage: true, tooltip: "Your Writing Space" },
     { label: "Studio", href: "/editor-studio", isPage: true },
   ];
