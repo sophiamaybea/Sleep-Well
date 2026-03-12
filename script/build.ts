@@ -1,5 +1,5 @@
-// Build v3 - force fresh build
-console.log('BUILD V3:', new Date().toISOString());
+// Build v4 - ESM output
+console.log('BUILD V4:', new Date().toISOString());
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
@@ -52,15 +52,18 @@ async function buildAll() {
     entryPoints: ["server/index.ts"],
     platform: "node",
     bundle: true,
-    format: "cjs",
-    outfile: "dist/index.cjs",
+    format: "esm",
+    outfile: "dist/index.js",
     define: {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
-        external: [...externals, "./vite"],
+    external: [...externals, "./vite"],
     logLevel: "info",
-        alias: { "@shared": "./shared" },
+    banner: {
+      js: 'import { createRequire } from "module"; import { fileURLToPath } from "url"; import { dirname } from "path"; const require = createRequire(import.meta.url); const __filename = fileURLToPath(import.meta.url); const __dirname = dirname(__filename);',
+    },
+    alias: { "@shared": "./shared" },
   });
 }
 
