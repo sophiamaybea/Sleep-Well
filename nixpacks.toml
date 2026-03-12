@@ -1,9 +1,14 @@
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
-CACHE_BUST = "nixpacks-fresh-v7"
+CACHE_BUST = "v8-with-start"
+
+providers = ['node']
 
 [phases.install]
-cmds = ['npm install --include=dev']
+cmds = ['npm install']
 
 [phases.build]
-cmds = ['echo CACHE_BUST_V7 && rm -rf dist node_modules/.vite && npm run build']
+cmds = ['echo CACHE_BUST_V8 && rm -rf dist node_modules/.vite && npm run build']
+
+[start]
+cmd = 'npm run start'
