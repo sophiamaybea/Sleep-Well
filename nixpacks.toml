@@ -1,6 +1,6 @@
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
-    CACHE_BUST = "nav-fix-2"
+        CACHE_BUST = "v2-routes-3"
 
 [phases.install]
 cmds = ['npm install']
