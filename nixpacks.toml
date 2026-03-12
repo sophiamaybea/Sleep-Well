@@ -1,8 +1,9 @@
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
+CACHE_BUST = "v2-deploy-1"
 
 [phases.install]
 cmds = ['npm install']
 
 [phases.build]
-cmds = ['npm run build']
+cmds = ['rm -rf dist && npm run build']
