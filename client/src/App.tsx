@@ -1,4 +1,4 @@
-// V2 Redesign - cache bust
+// V2 Redesign - cache bust v2
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
