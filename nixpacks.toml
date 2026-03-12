@@ -1,9 +1,9 @@
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
-CACHE_BUST = "v2-deploy-1"
+    CACHE_BUST = "nav-fix-2"
 
 [phases.install]
 cmds = ['npm install']
 
 [phases.build]
-cmds = ['rm -rf dist && npm run build']
+    cmds = ['rm -rf dist node_modules/.vite && npm run build']
