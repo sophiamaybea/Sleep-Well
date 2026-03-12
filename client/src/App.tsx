@@ -62,7 +62,8 @@ function Router() {
     <Suspense fallback={<PageLoader />}>
       <Switch>
                   {/* V2 Redesign routes — live alongside existing pages */}
-          <Route path="/v2" component={V2Dashboard} />
+            <Route path="/test-build">{() => <div style={{color:'white',padding:'2rem'}}>Build timestamp: BUILD_OK_V2</div>}</Route>
+        <Route path="/v2" component={V2Dashboard} />
           <Route path="/v2/reading-room" component={V2ReadingRoom} />
           <Route path="/v2/community" component={V2Community} />
         <Route path="/sign-in" component={SignIn} />
