@@ -1,12 +1,9 @@
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
-CACHE_BUST = "v10-node-start"
+CACHE_BUST = "emergency-fix-v1"
 
 [phases.install]
-cmds = ['npm install --include=dev']
+cmds = ['npm install']
 
 [phases.build]
-cmds = ['echo CACHE_BUST_V10 && rm -rf dist node_modules/.vite && npm run build']
-
-[start]
-cmd = 'npm run start'
+cmds = ['rm -rf dist node_modules/.vite && npm run build']
