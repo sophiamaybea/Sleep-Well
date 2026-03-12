@@ -1,0 +1,11 @@
+attached_assets
+node_modules
+dist
+.git
+*.tar.gz
+*.pdf
+*.docx
+.DS_Store
+replit.md
+.replit
+fix_auth.py
