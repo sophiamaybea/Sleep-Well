@@ -1,3 +1,5 @@
+// Build v3 - force fresh build
+console.log('BUILD V3:', new Date().toISOString());
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
