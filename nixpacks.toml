@@ -3,7 +3,7 @@ NPM_CONFIG_LEGACY_PEER_DEPS = "true"
 CACHE_BUST = "v10-node-start"
 
 [phases.install]
-cmds = ['npm install']
+cmds = ['npm install --include=dev']
 
 [phases.build]
 cmds = ['echo CACHE_BUST_V10 && rm -rf dist node_modules/.vite && npm run build']
