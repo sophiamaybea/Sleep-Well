@@ -1,4 +1,3 @@
-// V2 Redesign - cache bust v2
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -32,6 +31,8 @@ const EditProfile = lazy(() => import("@/pages/EditProfile"));
 const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
+
+// V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
 const V2Community = lazy(() => import("@/pages/V2Community"));
@@ -40,7 +41,7 @@ function PageLoader() {
   return (
     <div
       className="min-h-screen flex items-center justify-center"
-                      style={{ backgroundColor: "#060d06" }}
+      style={{ backgroundColor: "#060d06" }}
     >
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-10 h-10">
@@ -75,17 +76,16 @@ function Router() {
         <Route path="/terms" component={Terms} />
         <Route path="/commons" component={Commons} />
         <Route path="/how-it-works" component={HowItWorks} />
-          <Route path="/garden-info" component={GardenInfo} />
+        <Route path="/garden-info" component={GardenInfo} />
         <Route path="/field-guide" component={FieldGuide} />
         <Route path="/garden-guide" component={GardenGuide} />
         <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
-                    <Route path="/build-test-v3">{() => <div style={{color:'white',padding:'2rem',background:'#000'}}>BUILD TEST V3 - {new Date().toISOString()}</div>}</Route>
-                    <Route path="/v2" component={V2Dashboard} />
-            <Route path="/v2/reading-room" component={V2ReadingRoom} />
-            <Route path="/v2/community" component={V2Community} />
+        <Route path="/v2" component={V2Dashboard} />
+        <Route path="/v2/reading-room" component={V2ReadingRoom} />
+        <Route path="/v2/community" component={V2Community} />
         <Route path="/" component={Home} />
-                            <Route component={NotFound} />
+        <Route component={NotFound} />
       </Switch>
     </Suspense>
   );
