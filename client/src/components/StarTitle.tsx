@@ -80,7 +80,7 @@ export default function StarTitle() {
 
       const img = oc.getImageData(0, 0, w, h);
       const pts: { x: number; y: number }[] = [];
-      const step = 3;
+      const step = 2;
       for (let py = 0; py < h; py += step) {
         for (let px = 0; px < w; px += step) {
           if (img.data[(py * w + px) * 4] > 100) pts.push({ x: px, y: py });
@@ -100,8 +100,8 @@ export default function StarTitle() {
           tx: p.x, ty: p.y,
           ox: w / 2 + Math.cos(a) * d,
           oy: h / 2 + Math.sin(a) * d,
-          r: 0.6 + Math.random() * 2,
-          alpha: 0.3 + Math.random() * 0.7,
+          r: 1 + Math.random() * 2.5,
+          alpha: 0.6 + Math.random() * 0.4,
           speed: 1 + Math.random() * 3,
           phase: Math.random() * Math.PI * 2,
           delay: Math.random() * 0.35,
@@ -130,7 +130,7 @@ export default function StarTitle() {
           const sx = s.ox + (s.tx - s.ox) * e;
           const sy = s.oy + (s.ty - s.oy) * e;
 
-          const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
+          const twinkle = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
           const vis = Math.min(1, form * 4);
           const a = s.alpha * twinkle * Math.max(0.15, vis);
 
@@ -139,10 +139,10 @@ export default function StarTitle() {
           ctx.fillStyle = `rgba(237,233,227,${a})`;
           ctx.fill();
 
-          if (s.r > 1.3 && e > 0.85) {
+          if (s.r > 1.0 && e > 0.85) {
             ctx.beginPath();
-            ctx.arc(sx * dpr, sy * dpr, s.r * 3 * dpr, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(237,233,227,${a * 0.12 * ((e - 0.85) / 0.15)})`;
+            ctx.arc(sx * dpr, sy * dpr, s.r * 4 * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(237,233,227,${a * 0.25 * ((e - 0.85) / 0.15)})`;
             ctx.fill();
           }
         }
