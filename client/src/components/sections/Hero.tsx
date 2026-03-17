@@ -9,6 +9,7 @@ export default function Hero() {
     target: heroRef,
     offset: ["start start", "end start"],
   });
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -26,6 +27,7 @@ export default function Hero() {
   return (
     <div ref={heroRef} className="relative">
       <StarTitle />
+
       <section id="hero-content" className="relative z-10 min-h-[50vh] pt-16 pb-12 px-6 md:px-12 lg:px-24">
         <div
           className="max-w-7xl mx-auto relative z-10"
@@ -40,7 +42,7 @@ export default function Hero() {
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true, margin: "-50px" }}
               >
-                <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-light leading-[1.1] tracking-normal text-white/90 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-light leading-[1.1] tracking-normal text-white drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]">
                   <motion.span
                     initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
                     whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -53,16 +55,18 @@ export default function Hero() {
                   </motion.span>
                 </h2>
               </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
                 viewport={{ once: true }}
-                className="max-w-xl text-xl md:text-2xl leading-relaxed font-serif italic text-white/60"
+                className="max-w-xl text-xl md:text-2xl leading-relaxed font-serif italic text-white/80"
                 data-testid="text-hero-hook"
               >
                 We are a journal, and we tend to a garden.
               </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -79,14 +83,14 @@ export default function Hero() {
                 </Link>
                 <Link
                   href="/garden"
-                  className="px-8 py-4 bg-white/[0.06] border border-white/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white/80 hover:bg-white/12 hover:text-white transition-all duration-300 rounded-full"
+                  className="px-8 py-4 bg-white/[0.06] border border-white/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white/90 hover:bg-white/12 hover:text-white transition-all duration-300 rounded-full"
                   data-testid="cta-start-writing"
                 >
                   Start Writing
                 </Link>
                 <Link
                   href="/about"
-                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40 hover:text-white/70 transition-colors border-b border-transparent hover:border-white/20 pb-1 ml-2"
+                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/60 hover:text-white/80 transition-colors border-b border-transparent hover:border-white/20 pb-1 ml-2"
                   data-testid="cta-about-us"
                 >
                   About Us
