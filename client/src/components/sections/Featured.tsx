@@ -38,7 +38,7 @@ export default function Featured() {
           className="text-center space-y-6"
         >
           <motion.span
-            className="font-mono text-[10px] tracking-[0.4em] text-amber-200/60 block uppercase"
+            className="font-mono text-[10px] tracking-[0.4em] text-amber-200 block uppercase"
             initial={{ opacity: 0, letterSpacing: "0.2em" }}
             whileInView={{ opacity: 1, letterSpacing: "0.4em" }}
             transition={{ duration: 1.2 }}
@@ -51,11 +51,11 @@ export default function Featured() {
             From the Journal
           </h2>
 
-          <p className="font-serif text-[13px] text-white/70 tracking-wide mt-2">
+          <p className="font-serif text-[13px] text-white tracking-wide mt-2">
             Published stories and poems, selected by our editors
           </p>
 
-          <p className="text-lg font-serif italic text-white/70 max-w-xl mx-auto leading-relaxed mt-4">
+          <p className="text-lg font-serif italic text-white max-w-xl mx-auto leading-relaxed mt-4">
             Planted in the Garden. Chosen because they wouldn't let go.
           </p>
 
@@ -95,15 +95,15 @@ export default function Featured() {
                     <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 40px rgba(0,0,0,0.4)" }} />
 
                     <div className="relative z-10 text-center space-y-8">
-                      <BookOpen size={36} className="mx-auto text-amber-200/40 group-hover:text-amber-200/60 transition-colors duration-500" />
+                      <BookOpen size={36} className="mx-auto text-amber-200/90 group-hover:text-amber-200 transition-colors duration-500" />
 
                       {pieceCount > 0 ? (
                         <>
                           <div className="space-y-3">
-                            <p className="font-display text-2xl md:text-3xl font-light text-white/90 group-hover:text-white transition-colors duration-500 italic">
+                            <p className="font-display text-2xl md:text-3xl font-light text-white group-hover:text-white transition-colors duration-500 italic">
                               {pieceCount} {pieceCount === 1 ? "piece" : "pieces"} on exhibition
                             </p>
-                            <p className="font-serif text-white/60 text-sm">
+                            <p className="font-serif text-white text-sm">
                               Poetry, fiction, essays, and fragments — each one discovered in a writer's garden
                             </p>
                           </div>
@@ -112,13 +112,13 @@ export default function Featured() {
                             {gallery.slice(0, 3).map((item) => (
                               <span
                                 key={item.id}
-                                className="font-mono text-[8px] uppercase tracking-[0.2em] text-amber-200/50 px-3 py-1.5 border border-amber-200/20 bg-amber-200/[0.04]"
+                                className="font-mono text-[8px] uppercase tracking-[0.2em] text-amber-200 px-3 py-1.5 border border-amber-200/20 bg-amber-200/[0.04]"
                               >
                                 {item.genre}
                               </span>
                             ))}
                             {pieceCount > 3 && (
-                              <span className="font-mono text-[8px] text-white/40 tracking-widest">
+                              <span className="font-mono text-[8px] text-white/90 tracking-widest">
                                 + {pieceCount - 3} more
                               </span>
                             )}
@@ -126,20 +126,20 @@ export default function Featured() {
                         </>
                       ) : (
                         <div className="space-y-3">
-                          <p className="font-display text-2xl md:text-3xl font-light text-white/80 italic">
+                          <p className="font-display text-2xl md:text-3xl font-light text-white italic">
                             Awaiting First Bloom
                           </p>
-                          <p className="font-serif text-white/60 text-sm max-w-md mx-auto">
+                          <p className="font-serif text-white text-sm max-w-md mx-auto">
                             Editors are reading the Gardens. When a piece blooms, it will appear here.
                           </p>
                         </div>
                       )}
 
                       <div className="flex items-center justify-center gap-3 pt-4">
-                        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200/70 group-hover:text-amber-200/90 transition-colors duration-500">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200 group-hover:text-amber-200/90 transition-colors duration-500">
                           Read All Published Work
                         </span>
-                        <ArrowRight size={16} className="text-amber-200/60 group-hover:text-amber-200/80 group-hover:translate-x-1 transition-all duration-500" />
+                        <ArrowRight size={16} className="text-amber-200 group-hover:text-amber-200/80 group-hover:translate-x-1 transition-all duration-500" />
                       </div>
                     </div>
                   </div>
