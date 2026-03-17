@@ -1328,11 +1328,6 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [showHistory, setShowHistory] = useState(false);
   const [previewSnapshot, setPreviewSnapshot] = useState<WritingSnapshot | null>(null);
   const [showBloomCelebration, setShowBloomCelebration] = useState(false);
-  const [showGenreGenie, setShowGenreGenie] = useState(false);
-  const [genreGenieLoading, setGenreGenieLoading] = useState(false);
-  const [genreGenieSuggestion, setGenreGenieSuggestion] = useState<{
-    suggestedGenre: string; explanation: string; conventions: string; inspiration: string;
-  } | null>(null);
   const hasMounted = useRef(false);
   const prevStageRef = useRef(writing.readiness || "raw_seed");
 
@@ -1371,38 +1366,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
     }
   }
 
-  async function askGenreGenie() {
-    const plainText = editContent.replace(/<[^>]*>/g, "").trim();
-    if (plainText.length < 20) {
-      toast({ title: "Not enough text", description: "Write a bit more so the Genre Genie can read your work.", duration: 3000 });
-      return;
-    }
-    setGenreGenieLoading(true);
-    setShowGenreGenie(true);
-    setGenreGenieSuggestion(null);
-    try {
-      const res = await fetch("/api/genre-genie/suggest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ writingId: writing.id, content: plainText }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
-      setGenreGenieSuggestion({
-        suggestedGenre: data.suggestedGenre,
-        explanation: data.explanation,
-        conventions: data.conventions,
-        inspiration: data.inspiration,
-      });
-    } catch {
-      toast({ title: "Genre Genie stumbled", description: "Something went wrong. Try again in a moment.", duration: 3000 });
-      setShowGenreGenie(false);
-    } finally {
-      setGenreGenieLoading(false);
-    }
-  }
-
+  
   return (
     <div className="max-w-3xl mx-auto">
       <AnimatePresence>
@@ -1571,22 +1535,6 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               <option key={g} value={g} className="bg-[#0b101a]">{g}</option>
             ))}
           </select>
-          <button
-            onClick={askGenreGenie}
-            disabled={genreGenieLoading}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 text-amber-400/70 hover:text-amber-300 hover:border-amber-500/40 hover:bg-amber-500/[0.06] transition-all disabled:opacity-50"
-            title="Ask the Genre Genie for a suggestion"
-            data-testid="button-genre-genie"
-          >
-            {genreGenieLoading ? (
-              <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                <Sparkles size={11} />
-              </motion.span>
-            ) : (
-              <Sparkles size={11} />
-            )}
-            Genre Genie
-          </button>
           <span className="w-px h-4 bg-white/[0.04]" />
           <button
             onClick={onOpenPlanting}
@@ -1627,91 +1575,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           )}
         </div>
 
-        <AnimatePresence>
-          {showGenreGenie && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="pb-4 overflow-hidden"
-              data-testid="genre-genie-panel"
-            >
-              <div className="border border-amber-500/20 rounded-xl bg-amber-500/[0.03] p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-amber-400" />
-                    <span className="font-display text-sm text-amber-300/90">Genre Genie</span>
-                  </div>
-                  <button
-                    onClick={() => setShowGenreGenie(false)}
-                    className="text-white/30 hover:text-white/60 transition-colors"
-                    data-testid="close-genre-genie"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-                {genreGenieLoading ? (
-                  <div className="space-y-3 animate-pulse">
-                    <div className="h-4 bg-white/[0.06] rounded w-1/3" />
-                    <div className="h-3 bg-white/[0.04] rounded w-full" />
-                    <div className="h-3 bg-white/[0.04] rounded w-5/6" />
-                    <div className="h-3 bg-white/[0.04] rounded w-2/3" />
-                  </div>
-                ) : genreGenieSuggestion ? (
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/60">Suggested Genre</span>
-                      </div>
-                      <p className="font-display text-lg text-white/90">{genreGenieSuggestion.suggestedGenre}</p>
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/50 block mb-1.5">Why This Fits</span>
-                      <p className="text-sm text-white/65 leading-relaxed font-body">{genreGenieSuggestion.explanation}</p>
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/50 block mb-1.5">Craft & Conventions</span>
-                      <p className="text-sm text-white/65 leading-relaxed font-body">{genreGenieSuggestion.conventions}</p>
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/50 block mb-1.5">Kindred Voices</span>
-                      <p className="text-sm text-white/65 leading-relaxed font-body">{genreGenieSuggestion.inspiration}</p>
-                    </div>
-                    <div className="flex items-center gap-2 pt-2">
-                      <button
-                        onClick={() => {
-                          const genreMap: Record<string, string> = {
-                            "poetry": "poetry", "lyric poetry": "poetry", "prose poetry": "poetry",
-                            "fiction": "fiction", "flash fiction": "fiction", "literary fiction": "fiction",
-                            "literary realism": "fiction", "speculative fiction": "fiction", "micro-fiction": "fiction",
-                            "essay": "essay", "personal essay": "essay", "micro-memoir": "essay",
-                            "fragment": "fragment",
-                          };
-                          const mapped = genreMap[genreGenieSuggestion.suggestedGenre.toLowerCase()] || "other";
-                          setEditGenre(mapped);
-                          toast({ title: "Genre updated", description: `Set to "${mapped}" based on Genre Genie's suggestion.`, duration: 2000 });
-                        }}
-                        className="px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 text-amber-300/80 hover:bg-amber-500/10 hover:text-amber-200 transition-all"
-                        data-testid="apply-genre-suggestion"
-                      >
-                        Apply Suggestion
-                      </button>
-                      <button
-                        onClick={askGenreGenie}
-                        className="px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
-                        data-testid="retry-genre-genie"
-                      >
-                        Try Again
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+        
         <div className="pb-2">
           <button
             onClick={() => setShowHistory(!showHistory)}
