@@ -341,7 +341,7 @@ export default function Gallery() {
             </div>
           ) : displayedGallery.length > 0 ? (
             <div className="max-w-3xl mx-auto">
-              <div className="border-t border-white/[0.06]">
+              <div className="border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-0">
                 {displayedGallery.map((item, i) => {
                   const readingTime = getReadingTime(item.content);
                   const isFeatured = i < 2 && !searchQuery && activeGenre === "all" && !selectedContributor;
