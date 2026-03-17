@@ -2,7 +2,6 @@ import { Section } from "@/components/ui/section";
 import { content } from "@/data";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-
 function WordReveal({ text, delay = 0 }: { text: string; delay?: number }) {
   const words = text.split(" ");
   return (
@@ -22,17 +21,14 @@ function WordReveal({ text, delay = 0 }: { text: string; delay?: number }) {
     </>
   );
 }
-
 export default function Manifesto() {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
-
   const y = useTransform(scrollYProgress, [0, 1], [60, -120]);
   const bgTextOpacity = useTransform(scrollYProgress, [0, 0.2, 0.5, 0.8, 1], [0, 0.03, 0.04, 0.03, 0]);
-
   return (
     <Section id="manifesto" className="bg-transparent text-primary relative overflow-hidden py-40">
       <motion.div
@@ -41,25 +37,23 @@ export default function Manifesto() {
       >
         WRITING WRITING WRITING WRITING WRITING WRITING
       </motion.div>
-
       <div ref={containerRef} className="max-w-5xl mx-auto w-full px-6 relative z-10 space-y-24">
         <motion.div
           className="space-y-8 border-l-2 border-white/10 pl-8 md:pl-16 py-4 cursor-default"
           whileHover={{ borderColor: "rgba(255,255,255,0.3)", paddingLeft: "5rem" }}
           transition={{ type: "spring", stiffness: 150, damping: 15 }}
         >
-          <span className="font-mono text-xs tracking-[0.3em] opacity-40 block uppercase">
+          <span className="font-mono text-xs tracking-[0.3em] opacity-70 block uppercase">
             04 — Philosophy
           </span>
           <h2 className="text-5xl md:text-7xl font-display italic font-light leading-[1.1]">
             <WordReveal text={content.manifesto.title} />
           </h2>
-          <p className="text-xl md:text-3xl font-serif opacity-80 leading-relaxed font-light text-white/90">
+          <p className="text-xl md:text-3xl font-serif opacity-90 leading-relaxed font-light text-white/90">
             <WordReveal text={content.manifesto.subtitle} delay={0.4} />
           </p>
         </motion.div>
-
-        <div className="grid md:grid-cols-2 gap-16 md:gap-24 text-lg md:text-xl font-serif leading-loose opacity-90 text-white/85 font-light">
+        <div className="grid md:grid-cols-2 gap-16 md:gap-24 text-lg md:text-xl font-serif leading-loose opacity-90 text-white/90 font-light">
           <div className="space-y-12">
             {content.manifesto.text.slice(0, 3).map((paragraph, i) => (
               <motion.p
@@ -69,7 +63,7 @@ export default function Manifesto() {
                 viewport={{ once: true }}
                 whileHover={{ opacity: 1, x: 8, color: "rgba(255,255,255,0.95)" }}
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: i * 0.12 }}
-                className="cursor-default text-white/85"
+                className="cursor-default text-white/90"
               >
                 {paragraph}
               </motion.p>
@@ -84,7 +78,7 @@ export default function Manifesto() {
                 viewport={{ once: true }}
                 whileHover={{ opacity: 1, x: 8, color: "rgba(255,255,255,0.95)" }}
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: (i + 3) * 0.12 }}
-                className="cursor-default text-white/85"
+                className="cursor-default text-white/90"
               >
                 {paragraph}
               </motion.p>
