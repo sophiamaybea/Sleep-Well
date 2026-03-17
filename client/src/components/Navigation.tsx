@@ -66,13 +66,13 @@ export default function Navigation() {
   const writerMenuItems = [
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
-    { label: "My Garden", href: "/garden", isPage: true, tooltip: "Your Writing Space" },
-    { label: "Studio", href: "/editor-studio", isPage: true },
+    { label: "My Garden", href: "/garden", isPage: true, tooltip: "Write & Grow Your Work" },
+    { label: "Dashboard", href: "/editor-studio", isPage: true },
   ];
 
   const editorMenuItems = [
     ...writerMenuItems,
-    { label: "Command", href: "/eic-dashboard", isPage: true },
+    { label: "Editorial", href: "/eic-dashboard", isPage: true },
   ];
 
   const activeMenuItems = !isAuthenticated 
@@ -95,12 +95,12 @@ export default function Navigation() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`transition-colors relative group ${item.label === "Command" ? "text-[#c4a24d]/70 hover:text-[#c4a24d]" : "text-white/70 hover:text-white"}`}
+                className={`transition-colors relative group ${item.label === "Editorial" ? "text-[#c4a24d]/70 hover:text-[#c4a24d]" : "text-white/70 hover:text-white"}`}
                 data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
                 title={(item as any).tooltip}
               >
                 {item.label}
-                <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Command" ? "bg-[#c4a24d]" : "bg-white"}`} />
+                <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Editorial" ? "bg-[#c4a24d]" : "bg-white"}`} />
               </Link>
             ))}
             
@@ -222,7 +222,7 @@ export default function Navigation() {
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`font-display text-4xl italic hover:scale-105 transition-transform ${item.label === "Command" ? "text-[#c4a24d]/80 hover:text-[#c4a24d]" : "text-white/80 hover:text-white"}`}
+                    className={`font-display text-4xl italic hover:scale-105 transition-transform ${item.label === "Editorial" ? "text-[#c4a24d]/80 hover:text-[#c4a24d]" : "text-white/80 hover:text-white"}`}
                   >
                     {item.label}
                   </Link>
