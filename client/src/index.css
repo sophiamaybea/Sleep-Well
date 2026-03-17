@@ -21,14 +21,14 @@
   --color-primary: #ffffff;
   --color-primary-foreground: #0d1e2d;
   
-  --color-secondary: #c8c4b8;
-  --color-secondary-foreground: #0d1e2d;
+  --color-secondary: #ffffff;
+  --color-secondary-foreground: #ffffff;
   
   --color-muted: #1a3040;
-  --color-muted-foreground: #8aa0aa;
+  --color-muted-foreground: #ffffff;
   
   --color-accent: #c4a24d;
-  --color-accent-foreground: #0d1e2d;
+  --color-accent-foreground: #ffffff;
   
   --color-destructive: hsl(0 60% 50%);
   --color-destructive-foreground: hsl(0 0% 98%);
