@@ -61,7 +61,7 @@ export default function Hero() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
                 viewport={{ once: true }}
-                className="max-w-xl text-xl md:text-2xl leading-relaxed font-serif italic text-white/80"
+                className="max-w-xl text-xl md:text-2xl leading-relaxed font-serif italic text-white"
                 data-testid="text-hero-hook"
               >
                 We are a journal, and we tend to a garden.
@@ -83,14 +83,14 @@ export default function Hero() {
                 </Link>
                 <Link
                   href="/garden"
-                  className="px-8 py-4 bg-white/[0.06] border border-white/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white/90 hover:bg-white/12 hover:text-white transition-all duration-300 rounded-full"
+                  className="px-8 py-4 bg-white/[0.06] border border-white/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white hover:bg-white/12 hover:text-white transition-all duration-300 rounded-full"
                   data-testid="cta-start-writing"
                 >
                   Start Writing
                 </Link>
                 <Link
                   href="/about"
-                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/60 hover:text-white/80 transition-colors border-b border-transparent hover:border-white/20 pb-1 ml-2"
+                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white hover:text-white transition-colors border-b border-transparent hover:border-white/20 pb-1 ml-2"
                   data-testid="cta-about-us"
                 >
                   About Us
