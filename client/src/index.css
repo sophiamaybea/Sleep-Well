@@ -25,7 +25,7 @@
   --color-secondary-foreground: #ffffff;
   
   --color-muted: #1a3040;
-  --color-muted-foreground: #ffffff;
+  --color-muted-foreground: #a8b8c8;
   
   --color-accent: #c4a24d;
   --color-accent-foreground: #ffffff;
@@ -37,7 +37,7 @@
   --color-input: #1a3040;
   --color-ring: #c4a24d;
   
-  --radius: 0rem;
+  --radius: 0.5rem;
 }
 
 @layer base {
@@ -1325,41 +1325,46 @@ h1, h2, h3 {
 }
 
 
-/* —— Garden Font Legibility Fix — ensure all text is bright and readable —— */
-.garden-bg,
-.garden-bg * {
-  color: #ffffff !important;
+/* —— Garden Font Legibility Fix — ensure text is readable with proper hierarchy —— */
+.garden-bg {
+  color: #ffffff;
 }
 .garden-bg .text-muted-foreground,
 .garden-bg .text-muted,
-.garden-bg [class*="text-muted"],
-.garden-bg [class*="text-white/"],
-.garden-bg .text-secondary-foreground,
-.garden-bg [class*="text-secondary"],
-.garden-bg [class*="opacity-"] {
-  color: #ffffff !important;
+.garden-bg [class*="text-muted"] {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.garden-bg [class*="text-white/"] {
   opacity: 1 !important;
 }
+.garden-bg .text-secondary-foreground,
+.garden-bg [class*="text-secondary"] {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
 .garden-bg p,
-.garden-bg span,
+.garden-bg li,
+.garden-bg label,
+.garden-bg td,
+.garden-bg th {
+  color: rgba(255, 255, 255, 0.92);
+}
 .garden-bg h1,
 .garden-bg h2,
 .garden-bg h3,
 .garden-bg h4,
 .garden-bg h5,
-.garden-bg h6,
-.garden-bg a,
-.garden-bg label,
-.garden-bg div,
-.garden-bg li,
-.garden-bg td,
-.garden-bg th,
+.garden-bg h6 {
+  color: #ffffff;
+}
+.garden-bg a {
+  color: rgba(255, 255, 255, 0.9);
+}
+.garden-bg small {
+  color: rgba(255, 255, 255, 0.6);
+}
 .garden-bg button,
 .garden-bg input,
 .garden-bg textarea,
-.garden-bg select,
-.garden-bg small,
-.garden-bg strong,
-.garden-bg em {
-  color: #ffffff !important;
+.garden-bg select {
+  color: #ffffff;
 }
