@@ -77,8 +77,8 @@ import {
   insertContactMessageSchema,
   insertConversationSchema,
   insertChatMessageSchema,
-  insertMindWalkThemeSchema,
-  insertMindWalkFragmentSchema,
+  
+  
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
@@ -7285,111 +7285,6 @@ export async function registerRoutes(
     }
   });
 
-  // ===== Mind Walks =====
-  // Mind Walks - editor-initiated themed collections
-  app.get("/api/mind-walks", async (req, res) => {
-    const walks = await storage.getMindWalkThemes();
-    res.json(walks);
-  });
-
-  app.get("/api/mind-walks/open", async (req, res) => {
-    const walks = await storage.getOpenMindWalkThemes();
-    res.json(walks);
-  });
-
-  app.get("/api/mind-walks/:slug", async (req, res) => {
-    const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
-    if (!walk) return res.status(404).json({ error: "Walk not found" });
-    const fragments = await storage.getFragmentsByWalkId(walk.id);
-    res.json({ ...walk, fragments });
-  });
-
-  app.post("/api/mind-walks", async (req, res) => {
-    const { theme, prompt, editorId, editorName, durationDays } = req.body;
-    const slug = theme
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-    const closesAt = new Date();
-    closesAt.setDate(closesAt.getDate() + (durationDays || 7));
-    const walk = await storage.createMindWalkTheme({
-      theme,
-      prompt,
-      editorId,
-      editorName,
-      slug,
-      closesAt,
-    });
-    res.json(walk);
-  });
-
-  app.post("/api/mind-walks/:slug/fragments", async (req, res) => {
-    const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
-    if (!walk) return res.status(404).json({ error: "Walk not found" });
-    if (walk.status !== "open")
-      return res.status(400).json({ error: "Walk is closed" });
-    const { authorName, authorEmail, content } = req.body;
-    const fragment = await storage.createMindWalkFragment({
-      walkId: walk.id,
-      authorName,
-      authorEmail,
-      content,
-    });
-    res.json(fragment);
-  });
-
-  app.patch("/api/mind-walks/:slug/close", async (req, res) => {
-    const walk = await storage.closeMindWalkTheme(req.params.slug);
-    if (!walk) return res.status(404).json({ error: "Walk not found" });
-    res.json(walk);
-  });
-
-
-  // === MIND WALKS FRAGMENT MANAGEMENT ===
-  app.get("/api/mind-walks/:slug/fragments", async (req, res) => {
-    try {
-      const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
-      if (!walk) return res.status(404).json({ error: "Walk not found" });
-      const fragments = await storage.getFragmentsByWalkId(walk.id);
-      res.json(fragments);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch fragments" });
-    }
-  });
-
-  app.patch("/api/mind-walks/fragments/:id", async (req: any, res) => {
-    try {
-      const { content } = req.body;
-      const updated = await storage.updateMindWalkFragment(req.params.id, content);
-      if (!updated) return res.status(404).json({ error: "Fragment not found" });
-      res.json(updated);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update fragment" });
-    }
-  });
-
-  app.delete("/api/mind-walks/fragments/:id", async (req: any, res) => {
-    try {
-      await storage.deleteMindWalkFragment(req.params.id);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete fragment" });
-    }
-  });
-
-  app.patch("/api/mind-walks/:slug/theme", async (req: any, res) => {
-    try {
-      const updates: any = {};
-      if (req.body.theme) updates.theme = req.body.theme;
-      if (req.body.prompt) updates.prompt = req.body.prompt;
-      const updated = await storage.updateMindWalkTheme(req.params.slug, updates);
-      if (!updated) return res.status(404).json({ error: "Walk not found" });
-      res.json(updated);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update walk" });
-    }
-  });
-
   // === EDITOR BIO MANAGEMENT ===
   app.get("/api/admin/users", async (req: any, res) => {
     try {
@@ -7407,16 +7302,6 @@ export async function registerRoutes(
       res.json(user);
     } catch (error) {
       res.status(500).json({ message: "Failed to update bio" });
-    }
-  });
-
-  // === MIND WALKS GET API ===
-  app.get("/api/mind-walks", async (req, res) => {
-    try {
-      const themes = await storage.getMindWalkThemes();
-      res.json(themes);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch mind walks" });
     }
   });
 
