@@ -17,18 +17,25 @@ const app = express();
 const httpServer = createServer(app);
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        connectSrc: ["'self'", "https://*.supabase.co"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginOpenerPolicy: false,
-    frameguard: false,
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   }),
 );
-
 // Rate limiting for API routes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 2000,
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req: any, res: any) => {
@@ -38,11 +45,10 @@ const apiLimiter = rateLimit({
     });
   },
 });
-
-// Rate limit for auth routes - 30 attempts per 5 minutes
+// Rate limit for auth routes - 10 attempts per 5 minutes
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 30,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req: any, res: any) => {
@@ -52,9 +58,9 @@ const authLimiter = rateLimit({
     });
   },
 });
-
 app.use("/api", apiLimiter);
 app.use("/api/login", authLimiter);
+app.use("/api/register", authLimiter);
 app.use("/api/editor-onboarding", authLimiter);
 
 declare module "http" {
@@ -70,7 +76,6 @@ app.use(
     },
   }),
 );
-
 app.use(express.urlencoded({ extended: false }));
 
 export function log(message: string, source = "express") {
@@ -80,7 +85,6 @@ export function log(message: string, source = "express") {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
@@ -88,13 +92,11 @@ app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
-
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
@@ -103,11 +105,9 @@ app.use((req, res, next) => {
         const jsonStr = JSON.stringify(capturedJsonResponse);
         logLine += ` :: ${jsonStr.length > 200 ? jsonStr.slice(0, 200) + "..." : jsonStr}`;
       }
-
       log(logLine);
     }
   });
-
   next();
 });
 
@@ -129,20 +129,15 @@ process.on("SIGHUP", () => {
 
 (async () => {
   await registerRoutes(httpServer, app);
-
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     console.error("Internal Server Error:", err);
-
     if (res.headersSent) {
       return next(err);
     }
-
     return res.status(status).json({ message });
   });
-
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
@@ -152,7 +147,6 @@ process.on("SIGHUP", () => {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
-
   async function seedExhibits() {
     const existing = await db
       .select()
@@ -179,7 +173,6 @@ process.on("SIGHUP", () => {
   await seedWelcomeNotifications().catch((err) =>
     console.error("Seed notifications failed:", err),
   );
-
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {
