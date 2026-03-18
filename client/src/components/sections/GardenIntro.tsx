@@ -1,5 +1,6 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
+
 function SeedDoodle() {
   return (
     <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10 mx-auto" xmlns="http://www.w3.org/2000/svg">
@@ -9,6 +10,7 @@ function SeedDoodle() {
     </svg>
   );
 }
+
 function SproutDoodle() {
   return (
     <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10 mx-auto" xmlns="http://www.w3.org/2000/svg">
@@ -19,6 +21,7 @@ function SproutDoodle() {
     </svg>
   );
 }
+
 function BloomDoodle() {
   return (
     <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10 mx-auto" xmlns="http://www.w3.org/2000/svg">
@@ -33,23 +36,25 @@ function BloomDoodle() {
     </svg>
   );
 }
+
 const stageColors: Record<string, { glow: string; border: string; text: string }> = {
-  "Seed (Private Draft)": {
+  "Seed": {
     glow: "rgba(251,191,36,0.15)",
     border: "hover:border-amber-400/40",
     text: "group-hover:text-amber-300",
   },
-  "Sprout (Editing)": {
+  "Sprout": {
     glow: "rgba(52,211,153,0.15)",
     border: "hover:border-emerald-400/40",
     text: "group-hover:text-emerald-300",
   },
-  "Bloom (Public)": {
+  "Bloom": {
     glow: "rgba(244,114,182,0.15)",
     border: "hover:border-pink-400/40",
     text: "group-hover:text-pink-300",
   },
 };
+
 function GrowCard({ item, index }: { item: { stage: string; icon: React.ReactNode; desc: string }; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -62,12 +67,14 @@ function GrowCard({ item, index }: { item: { stage: string; icon: React.ReactNod
     [bgX, bgY],
     ([x, y]) => `radial-gradient(circle at ${x} ${y}, ${colors.glow} 0%, transparent 70%)`
   );
+
   function handleMove(e: React.MouseEvent) {
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
     mouseX.set((e.clientX - rect.left) / rect.width);
     mouseY.set((e.clientY - rect.top) / rect.height);
   }
+
   return (
     <motion.div
       ref={ref}
@@ -104,10 +111,12 @@ function GrowCard({ item, index }: { item: { stage: string; icon: React.ReactNod
     </motion.div>
   );
 }
+
 function MagneticLink({ href, children, className, testId }: { href: string; children: React.ReactNode; className?: string; testId?: string }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const x = useSpring(0, { stiffness: 150, damping: 12 });
   const y = useSpring(0, { stiffness: 150, damping: 12 });
+
   function handleMove(e: React.MouseEvent) {
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
@@ -116,10 +125,12 @@ function MagneticLink({ href, children, className, testId }: { href: string; chi
     x.set((e.clientX - cx) * 0.4);
     y.set((e.clientY - cy) * 0.4);
   }
+
   function handleLeave() {
     x.set(0);
     y.set(0);
   }
+
   return (
     <motion.a
       ref={ref}
@@ -135,24 +146,26 @@ function MagneticLink({ href, children, className, testId }: { href: string; chi
     </motion.a>
   );
 }
+
 export default function GardenIntro() {
   const stages = [
     {
-      stage: "Seed (Private Draft)",
+      stage: "Seed",
       icon: <SeedDoodle />,
-      desc: "Write your first ideas here. This is private. No one else can see this until you are ready."
+      desc: "A private space for first drafts, fragments, and rough edges. Yours alone until you decide otherwise."
     },
     {
-      stage: "Sprout (Editing)",
+      stage: "Sprout",
       icon: <SproutDoodle />,
-      desc: "Keep writing and making it better. It is still private and safe in your personal workspace."
+      desc: "Revise, reshape, let the work find its form. Still private, still yours."
     },
     {
-      stage: "Bloom (Public)",
+      stage: "Bloom",
       icon: <BloomDoodle />,
-      desc: "When you are happy with it, you can share it with others. Our editors also look here for stories to publish."
+      desc: "Share your work publicly. Our editors read from here when selecting pieces for the journal."
     }
   ];
+
   return (
     <section id="garden-intro" className="relative pt-24 pb-40 overflow-hidden" data-testid="section-garden-intro">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 10%, rgba(52,211,153,0.05) 0%, transparent 50%)" }} />
@@ -165,8 +178,9 @@ export default function GardenIntro() {
             viewport={{ once: true, margin: "100px" }}
             className="font-mono text-xs tracking-[0.3em] block uppercase"
           >
-            Your Private Space
+            How It Works
           </motion.span>
+
           <div className="relative">
             <motion.div
               className="absolute inset-0 -inset-x-20 pointer-events-none"
@@ -187,6 +201,7 @@ export default function GardenIntro() {
               The Garden
             </motion.h2>
           </div>
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 0.9, y: 0 }}
@@ -194,15 +209,16 @@ export default function GardenIntro() {
             viewport={{ once: true }}
             className="text-lg md:text-xl font-serif font-light leading-relaxed max-w-2xl mx-auto"
           >
-            Every writer gets a private garden — a quiet place to plant ideas,
-            tend to drafts, and let your words grow at their own pace.
-            No deadlines. No pressure. Just soil, sun, and your imagination.
+            Every writer here gets a private space — somewhere to work without
+            an audience, on your own terms, at your own pace.
           </motion.p>
+
           <div className="grid md:grid-cols-3 gap-8 pt-12 max-w-3xl mx-auto">
             {stages.map((item, i) => (
               <GrowCard key={item.stage} item={item} index={i} />
             ))}
           </div>
+
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -215,7 +231,7 @@ export default function GardenIntro() {
               className="inline-flex items-center gap-3 font-mono text-sm uppercase tracking-widest border-b border-white/20 hover:border-white/60 transition-all pb-2 hover:text-white"
               testId="link-enter-garden"
             >
-              Go to Your Writing Space
+              Begin Writing
               <motion.span
                 className="text-lg inline-block"
                 whileHover={{ x: 8, scale: 1.3 }}
