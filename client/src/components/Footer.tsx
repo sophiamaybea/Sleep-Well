@@ -26,7 +26,7 @@ export default function Footer() {
               <Link href="/garden" className="font-serif italic text-white/60 hover:text-white transition-colors">The Garden</Link>
               <Link href="/how-it-works" className="font-serif italic text-white/40 hover:text-white transition-colors">How It Works</Link>
               <Link href="/seasons" className="font-serif italic text-white/40 hover:text-white transition-colors">Seasons</Link>
-              <Link href="/garden#submissions" className="font-serif italic text-white/40 hover:text-white transition-colors">Submissions</Link>
+              <Link href="/about" className="font-serif italic text-white/40 hover:text-white transition-colors">About</Link>
             </div>
           </div>
 
@@ -34,20 +34,18 @@ export default function Footer() {
           <div className="space-y-6">
             <h3 className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Connect</h3>
             <div className="flex flex-col gap-3">
-              <Link href="/about" className="font-serif italic text-white/60 hover:text-white transition-colors">About</Link>
-              <button className="text-left font-serif italic text-white/40 hover:text-white transition-colors">Contact</button>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/40 hover:text-white transition-colors">Instagram</a>
-              <button className="text-left font-serif italic text-white/40 hover:text-white transition-colors">Newsletter</button>
+              <a href="https://instagram.com/thepagegallery" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/60 hover:text-white transition-colors">Instagram</a>
+              <a href="mailto:hello@thepagegalleryjournal.com" className="font-serif italic text-white/40 hover:text-white transition-colors">Contact</a>
             </div>
           </div>
         </div>
 
         <div className="pt-8 border-t border-white/[0.03] flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
-            THE PAGE GALLERY JOURNAL © 2026
+            THE PAGE GALLERY JOURNAL &copy; 2026
           </div>
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
-            CURATED BY ATTENTION
+            A JOURNAL AND A GARDEN
           </div>
         </div>
       </div>
