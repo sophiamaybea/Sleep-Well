@@ -1325,23 +1325,41 @@ h1, h2, h3 {
 }
 
 
-/* ─── Garden Font Legibility Fix — boost low-opacity text ─── */
-.garden-bg [class*="text-white/1"],
-.garden-bg [class*="text-white/2"],
-.garden-bg [class*="text-white/3"] {
-  color: rgba(255, 255, 255, 0.75) !important;
-}
-.garden-bg [class*="text-white/4"],
-.garden-bg [class*="text-white/5"] {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-.garden-bg [class*="text-white/6"] {
-  color: rgba(255, 255, 255, 0.82) !important;
+/* —— Garden Font Legibility Fix — ensure all text is bright and readable —— */
+.garden-bg,
+.garden-bg * {
+  color: #ffffff !important;
 }
 .garden-bg .text-muted-foreground,
-.garden-bg [class*="text-muted"] {
-  color: rgba(255, 255, 255, 0.85) !important;
+.garden-bg .text-muted,
+.garden-bg [class*="text-muted"],
+.garden-bg [class*="text-white/"],
+.garden-bg .text-secondary-foreground,
+.garden-bg [class*="text-secondary"],
+.garden-bg [class*="opacity-"] {
+  color: #ffffff !important;
+  opacity: 1 !important;
 }
-.garden-bg .text-secondary-foreground {
-  color: rgba(255, 255, 255, 0.9) !important;
+.garden-bg p,
+.garden-bg span,
+.garden-bg h1,
+.garden-bg h2,
+.garden-bg h3,
+.garden-bg h4,
+.garden-bg h5,
+.garden-bg h6,
+.garden-bg a,
+.garden-bg label,
+.garden-bg div,
+.garden-bg li,
+.garden-bg td,
+.garden-bg th,
+.garden-bg button,
+.garden-bg input,
+.garden-bg textarea,
+.garden-bg select,
+.garden-bg small,
+.garden-bg strong,
+.garden-bg em {
+  color: #ffffff !important;
 }
