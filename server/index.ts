@@ -116,7 +116,7 @@ process.on("uncaughtException", (err) => {
 });
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection:", reason);
-});
+  });
 process.on("SIGTERM", () => {
   console.error("SIGTERM received");
 });
@@ -127,6 +127,19 @@ process.on("SIGHUP", () => {
   console.error("SIGHUP received");
 });
 
+
+// Diagnostic endpoint to debug DB issues
+import { pool } from "./db";
+app.get("/api/debug/db", async (_req, res) => {
+  try {
+    const tables = await pool.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename`);
+    const writings = await pool.query(`SELECT count(*) as total, count(*) FILTER (WHERE is_published = true) as published FROM writings`);
+    const siteContent = await pool.query(`SELECT count(*) FROM site_content`);
+    res.json({ tables: tables.rows.map((r: any) => r.tablename), writings: writings.rows[0], siteContent: siteContent.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
+  }
+});
 (async () => {
   await registerRoutes(httpServer, app);
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
