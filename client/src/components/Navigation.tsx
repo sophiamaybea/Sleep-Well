@@ -68,12 +68,12 @@ export default function Navigation() {
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
     { label: "My Garden", href: "/garden", isPage: true, tooltip: "Write & Grow Your Work" },
-    { label: "Dashboard", href: "/editor-studio", isPage: true },
+    { label: "Drafts", href: "/editor-studio", isPage: true },
   ];
 
   const editorMenuItems = [
     ...writerMenuItems,
-    { label: "Editorial", href: "/eic-dashboard", isPage: true },
+    { label: "Editorial", href: "/eic-Drafts", isPage: true },
   ];
 
   const activeMenuItems = !isAuthenticated 
@@ -131,12 +131,12 @@ export default function Navigation() {
                 {showNotifs && (
                   <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 max-h-80 overflow-y-auto">
                     <div className="p-3 border-b border-white/[0.06]">
-                      <h3 className="font-display text-sm text-white/90 italic">Wind Chimes (Notifications)</h3>
-                      <p className="font-serif text-[10px] text-white/90 italic mt-0.5">Something happened in the garden (like a new comment or like).</p>
+                      <h3 className="font-display text-sm text-white/90 italic">Notifications</h3>
+                      <p className="font-serif text-[10px] text-white/90 italic mt-0.5">Recent activity on your work.</p>
                     </div>
                     <div className="p-2">
                       {(notifData?.notifications || []).length === 0 ? (
-                        <p className="text-center py-4 font-serif text-sm text-white/90 italic">All quiet in the garden</p>
+                        <p className="text-center py-4 font-serif text-sm text-white/90 italic">No new notifications</p>
                       ) : (
                         (notifData?.notifications || []).map((n: any) => (
                           <div key={n.id} className={`p-3 rounded-lg mb-1 ${n.isRead ? "opacity-60" : "bg-white/[0.03]"}`} data-testid={`notification-${n.id}`}>
