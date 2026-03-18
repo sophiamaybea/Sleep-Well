@@ -57,6 +57,7 @@ export default function Navigation() {
     refetchInterval: 30000,
   });
 
+    // Navigation menu items — Mind Walks removed
   const publicMenuItems = [
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
