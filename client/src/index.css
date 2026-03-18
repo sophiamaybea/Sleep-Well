@@ -1323,3 +1323,25 @@ h1, h2, h3 {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.15);
 }
+
+
+/* ─── Garden Font Legibility Fix — boost low-opacity text ─── */
+.garden-bg [class*="text-white/1"],
+.garden-bg [class*="text-white/2"],
+.garden-bg [class*="text-white/3"] {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+.garden-bg [class*="text-white/4"],
+.garden-bg [class*="text-white/5"] {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+.garden-bg [class*="text-white/6"] {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+.garden-bg .text-muted-foreground,
+.garden-bg [class*="text-muted"] {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.garden-bg .text-secondary-foreground {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
