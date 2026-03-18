@@ -334,7 +334,7 @@ export async function registerRoutes(
       res.json(published);
     } catch (error) {
       console.error("Error fetching gallery:", error);
-      res.status(500).json({ message: "Failed to fetch gallery" });
+      res.status(500).json({ message: "Failed to fetch gallery", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
