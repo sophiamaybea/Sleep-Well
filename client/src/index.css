@@ -4,10 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-sans: 'Cormorant Garamond', serif;
-  --font-display: 'Cormorant Garamond', serif;
+    --font-sans: 'Libre Baskerville', serif;
+  --font-display: 'Playfair Display', serif;
   --font-mono: 'Space Mono', monospace;
-      --font-serif: 'Cormorant Garamond', serif;
+      --font-serif: 'Libre Baskerville', serif;
 
   /* Teal-Indigo Watercolor Night — bioluminescent garden palette */
   --color-background: #0d1e2d;
@@ -175,7 +175,7 @@
   line-height: 2;
 }
 .prose-editor .tiptap h2 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.75rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.85);
@@ -183,7 +183,7 @@
   font-style: italic;
 }
 .prose-editor .tiptap h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.35rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.8);
@@ -233,7 +233,7 @@
   line-height: 2;
 }
 .prose-content h2 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.5rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.8);
@@ -241,7 +241,7 @@
   font-style: italic;
 }
 .prose-content h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.2rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.75);
@@ -278,7 +278,7 @@
   margin: 1.5em 0;
 }
 .prose-content pre {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   white-space: pre;
   line-height: 2;
   font-size: inherit;
