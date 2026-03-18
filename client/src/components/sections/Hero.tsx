@@ -64,7 +64,7 @@ export default function Hero() {
                 className="max-w-xl text-xl md:text-2xl leading-relaxed font-serif italic text-white"
                 data-testid="text-hero-hook"
               >
-                We are a journal, and we tend to a garden.
+                A literary journal for writing that lingers.
               </motion.div>
 
               <motion.div
