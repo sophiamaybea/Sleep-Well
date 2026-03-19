@@ -60,10 +60,11 @@ export default function Home() {
 
       <ScrollAtmosphere />
       <Navigation />
-      
+
+              <main>
         <Hero />
         <Featured />
-        <GardenIntro />
+        <GardenIntro />            
       </main>
 
       <div className="relative z-10">
