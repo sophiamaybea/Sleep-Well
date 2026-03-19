@@ -3758,7 +3758,7 @@ export default function Garden() {
 
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background text-foreground relative">
+      <div className="min-h-screen bg-transparent text-foreground relative">
         <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -3798,7 +3798,7 @@ export default function Garden() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-background text-foreground relative">
+      <div className="min-h-screen bg-transparent text-foreground relative">
           <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 mx-auto border border-white/20 rounded-full flex items-center justify-center">
@@ -3813,7 +3813,7 @@ export default function Garden() {
 
   if (showNotifications) {
     return (
-      <div className="min-h-screen bg-background text-foreground relative">
+      <div className="min-h-screen bg-transparent text-foreground relative">
         <div className="relative z-10 pt-20 pb-24 px-6 max-w-2xl mx-auto">
           <button
             onClick={() => setShowNotifications(false)}
@@ -3829,7 +3829,7 @@ export default function Garden() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative garden-bg">
+    <div className="min-h-screen bg-transparent text-foreground relative">
       <NightGardenAtmosphere />
 
       <div className="relative z-10">
