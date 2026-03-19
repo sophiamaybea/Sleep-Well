@@ -7474,7 +7474,7 @@ export async function registerRoutes(
       const circlesWithDetails = await Promise.all(allCircles.map(async (circle) => {
         const members = await db.select({
           userId: circleMembers.userId,
-          role: circleMembers.role,
+           
           joinedAt: circleMembers.joinedAt,
           userFirstName: users.firstName,
           userLastName: users.lastName,
