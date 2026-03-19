@@ -1,10 +1,9 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
-
 import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
@@ -85,6 +84,7 @@ function Router() {
         <Route path="/v2" component={V2Dashboard} />
         <Route path="/v2/reading-room" component={V2ReadingRoom} />
         <Route path="/v2/community" component={V2Community} />
+                  <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
         <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
