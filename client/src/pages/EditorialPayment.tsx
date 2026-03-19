@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearch } from "wouter";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 export default function EditorialPayment() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const searchString = useSearch();
+  const token = new URLSearchParams(searchString).get("token");
   const [entry, setEntry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
