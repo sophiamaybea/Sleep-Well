@@ -5516,6 +5516,25 @@ export async function registerRoutes(
       res.status(500).json({ message: "Failed to fetch activity feed" });
     }
   });
+
+    // EIC: Update user role
+  app.post("/api/eic/update-role", isEditorInChief, async (req: any, res) => {
+    try {
+      const { userId, role } = req.body;
+      if (!userId || !role) {
+        return res.status(400).json({ message: "userId and role are required" });
+      }
+      const validRoles = ["writer", "editor", "editor_in_chief"];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      await storage.setEditorRole(userId, role);
+      res.json({ success: true, userId, role });
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
   
   // === EXHIBITS ===
   app.get("/api/exhibits", async (req: any, res) => {
