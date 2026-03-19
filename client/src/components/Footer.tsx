@@ -36,13 +36,15 @@ export default function Footer() {
             <div className="flex flex-col gap-3">
               <a href="https://instagram.com/pagegalleryjournal" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/60 hover:text-white transition-colors">Instagram</a>
               <a href="mailto:hello@thepagegalleryjournal.com" className="font-serif italic text-white/40 hover:text-white transition-colors">Contact</a>
+                              <Link href="/privacy" className="font-serif italic text-white/40 hover:text-white transition-colors">Privacy</Link>
+                <Link href="/terms" className="font-serif italic text-white/40 hover:text-white transition-colors">Terms</Link>
             </div>
           </div>
         </div>
 
         <div className="pt-8 border-t border-white/[0.03] flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
-            THE PAGE GALLERY JOURNAL &copy; 2026
+            THE PAGE GALLERY JOURNAL &copy; 2025
           </div>
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
             A JOURNAL AND A GARDEN
