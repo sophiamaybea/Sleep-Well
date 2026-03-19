@@ -77,6 +77,8 @@ import {
   insertContactMessageSchema,
   insertConversationSchema,
   insertChatMessageSchema,
+    editorialWaitlist,
+  insertEditorialWaitlistSchema,
   
   
 } from "@shared/schema";
@@ -7357,6 +7359,99 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching all users for EIC:", error);
       res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+    // === EDITORIAL SERVICES WAITLIST ===
+  app.post("/api/editorial-waitlist", async (req: any, res) => {
+    try {
+      const data = insertEditorialWaitlistSchema.parse(req.body);
+      const [entry] = await db.insert(editorialWaitlist).values(data).returning();
+      res.json(entry);
+    } catch (error: any) {
+      if (error?.code === "23505") {
+        res.status(409).json({ message: "duplicate" });
+      } else {
+        console.error("Editorial waitlist error:", error);
+        res.status(400).json({ message: error?.message || "Invalid data" });
+      }
+    }
+  });
+
+  app.get("/api/editorial-waitlist", isAuthenticated, async (req: any, res) => {
+    if (req.user?.email !== "sophiamaybea@gmail.com") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    try {
+      const entries = await db.select().from(editorialWaitlist).orderBy(desc(editorialWaitlist.createdAt));
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching waitlist:", error);
+      res.status(500).json({ message: "Failed to fetch waitlist" });
+    }
+  });
+
+  app.patch("/api/editorial-waitlist/:id", isAuthenticated, async (req: any, res) => {
+    if (req.user?.email !== "sophiamaybea@gmail.com") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    try {
+      const { id } = req.params;
+      const [updated] = await db.update(editorialWaitlist)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(editorialWaitlist.id, id))
+        .returning();
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating waitlist entry:", error);
+      res.status(500).json({ message: "Failed to update" });
+    }
+  });
+
+  // PayPal create order
+  app.post("/api/paypal/create-order", async (req: any, res) => {
+    try {
+      const { waitlistId, amount } = req.body;
+      const [entry] = await db.select().from(editorialWaitlist).where(eq(editorialWaitlist.id, waitlistId));
+      if (!entry || entry.status !== "invited") {
+        return res.status(403).json({ message: "Not eligible for payment" });
+      }
+      const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
+      const response = await fetch("https://api-m.paypal.com/v2/checkout/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` },
+        body: JSON.stringify({
+          intent: "CAPTURE",
+          purchase_units: [{ amount: { currency_code: "GBP", value: String(amount) }, description: "Page Gallery Editorial Services" }],
+        }),
+      });
+      const order = await response.json();
+      res.json(order);
+    } catch (error) {
+      console.error("PayPal create order error:", error);
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  // PayPal capture order
+  app.post("/api/paypal/capture-order", async (req: any, res) => {
+    try {
+      const { orderId, waitlistId } = req.body;
+      const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
+      const response = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${orderId}/capture`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` },
+      });
+      const capture = await response.json();
+      if (capture.status === "COMPLETED") {
+        await db.update(editorialWaitlist)
+          .set({ paymentConfirmed: true, paypalOrderId: orderId, status: "paid", updatedAt: new Date() })
+          .where(eq(editorialWaitlist.id, waitlistId));
+      }
+      res.json(capture);
+    } catch (error) {
+      console.error("PayPal capture error:", error);
+      res.status(500).json({ message: "Failed to capture payment" });
     }
   });
 
