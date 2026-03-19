@@ -79,6 +79,14 @@ import {
   insertChatMessageSchema,
     editorialWaitlist,
   insertEditorialWaitlistSchema,
+    writings,
+  ritualSessions,
+  innerWeather,
+  reflections,
+  growthJournalEntries,
+  pollinations,
+  savedPieces,
+  resonances,
   
   
 } from "@shared/schema";
