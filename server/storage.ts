@@ -1523,6 +1523,8 @@ export interface IStorage {
   // Bio management
   updateUserBio(userId: string, bio: string): Promise<any>;
   getAllUsers(): Promise<any[]>;
+  getAllWritingsForEIC(): Promise<any[]>;
+  getActiveGardenPresence(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -7815,5 +7817,46 @@ export class DatabaseStorage implements IStorage {
       .orderBy(users.firstName);
   }
 }
+
+  // EIC Dashboard methods
+  async getAllWritingsForEIC() {
+    return await db
+      .select({
+        id: writings.id,
+        authorId: writings.authorId,
+        title: writings.title,
+        stage: writings.stage,
+        genre: writings.genre,
+        readiness: writings.readiness,
+        editorialAvailable: writings.editorialAvailable,
+        isPublished: writings.isPublished,
+        isPublicGarden: writings.isPublicGarden,
+        galleryOptIn: writings.galleryOptIn,
+        visibility: writings.visibility,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      })
+      .from(writings)
+      .leftJoin(users, eq(writings.authorId, users.id))
+      .orderBy(writings.createdAt);
+  }
+
+  async getActiveGardenPresence() {
+    return await db
+      .select({
+        id: gardenPresence.id,
+        userId: gardenPresence.userId,
+        zone: gardenPresence.zone,
+        lastSeen: gardenPresence.lastSeen,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      })
+      .from(gardenPresence)
+      .leftJoin(users, eq(gardenPresence.userId, users.id))
+      .orderBy(gardenPresence.lastSeen);
+  }
 
 export const storage = new DatabaseStorage();
