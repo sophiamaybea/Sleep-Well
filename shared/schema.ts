@@ -2084,3 +2084,33 @@ export const insertEditorialWaitlistSchema = createInsertSchema(editorialWaitlis
 
 export type EditorialWaitlistEntry = typeof editorialWaitlist.$inferSelect;
 export type InsertEditorialWaitlist = z.infer<typeof insertEditorialWaitlistSchema>;
+
+// === CIRCLE BOARD POSTS ===
+export const boardPosts = pgTable("board_posts", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  circleId: varchar("circle_id")
+    .notNull()
+    .references(() => circles.id),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  content: text("content").notNull(),
+  title: text("title"),
+  link: text("link"),
+  postType: text("post_type").notNull().default("note"),
+  isPinned: boolean("is_pinned").notNull().default(false),
+  writingId: varchar("writing_id").references(() => writings.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBoardPostSchema = createInsertSchema(boardPosts).omit({
+  id: true,
+  userId: true,
+  isPinned: true,
+  createdAt: true,
+});
+
+export type BoardPost = typeof boardPosts.$inferSelect;
+export type InsertBoardPost = z.infer<typeof insertBoardPostSchema>;
