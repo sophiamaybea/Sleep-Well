@@ -27,7 +27,6 @@ export default function Hero() {
   return (
     <div ref={heroRef} className="relative">
       <StarTitle />
-
       <section id="hero-content" className="relative z-10 min-h-[50vh] pt-16 pb-12 px-6 md:px-12 lg:px-24">
         <div
           className="max-w-7xl mx-auto relative z-10"
@@ -66,6 +65,18 @@ export default function Hero() {
               >
                 A literary journal for writing that lingers.
               </motion.div>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.9, duration: 1.0 }}
+                viewport={{ once: true }}
+                className="max-w-lg text-sm md:text-base leading-relaxed font-mono tracking-wide text-white/60"
+                data-testid="text-hero-garden-proposition"
+              >
+                You don't submit. You don't query. You just write.
+                <span className="hidden md:inline">{" "}Every writer gets a Garden — a private space to draft, revise, and bloom.</span>
+              </motion.p>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
