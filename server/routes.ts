@@ -6471,228 +6471,7 @@ export async function registerRoutes(
     },
   );
 
-  // === CIRCLES (Writing Groups) ===
-
-  // Create a circle
-  app.post("/api/circles", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { name, description } = req.body;
-    if (!name?.trim())
-      return res.status(400).json({ message: "Name is required" });
-    const [circle] = await db
-      .insert(circles)
-      .values({
-        name: name.trim(),
-        description: description || "",
-        createdById: req.user!.id,
-      })
-      .returning();
-    // Auto-add creator as admin member
-    await db.insert(circleMembers).values({
-      circleId: circle.id,
-      userId: req.user!.id,
-      role: "admin",
-    });
-    res.json(circle);
-  });
-
-  // List user circles
-  app.get("/api/circles", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const memberships = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.userId, req.user!.id));
-    const userCircles = [];
-    for (const m of memberships) {
-      const [circle] = await db
-        .select()
-        .from(circles)
-        .where(eq(circles.id, m.circleId));
-      if (circle) {
-        const members = await db
-          .select()
-          .from(circleMembers)
-          .where(eq(circleMembers.circleId, circle.id));
-        userCircles.push({
-          ...circle,
-          role: m.role,
-          memberCount: members.length,
-        });
-      }
-    }
-    res.json(userCircles);
-  });
-
-  // Get circle details with members and shared pieces
-  app.get("/api/circles/:id", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    const members = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.circleId, circle.id));
-    const isMember = members.some((m) => m.userId === req.user!.id);
-    if (!isMember) return res.status(403).json({ message: "Not a member" });
-    const memberDetails = [];
-    for (const m of members) {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, m.userId));
-      if (user)
-        memberDetails.push({
-          ...m,
-          username: user.username,
-          displayName: user.displayName,
-        });
-    }
-    const sharedPieces = await db
-      .select()
-      .from(writings)
-      .where(eq(writings.circleId, circle.id));
-    res.json({ ...circle, members: memberDetails, pieces: sharedPieces });
-  });
-
-  // Add member to circle by username
-  app.post("/api/circles/:id/members", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { username } = req.body;
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    const members = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.circleId, circle.id));
-    const callerMembership = members.find((m) => m.userId === req.user!.id);
-    if (!callerMembership || callerMembership.role !== "admin")
-      return res.status(403).json({ message: "Only admins can add members" });
-    const [targetUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, username));
-    if (!targetUser) return res.status(404).json({ message: "User not found" });
-    const existing = members.find((m) => m.userId === targetUser.id);
-    if (existing) return res.status(400).json({ message: "Already a member" });
-    const [member] = await db
-      .insert(circleMembers)
-      .values({
-        circleId: circle.id,
-        userId: targetUser.id,
-      })
-      .returning();
-    res.json(member);
-  });
-
-  // Remove member from circle
-  app.delete("/api/circles/:id/members/:userId", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    const members = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.circleId, circle.id));
-    const callerMembership = members.find((m) => m.userId === req.user!.id);
-    const isAdmin = callerMembership?.role === "admin";
-    const isSelf = req.params.userId === req.user!.id;
-    if (!isAdmin && !isSelf)
-      return res.status(403).json({ message: "Not authorized" });
-    await db
-      .delete(circleMembers)
-      .where(
-        and(
-          eq(circleMembers.circleId, circle.id),
-          eq(circleMembers.userId, req.params.userId),
-        ),
-      );
-    res.json({ success: true });
-  });
-
-  // Delete circle (creator only)
-  app.delete("/api/circles/:id", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    if (circle.createdById !== req.user!.id)
-      return res.status(403).json({ message: "Only the creator can delete" });
-    await db.delete(circleMembers).where(eq(circleMembers.circleId, circle.id));
-    await db
-      .update(writings)
-      .set({ circleId: null })
-      .where(eq(writings.circleId, circle.id));
-    await db.delete(circles).where(eq(circles.id, circle.id));
-    res.json({ success: true });
-  });
-
-  // Update writing visibility
-  app.patch("/api/writings/:id/visibility", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { visibility } = req.body;
-    if (!["personal", "circle", "public"].includes(visibility))
-      return res.status(400).json({ message: "Invalid visibility" });
-    const [writing] = await db
-      .select()
-      .from(writings)
-      .where(eq(writings.id, req.params.id));
-    if (!writing || writing.authorId !== req.user!.id)
-      return res.status(403).json({ message: "Not authorized" });
-    const [updated] = await db
-      .update(writings)
-      .set({ visibility })
-      .where(eq(writings.id, req.params.id))
-      .returning();
-    res.json(updated);
-  });
-
-  // Share writing to a circle
-  app.patch("/api/writings/:id/circle", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { circleId: cId } = req.body;
-    const [writing] = await db
-      .select()
-      .from(writings)
-      .where(eq(writings.id, req.params.id));
-    if (!writing || writing.authorId !== req.user!.id)
-      return res.status(403).json({ message: "Not authorized" });
-    if (cId) {
-      const members = await db
-        .select()
-        .from(circleMembers)
-        .where(eq(circleMembers.circleId, cId));
-      if (!members.some((m) => m.userId === req.user!.id))
-        return res.status(403).json({ message: "Not a member of this circle" });
-    }
-    const [updated] = await db
-      .update(writings)
-      .set({ circleId: cId || null, visibility: cId ? "circle" : "personal" })
-      .where(eq(writings.id, req.params.id))
-      .returning();
-    res.json(updated);
-  });
-
-  // === PROMPTS MANAGEMENT ===
+    // === PROMPTS MANAGEMENT ===
 
   app.post("/api/editor/prompts", isEditor, async (req, res) => {
     try {
@@ -7676,6 +7455,166 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Payment token lookup error:", error);
       res.status(500).json({ error: "Failed to load payment details." });
+    }
+  });
+
+
+    // === EIC STUDIO: CIRCLES OVERSIGHT FOR SOPHIA ===
+  // EIC can see all circles, their members, activity, and shared pieces
+  app.get("/api/eic/circles-overview", isEditorInChief, async (req: any, res) => {
+    try {
+      const allCircles = await db.select({
+        id: circles.id,
+        name: circles.name,
+        description: circles.description,
+        createdById: circles.createdById,
+        createdAt: circles.createdAt,
+      }).from(circles).orderBy(desc(circles.createdAt));
+
+      const circlesWithDetails = await Promise.all(allCircles.map(async (circle) => {
+        const members = await db.select({
+          userId: circleMembers.userId,
+          role: circleMembers.role,
+          joinedAt: circleMembers.joinedAt,
+          userFirstName: users.firstName,
+          userLastName: users.lastName,
+          userEmail: users.email,
+        }).from(circleMembers)
+          .leftJoin(users, eq(circleMembers.userId, users.id))
+          .where(eq(circleMembers.circleId, circle.id));
+
+        const sharedPieces = await db.select({
+          id: writings.id,
+          title: writings.title,
+          readiness: writings.readiness,
+          updatedAt: writings.updatedAt,
+          authorId: writings.authorId,
+        }).from(writings)
+          .where(eq(writings.circleId, circle.id))
+          .orderBy(desc(writings.updatedAt));
+
+        const creator = await db.select({
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        }).from(users).where(eq(users.id, circle.createdById)).limit(1);
+
+        return {
+          ...circle,
+          creator: creator[0] || null,
+          memberCount: members.length,
+          members,
+          sharedPieceCount: sharedPieces.length,
+          sharedPieces,
+        };
+      }));
+
+      res.json(circlesWithDetails);
+    } catch (error) {
+      console.error("Error fetching circles overview:", error);
+      res.status(500).json({ message: "Failed to fetch circles overview" });
+    }
+  });
+
+  // EIC Studio: Full platform usage dashboard - everything Sophia needs in one call
+  app.get("/api/eic/full-usage-dashboard", isEditorInChief, async (req: any, res) => {
+    try {
+      // Total counts
+      const [userCount] = await db.select({ count: sql`count(*)::int` }).from(users);
+      const [writingCount] = await db.select({ count: sql`count(*)::int` }).from(writings);
+      const [publishedCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.isPublished, true));
+      const [rawSeedCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.readiness, "raw_seed"));
+      const [growingCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.readiness, "growing"));
+      const [editorialCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.editorialAvailable, true));
+      const [ritualCount] = await db.select({ count: sql`count(*)::int` }).from(ritualSessions);
+      const [weatherCount] = await db.select({ count: sql`count(*)::int` }).from(innerWeather);
+      const [reflectionCount] = await db.select({ count: sql`count(*)::int` }).from(reflections);
+      const [journalCount] = await db.select({ count: sql`count(*)::int` }).from(growthJournalEntries);
+      const [pollinationCount] = await db.select({ count: sql`count(*)::int` }).from(pollinations);
+      const [savedCount] = await db.select({ count: sql`count(*)::int` }).from(savedPieces);
+      const [resonanceCount] = await db.select({ count: sql`count(*)::int` }).from(resonances);
+      const [circleCount] = await db.select({ count: sql`count(*)::int` }).from(circles);
+      const [circleMemberCount] = await db.select({ count: sql`count(*)::int` }).from(circleMembers);
+
+      // Time-based metrics
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const [writingsThisWeek] = await db.select({ count: sql`count(*)::int` }).from(writings).where(sql`${writings.createdAt} > ${sevenDaysAgo}`);
+      const [writingsThisMonth] = await db.select({ count: sql`count(*)::int` }).from(writings).where(sql`${writings.createdAt} > ${thirtyDaysAgo}`);
+      const [usersThisWeek] = await db.select({ count: sql`count(*)::int` }).from(users).where(sql`${users.createdAt} > ${sevenDaysAgo}`);
+      const [usersThisMonth] = await db.select({ count: sql`count(*)::int` }).from(users).where(sql`${users.createdAt} > ${thirtyDaysAgo}`);
+      const [ritualsThisWeek] = await db.select({ count: sql`count(*)::int` }).from(ritualSessions).where(sql`${ritualSessions.completedAt} > ${sevenDaysAgo}`);
+
+      // Most active users (by writing count in last 30 days)
+      const activeUsers = await db.select({
+        userId: writings.authorId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        writingCount: sql`count(*)::int`,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(sql`${writings.createdAt} > ${thirtyDaysAgo}`)
+        .groupBy(writings.authorId, users.firstName, users.lastName, users.email)
+        .orderBy(sql`count(*) DESC`)
+        .limit(20);
+
+      // Recent writings (last 20 across all users)
+      const recentWritings = await db.select({
+        id: writings.id,
+        title: writings.title,
+        readiness: writings.readiness,
+        isPublished: writings.isPublished,
+        editorialAvailable: writings.editorialAvailable,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .orderBy(desc(writings.updatedAt))
+        .limit(20);
+
+      // Active garden presence
+      const activePresence = await storage.getActiveWriterCount();
+
+      res.json({
+        totals: {
+          users: userCount?.count || 0,
+          writings: writingCount?.count || 0,
+          published: publishedCount?.count || 0,
+          rawSeeds: rawSeedCount?.count || 0,
+          growing: growingCount?.count || 0,
+          editorialAvailable: editorialCount?.count || 0,
+          rituals: ritualCount?.count || 0,
+          innerWeather: weatherCount?.count || 0,
+          reflections: reflectionCount?.count || 0,
+          journalEntries: journalCount?.count || 0,
+          pollinations: pollinationCount?.count || 0,
+          savedPieces: savedCount?.count || 0,
+          resonances: resonanceCount?.count || 0,
+          circles: circleCount?.count || 0,
+          circleMembers: circleMemberCount?.count || 0,
+        },
+        thisWeek: {
+          newWritings: writingsThisWeek?.count || 0,
+          newUsers: usersThisWeek?.count || 0,
+          rituals: ritualsThisWeek?.count || 0,
+        },
+        thisMonth: {
+          newWritings: writingsThisMonth?.count || 0,
+          newUsers: usersThisMonth?.count || 0,
+        },
+        activePresence,
+        mostActiveUsers: activeUsers,
+        recentWritings,
+      });
+    } catch (error) {
+      console.error("Error fetching full usage dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch usage dashboard" });
     }
   });
 
