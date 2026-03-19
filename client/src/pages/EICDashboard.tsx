@@ -340,7 +340,7 @@ export default function EICDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1e2d]">
+    <div className="min-h-screen bg-[#0d1e2d] relative z-10">
       <div className="max-w-7xl mx-auto px-6 py-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease }}>
           <button onClick={() => navigate("/")} className="text-[#f0eeea]/40 hover:text-[#f0eeea]/70 font-['Lora',serif] text-sm mb-8 block transition-colors">
