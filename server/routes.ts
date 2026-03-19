@@ -158,6 +158,19 @@ export async function registerRoutes(
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+    // === KEEP-ALIVE SELF-PING (prevents Render free-tier spin-down) ===
+  const KEEP_ALIVE_URL = "https://thepagegalleryjournal.com/health";
+  const KEEP_ALIVE_INTERVAL_MS = 13 * 60 * 1000; // 13 minutes
+  setInterval(async () => {
+    try {
+      const res = await fetch(KEEP_ALIVE_URL);
+      console.log(`[keep-alive] pinged ${KEEP_ALIVE_URL} — status ${res.status}`);
+    } catch (err) {
+      console.error("[keep-alive] ping failed:", err);
+    }
+  }, KEEP_ALIVE_INTERVAL_MS);
+  console.log(`[keep-alive] self-ping active every ${KEEP_ALIVE_INTERVAL_MS / 60000} min → ${KEEP_ALIVE_URL}`);
+
   // === SEO: ROBOTS.TXT ===
   app.get("/robots.txt", (_req, res) => {
     res
