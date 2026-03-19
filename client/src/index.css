@@ -1369,3 +1369,17 @@ h1, h2, h3 {
 .garden-bg select {
   color: #ffffff;
 }
+
+
+
+/* Global star background: make all page wrappers transparent so 3D stars show through */
+.min-h-screen[style*="background"],
+div.min-h-screen.bg-transparent,
+div.min-h-screen.relative {
+    background-color: transparent !important;
+}
+
+/* Override all Tailwind arbitrary bg colors on page wrappers */
+[class*="min-h-screen"][class*="bg-["] {
+    background-color: transparent !important;
+}
