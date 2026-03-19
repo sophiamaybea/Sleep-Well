@@ -73,7 +73,7 @@ export default function Navigation() {
 
   const editorMenuItems = [
     ...writerMenuItems,
-    { label: "Editorial", href: "/eic-Drafts", isPage: true },
+    { label: "Editorial", href: "/editor-studio", isPage: true },
   ];
 
   const activeMenuItems = !isAuthenticated 
