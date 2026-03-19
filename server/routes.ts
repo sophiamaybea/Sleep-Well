@@ -94,7 +94,7 @@ import { z } from "zod";
 import { db } from "./db";
 import { eq, and, sql, desc, count } from "drizzle-orm";
 import { dailyPrompts } from "@shared/schema";
-import { circles, circleMembers } from "@shared/schema";
+import { circles, circleMembers, circleShares } from "@shared/schema";
 
 const joinMoonlitReadingSchema = z.object({
   writingId: z.string().optional(),
@@ -7483,15 +7483,15 @@ export async function registerRoutes(
           .leftJoin(users, eq(circleMembers.userId, users.id))
           .where(eq(circleMembers.circleId, circle.id));
 
-        const sharedPieces = await db.select({
-          id: writings.id,
-          title: writings.title,
-          readiness: writings.readiness,
-          updatedAt: writings.updatedAt,
-          authorId: writings.authorId,
-        }).from(writings)
-          .where(eq(writings.circleId, circle.id))
-          .orderBy(desc(writings.updatedAt));
+const sharedPieces = await db.select({
+              shareId: circleShares.id,
+              writingId: circleShares.writingId,
+              userId: circleShares.userId,
+              weekOf: circleShares.weekOf,
+               
+            }).from(circleShares)
+              .where(eq(circleShares.circleId, circle.id))
+              .orderBy(desc(circleShares.id));
 
         const creator = await db.select({
           firstName: users.firstName,
