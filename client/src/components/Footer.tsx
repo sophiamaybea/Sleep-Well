@@ -14,8 +14,8 @@ export default function Footer() {
             <div className="flex flex-col gap-3">
               <Link href="/in-bloom" className="font-serif italic text-white/60 hover:text-white transition-colors">The Journal</Link>
               <Link href="/in-bloom" className="font-serif italic text-white/40 hover:text-white transition-colors">Current Issue</Link>
-              <Link href="/in-bloom" className="font-serif italic text-white/40 hover:text-white transition-colors">Archive</Link>
-              <Link href="/in-bloom" className="font-serif italic text-white/40 hover:text-white transition-colors">Contributors</Link>
+              <Link href="/publications" className="font-serif italic text-white/40 hover:text-white transition-colors">Archive</Link>
+              <Link href="/commons" className="font-serif italic text-white/40 hover:text-white transition-colors">Contributors</Link>
             </div>
           </div>
 
