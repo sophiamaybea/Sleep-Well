@@ -73,18 +73,18 @@ export default function Featured() {
         >
           <Link href="/in-bloom" data-testid="link-read-journal">
             <div className="relative group cursor-pointer">
-              <div className="absolute -inset-2 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative museum-frame-outer">
+              <div className="hidden" />
+              <div className="relative relative">
                 <div
                   className="relative"
                   style={{
-                    borderImage: `url("${frameImg}") 120 fill / 40px / 0 stretch`,
-                    borderWidth: "40px",
+                    /* removed */
+                    borderWidth: "0px",
                     borderStyle: "solid",
                   }}
                 >
-                  <div className="relative bg-[#0a0e17] py-16 px-8 md:px-16">
-                    <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 40px rgba(0,0,0,0.4)" }} />
+                  <div className="relative py-16 px-8 md:px-16">
+                    <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "none" }} />
                     <div className="relative z-10 text-center space-y-8">
                       <BookOpen size={36} className="mx-auto text-amber-200/90 group-hover:text-amber-200 transition-colors duration-500" />
 
