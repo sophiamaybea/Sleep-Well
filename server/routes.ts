@@ -7305,5 +7305,60 @@ export async function registerRoutes(
     }
   });
 
+    // === EIC DASHBOARD STATS ===
+  app.get("/api/eic/dashboard-stats", isEditorInChief, async (req: any, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const allWritings = await storage.getAllWritingsForEIC();
+      const gardenPresenceData = await storage.getActiveGardenPresence();
+
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const totalUsers = allUsers.length;
+      const newUsersThisMonth = allUsers.filter((u: any) => u.createdAt && new Date(u.createdAt) > thirtyDaysAgo).length;
+      const newUsersThisWeek = allUsers.filter((u: any) => u.createdAt && new Date(u.createdAt) > sevenDaysAgo).length;
+      const activeInGarden = gardenPresenceData.length;
+
+      const totalWritings = allWritings.length;
+      const seeds = allWritings.filter((w: any) => w.readiness === "raw_seed").length;
+      const growing = allWritings.filter((w: any) => w.readiness === "growing").length;
+      const readyToShow = allWritings.filter((w: any) => w.readiness === "ready_to_show").length;
+      const published = allWritings.filter((w: any) => w.isPublished).length;
+      const editorialAvailable = allWritings.filter((w: any) => w.editorialAvailable).length;
+      const writingsThisWeek = allWritings.filter((w: any) => w.createdAt && new Date(w.createdAt) > sevenDaysAgo).length;
+      const writingsThisMonth = allWritings.filter((w: any) => w.createdAt && new Date(w.createdAt) > thirtyDaysAgo).length;
+
+      res.json({
+        users: { total: totalUsers, newThisMonth: newUsersThisMonth, newThisWeek: newUsersThisWeek, activeInGarden },
+        writings: { total: totalWritings, seeds, growing, readyToShow, published, editorialAvailable, thisWeek: writingsThisWeek, thisMonth: writingsThisMonth },
+      });
+    } catch (error) {
+      console.error("Error fetching EIC dashboard stats:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  app.get("/api/eic/all-writings", isEditorInChief, async (req: any, res) => {
+    try {
+      const writings = await storage.getAllWritingsForEIC();
+      res.json(writings);
+    } catch (error) {
+      console.error("Error fetching all writings for EIC:", error);
+      res.status(500).json({ message: "Failed to fetch writings" });
+    }
+  });
+
+  app.get("/api/eic/all-users", isEditorInChief, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching all users for EIC:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   return httpServer;
 }
