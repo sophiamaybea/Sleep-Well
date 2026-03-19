@@ -36,6 +36,9 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
 const V2Community = lazy(() => import("@/pages/V2Community"));
+const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
+const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
+const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 
 function PageLoader() {
   return (
@@ -84,6 +87,9 @@ function Router() {
         <Route path="/v2" component={V2Dashboard} />
         <Route path="/v2/reading-room" component={V2ReadingRoom} />
         <Route path="/v2/community" component={V2Community} />
+                  <Route path="/editorial-services" component={EditorialServices} />
+          <Route path="/dashboard/editorial" component={EditorialDashboard} />
+          <Route path="/editorial-payment" component={EditorialPayment} />
                   <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
                   <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
         <Route path="/" component={Home} />
