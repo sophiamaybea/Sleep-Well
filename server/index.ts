@@ -5,7 +5,7 @@ import { createServer } from "http";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { db, runMigrations } from "./db";
-import { exhibits } from "@shared/schema";
+import { exhibits, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import {
   seedSiteContent,
@@ -185,6 +185,11 @@ app.get("/api/debug/db", async (_req, res) => {
   );
   await seedWelcomeNotifications().catch((err) =>
     console.error("Seed notifications failed:", err),
+  );
+
+    // Demote Giove from editor_in_chief to editor
+  await db.update(users).set({ role: "editor" }).where(eq(users.id, "ddaa141d-6f7f-4fbb-a966-4b94fcae0ebe")).catch((err) =>
+    console.error("Demote Giove failed:", err),
   );
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
