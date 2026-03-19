@@ -5305,6 +5305,208 @@ export async function registerRoutes(
     },
   );
 
+  // === EIC STUDIO - SUPER ROBUST OVERVIEW FOR SOPHIA ===
+
+  // EIC Studio: Get all raw seeds (unpublished writings with readiness raw_seed)
+  app.get("/api/eic/raw-seeds", isEditorInChief, async (req: any, res) => {
+    try {
+      const rawSeeds = await db.select({
+        id: writings.id,
+        title: writings.title,
+        content: writings.content,
+        stage: writings.stage,
+        genre: writings.genre,
+        readiness: writings.readiness,
+        visibility: writings.visibility,
+        editorialAvailable: writings.editorialAvailable,
+        isPublished: writings.isPublished,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorId: writings.authorId,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(eq(writings.readiness, "raw_seed"))
+        .orderBy(desc(writings.createdAt));
+      res.json(rawSeeds);
+    } catch (error) {
+      console.error("Error fetching raw seeds:", error);
+      res.status(500).json({ message: "Failed to fetch raw seeds" });
+    }
+  });
+
+  // EIC Studio: Get all unsaved/draft writings (not published, not editorial available)
+  app.get("/api/eic/unsaved-drafts", isEditorInChief, async (req: any, res) => {
+    try {
+      const drafts = await db.select({
+        id: writings.id,
+        title: writings.title,
+        content: writings.content,
+        stage: writings.stage,
+        genre: writings.genre,
+        readiness: writings.readiness,
+        visibility: writings.visibility,
+        editorialAvailable: writings.editorialAvailable,
+        isPublished: writings.isPublished,
+        isPublicGarden: writings.isPublicGarden,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorId: writings.authorId,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(
+          and(
+            eq(writings.isPublished, false),
+            eq(writings.editorialAvailable, false),
+            eq(writings.isPublicGarden, false)
+          )
+        )
+        .orderBy(desc(writings.updatedAt));
+      res.json(drafts);
+    } catch (error) {
+      console.error("Error fetching unsaved drafts:", error);
+      res.status(500).json({ message: "Failed to fetch unsaved drafts" });
+    }
+  });
+
+  // EIC Studio: Per-user usage/engagement stats
+  app.get("/api/eic/user-activity", isEditorInChief, async (req: any, res) => {
+    try {
+      const allUsers = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        createdAt: users.createdAt,
+      }).from(users).orderBy(desc(users.createdAt));
+
+      const userActivity = await Promise.all(allUsers.map(async (u) => {
+        const [writingsCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(eq(writings.authorId, u.id));
+        const [publishedCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(and(eq(writings.authorId, u.id), eq(writings.isPublished, true)));
+        const [rawSeedCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(and(eq(writings.authorId, u.id), eq(writings.readiness, "raw_seed")));
+        const [editorialCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(and(eq(writings.authorId, u.id), eq(writings.editorialAvailable, true)));
+        const [ritualCount] = await db.select({ count: sql<number>`count(*)::int` }).from(ritualSessions).where(eq(ritualSessions.userId, u.id));
+        const [weatherCount] = await db.select({ count: sql<number>`count(*)::int` }).from(innerWeather).where(eq(innerWeather.userId, u.id));
+        const [reflectionCount] = await db.select({ count: sql<number>`count(*)::int` }).from(reflections).where(eq(reflections.userId, u.id));
+        const [journalCount] = await db.select({ count: sql<number>`count(*)::int` }).from(growthJournalEntries).where(eq(growthJournalEntries.userId, u.id));
+        const [pollinationCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pollinations).where(eq(pollinations.fromUserId, u.id));
+        const [savedCount] = await db.select({ count: sql<number>`count(*)::int` }).from(savedPieces).where(eq(savedPieces.userId, u.id));
+        const [lastWriting] = await db.select({ updatedAt: writings.updatedAt }).from(writings).where(eq(writings.authorId, u.id)).orderBy(desc(writings.updatedAt)).limit(1);
+
+        return {
+          ...u,
+          totalWritings: writingsCount?.count || 0,
+          publishedWritings: publishedCount?.count || 0,
+          rawSeeds: rawSeedCount?.count || 0,
+          editorialAvailable: editorialCount?.count || 0,
+          ritualSessions: ritualCount?.count || 0,
+          innerWeatherEntries: weatherCount?.count || 0,
+          reflections: reflectionCount?.count || 0,
+          journalEntries: journalCount?.count || 0,
+          pollinations: pollinationCount?.count || 0,
+          savedPieces: savedCount?.count || 0,
+          lastActivity: lastWriting?.updatedAt || u.createdAt,
+        };
+      }));
+      res.json(userActivity);
+    } catch (error) {
+      console.error("Error fetching user activity:", error);
+      res.status(500).json({ message: "Failed to fetch user activity" });
+    }
+  });
+
+  // EIC Studio: Get single writing content for EIC preview
+  app.get("/api/eic/writing/:id", isEditorInChief, async (req: any, res) => {
+    try {
+      const [writing] = await db.select({
+        id: writings.id,
+        title: writings.title,
+        content: writings.content,
+        stage: writings.stage,
+        genre: writings.genre,
+        readiness: writings.readiness,
+        visibility: writings.visibility,
+        editorialAvailable: writings.editorialAvailable,
+        isPublished: writings.isPublished,
+        isPublicGarden: writings.isPublicGarden,
+        galleryOptIn: writings.galleryOptIn,
+        tags: writings.tags,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorId: writings.authorId,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(eq(writings.id, req.params.id));
+      if (!writing) return res.status(404).json({ message: "Writing not found" });
+      res.json(writing);
+    } catch (error) {
+      console.error("Error fetching writing:", error);
+      res.status(500).json({ message: "Failed to fetch writing" });
+    }
+  });
+
+  // EIC Studio: Recent activity feed across all users
+  app.get("/api/eic/activity-feed", isEditorInChief, async (req: any, res) => {
+    try {
+      const recentWritings = await db.select({
+        id: writings.id,
+        title: writings.title,
+        readiness: writings.readiness,
+        isPublished: writings.isPublished,
+        editorialAvailable: writings.editorialAvailable,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .orderBy(desc(writings.updatedAt))
+        .limit(50);
+
+      const recentRituals = await db.select({
+        id: ritualSessions.id,
+        durationMinutes: ritualSessions.durationMinutes,
+        completedAt: ritualSessions.completedAt,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email,
+      }).from(ritualSessions)
+        .leftJoin(users, eq(ritualSessions.userId, users.id))
+        .orderBy(desc(ritualSessions.completedAt))
+        .limit(20);
+
+      const recentWeather = await db.select({
+        id: innerWeather.id,
+        mood: innerWeather.mood,
+        energy: innerWeather.energy,
+        createdAt: innerWeather.createdAt,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+      }).from(innerWeather)
+        .leftJoin(users, eq(innerWeather.userId, users.id))
+        .orderBy(desc(innerWeather.createdAt))
+        .limit(20);
+
+      res.json({
+        recentWritings,
+        recentRituals,
+        recentWeather,
+      });
+    } catch (error) {
+      console.error("Error fetching activity feed:", error);
+      res.status(500).json({ message: "Failed to fetch activity feed" });
+    }
+  });
+  
   // === EXHIBITS ===
   app.get("/api/exhibits", async (req: any, res) => {
     try {
