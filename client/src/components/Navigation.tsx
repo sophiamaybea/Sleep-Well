@@ -72,7 +72,7 @@ export default function Navigation() {
   ];
 
   const editorMenuItems = [
-    ...writerMenuItems,
+    ...writerMenuItems.filter(item => item.label !== "Drafts"),
     { label: "Editorial", href: "/editor-studio", isPage: true },
   ];
 
