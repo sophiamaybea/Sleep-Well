@@ -84,7 +84,7 @@ function Router() {
         <Route path="/v2" component={V2Dashboard} />
         <Route path="/v2/reading-room" component={V2ReadingRoom} />
         <Route path="/v2/community" component={V2Community} />
-                  <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>           <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>           <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
+                  <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
                   <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
         <Route path="/" component={Home} />
         <Route component={NotFound} />
