@@ -25,7 +25,7 @@ export default function Footer() {
             <div className="flex flex-col gap-3">
               <Link href="/garden" className="font-serif italic text-white/60 hover:text-white transition-colors">The Garden</Link>
               <Link href="/how-it-works" className="font-serif italic text-white/40 hover:text-white transition-colors">How It Works</Link>
-              <Link href="/seasons" className="font-serif italic text-white/40 hover:text-white transition-colors">Seasons</Link>
+              <Link href="/garden-info" className="font-serif italic text-white/40 hover:text-white transition-colors">Seasons</Link>
               <Link href="/about" className="font-serif italic text-white/40 hover:text-white transition-colors">About</Link>
             </div>
           </div>
@@ -34,7 +34,7 @@ export default function Footer() {
           <div className="space-y-6">
             <h3 className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Connect</h3>
             <div className="flex flex-col gap-3">
-              <a href="https://instagram.com/thepagegallery" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/60 hover:text-white transition-colors">Instagram</a>
+              <a href="https://instagram.com/pagegalleryjournal" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/60 hover:text-white transition-colors">Instagram</a>
               <a href="mailto:hello@thepagegalleryjournal.com" className="font-serif italic text-white/40 hover:text-white transition-colors">Contact</a>
             </div>
           </div>
