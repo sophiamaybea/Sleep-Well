@@ -2050,3 +2050,37 @@ export type MindWalkFragment = typeof mindWalkFragments.$inferSelect;
 export type InsertMindWalkFragment = z.infer<typeof insertMindWalkFragmentSchema>;
 export type MindWalk = MindWalkTheme;
 export type InsertMindWalk = InsertMindWalkTheme;
+
+// === EDITORIAL SERVICES WAITLIST ===
+export const editorialWaitlist = pgTable("editorial_waitlist", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  genre: text("genre").notNull().default("poetry"),
+  manuscriptType: text("manuscript_type").notNull().default("poetry_collection"),
+  estimatedWordCount: integer("estimated_word_count"),
+  brief: text("brief"),
+  status: text("status").notNull().default("pending"),
+  sophiaNote: text("sophia_note"),
+  quotedPrice: integer("quoted_price"),
+  paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
+  paypalOrderId: text("paypal_order_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEditorialWaitlistSchema = createInsertSchema(editorialWaitlist).omit({
+  id: true,
+  status: true,
+  sophiaNote: true,
+  quotedPrice: true,
+  paymentConfirmed: true,
+  paypalOrderId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EditorialWaitlistEntry = typeof editorialWaitlist.$inferSelect;
+export type InsertEditorialWaitlist = z.infer<typeof insertEditorialWaitlistSchema>;
