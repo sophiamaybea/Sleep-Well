@@ -7455,5 +7455,19 @@ export async function registerRoutes(
     }
   });
 
+    // Get editorial waitlist entry by payment token
+  app.get("/api/editorial-waitlist/payment/:token", async (req: any, res) => {
+    try {
+      const { token } = req.params;
+      const [entry] = await db.select().from(editorialWaitlist).where(eq(editorialWaitlist.paymentToken, token));
+      if (!entry) return res.status(404).json({ error: "Invalid or expired payment link." });
+      if (entry.status !== "invited") return res.status(400).json({ error: "This payment link is no longer valid." });
+      res.json({ id: entry.id, quotedPrice: entry.quotedPrice, status: entry.status, paypalClientId: process.env.PAYPAL_CLIENT_ID });
+    } catch (error) {
+      console.error("Payment token lookup error:", error);
+      res.status(500).json({ error: "Failed to load payment details." });
+    }
+  });
+
   return httpServer;
 }
