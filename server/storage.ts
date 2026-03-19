@@ -7816,11 +7816,9 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .orderBy(users.firstName);
   }
-}
-
   // EIC Dashboard methods
   async getAllWritingsForEIC() {
-    return await db
+        return await db
       .select({
         id: writings.id,
         authorId: writings.authorId,
@@ -7858,5 +7856,6 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(gardenPresence.userId, users.id))
       .orderBy(gardenPresence.lastSeen);
   }
+}
 
 export const storage = new DatabaseStorage();
