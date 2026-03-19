@@ -142,7 +142,18 @@ export default function EICDashboard() {
     queryFn: async () => {
       const res = await fetch("/api/eic/dashboard-stats", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch stats");
-      return res.json();
+            const data = await res.json();
+            return {
+        totalUsers: data.users?.total ?? 0,
+        totalWritings: data.writings?.total ?? 0,
+        publishedWritings: data.writings?.published ?? 0,
+        editorialAvailableWritings: data.writings?.editorialAvailable ?? 0,
+        readinessBreakdown: { raw_seed: data.writings?.seeds ?? 0, growing: data.writings?.growing ?? 0, ready_to_show: data.writings?.readyToShow ?? 0 },
+        genreBreakdown: {},
+        recentWritings7d: data.writings?.thisWeek ?? 0,
+        recentWritings30d: data.writings?.thisMonth ?? 0,
+        activeGardenUsers: data.users?.activeInGarden ?? 0,
+      };
     },
     enabled: roleData?.role === "editor_in_chief",
   });
