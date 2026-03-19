@@ -1383,3 +1383,14 @@ div.min-h-screen.relative {
 [class*="min-h-screen"][class*="bg-["] {
     background-color: transparent !important;
 }
+
+/* Make body and garden backgrounds transparent for global stars */
+body {
+    background-color: transparent !important;
+}
+.garden-bg {
+    background: transparent !important;
+}
+.night-garden-atmosphere {
+    background: transparent !important;
+}
