@@ -789,7 +789,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           ))}
         </div>
         <p className="font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
-      </div> <button onClick={() => { setShowLayerGuide(false); localStorage.setItem('garden-layer-guide-dismissed', '1'); }} className="absolute top-2 right-2 text-white/30 hover:text-white/60 text-[9px] font-mono uppercase tracking-widest transition-colors">got it ×</button>}
+      <button onClick={() => { setShowLayerGuide(false); localStorage.setItem('garden-layer-guide-dismissed', '1'); }} className="absolute top-2 right-2 text-white/30 hover:text-white/60 text-[9px] font-mono uppercase tracking-widest transition-colors">got it ×</button></div>}
       <PublishInvitations />
 
       <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />          <button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
