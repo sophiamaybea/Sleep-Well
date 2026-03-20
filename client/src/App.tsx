@@ -32,6 +32,7 @@ const EditProfile = lazy(() => import("@/pages/EditProfile"));
 const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
+const Opportunities = lazy(() => import("@/pages/Opportunities"));
 
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
@@ -82,18 +83,19 @@ function Router() {
         <Route path="/how-it-works" component={HowItWorks} />
         <Route path="/garden-info" component={GardenInfo} />
         <Route path="/field-guide" component={FieldGuide} />
-                  <Route path="/accessibility" component={Accessibility} />
+        <Route path="/accessibility" component={Accessibility} />
         <Route path="/garden-guide" component={GardenGuide} />
         <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
         <Route path="/v2" component={V2Dashboard} />
         <Route path="/v2/reading-room" component={V2ReadingRoom} />
         <Route path="/v2/community" component={V2Community} />
-                  <Route path="/editorial-services" component={EditorialServices} />
-          <Route path="/dashboard/editorial" component={EditorialDashboard} />
-          <Route path="/editorial-payment" component={EditorialPayment} />
-                  <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
-                  <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
+        <Route path="/editorial-services" component={EditorialServices} />
+        <Route path="/dashboard/editorial" component={EditorialDashboard} />
+        <Route path="/editorial-payment" component={EditorialPayment} />
+        <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
+        <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
+        <Route path="/opportunities" component={Opportunities} />
         <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
@@ -106,12 +108,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScroll>
-                    <StarBackground />
           <NoiseOverlay />
-          <Toaster />
-          <Router />
-          <OnboardingModal />
+          <StarBackground />
           <AccessibilityToolbar />
+          <OnboardingModal />
+          <Router />
+          <Toaster />
         </SmoothScroll>
       </TooltipProvider>
     </QueryClientProvider>
