@@ -2441,6 +2441,7 @@ const toolColorMap: Record<string, { border: string; text: string; bg: string; g
 
 function GreenhouseZone() {
   const [activeTool, setActiveTool] = useState<GreenhouseTool>(null);
+    const [showAllTools, setShowAllTools] = useState(false);
 
   if (activeTool) {
     return <GreenhouseToolView tool={activeTool} onBack={() => setActiveTool(null)} />;
@@ -2459,7 +2460,7 @@ function GreenhouseZone() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {greenhouseTools.map((tool, i) => {
+        {(showAllTools ? greenhouseTools : greenhouseTools.slice(0, 2)).map((tool, i) => {
           const colors = toolColorMap[tool.color];
           return (
             <motion.button
@@ -2489,7 +2490,7 @@ function GreenhouseZone() {
             </motion.button>
           );
         })}
-      </div>
+      </div> <button onClick={() => setShowAllTools(v => !v)} className="mt-4 text-[10px] font-mono uppercase tracking-widest text-white/35 hover:text-white/60 transition-colors w-full text-center">{showAllTools ? '− Show fewer tools' : '+ Show all tools'}</button>
     </div>
   );
 }
