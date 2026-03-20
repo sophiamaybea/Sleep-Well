@@ -37,7 +37,8 @@ export default function Footer() {
               <a href="https://instagram.com/pagegalleryjournal" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/60 hover:text-white transition-colors">Instagram</a>
               <a href="mailto:hello@thepagegalleryjournal.com" className="font-serif italic text-white/40 hover:text-white transition-colors">Contact</a>
                               <Link href="/privacy" className="font-serif italic text-white/40 hover:text-white transition-colors">Privacy</Link>
-                <Link href="/terms" className="font-serif italic text-white/40 hover:text-white transition-colors">Terms</Link>
+                <Link href="/terms" className="font-serif italic text-white/40 hover:text-white transition-colors">Terms</Link>                 <Link href="/accessibility" className="font-serif italic text-white/40 hover:text-white transition-colors">Accessibility</Link>
+                              <Link href="/accessibility" className="font-serif italic text-white/40 hover:text-white transition-colors">Accessibility</Link>
             </div>
           </div>
         </div>
