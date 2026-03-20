@@ -27,7 +27,7 @@ import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/
 import ExportMenu from "@/components/garden/ExportMenu";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
-type Zone = "desk" | "reading-room" | "greenhouse" | "submissions";
+type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
 
@@ -446,6 +446,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
     { id: "reading-room", label: "Read", desc: "The public garden — what blooms here, others can tend", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
     { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
     { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+      { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },
   ];
 
   return (
@@ -694,6 +695,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   onWriteFromPrompt: (prompt: string) => void;
 }) {
   const queryClient = useQueryClient();
+  const [showDeskStats, setShowDeskStats] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -4148,8 +4150,10 @@ export default function Garden() {
                 <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} onGoToRoom={(room) => setActiveRoom(room)} />
               ) : activeZone === "submissions" ? (
                 <SubmissionsZone userTier={userTier as "free" | "paid"} />
-              ) : (
-                <GreenhouseZone />
+                    ) : activeZone === "garden-gate" ? (
+                        <GardenGateZone />
+      ) : (
+<GreenhouseZone />
               )}
             </motion.div>
           </AnimatePresence>
@@ -4165,6 +4169,60 @@ export default function Garden() {
         onSave={handlePlantingSave}
         title={plantingTarget?.title}
       />
+    </div>
+  );
+}
+
+function GardenGateZone() {
+  const { user } = useAuth();
+  const { data: writings = [] } = useQuery({
+    queryKey: ["/api/writings"],
+    enabled: !!user,
+  });
+
+  const publicWritings = (writings as any[]).filter(
+    (w: any) => w.visibility === "public" || w.visibility === "garden_gate"
+  );
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <TreePine size={18} className="text-emerald-400/70" />
+          <h2 className="font-display text-xl font-light italic text-white/80">Garden Gate</h2>
+        </div>
+        <p className="font-serif text-xs text-white/40 italic">
+          Writing you've opened to the world. Quiet, shared, unhurried.
+        </p>
+      </div>
+
+      {publicWritings.length === 0 ? (
+        <div className="text-center py-16">
+          <TreePine size={32} className="mx-auto mb-4 text-emerald-900/50" />
+          <p className="font-serif text-sm text-white/30 italic">
+            Nothing has passed through the gate yet.
+          </p>
+          <p className="font-mono text-[10px] text-white/20 mt-2 tracking-widest uppercase">
+            Open a piece from your desk to share it here
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {publicWritings.map((w: any) => (
+            <div
+              key={w.id}
+              className="group p-4 rounded-lg border border-emerald-900/30 bg-emerald-950/20 hover:border-emerald-800/40 transition-all"
+            >
+              <h3 className="font-serif text-sm text-white/70 italic mb-1">
+                {w.title || "Untitled"}
+              </h3>
+              <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+                {w.readiness || "raw seed"}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
