@@ -3259,7 +3259,7 @@ export async function registerRoutes(
   );
 
   // === REJECTION WALL ===
-  app.get("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
+  app.get("/api/rejection-wall", async (req: any, res) => {
     try {
       const items = await storage.getRejectionWallEntries();
       res.json(items);
@@ -3268,7 +3268,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
+  app.post("/api/rejection-wall", async (req: any, res) => {
     try {
       const parsed = insertRejectionWallSchema.safeParse(req.body);
       if (!parsed.success)
