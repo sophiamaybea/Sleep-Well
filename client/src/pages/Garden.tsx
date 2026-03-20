@@ -1751,7 +1751,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               content={editContent}
               onChange={setEditContent}
               placeholder="Begin writing..."
-              autoFocus
+              {showStageHint && <div className="mb-3 p-3 rounded-lg border border-emerald-800/20 bg-emerald-950/20 text-[10px] font-mono text-white/50 flex items-start justify-between gap-3"><span><strong className="text-emerald-400/70">Stages:</strong> Soil = private seeds. Garden = shared draft. Commons = open workshop. Gallery = final work.</span><button onClick={() => { setShowStageHint(false); localStorage.setItem('garden-stage-hint-seen', '1'); }} className="text-white/30 hover:text-white/60 shrink-0 transition-colors">×</button></div>}autoFocus
             />
           </div>
         </div>
@@ -3567,7 +3567,7 @@ export default function Garden() {
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
-  const [showPlantingFlow, setShowPlantingFlow] = useState(false);
+  const [showPlantingFlow, setShowPlantingFlow] = useState(false);  const [showStageHint, setShowStageHint] = useState(() => !localStorage.getItem('garden-stage-hint-seen'));
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showA11yPanel, setShowA11yPanel] = useState(false);
