@@ -436,8 +436,8 @@ const rooms = [
   { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Join a writing prompt or share a timed free-write with the group", comingSoon: false },
   { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Share a line from today's work — no context needed", comingSoon: false },
   { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Exchange drafts for deep beta feedback — give and receive", comingSoon: false },
-  { id: "first-reader", label: "First Reader", icon: <Eye size={13} />, desc: "Post something raw and ask: what lands, what needs work?"et honest first impressions", comingSoon: false },
-  { id: "shelf", label: "Reading Shelf", icon: <BookOpen size={13} />, desc: "Recommended reads, essays, and things worth returning to" reading", comingSoon: false },
+  { id: "first-reader", label: "First Reader", icon: <Eye size={13} />, desc: "Post something raw and ask: what lands, what needs work? Get honest first impressions", comingSoon: false },
+  { id: "shelf", label: "Reading Shelf", icon: <BookOpen size={13} />, desc: "Recommended reads, essays, and things worth returning to", comingSoon: false },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
