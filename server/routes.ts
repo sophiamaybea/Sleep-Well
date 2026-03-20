@@ -7747,7 +7747,7 @@ const sharedPieces = await db.select({
   // GET /api/grove/my-plant — fetch or initialise the current user's plant
   app.get("/api/grove/my-plant", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = (req.user as any).claims.sub;
       const { rows } = await (await import("./db")).pool.query(
         `SELECT * FROM grove_plants WHERE user_id = $1`,
         [userId]
@@ -7770,7 +7770,7 @@ const sharedPieces = await db.select({
   // POST /api/grove/water — daily watering (private streak)
   app.post("/api/grove/water", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = (req.user as any).claims.sub;
       const db = await import("./db");
       // Check if already watered today
       const today = new Date().toISOString().slice(0, 10);
@@ -7819,7 +7819,7 @@ const sharedPieces = await db.select({
   // GET /api/grove/connections — list mutual tending connections
   app.get("/api/grove/connections", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = (req.user as any).claims.sub;
       const db = await import("./db");
       const { rows } = await db.pool.query(
         `SELECT gc.*, u.display_name, u.profile_image_url
@@ -7842,7 +7842,7 @@ const sharedPieces = await db.select({
   // POST /api/grove/connections/request — send a tending request
   app.post("/api/grove/connections/request", isAuthenticated, async (req, res) => {
     try {
-      const requesterId = (req.user as any).id;
+      const requesterId = (req.user as any).claims.sub;
       const { addresseeId } = req.body;
       if (!addresseeId) return res.status(400).json({ message: "addresseeId required" });
       const db = await import("./db");
@@ -7863,7 +7863,7 @@ const sharedPieces = await db.select({
   // POST /api/grove/connections/:id/accept — accept a tending request
   app.post("/api/grove/connections/:id/accept", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = (req.user as any).claims.sub;
       const { id } = req.params;
       const db = await import("./db");
       const { rows } = await db.pool.query(
@@ -7883,7 +7883,7 @@ const sharedPieces = await db.select({
   // GET /api/grove/seed-packets — list my referral seed packets
   app.get("/api/grove/seed-packets", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = (req.user as any).claims.sub;
       const db = await import("./db");
       const { rows } = await db.pool.query(
         `SELECT * FROM grove_seed_packets WHERE sender_id = $1 ORDER BY created_at DESC`,
@@ -7899,7 +7899,7 @@ const sharedPieces = await db.select({
   // POST /api/grove/seed-packets — create a new referral seed packet
   app.post("/api/grove/seed-packets", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = (req.user as any).claims.sub;
       const db = await import("./db");
       // Limit: max 10 pending packets per user
       const { rows: existing } = await db.pool.query(
@@ -7949,7 +7949,7 @@ const sharedPieces = await db.select({
   // POST /api/grove/seed-packets/redeem — mark a seed packet used after signup
   app.post("/api/grove/seed-packets/redeem", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = (req.user as any).claims.sub;
       const { token } = req.body;
       if (!token) return res.status(400).json({ message: "token required" });
       const db = await import("./db");
