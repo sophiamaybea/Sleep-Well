@@ -33,6 +33,7 @@ const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Opportunities = lazy(() => import("@/pages/Opportunities"));
+const Grove = lazy(() => import("@/pages/Grove"));
 
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
@@ -66,6 +67,7 @@ function Router() {
       <Switch>
         <Route path="/sign-in" component={SignIn} />
         <Route path="/garden" component={Garden} />
+                  <Route path="/grove" component={Grove} />
         <Route path="/garden/:username" component={PublicGarden} />
         <Route path="/edit-profile" component={EditProfile} />
         <Route path="/writer/:id" component={WriterProfile} />
