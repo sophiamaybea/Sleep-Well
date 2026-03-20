@@ -89,7 +89,7 @@ export default function Navigation() {
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
 
-          <div className={`hidden lg:flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
+          <div className={`hidden lg:flex items-center gap-4 font-mono text-[11px] tracking-[0.15em] transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
             {activeMenuItems.map((item) => (
               <Link
                 key={item.label}
@@ -157,7 +157,7 @@ export default function Navigation() {
               isAuthenticated && user ? (
                 <div className="relative group/user">
                   <button className="flex items-center gap-2 p-1 pl-3 rounded-full border border-white/10 hover:border-white/20 transition-all bg-white/5" data-testid="nav-user-dropdown">
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-white/90">
+                    <span className="font-mono text-[9px] tracking-[0.15em] text-white/90">
                       {(user as any).username?.slice(0, 1) || (user as any).email?.slice(0, 1) || "U"}
                     </span>
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500/20 to-teal-500/20 border border-white/10 flex items-center justify-center overflow-hidden">
@@ -166,20 +166,20 @@ export default function Navigation() {
                   </button>
                   
                   <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 py-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300">
-                    <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest">
+                    <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]">
                       Profile
                     </Link>
-                    <Link href="/settings" className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest">
+                    <Link href="/settings" className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]">
                       Settings
                     </Link>
                     <div className="h-[1px] bg-white/5 my-1" />
-                    <a href="/api/logout" className="block px-4 py-2 text-white/90 hover:text-white/90 hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest" data-testid="nav-logout">
+                    <a href="/api/logout" className="block px-4 py-2 text-white/90 hover:text-white/90 hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]" data-testid="nav-logout">
                       Sign Out
                     </a>
                   </div>
                 </div>
               ) : (
-                <Link href="/sign-in" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all font-mono text-[10px] uppercase tracking-widest" data-testid="nav-login">
+                <Link href="/sign-in" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all font-mono text-[11px] tracking-[0.15em]" data-testid="nav-login">
                   Sign In
                 </Link>
               )
