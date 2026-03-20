@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { Instagram, Mail } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -13,10 +14,9 @@ export default function Footer() {
               <Link href="/in-bloom" className="font-serif italic text-white/50 hover:text-white transition-colors duration-500">The Journal</Link>
               <Link href="/in-bloom" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Current Issue</Link>
               <Link href="/publications" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Archive</Link>
-              <Link href="/commons" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Contributors</Link>
+              <Link href="/publications" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Contributors</Link>
             </div>
           </div>
-
           {/* Write */}
           <div className="space-y-6">
             <h3 className="font-mono text-[10px] tracking-[0.3em] text-white/25">Write</h3>
@@ -27,20 +27,29 @@ export default function Footer() {
               <Link href="/about" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">About</Link>
             </div>
           </div>
-
           {/* Connect */}
           <div className="space-y-6">
             <h3 className="font-mono text-[10px] tracking-[0.3em] text-white/25">Connect</h3>
             <div className="flex flex-col gap-4">
-              <a href="https://instagram.com/pagegalleryjournal" target="_blank" rel="noopener noreferrer" className="font-serif italic text-white/50 hover:text-white transition-colors duration-500">Instagram</a>
-              <a href="mailto:hello@thepagegalleryjournal.com" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Contact</a>
+              <a
+                href="https://instagram.com/pagegalleryjournal"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 font-serif italic text-white/60 hover:text-white transition-colors duration-500 group"
+              >
+                <Instagram size={14} className="opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+                <span>@pagegalleryjournal</span>
+              </a>
+              <a href="mailto:hello@thepagegalleryjournal.com" className="flex items-center gap-2 font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500 group">
+                <Mail size={14} className="opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
+                <span>Contact</span>
+              </a>
               <Link href="/privacy" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Privacy</Link>
               <Link href="/terms" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Terms</Link>
               <Link href="/accessibility" className="font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500">Accessibility</Link>
             </div>
           </div>
         </div>
-
         <div className="pt-12 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="font-mono text-[9px] tracking-[0.25em] text-white/15">
             THE PAGE GALLERY JOURNAL &copy; 2026
