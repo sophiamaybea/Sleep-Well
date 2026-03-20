@@ -777,10 +777,8 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           {[
             { label: "Soil", color: "text-amber-400/80 bg-amber-500/10 border-amber-500/20", active: true },
             { label: "Garden", color: "text-emerald-400/50 bg-emerald-500/5 border-emerald-500/10", active: false },
-            { label: "Commons", color: "text-teal-400/50 bg-teal-500/5 border-teal-500/10", active: false },
-            { label: "Gallery", color: "text-white/90 bg-white/[0.03] border-white/10", active: false },
-            { label: "Nursery", color: "text-amber-300/40 bg-amber-500/5 border-amber-500/10", active: false },
-          ].map((layer, i) => (
+                        { label: "Gallery", color: "text-white/90 bg-white/[0.03] border-white/10", active: false },
+            ].map((layer, i) => (
             <span key={layer.label} className="flex items-center gap-1 whitespace-nowrap">
               {i > 0 && <span className="text-white/90 mx-0.5">&rarr;</span>}
               <span className={`px-2 py-0.5 rounded-full border ${layer.color} ${layer.active ? "ring-1 ring-amber-500/20" : ""}`}>
