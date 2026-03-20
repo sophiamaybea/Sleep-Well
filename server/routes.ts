@@ -226,6 +226,27 @@ export async function registerRoutes(
     }
   });
 
+  // GET /api/garden/last-draft — returns the user's most recently updated writing
+app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const writings = await storage.getWritingsByAuthor(userId);
+    if (!writings || writings.length === 0) {
+      return res.json(null);
+    }
+    // Sort by updated_at descending, return the most recent
+    const lastDraft = writings.sort((a: any, b: any) => {
+      const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+      const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+      return dateB - dateA;
+    })[0];
+    res.json(lastDraft);
+  } catch (error) {
+    console.error("Error fetching last draft:", error);
+    res.status(500).json({ message: "Failed to fetch last draft" });
+  }
+});
+
   app.post("/api/writings", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
