@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useRef, useState } from "react";
 import { Link } from "wouter";
 
 function SeedDoodle() {
@@ -32,6 +33,7 @@ function BloomDoodle() {
       <path d="M20 20 Q10 16 6 18 Q2 20 6 22 Q10 24 20 20Z" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
       <path d="M20 20 Q30 16 34 18 Q38 20 34 22 Q30 24 20 20Z" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
       <circle cx="20" cy="20" r="3.5" fill="currentColor" />
+      <path d="M16 30 Q14 26 12 28" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
@@ -52,88 +54,128 @@ const stages = [
   {
     stage: "Bloom",
     icon: <BloomDoodle />,
-    color: "text-pink-300/70",
+    color: "text-pink-400/70",
     desc: "Share your work publicly. Our editors read from here when selecting pieces for the journal.",
   },
 ];
 
+function StageRow({ item, index }: { item: typeof stages[0]; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const mouseX = useMotionValue(0.5);
+  const mouseY = useMotionValue(0.5);
+
+  const springX = useSpring(mouseX, { stiffness: 150, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 150, damping: 20 });
+
+  const glowBackground = useTransform(
+    [springX, springY],
+    ([x, y]: number[]) => `radial-gradient(circle at ${(x as number) * 100}% ${(y as number) * 100}%, rgba(255,255,255,0.03) 0%, transparent 60%)`
+  );
+
+  function handleMouseMove(e: React.MouseEvent) {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    mouseX.set((e.clientX - rect.left) / rect.width);
+    mouseY.set((e.clientY - rect.top) / rect.height);
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.15 + index * 0.15 }}
+      viewport={{ once: true, margin: "-50px" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); mouseX.set(0.5); mouseY.set(0.5); }}
+      onMouseMove={handleMouseMove}
+      whileHover={{ y: -4 }}
+      className={`flex items-start gap-8 md:gap-12 py-8 md:py-12 relative cursor-default ${
+        index % 2 === 1 ? "md:flex-row-reverse md:text-right" : ""
+      }`}
+      data-testid={`card-stage-${item.stage.toLowerCase()}`}
+    >
+      {/* Glow background */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none rounded-2xl"
+        style={{ background: glowBackground }}
+        animate={{ opacity: hovered ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+      />
+
+      {/* Icon */}
+      <motion.div
+        className={`flex-shrink-0 ${item.color} mt-1 relative z-10`}
+        animate={{
+          scale: hovered ? 1.3 : 1,
+          rotate: hovered ? [0, -5, 5, 0] : 0,
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 12 }}
+      >
+        {item.icon}
+      </motion.div>
+
+      {/* Text */}
+      <div className="space-y-3 relative z-10">
+        <h3 className={`font-display text-2xl md:text-3xl font-light italic ${item.color}`}>
+          {item.stage}
+        </h3>
+        <p className="font-serif text-base md:text-lg leading-relaxed text-white/50 max-w-md">
+          {item.desc}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function GardenIntro() {
   return (
-    <section id="garden-intro" className="relative py-32 overflow-hidden" data-testid="section-garden-intro">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(52,211,153,0.04) 0%, transparent 60%)" }} />
-
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
-        {/* Section header */}
+    <section className="relative py-32 md:py-48 px-6 md:px-12 overflow-hidden">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
         <div className="text-center mb-24">
           <motion.span
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 0.4 }}
-            transition={{ duration: 1.5 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1 }}
             viewport={{ once: true }}
-            className="font-mono text-[10px] tracking-[0.4em] block mb-8"
+            className="font-mono text-[10px] tracking-[0.3em] text-white/25 block mb-6"
           >
             HOW IT WORKS
           </motion.span>
-
           <motion.h2
-            initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             viewport={{ once: true }}
-            className="text-5xl md:text-7xl lg:text-8xl font-display font-light italic tracking-tight"
-            data-testid="heading-garden-intro"
+            className="font-display text-5xl md:text-7xl font-light italic text-white"
           >
             The Garden
           </motion.h2>
-
           <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 0.7 }}
-            transition={{ delay: 0.3, duration: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-lg md:text-xl font-serif italic leading-relaxed max-w-xl mx-auto mt-8 text-white/60"
+            className="font-serif italic text-lg md:text-xl text-white/30 mt-6 max-w-xl mx-auto"
           >
-            Every writer here gets a private space &mdash; somewhere to work without
-            an audience, on your own terms, at your own pace.
+            Every writer here gets a private space &mdash; somewhere to work
+            without an audience, on your own terms, at your own pace.
           </motion.p>
         </div>
 
-        {/* Stages — flowing vertical layout, no cards */}
-        <div className="space-y-20 md:space-y-28">
+        {/* Stages — flowing vertical layout with scroll animations */}
+        <div className="space-y-4 md:space-y-0 divide-y divide-white/5">
           {stages.map((item, i) => (
-            <motion.div
-              key={item.stage}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              viewport={{ once: true, margin: "-50px" }}
-              className={`flex items-start gap-8 md:gap-12 ${
-                i % 2 === 1 ? "md:flex-row-reverse md:text-right" : ""
-              }`}
-              data-testid={`card-stage-${item.stage.toLowerCase()}`}
-            >
-              {/* Icon */}
-              <div className={`flex-shrink-0 ${item.color} mt-1`}>
-                {item.icon}
-              </div>
-
-              {/* Text */}
-              <div className="space-y-3">
-                <h3 className={`font-display text-2xl md:text-3xl font-light italic ${item.color}`}>
-                  {item.stage}
-                </h3>
-                <p className="font-serif text-base md:text-lg leading-relaxed text-white/50 max-w-md">
-                  {item.desc}
-                </p>
-              </div>
-            </motion.div>
+            <StageRow key={item.stage} item={item} index={i} />
           ))}
         </div>
 
         {/* CTA */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 1 }}
           viewport={{ once: true }}
           className="text-center mt-24"
