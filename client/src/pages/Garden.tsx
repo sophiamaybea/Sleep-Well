@@ -27,7 +27,7 @@ import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/
 import ExportMenu from "@/components/garden/ExportMenu";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
-type Zone = "desk" | "reading-room" | "greenhouse" | "submissions";
+type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
 
@@ -194,7 +194,7 @@ function BloomCelebration({ onComplete }: { onComplete: () => void }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.0 }}
-            className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 mt-2"
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/90 mt-2"
           >
             Ready to show the world
           </motion.p>
@@ -442,10 +442,11 @@ const rooms = [
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
   const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
-    { id: "desk", label: "The Soil (Private)", desc: "This is your private workspace. You write here alone. No one else can see these stories but you.", icon: <Sprout size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
-    { id: "reading-room", label: "Reading Room (Public)", desc: "This is the public space. Here you can read stories that other writers have shared.", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
-    { id: "greenhouse", label: "Nutrients (Practice)", desc: "These are private writing exercises and tools to help you get better at writing.", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
-    { id: "submissions", label: "Greenhouse (Career)", desc: "This is for professional growth. Here you find classes and help getting published.", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+    { id: "desk", label: "Write", desc: "Private soil for your seeds", icon: <Sprout size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+    { id: "reading-room", label: "Read", desc: "The public garden — what blooms here, others can tend", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
+    { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
+    { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+      { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },
   ];
 
   return (
@@ -456,7 +457,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
             key={z.id}
             onClick={() => onChange(z.id)}
             className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-mono text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all whitespace-nowrap ${
-              active === z.id ? "text-white/90" : "text-white/40 hover:text-white/60"
+              active === z.id ? "text-white/90" : "text-white/90 hover:text-white/90"
             }`}
             data-testid={`zone-tab-${z.id}`}
           >
@@ -512,8 +513,8 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
           onClick={() => setShowRooms(!showRooms)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
             showRooms
-              ? "border-white/20 bg-white/[0.06] text-white/70"
-              : "border-emerald-800/12 text-white/40 hover:text-white/60 hover:border-emerald-700/20"
+              ? "border-white/20 bg-white/[0.06] text-white/90"
+              : "border-emerald-800/12 text-white/90 hover:text-white/90 hover:border-emerald-700/20"
           }`}
           data-testid="button-discover-rooms"
         >
@@ -543,7 +544,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
                       isActive
                         ? "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80"
-                        : "border-white/[0.06] text-white/40 hover:text-white/60 hover:border-white/15 hover:bg-white/[0.03]"
+                        : "border-white/[0.06] text-white/90 hover:text-white/90 hover:border-white/15 hover:bg-white/[0.03]"
                     }`}
                     data-testid={`room-${room.id}`}
                   >
@@ -602,8 +603,8 @@ function PublishInvitations() {
           <p className="font-serif text-sm text-white/80 mb-1">
             We'd like to invite your piece <span className="font-display italic text-amber-200/90">"{r.writingTitle}"</span> into The Page.
           </p>
-          {r.editorNote && <p className="font-serif text-xs text-white/50 italic mb-2">"{r.editorNote}"</p>}
-          {r.proposedDate && <p className="font-mono text-[8px] text-white/40 mb-2">Proposed: {r.proposedDate}</p>}
+          {r.editorNote && <p className="font-serif text-xs text-white/90 italic mb-2">"{r.editorNote}"</p>}
+          {r.proposedDate && <p className="font-mono text-[8px] text-white/90 mb-2">Proposed: {r.proposedDate}</p>}
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => respondMutation.mutate({ id: r.id, status: "accepted" })}
@@ -666,7 +667,7 @@ function DailyPromptCard({ onWriteFromPrompt }: { onWriteFromPrompt: (prompt: st
       <div className="flex items-center gap-2 mb-3">
         <Sparkles size={14} className="text-amber-400/60" />
         <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-amber-400/50">Today's Prompt</span>
-        <span className="ml-auto font-mono text-[8px] uppercase tracking-widest text-white/20">{prompt.category}</span>
+        <span className="ml-auto font-mono text-[8px] uppercase tracking-widest text-white/90">{prompt.category}</span>
       </div>
       <p className="font-display text-lg text-white/75 italic leading-relaxed mb-4">{prompt.text}</p>
       <button
@@ -694,6 +695,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   onWriteFromPrompt: (prompt: string) => void;
 }) {
   const queryClient = useQueryClient();
+  const [showDeskStats, setShowDeskStats] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -770,30 +772,30 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
-        <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/25 block mb-2">Your Creative Layers</span>
+        <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90 block mb-2">Your Creative Layers</span>
         <div className="flex items-center gap-1 text-[9px] font-mono overflow-x-auto scrollbar-hide">
           {[
             { label: "Soil", color: "text-amber-400/80 bg-amber-500/10 border-amber-500/20", active: true },
             { label: "Garden", color: "text-emerald-400/50 bg-emerald-500/5 border-emerald-500/10", active: false },
             { label: "Commons", color: "text-teal-400/50 bg-teal-500/5 border-teal-500/10", active: false },
-            { label: "Gallery", color: "text-white/40 bg-white/[0.03] border-white/10", active: false },
+            { label: "Gallery", color: "text-white/90 bg-white/[0.03] border-white/10", active: false },
             { label: "Nursery", color: "text-amber-300/40 bg-amber-500/5 border-amber-500/10", active: false },
           ].map((layer, i) => (
             <span key={layer.label} className="flex items-center gap-1 whitespace-nowrap">
-              {i > 0 && <span className="text-white/15 mx-0.5">&rarr;</span>}
+              {i > 0 && <span className="text-white/90 mx-0.5">&rarr;</span>}
               <span className={`px-2 py-0.5 rounded-full border ${layer.color} ${layer.active ? "ring-1 ring-amber-500/20" : ""}`}>
                 {layer.label}
               </span>
             </span>
           ))}
         </div>
-        <p className="font-serif text-[10px] text-white/25 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
+        <p className="font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
       </div>
       <PublishInvitations />
 
-      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />
+      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />          <button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
 
-      {writings.length > 0 && (() => {
+      {writings.length > 0 && showDeskStats && (() => {
         const totalWords = writings.reduce((a, w) => a + wordCount(w.content), 0);
         const avgLength = Math.round(totalWords / writings.length);
         const longestPiece = writings.reduce((best, w) => {
@@ -805,28 +807,28 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           <div className="mb-6 p-4 rounded-xl border border-emerald-800/15 bg-emerald-950/10" data-testid="writing-analytics">
             <div className="flex items-center gap-2 mb-3">
               <BookOpen size={14} className="text-emerald-400/50" />
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/35">Writing Analytics</span>
+              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/90">Writing Analytics</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-pieces">
                 <span className="font-mono text-lg text-emerald-300/70 block">{writings.length}</span>
-                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">{writings.length === 1 ? "Piece" : "Pieces"}</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/90">{writings.length === 1 ? "Piece" : "Pieces"}</span>
               </div>
               <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-words">
                 <span className="font-mono text-lg text-amber-300/70 block">{totalWords.toLocaleString()}</span>
-                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">Words</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/90">Words</span>
               </div>
               <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-avg-length">
                 <span className="font-mono text-lg text-teal-300/70 block">{avgLength.toLocaleString()}</span>
-                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">Avg Words</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/90">Avg Words</span>
               </div>
               <div className="text-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]" data-testid="stat-reading-time">
                 <span className="font-mono text-lg text-violet-300/70 block">{readingTimeMin}</span>
-                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">Min Read</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/90">Min Read</span>
               </div>
             </div>
             {longestPiece.wc > 0 && (
-              <p className="font-serif text-[10px] text-white/25 mt-2 italic text-center" data-testid="stat-longest">
+              <p className="font-serif text-[10px] text-white/90 mt-2 italic text-center" data-testid="stat-longest">
                 Longest piece: "{longestPiece.title || "Untitled"}" — {longestPiece.wc.toLocaleString()} words
               </p>
             )}
@@ -838,17 +840,17 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Feather size={16} className="text-amber-400/50" />
-            <h2 className="font-display text-xl font-light italic text-white/70">Your Desk</h2>
+            <h2 className="font-display text-xl font-light italic text-white/90">Your Desk</h2>
           </div>
           <div className="flex items-center gap-3 ml-6">
-            <p className="text-xs font-serif text-white/40">
+            <p className="text-xs font-serif text-white/90">
               {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
             </p>
             {emptyDraftCount > 0 && (
               <button
                 onClick={() => cleanupMutation.mutate()}
                 disabled={cleanupMutation.isPending}
-                className="flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/30 hover:text-red-300/60 border border-white/[0.06] hover:border-red-400/20 bg-white/[0.02] hover:bg-red-950/10 transition-all"
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/90 hover:text-red-300/60 border border-white/[0.06] hover:border-red-400/20 bg-white/[0.02] hover:bg-red-950/10 transition-all"
                 data-testid="button-cleanup-drafts"
                 title={`Remove ${emptyDraftCount} empty untitled ${emptyDraftCount === 1 ? "draft" : "drafts"}`}
               >
@@ -873,13 +875,13 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-grow">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/90" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search your pieces..."
-            className="w-full pl-10 pr-4 py-2.5 bg-emerald-950/15 border border-emerald-800/15 rounded-2xl text-sm font-serif text-white/75 placeholder:text-white/35 focus:outline-none focus:border-emerald-700/25 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-emerald-950/15 border border-emerald-800/15 rounded-2xl text-sm font-serif text-white/75 placeholder:text-white/90 focus:outline-none focus:border-emerald-700/25 transition-colors"
             data-testid="input-search"
           />
         </div>
@@ -890,12 +892,12 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
               onClick={() => setActiveFilter(f.id)}
               title={f.tip}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest transition-all ${
-                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/60 hover:text-white/60"
+                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/90 hover:text-white/90"
               }`}
               data-testid={`filter-${f.id}`}
             >
               {f.label}
-              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/60" : "text-white/45"}`}>{f.count}</span>
+              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/90" : "text-white/45"}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -911,7 +913,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border transition-all ${
                   activeTag === tag
                     ? "border-violet-500/30 bg-violet-500/10 text-violet-300/80"
-                    : "border-white/[0.08] text-white/40 hover:text-white/60 hover:border-white/15"
+                    : "border-white/[0.08] text-white/90 hover:text-white/90 hover:border-white/15"
                 }`}
                 data-testid={`tag-filter-${tag}`}
               >
@@ -920,7 +922,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
               </button>
             ))}
             {activeTag && (
-              <button onClick={() => setActiveTag(null)} className="text-white/30 hover:text-white/60 transition-colors" data-testid="clear-tag-filter">
+              <button onClick={() => setActiveTag(null)} className="text-white/90 hover:text-white/90 transition-colors" data-testid="clear-tag-filter">
                 <X size={12} />
               </button>
             )}
@@ -933,7 +935,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border transition-all ${
               showArchived
                 ? "border-stone-400/25 bg-stone-500/10 text-stone-300/70"
-                : "border-white/[0.08] text-white/35 hover:text-white/55"
+                : "border-white/[0.08] text-white/90 hover:text-white/55"
             }`}
             data-testid="toggle-archived"
           >
@@ -952,8 +954,8 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             <BloomIcon className="w-8 h-8 text-pink-400/20" />
           </div>
           <div className="relative space-y-2">
-            <h3 className="text-2xl font-display font-light italic text-white/70">Your garden awaits its first seed</h3>
-            <p className="font-serif text-sm text-white/50 max-w-md mx-auto leading-relaxed">
+            <h3 className="text-2xl font-display font-light italic text-white/90">Your garden awaits its first seed</h3>
+            <p className="font-serif text-sm text-white/90 max-w-md mx-auto leading-relaxed">
               A line, a fragment, a whole draft — whatever wants to come out.
             </p>
           </div>
@@ -971,7 +973,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
       )}
 
       {filteredWritings.length === 0 && writings.length > 0 && (
-        <p className="text-center py-12 font-serif text-white/60 text-sm">No pieces match your search.</p>
+        <p className="text-center py-12 font-serif text-white/90 text-sm">No pieces match your search.</p>
       )}
 
       <div className="space-y-2">
@@ -1006,7 +1008,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                   data-testid={`button-expand-${w.id}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center ${stageColors[readiness] || "border-white/20 text-white/50"} ${stageAccent[readiness] || ""}`}>
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center ${stageColors[readiness] || "border-white/20 text-white/90"} ${stageAccent[readiness] || ""}`}>
                       {stageIcons[readiness] || stageIcons.raw_seed}
                     </div>
                     <div className="flex-grow min-w-0">
@@ -1036,7 +1038,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0 text-white/50">
+                    <div className="flex items-center gap-3 flex-shrink-0 text-white/90">
                       {vis === "garden" && <DeskResonanceCount writingId={w.id} />}
                       <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">{w.genre}</span>
                       <span className="font-mono text-[9px]">{timeAgo(w.updatedAt)}</span>
@@ -1061,14 +1063,14 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                         {w.content && (
                           <ContentRenderer content={w.content} maxLength={400} className="text-sm font-serif text-white/55 leading-relaxed line-clamp-4" />
                         )}
-                        <div className="flex items-center gap-3 text-white/50">
+                        <div className="flex items-center gap-3 text-white/90">
                           <span className="font-mono text-[9px] tracking-widest">{wordCount(w.content)} words</span>
                           <VisibilityBadge visibility={vis} readiness={readiness} editorialAvailable={w.editorialAvailable} compact />
                         </div>
                         <div className="flex gap-2 pt-1">
                           <button
                             onClick={(e) => { e.stopPropagation(); onOpenWriting(w); }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/20 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/70 hover:text-white transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/20 hover:border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-white transition-all"
                             data-testid={`button-edit-${w.id}`}
                           >
                             <PenLine size={11} />
@@ -1076,7 +1078,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onOpenPlanting(w); }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.20] hover:border-white/25 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/75 transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.20] hover:border-white/25 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-white/75 transition-all"
                             data-testid={`button-plant-${w.id}`}
                           >
                             <MapPin size={11} />
@@ -1087,7 +1089,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                           </div>
                           <button
                             onClick={(e) => { e.stopPropagation(); onQuickUpdate(w.id, { isPinned: !(w as any).isPinned }); }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.15] hover:border-amber-500/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-amber-400/70 transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.15] hover:border-amber-500/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-amber-400/70 transition-all"
                             data-testid={`button-pin-${w.id}`}
                           >
                             {(w as any).isPinned ? <PinOff size={11} /> : <Pin size={11} />}
@@ -1095,7 +1097,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onQuickUpdate(w.id, { isArchived: !(w as any).isArchived }); }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.15] hover:border-stone-400/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-stone-400/70 transition-all"
+                            className="flex items-center gap-1.5 px-3.5 py-2 border border-white/[0.15] hover:border-stone-400/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-stone-400/70 transition-all"
                             data-testid={`button-archive-${w.id}`}
                           >
                             {(w as any).isArchived ? <ArchiveRestore size={11} /> : <Archive size={11} />}
@@ -1112,7 +1114,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border ${
                                 (w as any).isPublicGarden
                                   ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300/80"
-                                  : "border-white/[0.06] text-white/30 hover:text-white/50 hover:border-white/15"
+                                  : "border-white/[0.06] text-white/90 hover:text-white/90 hover:border-white/15"
                               }`}
                               data-testid={`toggle-public-${w.id}`}
                             >
@@ -1136,7 +1138,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                 toast({ title: "Snapshot saved", description: note ? `"${note}"` : "Current state preserved" });
                               }
                             }}
-                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border border-white/[0.06] text-white/30 hover:text-amber-300/60 hover:border-amber-500/20"
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border border-white/[0.06] text-white/90 hover:text-amber-300/60 hover:border-amber-500/20"
                             data-testid={`button-snapshot-${w.id}`}
                           >
                             <Camera size={10} />
@@ -1186,7 +1188,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                               }`}
                                             />
                                             <span className={`font-mono text-[6px] uppercase tracking-wider ${
-                                              i <= stepIndex ? "text-violet-300/60" : "text-white/20"
+                                              i <= stepIndex ? "text-violet-300/60" : "text-white/90"
                                             }`}>{step}</span>
                                           </div>
                                           {i < steps.length - 1 && (
@@ -1198,9 +1200,9 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                       ))}
                                     </div>
                                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                                      <span className="font-mono text-[7px] text-white/30">Flagged {timeAgo(existingFlag.createdAt)}</span>
+                                      <span className="font-mono text-[7px] text-white/90">Flagged {timeAgo(existingFlag.createdAt)}</span>
                                       {existingFlag.seenAt && (
-                                        <span className="font-mono text-[7px] text-white/30">Seen {timeAgo(existingFlag.seenAt)}</span>
+                                        <span className="font-mono text-[7px] text-white/90">Seen {timeAgo(existingFlag.seenAt)}</span>
                                       )}
                                     </div>
                                     {existingFlag.editorResponse && (
@@ -1219,14 +1221,14 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                   {existingFlag.status === "flagged" ? "Flagged for editors" : 
                                    existingFlag.status === "seen" ? "An editor paused here" : 
                                    "Editor responded"}
-                                  <span className="text-[7px] text-white/25 normal-case tracking-normal ml-1">{timeAgo(existingFlag.createdAt)}</span>
+                                  <span className="text-[7px] text-white/90 normal-case tracking-normal ml-1">{timeAgo(existingFlag.createdAt)}</span>
                                 </div>
                               );
                             }
                             return (
                               <button
                                 onClick={(e) => { e.stopPropagation(); flagMutation.mutate(w.id); }}
-                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border border-white/[0.06] text-white/30 hover:text-violet-300/60 hover:border-violet-500/20"
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-all border border-white/[0.06] text-white/90 hover:text-violet-300/60 hover:border-violet-500/20"
                                 data-testid={`button-flag-${w.id}`}
                               >
                                 <Flag size={10} />
@@ -1264,7 +1266,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                 <div key={flag.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-violet-500/10 bg-violet-500/[0.02]" data-testid={`flag-summary-${flag.id}`}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="font-serif text-[11px] text-white/60 truncate">{flag.writingTitle}</span>
+                      <span className="font-serif text-[11px] text-white/90 truncate">{flag.writingTitle}</span>
                       {flag.isPaidFlag && (
                         <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 shrink-0">
                           <Crown size={7} className="text-amber-400/80" />
@@ -1284,7 +1286,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                               }`}
                             />
                             <span className={`font-mono text-[5px] uppercase tracking-wider ${
-                              i <= stepIndex ? "text-violet-300/60" : "text-white/20"
+                              i <= stepIndex ? "text-violet-300/60" : "text-white/90"
                             }`}>{step}</span>
                           </div>
                           {i < steps.length - 1 && (
@@ -1296,7 +1298,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                       ))}
                     </div>
                   </div>
-                  <span className="font-mono text-[7px] text-white/25 shrink-0">{timeAgo(flag.createdAt)}</span>
+                  <span className="font-mono text-[7px] text-white/90 shrink-0">{timeAgo(flag.createdAt)}</span>
                 </div>
               );
             })}
@@ -1328,11 +1330,6 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
   const [showHistory, setShowHistory] = useState(false);
   const [previewSnapshot, setPreviewSnapshot] = useState<WritingSnapshot | null>(null);
   const [showBloomCelebration, setShowBloomCelebration] = useState(false);
-  const [showGenreGenie, setShowGenreGenie] = useState(false);
-  const [genreGenieLoading, setGenreGenieLoading] = useState(false);
-  const [genreGenieSuggestion, setGenreGenieSuggestion] = useState<{
-    suggestedGenre: string; explanation: string; conventions: string; inspiration: string;
-  } | null>(null);
   const hasMounted = useRef(false);
   const prevStageRef = useRef(writing.readiness || "raw_seed");
 
@@ -1371,38 +1368,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
     }
   }
 
-  async function askGenreGenie() {
-    const plainText = editContent.replace(/<[^>]*>/g, "").trim();
-    if (plainText.length < 20) {
-      toast({ title: "Not enough text", description: "Write a bit more so the Genre Genie can read your work.", duration: 3000 });
-      return;
-    }
-    setGenreGenieLoading(true);
-    setShowGenreGenie(true);
-    setGenreGenieSuggestion(null);
-    try {
-      const res = await fetch("/api/genre-genie/suggest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ writingId: writing.id, content: plainText }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
-      setGenreGenieSuggestion({
-        suggestedGenre: data.suggestedGenre,
-        explanation: data.explanation,
-        conventions: data.conventions,
-        inspiration: data.inspiration,
-      });
-    } catch {
-      toast({ title: "Genre Genie stumbled", description: "Something went wrong. Try again in a moment.", duration: 3000 });
-      setShowGenreGenie(false);
-    } finally {
-      setGenreGenieLoading(false);
-    }
-  }
-
+  
   return (
     <div className="max-w-3xl mx-auto">
       <AnimatePresence>
@@ -1414,7 +1380,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => { doSave(); onBack(); }}
-          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white/80 transition-colors group"
+          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/90 hover:text-white/80 transition-colors group"
           data-testid="button-back"
         >
           <ChevronLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
@@ -1422,7 +1388,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         </button>
         <div className="flex items-center gap-3">
           <span className={`font-mono text-[9px] tracking-widest transition-all duration-300 flex items-center gap-1 ${
-            saveStatus === "saving" ? "text-amber-400/70" : saveStatus === "saved" ? "text-emerald-400/70" : "text-white/40"
+            saveStatus === "saving" ? "text-amber-400/70" : saveStatus === "saved" ? "text-emerald-400/70" : "text-white/90"
           }`}>
             {saveStatus === "saved" && (
               <motion.span
@@ -1435,11 +1401,11 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             )}
             {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : "Editing..."}
           </span>
-          <span className="font-mono text-[9px] tracking-widest text-white/50">{wordCount(editContent)} words</span>
+          <span className="font-mono text-[9px] tracking-widest text-white/90">{wordCount(editContent)} words</span>
           <ExportMenu title={editTitle} content={editContent} compact writingId={writing.id} />
           <button
             onClick={() => setShowCompostConfirm(true)}
-            className="p-1.5 text-white/50 hover:text-amber-400/70 transition-colors"
+            className="p-1.5 text-white/90 hover:text-amber-400/70 transition-colors"
             title="Compost — return this piece to the communal soil"
             data-testid="button-compost"
           >
@@ -1447,7 +1413,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           </button>
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="p-1.5 text-white/50 hover:text-red-400/70 transition-colors"
+            className="p-1.5 text-white/90 hover:text-red-400/70 transition-colors"
             data-testid="button-delete"
           >
             <Trash2 size={14} />
@@ -1466,7 +1432,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
             <div className="border border-red-500/20 bg-red-500/5 rounded-lg p-4 flex items-center justify-between">
               <p className="font-serif text-sm text-red-300/70">Delete this writing permanently?</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white" data-testid="button-cancel-delete">Cancel</button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-white" data-testid="button-cancel-delete">Cancel</button>
                 <button onClick={onDelete} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest bg-red-500/20 text-red-300 rounded-full hover:bg-red-500/30" data-testid="button-confirm-delete">Delete</button>
               </div>
             </div>
@@ -1492,7 +1458,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                 Other writers can visit and find sparks in what you've let go. The original will be removed from your garden.
               </p>
               <div className="flex gap-2 justify-end">
-                <button onClick={() => setShowCompostConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white" data-testid="button-cancel-compost">Keep</button>
+                <button onClick={() => setShowCompostConfirm(false)} className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-white" data-testid="button-cancel-compost">Keep</button>
                 <button
                   onClick={async () => {
                     try {
@@ -1520,7 +1486,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           value={editTitle}
           onChange={(e) => setEditTitle(e.target.value)}
           placeholder="Title..."
-          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-normal text-white/90 placeholder:text-white/25 focus:outline-none border-none italic"
+          className="w-full bg-transparent text-3xl md:text-4xl font-display font-light tracking-normal text-white/90 placeholder:text-white/90 focus:outline-none border-none italic"
           data-testid="input-title"
         />
 
@@ -1546,7 +1512,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                   editStage === s.id
                     ? `${stageColors[s.id]} ${stageAccent[s.id]}`
-                    : "border-transparent text-white/55 hover:text-white/60"
+                    : "border-transparent text-white/55 hover:text-white/90"
                 }`}
                 data-testid={`button-stage-${s.id}`}
               >
@@ -1564,33 +1530,17 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           <select
             value={editGenre}
             onChange={(e) => setEditGenre(e.target.value)}
-            className="bg-transparent text-white/50 font-mono text-[9px] uppercase tracking-widest border border-white/[0.15] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
+            className="bg-transparent text-white/90 font-mono text-[9px] uppercase tracking-widest border border-white/[0.15] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
             data-testid="select-genre"
           >
             {genreOptions.map((g) => (
               <option key={g} value={g} className="bg-[#0b101a]">{g}</option>
             ))}
           </select>
-          <button
-            onClick={askGenreGenie}
-            disabled={genreGenieLoading}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 text-amber-400/70 hover:text-amber-300 hover:border-amber-500/40 hover:bg-amber-500/[0.06] transition-all disabled:opacity-50"
-            title="Ask the Genre Genie for a suggestion"
-            data-testid="button-genre-genie"
-          >
-            {genreGenieLoading ? (
-              <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                <Sparkles size={11} />
-              </motion.span>
-            ) : (
-              <Sparkles size={11} />
-            )}
-            Genre Genie
-          </button>
           <span className="w-px h-4 bg-white/[0.04]" />
           <button
             onClick={onOpenPlanting}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/[0.15] text-white/60 hover:text-white/70 hover:border-white/25 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/[0.15] text-white/90 hover:text-white/90 hover:border-white/25 transition-all"
             data-testid="button-open-planting"
           >
             <MapPin size={11} />
@@ -1615,11 +1565,11 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
                 placeholder={editTags.length === 0 ? "Add tags..." : "Add..."}
-                className="w-24 bg-transparent font-mono text-[9px] uppercase tracking-widest text-white/50 placeholder:text-white/25 focus:outline-none border-b border-transparent focus:border-white/20 transition-colors py-1"
+                className="w-24 bg-transparent font-mono text-[9px] uppercase tracking-widest text-white/90 placeholder:text-white/90 focus:outline-none border-b border-transparent focus:border-white/20 transition-colors py-1"
                 data-testid="input-tag"
               />
               {tagInput.trim() && (
-                <button onClick={addTag} className="text-white/30 hover:text-white/60 transition-colors">
+                <button onClick={addTag} className="text-white/90 hover:text-white/90 transition-colors">
                   <Plus size={11} />
                 </button>
               )}
@@ -1627,100 +1577,16 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
           )}
         </div>
 
-        <AnimatePresence>
-          {showGenreGenie && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="pb-4 overflow-hidden"
-              data-testid="genre-genie-panel"
-            >
-              <div className="border border-amber-500/20 rounded-xl bg-amber-500/[0.03] p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-amber-400" />
-                    <span className="font-display text-sm text-amber-300/90">Genre Genie</span>
-                  </div>
-                  <button
-                    onClick={() => setShowGenreGenie(false)}
-                    className="text-white/30 hover:text-white/60 transition-colors"
-                    data-testid="close-genre-genie"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-                {genreGenieLoading ? (
-                  <div className="space-y-3 animate-pulse">
-                    <div className="h-4 bg-white/[0.06] rounded w-1/3" />
-                    <div className="h-3 bg-white/[0.04] rounded w-full" />
-                    <div className="h-3 bg-white/[0.04] rounded w-5/6" />
-                    <div className="h-3 bg-white/[0.04] rounded w-2/3" />
-                  </div>
-                ) : genreGenieSuggestion ? (
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/60">Suggested Genre</span>
-                      </div>
-                      <p className="font-display text-lg text-white/90">{genreGenieSuggestion.suggestedGenre}</p>
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/50 block mb-1.5">Why This Fits</span>
-                      <p className="text-sm text-white/65 leading-relaxed font-body">{genreGenieSuggestion.explanation}</p>
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/50 block mb-1.5">Craft & Conventions</span>
-                      <p className="text-sm text-white/65 leading-relaxed font-body">{genreGenieSuggestion.conventions}</p>
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400/50 block mb-1.5">Kindred Voices</span>
-                      <p className="text-sm text-white/65 leading-relaxed font-body">{genreGenieSuggestion.inspiration}</p>
-                    </div>
-                    <div className="flex items-center gap-2 pt-2">
-                      <button
-                        onClick={() => {
-                          const genreMap: Record<string, string> = {
-                            "poetry": "poetry", "lyric poetry": "poetry", "prose poetry": "poetry",
-                            "fiction": "fiction", "flash fiction": "fiction", "literary fiction": "fiction",
-                            "literary realism": "fiction", "speculative fiction": "fiction", "micro-fiction": "fiction",
-                            "essay": "essay", "personal essay": "essay", "micro-memoir": "essay",
-                            "fragment": "fragment",
-                          };
-                          const mapped = genreMap[genreGenieSuggestion.suggestedGenre.toLowerCase()] || "other";
-                          setEditGenre(mapped);
-                          toast({ title: "Genre updated", description: `Set to "${mapped}" based on Genre Genie's suggestion.`, duration: 2000 });
-                        }}
-                        className="px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 text-amber-300/80 hover:bg-amber-500/10 hover:text-amber-200 transition-all"
-                        data-testid="apply-genre-suggestion"
-                      >
-                        Apply Suggestion
-                      </button>
-                      <button
-                        onClick={askGenreGenie}
-                        className="px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
-                        data-testid="retry-genre-genie"
-                      >
-                        Try Again
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+        
         <div className="pb-2">
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-white/35 hover:text-white/55 transition-colors"
+            className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-white/55 transition-colors"
             data-testid="btn-version-history"
           >
             <Clock size={12} />
             Version History
-            {snapshots.length > 0 && <span className="text-white/25">({snapshots.length})</span>}
+            {snapshots.length > 0 && <span className="text-white/90">({snapshots.length})</span>}
             <ChevronDown size={10} className={`transition-transform ${showHistory ? "rotate-180" : ""}`} />
           </button>
 
@@ -1739,15 +1605,15 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                     <div className="absolute -left-[17px] top-3 w-2 h-2 rounded-full bg-emerald-400/60 ring-2 ring-emerald-400/20 animate-pulse" />
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-400/70">Current</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[editStage] || "border-white/10 text-white/40"}`}>
+                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[editStage] || "border-white/10 text-white/90"}`}>
                         {editStage === "raw_seed" ? "Seed" : editStage === "growing" ? "Growing" : editStage === "ready_to_show" ? "Ready" : "Dormant"}
                       </span>
-                      <span className="font-mono text-[8px] text-white/25">{wordCount(editContent)} words</span>
+                      <span className="font-mono text-[8px] text-white/90">{wordCount(editContent)} words</span>
                     </div>
                   </div>
 
                   {snapshots.length === 0 && (
-                    <p className="py-2 font-serif text-[11px] text-white/25 italic">No snapshots yet. Snapshots are saved when you change the readiness stage.</p>
+                    <p className="py-2 font-serif text-[11px] text-white/90 italic">No snapshots yet. Snapshots are saved when you change the readiness stage.</p>
                   )}
 
                   {snapshots.map((snap, i) => {
@@ -1762,16 +1628,16 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                     >
                       <div className={`absolute -left-[15px] top-3.5 w-1.5 h-1.5 rounded-full transition-colors ${(snap as any).isManual ? "bg-amber-400/40 group-hover/snap:bg-amber-400/60" : "bg-white/20 group-hover/snap:bg-white/40"}`} />
                       <div className="flex items-center gap-2">
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[snap.readiness] || "border-white/10 text-white/40"}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest border ${stageColors[snap.readiness] || "border-white/10 text-white/90"}`}>
                           {snap.readiness === "raw_seed" ? "Seed" : snap.readiness === "growing" ? "Growing" : snap.readiness === "ready_to_show" ? "Ready" : "Dormant"}
                         </span>
-                        <span className="font-mono text-[8px] text-white/25">{snap.wordCount} words</span>
+                        <span className="font-mono text-[8px] text-white/90">{snap.wordCount} words</span>
                         {diff > 0 && <span className="font-mono text-[8px] text-emerald-400/50">+{diff}</span>}
                         {diff < 0 && <span className="font-mono text-[8px] text-rose-400/50">{diff}</span>}
-                        <span className="font-mono text-[8px] text-white/20">{timeAgo(snap.createdAt)}</span>
+                        <span className="font-mono text-[8px] text-white/90">{timeAgo(snap.createdAt)}</span>
                         {(snap as any).isManual && <span className="font-mono text-[7px] uppercase tracking-widest text-amber-300/50 ml-2">manual</span>}
                       </div>
-                      {(snap as any).snapshotNote && <p className="font-mono text-[8px] text-white/35 mt-0.5 italic">"{(snap as any).snapshotNote}"</p>}
+                      {(snap as any).snapshotNote && <p className="font-mono text-[8px] text-white/90 mt-0.5 italic">"{(snap as any).snapshotNote}"</p>}
                     </button>
                     );
                   })}
@@ -1800,11 +1666,11 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               >
                 <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
                   <div className="flex items-center gap-3">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest border ${stageColors[previewSnapshot.readiness] || "border-white/10 text-white/40"}`}>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest border ${stageColors[previewSnapshot.readiness] || "border-white/10 text-white/90"}`}>
                       {previewSnapshot.readiness === "raw_seed" ? "Seed" : previewSnapshot.readiness === "growing" ? "Growing" : previewSnapshot.readiness === "ready_to_show" ? "Ready" : "Dormant"}
                     </span>
-                    <span className="font-mono text-[9px] text-white/30">{previewSnapshot.wordCount} words</span>
-                    <span className="font-mono text-[9px] text-white/25">{timeAgo(previewSnapshot.createdAt)}</span>
+                    <span className="font-mono text-[9px] text-white/90">{previewSnapshot.wordCount} words</span>
+                    <span className="font-mono text-[9px] text-white/90">{timeAgo(previewSnapshot.createdAt)}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1823,7 +1689,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                     </button>
                     <button
                       onClick={() => setPreviewSnapshot(null)}
-                      className="p-1.5 text-white/40 hover:text-white/70 transition-colors"
+                      className="p-1.5 text-white/90 hover:text-white/90 transition-colors"
                       data-testid="btn-close-preview"
                     >
                       <X size={16} />
@@ -1831,7 +1697,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                   </div>
                 </div>
                 <div className="p-6 overflow-y-auto">
-                  <h3 className="font-display text-xl font-light italic text-white/70 mb-4">{previewSnapshot.title || "Untitled"}</h3>
+                  <h3 className="font-display text-xl font-light italic text-white/90 mb-4">{previewSnapshot.title || "Untitled"}</h3>
                   <ContentRenderer content={previewSnapshot.content} className="font-serif text-white/55 leading-[1.9]" />
                 </div>
               </motion.div>
@@ -1842,7 +1708,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 mt-4">
           <div className="flex items-center gap-4 mb-3 px-1 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Size</span>
+              <span className="font-mono text-[9px] uppercase tracking-widest text-white/90">Size</span>
               <input
                 type="range"
                 min="14"
@@ -1852,11 +1718,11 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                 className="w-20 h-1 appearance-none bg-white/10 rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white/60 [&::-webkit-slider-thumb]:hover:bg-white/80 [&::-webkit-slider-thumb]:transition-colors"
                 data-testid="slider-fontsize"
               />
-              <span className="font-mono text-[9px] text-white/30 w-6">{fontSizeValue}</span>
+              <span className="font-mono text-[9px] text-white/90 w-6">{fontSizeValue}</span>
             </div>
             <span className="w-px h-4 bg-white/[0.04]" />
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Font</span>
+              <span className="font-mono text-[9px] uppercase tracking-widest text-white/90">Font</span>
               <div className="flex gap-1">
                 {([
                   { id: "serif", label: "Serif", font: "'Lora', serif" },
@@ -1870,8 +1736,8 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
                     onClick={() => setEditorFont(f.id)}
                     className={`px-2 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors ${
                       editorFont === f.id
-                        ? "bg-white/10 text-white/70 border border-white/15"
-                        : "text-white/30 hover:text-white/50 border border-transparent"
+                        ? "bg-white/10 text-white/90 border border-white/15"
+                        : "text-white/90 hover:text-white/90 border border-transparent"
                     }`}
                     style={{ fontFamily: f.font }}
                     data-testid={`button-font-${f.id}`}
@@ -1909,7 +1775,7 @@ function MarginaliaCount({ writingId }: { writingId: string }) {
   });
   if (notes.length === 0) return null;
   return (
-    <span className="flex items-center gap-1 font-mono text-[8px] text-white/35" data-testid={`marginalia-count-${writingId}`}>
+    <span className="flex items-center gap-1 font-mono text-[8px] text-white/90" data-testid={`marginalia-count-${writingId}`}>
       <MessageCircle size={10} />
       {notes.length}
     </span>
@@ -1943,14 +1809,14 @@ function PauseStoneButton({ writingId }: { writingId: string }) {
       className={`flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-widest transition-all group/stone ${
         hasPaused
           ? "text-amber-400/60 cursor-default"
-          : "text-white/30 hover:text-amber-400/60 cursor-pointer"
+          : "text-white/90 hover:text-amber-400/60 cursor-pointer"
       }`}
       disabled={hasPaused}
       title={hasPaused ? "You paused here" : "Leave a stone — 'someone paused here'"}
       data-testid={`pause-stone-${writingId}`}
     >
       <span className="relative">
-        <svg width="12" height="10" viewBox="0 0 12 10" className={`transition-all ${hasPaused ? "text-amber-400/60" : "text-white/25 group-hover/stone:text-amber-400/40"}`}>
+        <svg width="12" height="10" viewBox="0 0 12 10" className={`transition-all ${hasPaused ? "text-amber-400/60" : "text-white/90 group-hover/stone:text-amber-400/40"}`}>
           <ellipse cx="6" cy="6" rx="5.5" ry="3.5" fill="currentColor" opacity="0.6" />
           <ellipse cx="6" cy="5" rx="4.5" ry="3" fill="currentColor" />
         </svg>
@@ -1992,14 +1858,14 @@ function QuietReadButton({ writingId }: { writingId: string }) {
       className={`group/quiet relative flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
         hasRead
           ? "text-amber-300/40 hover:text-amber-300/50"
-          : "text-white/20 hover:text-white/40"
+          : "text-white/90 hover:text-white/90"
       }`}
       title={hasRead ? "You were here" : "I was here"}
       data-testid={`button-quiet-read-${writingId}`}
       disabled={isLoading}
     >
       <Eye size={14} />
-      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[8px] tracking-widest text-white/40 opacity-0 group-hover/quiet:opacity-100 transition-opacity pointer-events-none">
+      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[8px] tracking-widest text-white/90 opacity-0 group-hover/quiet:opacity-100 transition-opacity pointer-events-none">
         {hasRead ? "you were here" : "I was here"}
       </span>
     </button>
@@ -2064,7 +1930,7 @@ function QuietlyReadIndicator({ writingId }: { writingId: string }) {
           >
             <div className="space-y-2">
               {whispers.map((w, i) => (
-                <p key={i} className="font-serif italic text-xs text-white/40 leading-relaxed" data-testid={`whisper-${i}`}>
+                <p key={i} className="font-serif italic text-xs text-white/90 leading-relaxed" data-testid={`whisper-${i}`}>
                   {w.whisper}
                 </p>
               ))}
@@ -2099,7 +1965,7 @@ function CuratedOpportunitiesBanner() {
       <div className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04] p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-amber-400/50">From the editors</span>
-          <button onClick={() => setDismissed(true)} className="text-white/20 hover:text-white/40 transition-colors" data-testid="btn-dismiss-opps">
+          <button onClick={() => setDismissed(true)} className="text-white/90 hover:text-white/90 transition-colors" data-testid="btn-dismiss-opps">
             <X size={12} />
           </button>
         </div>
@@ -2112,9 +1978,9 @@ function CuratedOpportunitiesBanner() {
                 ) : (
                   <span className="font-serif text-sm text-amber-200/80">{opp.title}</span>
                 )}
-                {opp.outlet && <span className="font-mono text-[8px] uppercase tracking-widest text-white/30 ml-2">{opp.outlet}</span>}
+                {opp.outlet && <span className="font-mono text-[8px] uppercase tracking-widest text-white/90 ml-2">{opp.outlet}</span>}
               </div>
-              {opp.deadline && <span className="font-mono text-[8px] text-white/25 whitespace-nowrap flex-shrink-0">{opp.deadline}</span>}
+              {opp.deadline && <span className="font-mono text-[8px] text-white/90 whitespace-nowrap flex-shrink-0">{opp.deadline}</span>}
             </div>
           ))}
         </div>
@@ -2158,7 +2024,7 @@ function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; on
 
   return (
     <div className="mb-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3" data-testid="daily-nudge">
-      <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30">Daily Nudge</span>
+      <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90">Daily Nudge</span>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {todayQuestion && (
           <button
@@ -2170,7 +2036,7 @@ function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; on
               <Compass size={10} />
               The Cafe
             </span>
-            <p className="font-display text-sm font-light italic text-white/60 group-hover:text-white/75 transition-colors leading-snug line-clamp-2">
+            <p className="font-display text-sm font-light italic text-white/90 group-hover:text-white/75 transition-colors leading-snug line-clamp-2">
               "{todayQuestion.question}"
             </p>
             {liveCounts && liveCounts.cafeResponses > 0 && (
@@ -2194,7 +2060,7 @@ function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; on
               <Feather size={10} />
               Workshop
             </span>
-            <p className="font-serif text-sm text-white/55 group-hover:text-white/70 transition-colors leading-snug line-clamp-2">
+            <p className="font-serif text-sm text-white/55 group-hover:text-white/90 transition-colors leading-snug line-clamp-2">
               {promptOfDay.title || promptOfDay.prompt}
             </p>
             {liveCounts && liveCounts.workshopResponses > 0 && (
@@ -2296,9 +2162,9 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 mb-2">
           <BookOpen size={16} className="text-emerald-400/50" />
-          <h2 className="font-display text-xl font-light italic text-white/70">Reading Room</h2>
+          <h2 className="font-display text-xl font-light italic text-white/90">Reading Room</h2>
         </div>
-        <p className="font-serif text-xs text-white/35 italic">Letters from gardens you tend, and new voices growing nearby</p>
+        <p className="font-serif text-xs text-white/90 italic">Letters from gardens you tend, and new voices growing nearby</p>
       </div>
 
       <DailyNudge
@@ -2326,7 +2192,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                 </div>
                 <span className="font-serif text-sm">{dailyLetter.authorName || "Anonymous"}</span>
               </button>
-              <span className="font-mono text-[8px] text-white/25">{timeAgo(dailyLetter.createdAt)}</span>
+              <span className="font-mono text-[8px] text-white/90">{timeAgo(dailyLetter.createdAt)}</span>
             </div>
 
             <h3 className="text-2xl md:text-3xl font-display font-light text-white/85 italic leading-snug" data-testid="daily-letter-title">
@@ -2354,8 +2220,8 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               <div className="flex items-center gap-3">
                 <QuietReadButton writingId={dailyLetter.id} />
                 <span className="w-px h-3 bg-white/[0.06]" />
-                <span className="font-mono text-[8px] uppercase tracking-widest text-white/40">{dailyLetter.genre}</span>
-                <span className="font-mono text-[8px] text-white/25">{dailyLetterContentWords} words</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/90">{dailyLetter.genre}</span>
+                <span className="font-mono text-[8px] text-white/90">{dailyLetterContentWords} words</span>
                 <div className="ml-auto">
                   <TendButton gardenerId={dailyLetter.authorId} size="sm" />
                 </div>
@@ -2370,7 +2236,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
           {(allPieces.length > 1 || (allPieces.length === 1 && allPieces[0].id !== dailyLetter.id)) && (
             <div className="flex items-center gap-4 mt-10 mb-2">
               <div className="flex-1 border-t border-white/[0.04]" />
-              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/25">More from the Garden</span>
+              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90">More from the Garden</span>
               <div className="flex-1 border-t border-white/[0.04]" />
             </div>
           )}
@@ -2388,7 +2254,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                 activeSort === s.id
                   ? "border-amber-500/30 bg-amber-500/10 text-amber-300/90"
-                  : "border-white/[0.06] text-white/35 hover:text-white/55 hover:border-white/15"
+                  : "border-white/[0.06] text-white/90 hover:text-white/55 hover:border-white/15"
               }`}
               data-testid={`sort-${s.id}`}
             >
@@ -2404,7 +2270,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               className={`px-2.5 py-1 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                 genreFilter === g
                   ? "border-amber-500/30 bg-amber-500/10 text-amber-300/90"
-                  : "border-transparent text-white/25 hover:text-white/45"
+                  : "border-transparent text-white/90 hover:text-white/45"
               }`}
               data-testid={`genre-filter-${g}`}
             >
@@ -2418,8 +2284,8 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
         <div className="relative border border-dashed border-emerald-700/15 rounded-3xl p-16 text-center space-y-4 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(6,78,59,0.06) 0%, transparent 60%)" }} />
           <Feather size={32} className="relative mx-auto text-emerald-500/25" />
-          <h3 className="relative text-xl font-display font-light italic text-white/50">No letters yet</h3>
-          <p className="relative font-serif text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
+          <h3 className="relative text-xl font-display font-light italic text-white/90">No letters yet</h3>
+          <p className="relative font-serif text-sm text-white/90 max-w-sm mx-auto leading-relaxed">
             When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
           </p>
         </div>
@@ -2427,8 +2293,8 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
 
       {allPieces.length > 0 && filteredPieces.length === 0 && (
         <div className="border border-dashed border-white/[0.06] rounded-2xl p-12 text-center space-y-3">
-          <Eye size={24} className="mx-auto text-white/15" />
-          <p className="font-serif text-sm text-white/35 italic">
+          <Eye size={24} className="mx-auto text-white/90" />
+          <p className="font-serif text-sm text-white/90 italic">
             {activeSort === "tended"
               ? "No pieces from writers you're tending yet. Tend a garden to see their work here."
               : "No pieces match this filter."}
@@ -2465,15 +2331,15 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                       tabIndex={0}
                       onClick={(e) => { e.stopPropagation(); onViewProfile?.(piece.authorId); }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onViewProfile?.(piece.authorId); } }}
-                      className="flex items-center gap-2 text-white/50 hover:text-white/75 transition-colors cursor-pointer"
+                      className="flex items-center gap-2 text-white/90 hover:text-white/75 transition-colors cursor-pointer"
                       data-testid={`link-author-${piece.id}`}
                     >
-                      <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.15] flex items-center justify-center text-white/50 font-mono text-[8px] uppercase">
+                      <div className="w-5 h-5 rounded-full bg-white/[0.06] border border-white/[0.15] flex items-center justify-center text-white/90 font-mono text-[8px] uppercase">
                         {piece.authorName?.[0] || "?"}
                       </div>
                       <span className="font-serif text-xs">{piece.authorName || "Anonymous"}</span>
                     </span>
-                    <span className="font-mono text-[8px] text-white/30">{timeAgo(piece.updatedAt)}</span>
+                    <span className="font-mono text-[8px] text-white/90">{timeAgo(piece.updatedAt)}</span>
                   </div>
 
                   <h3 className="text-lg md:text-xl font-display font-light text-white/80 italic mb-2 leading-snug">
@@ -2498,7 +2364,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                       <PauseStoneButton writingId={piece.id} />
                       <button
                         onClick={(e) => { e.stopPropagation(); setExpandedId(piece.id); }}
-                        className="flex items-center gap-1 font-mono text-[8px] text-white/30 hover:text-white/50 transition-colors"
+                        className="flex items-center gap-1 font-mono text-[8px] text-white/90 hover:text-white/90 transition-colors"
                         data-testid={`button-respond-${piece.id}`}
                       >
                         <MessageCircle size={9} />
@@ -2524,7 +2390,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                             <PauseStoneButton writingId={piece.id} />
                             <span className="w-px h-3 bg-white/[0.06]" />
                             <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
-                            <span className="font-mono text-[8px] text-white/30">{wordCount(piece.content)} words</span>
+                            <span className="font-mono text-[8px] text-white/90">{wordCount(piece.content)} words</span>
                           </div>
                           <TendButton gardenerId={piece.authorId} size="sm" />
                         </div>
@@ -2546,7 +2412,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
         <div className="text-center mt-10">
           <button
             onClick={() => setPage(p => p + 1)}
-            className="inline-flex items-center gap-2 px-6 py-3 border border-white/[0.20] hover:border-white/25 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white/70 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-white/[0.20] hover:border-white/25 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-white/90 transition-all"
             data-testid="button-more-letters"
           >
             <Feather size={12} />
@@ -2587,7 +2453,7 @@ function GreenhouseZone() {
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 mb-3">
           <TreePine size={18} className="text-teal-400/60" />
-          <h2 className="font-display text-2xl font-light italic text-white/70">Your Greenhouse</h2>
+          <h2 className="font-display text-2xl font-light italic text-white/90">Your Greenhouse</h2>
         </div>
         <p className="font-serif text-sm text-white/45 max-w-md mx-auto leading-relaxed">
           A private space just for you. Tend your practice, track your energy, and nurture your creative life. No one else can see what's here.
@@ -2674,12 +2540,12 @@ function CompostPileView() {
       {stats && (
         <div className="flex items-center gap-6 mb-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Total fragments</span>
+            <span className="font-mono text-[9px] uppercase tracking-widest text-white/90">Total fragments</span>
             <span className="font-mono text-sm text-amber-400/60">{stats.totalFragments}</span>
           </div>
           {stats.todayFragments > 0 && (
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">Today's compost</span>
+              <span className="font-mono text-[9px] uppercase tracking-widest text-white/90">Today's compost</span>
               <span className="font-mono text-sm text-amber-400/60">{stats.todayFragments}</span>
             </div>
           )}
@@ -2689,8 +2555,8 @@ function CompostPileView() {
       {compostPile.length === 0 ? (
         <div className="border border-dashed border-amber-700/15 rounded-3xl p-16 text-center space-y-4">
           <Leaf size={32} className="mx-auto text-amber-500/20" />
-          <h3 className="text-xl font-display font-light italic text-white/50">The compost pile is empty</h3>
-          <p className="font-serif text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
+          <h3 className="text-xl font-display font-light italic text-white/90">The compost pile is empty</h3>
+          <p className="font-serif text-sm text-white/90 max-w-sm mx-auto leading-relaxed">
             When writers compost pieces they're letting go of, fragments of language drift here.
             One person's abandoned darling becomes another's spark.
           </p>
@@ -2705,11 +2571,11 @@ function CompostPileView() {
               transition={{ delay: i * 0.03, duration: 0.3 }}
               className="group/fragment relative rounded-xl border border-amber-500/10 bg-amber-950/[0.04] p-5 hover:border-amber-500/20 hover:bg-amber-950/[0.08] transition-all"
             >
-              <p className="font-serif text-sm text-white/50 italic leading-relaxed pr-8">
+              <p className="font-serif text-sm text-white/90 italic leading-relaxed pr-8">
                 "{fragment.content}"
               </p>
               <div className="flex items-center justify-between mt-3">
-                <span className="font-mono text-[8px] text-white/20">
+                <span className="font-mono text-[8px] text-white/90">
                   {new Date(fragment.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
                 {!fragment.isRecycled && (
@@ -2746,7 +2612,7 @@ function GreenhouseToolView({ tool, onBack }: { tool: NonNullable<GreenhouseTool
     <div className="max-w-3xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 transition-colors group mb-6"
+        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/90 hover:text-white/75 transition-colors group mb-6"
         data-testid="button-back-greenhouse"
       >
         <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
@@ -3230,15 +3096,15 @@ function GrowthJournalView() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-1 p-0.5 bg-white/[0.03] rounded-lg border border-white/[0.06] w-fit">
-        <button onClick={() => setTab("journal")} className={`px-3 py-1.5 rounded-md font-mono text-[9px] uppercase tracking-widest transition-all ${tab === "journal" ? "bg-white/[0.08] text-white/80" : "text-white/40 hover:text-white/60"}`} data-testid="tab-journal">Journal</button>
-        <button onClick={() => setTab("prompts")} className={`px-3 py-1.5 rounded-md font-mono text-[9px] uppercase tracking-widest transition-all ${tab === "prompts" ? "bg-white/[0.08] text-white/80" : "text-white/40 hover:text-white/60"}`} data-testid="tab-prompts">Prompts</button>
+        <button onClick={() => setTab("journal")} className={`px-3 py-1.5 rounded-md font-mono text-[9px] uppercase tracking-widest transition-all ${tab === "journal" ? "bg-white/[0.08] text-white/80" : "text-white/90 hover:text-white/90"}`} data-testid="tab-journal">Journal</button>
+        <button onClick={() => setTab("prompts")} className={`px-3 py-1.5 rounded-md font-mono text-[9px] uppercase tracking-widest transition-all ${tab === "prompts" ? "bg-white/[0.08] text-white/80" : "text-white/90 hover:text-white/90"}`} data-testid="tab-prompts">Prompts</button>
       </div>
 
       {tab === "prompts" && (
         <div className="border border-pink-500/10 bg-pink-500/[0.02] rounded-xl p-4">
           <div className="flex items-start justify-between gap-3">
             <p className="font-display text-base font-light italic text-pink-200/60 leading-relaxed">{currentPrompt}</p>
-            <button onClick={() => setPromptIndex((promptIndex + 1) % reflectionPrompts.length)} className="flex-shrink-0 p-1.5 text-white/30 hover:text-white/60 transition-colors" title="New prompt" data-testid="button-next-prompt">
+            <button onClick={() => setPromptIndex((promptIndex + 1) % reflectionPrompts.length)} className="flex-shrink-0 p-1.5 text-white/90 hover:text-white/90 transition-colors" title="New prompt" data-testid="button-next-prompt">
               <Sparkles size={14} />
             </button>
           </div>
@@ -3253,18 +3119,18 @@ function GrowthJournalView() {
           className="w-full bg-white/[0.05] border border-white/[0.20] rounded-xl px-4 py-3 text-sm font-serif text-white/75 placeholder:text-white/45 focus:outline-none focus:border-white/40 resize-none h-28 transition-colors"
           data-testid="input-journal-entry"
         />
-        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/60 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">
+        <button onClick={() => addMutation.mutate()} disabled={!content.trim()} className="mt-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/20 rounded-lg font-mono text-[9px] uppercase tracking-widest text-white/90 hover:text-white disabled:opacity-30 transition-all" data-testid="button-add-journal">
           {tab === "prompts" ? "Save Reflection" : "Add Entry"}
         </button>
       </div>
       {allEntries.map((e: any) => (
         <div key={e.id} className="border border-white/[0.15] rounded-xl p-4">
           {e.title && <h4 className="font-display text-sm font-light italic text-white/45 mb-2">{e.title}</h4>}
-          <p className="font-serif text-sm text-white/60 leading-relaxed">{e.content}</p>
+          <p className="font-serif text-sm text-white/90 leading-relaxed">{e.content}</p>
           <span className="font-mono text-[8px] text-white/45 mt-2 block">{timeAgo(e.createdAt)}</span>
         </div>
       ))}
-      {allEntries.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">{tab === "prompts" ? "Your reflections will gather here over time." : "No entries yet. Start reflecting on your growth."}</p>}
+      {allEntries.length === 0 && <p className="font-serif text-sm text-white/90 italic py-6 text-center">{tab === "prompts" ? "Your reflections will gather here over time." : "No entries yet. Start reflecting on your growth."}</p>}
     </div>
   );
 }
@@ -3358,7 +3224,7 @@ function CirclesView() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] text-white/60 font-mono text-[10px] uppercase tracking-widest hover:text-white/80 hover:border-white/15 hover:bg-white/[0.06] transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] text-white/90 font-mono text-[10px] uppercase tracking-widest hover:text-white/80 hover:border-white/15 hover:bg-white/[0.06] transition-all"
           data-testid="button-create-circle"
         >
           <Plus size={12} />
@@ -3377,35 +3243,35 @@ function CirclesView() {
           >
             <div className="border border-white/[0.06] rounded-xl p-4 space-y-3 bg-white/[0.02]" data-testid="form-create-circle">
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1 block">Name</label>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/90 mb-1 block">Name</label>
                 <input
                   type="text"
                   value={newCircleName}
                   onChange={(e) => setNewCircleName(e.target.value)}
                   placeholder="Circle name"
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 font-serif focus:outline-none focus:border-white/20 transition-colors"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/90 font-serif focus:outline-none focus:border-white/20 transition-colors"
                   data-testid="input-circle-name"
                 />
               </div>
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1 block">Description (optional)</label>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/90 mb-1 block">Description (optional)</label>
                 <textarea
                   value={newCircleDescription}
                   onChange={(e) => setNewCircleDescription(e.target.value)}
                   placeholder="What is this circle about?"
                   rows={2}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 font-serif focus:outline-none focus:border-white/20 transition-colors resize-none"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/90 font-serif focus:outline-none focus:border-white/20 transition-colors resize-none"
                   data-testid="input-circle-description"
                 />
               </div>
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-white/40 mb-1 block">Theme (optional)</label>
+                <label className="font-mono text-[9px] uppercase tracking-widest text-white/90 mb-1 block">Theme (optional)</label>
                 <input
                   type="text"
                   value={newCircleTheme}
                   onChange={(e) => setNewCircleTheme(e.target.value)}
                   placeholder="e.g. poetry, memoir, craft"
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 font-serif focus:outline-none focus:border-white/20 transition-colors"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/90 font-serif focus:outline-none focus:border-white/20 transition-colors"
                   data-testid="input-circle-theme"
                 />
               </div>
@@ -3427,7 +3293,7 @@ function CirclesView() {
                 </button>
                 <button
                   onClick={() => { setShowCreateForm(false); setNewCircleName(""); setNewCircleDescription(""); setNewCircleTheme(""); }}
-                  className="px-3 py-1.5 rounded-lg text-white/40 font-mono text-[10px] uppercase tracking-wider hover:text-white/60 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-white/90 font-mono text-[10px] uppercase tracking-wider hover:text-white/90 transition-colors"
                   data-testid="button-cancel-circle"
                 >
                   Cancel
@@ -3457,16 +3323,16 @@ function CirclesView() {
                       Full
                     </span>
                   )}
-                  <ChevronDown size={14} className={`text-white/40 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  <ChevronDown size={14} className={`text-white/90 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                 </div>
               </div>
-              {c.description && <p className="font-serif text-xs text-white/60 mt-1">{c.description}</p>}
+              {c.description && <p className="font-serif text-xs text-white/90 mt-1">{c.description}</p>}
               {c.theme && (
                 <p className="font-mono text-[8px] uppercase tracking-widest text-amber-300/30 mt-1">{c.theme}</p>
               )}
               <div className="flex items-center gap-2 mt-2">
-                <Users size={10} className="text-white/50" />
-                <span className="font-mono text-[8px] text-white/50" data-testid={`text-member-count-${c.id}`}>
+                <Users size={10} className="text-white/90" />
+                <span className="font-mono text-[8px] text-white/90" data-testid={`text-member-count-${c.id}`}>
                   {c.memberCount || 0}/{c.maxMembers || 5} members
                 </span>
               </div>
@@ -3495,7 +3361,7 @@ function CirclesView() {
           </div>
         );
       })}
-      {circles.length === 0 && <p className="font-serif text-sm text-white/50 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
+      {circles.length === 0 && <p className="font-serif text-sm text-white/90 italic py-6 text-center">No circles yet. Writing circles are intimate groups for sharing and discussion.</p>}
     </div>
   );
 }
@@ -3561,10 +3427,10 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
 
           {thisWeekShare ? (
             <div className="rounded-lg border border-emerald-500/15 bg-emerald-500/[0.04] p-3" data-testid={`share-this-week-${circle.id}`}>
-              <p className="font-serif text-xs text-white/70">
+              <p className="font-serif text-xs text-white/90">
                 <span className="text-emerald-400/80 font-display italic">{thisWeekShare.userName}</span> shared
                 {thisWeekShare.writingTitle && (
-                  <> — <span className="italic text-white/60">"{thisWeekShare.writingTitle}"</span></>
+                  <> — <span className="italic text-white/90">"{thisWeekShare.writingTitle}"</span></>
                 )}
               </p>
               <p className="font-mono text-[8px] text-emerald-400/40 mt-1 uppercase tracking-widest">Read & Respond</p>
@@ -3576,7 +3442,7 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
                 <select
                   value={selectedWritingId}
                   onChange={(e) => onSelectWriting(e.target.value)}
-                  className="flex-1 bg-white/[0.06] border border-white/[0.12] rounded-lg px-2 py-1.5 font-serif text-xs text-white/70 focus:outline-none focus:border-amber-500/30"
+                  className="flex-1 bg-white/[0.06] border border-white/[0.12] rounded-lg px-2 py-1.5 font-serif text-xs text-white/90 focus:outline-none focus:border-amber-500/30"
                   data-testid={`select-writing-${circle.id}`}
                 >
                   <option value="">Choose a writing...</option>
@@ -3604,18 +3470,18 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
 
           {members.length > 1 && (
             <div className="flex items-center gap-1 flex-wrap" data-testid={`rotation-order-${circle.id}`}>
-              <span className="font-mono text-[7px] text-white/30 uppercase tracking-widest mr-1">Rotation:</span>
+              <span className="font-mono text-[7px] text-white/90 uppercase tracking-widest mr-1">Rotation:</span>
               {members.map((m: any, i: number) => (
                 <span
                   key={m.id}
                   className={`font-mono text-[8px] px-1.5 py-0.5 rounded-full ${
                     m.userId === currentSharer?.userId
                       ? "bg-teal-500/15 text-teal-400/70 border border-teal-500/20"
-                      : "text-white/30"
+                      : "text-white/90"
                   }`}
                 >
                   {m.userName || "?"}
-                  {i < members.length - 1 && <span className="text-white/15 ml-1">→</span>}
+                  {i < members.length - 1 && <span className="text-white/90 ml-1">→</span>}
                 </span>
               ))}
             </div>
@@ -3639,8 +3505,8 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
                     {r.userName?.[0] || "?"}
                   </span>
                   <div className="min-w-0">
-                    <span className="font-mono text-[8px] text-white/30 uppercase tracking-wider">{r.userName}</span>
-                    <p className="font-serif text-xs text-white/60 leading-snug">{r.content}</p>
+                    <span className="font-mono text-[8px] text-white/90 uppercase tracking-wider">{r.userName}</span>
+                    <p className="font-serif text-xs text-white/90 leading-snug">{r.content}</p>
                   </div>
                   {r.userId === userId && (
                     <Check size={10} className="text-emerald-400/50 flex-shrink-0 mt-1" />
@@ -3658,7 +3524,7 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
                 onChange={(e) => setMicroResponse(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && microResponse.trim()) respondMutation.mutate(microResponse.trim()); }}
                 placeholder="Your response..."
-                className="flex-1 bg-white/[0.04] border border-amber-500/10 rounded-lg px-2.5 py-1.5 font-serif text-xs text-white/70 placeholder:text-white/20 focus:outline-none focus:border-amber-500/25 transition-colors"
+                className="flex-1 bg-white/[0.04] border border-amber-500/10 rounded-lg px-2.5 py-1.5 font-serif text-xs text-white/90 placeholder:text-white/90 focus:outline-none focus:border-amber-500/25 transition-colors"
                 data-testid={`input-micro-response-${circle.id}`}
               />
               <button
@@ -3681,7 +3547,7 @@ function CircleDetail({ circle, userId, writings, isFull, onJoin, onShare, isJoi
             disabled={isFull || isJoining}
             className={`px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-colors ${
               isFull
-                ? "bg-white/[0.04] text-white/30 cursor-not-allowed border border-white/[0.08]"
+                ? "bg-white/[0.04] text-white/90 cursor-not-allowed border border-white/[0.08]"
                 : "bg-emerald-500/15 text-emerald-400/80 border border-emerald-500/20 hover:bg-emerald-500/25"
             }`}
             data-testid={`btn-join-circle-${circle.id}`}
@@ -3699,6 +3565,7 @@ export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [activeZone, setActiveZone] = useState<Zone>("desk");
+    const [showDeskStats, setShowDeskStats] = useState(false);
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
@@ -3894,7 +3761,7 @@ export default function Garden() {
 
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background text-foreground relative">
+      <div className="min-h-screen bg-transparent text-foreground relative">
         <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -3903,11 +3770,11 @@ export default function Garden() {
             className="text-center space-y-8 max-w-md"
           >
             <div className="w-16 h-16 mx-auto border border-white/10 rounded-full flex items-center justify-center">
-              <Feather size={24} className="text-white/30" />
+              <Feather size={24} className="text-white/90" />
             </div>
             <div className="space-y-3">
               <h1 className="font-display text-3xl sm:text-4xl text-white/85 italic">The Garden</h1>
-              <p className="font-body text-sm text-white/35 leading-relaxed">
+              <p className="font-body text-sm text-white/90 leading-relaxed">
                 A quiet place to write, grow, and tend your work. Sign in to enter.
               </p>
             </div>
@@ -3918,12 +3785,12 @@ export default function Garden() {
             </div>
             <button
               onClick={() => { window.location.href = "/sign-in"; }}
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-white/[0.12] bg-white/[0.04] text-white/70 hover:text-white/90 hover:bg-white/[0.08] hover:border-white/[0.2] transition-all duration-500 font-mono text-xs uppercase tracking-[0.2em]"
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-white/[0.12] bg-white/[0.04] text-white/90 hover:text-white/90 hover:bg-white/[0.08] hover:border-white/[0.2] transition-all duration-500 font-mono text-xs uppercase tracking-[0.2em]"
               data-testid="button-garden-login"
             >
               Sign in to enter
             </button>
-            <p className="font-mono text-[9px] text-white/15 tracking-widest uppercase">
+            <p className="font-mono text-[9px] text-white/90 tracking-widest uppercase">
               The Page Gallery Journal
             </p>
           </motion.div>
@@ -3934,13 +3801,13 @@ export default function Garden() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-background text-foreground relative">
+      <div className="min-h-screen bg-transparent text-foreground relative">
           <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 mx-auto border border-white/20 rounded-full flex items-center justify-center">
-              <Feather size={20} className="text-white/50 animate-pulse" />
+              <Feather size={20} className="text-white/90 animate-pulse" />
             </div>
-            <p className="font-mono text-[10px] tracking-widest text-white/60 uppercase">Opening your garden...</p>
+            <p className="font-mono text-[10px] tracking-widest text-white/90 uppercase">Opening your garden...</p>
           </div>
         </div>
       </div>
@@ -3949,11 +3816,11 @@ export default function Garden() {
 
   if (showNotifications) {
     return (
-      <div className="min-h-screen bg-background text-foreground relative">
+      <div className="min-h-screen bg-transparent text-foreground relative">
         <div className="relative z-10 pt-20 pb-24 px-6 max-w-2xl mx-auto">
           <button
             onClick={() => setShowNotifications(false)}
-            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/75 transition-colors group mb-6"
+            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/90 hover:text-white/75 transition-colors group mb-6"
           >
             <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back
@@ -3965,15 +3832,15 @@ export default function Garden() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative garden-bg">
+    <div className="min-h-screen bg-transparent text-foreground relative">
       <NightGardenAtmosphere />
 
       <div className="relative z-10">
         <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-emerald-900/25 garden-header-bg">
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
-              <a href="/" className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/45 hover:text-white/60 transition-colors group" data-testid="link-home">
-                <Home size={14} className="text-emerald-500/40 group-hover:text-emerald-400/60 transition-colors" />
+              <a href="/" className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/45 hover:text-white/90 transition-colors group" data-testid="link-home">
+                <Home size={14} className="text-emerald-400 group-hover:text-emerald-400/60 transition-colors" />
                 <span className="hidden sm:inline">Home</span>
               </a>
 
@@ -3987,17 +3854,17 @@ export default function Garden() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400/40" />
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400/60" />
                       </span>
-                      <span className="font-mono text-[9px] text-white/30">
+                      <span className="font-mono text-[9px] text-white/90">
                         {gardenPulse.activeWriters} {gardenPulse.activeWriters === 1 ? "writer" : "writers"} in the garden
                       </span>
                     </div>
                     {(gardenPulse.newSeeds > 0 || gardenPulse.bloomedPieces > 0) && (
-                      <p className="font-serif italic text-[9px] text-white/25">
+                      <p className="font-serif italic text-[9px] text-white/90">
                         This month: {gardenPulse.newSeeds > 0 && <>{gardenPulse.newSeeds} {gardenPulse.newSeeds === 1 ? "writer" : "writers"} planted new seeds</>}{gardenPulse.newSeeds > 0 && gardenPulse.bloomedPieces > 0 && ". "}{gardenPulse.bloomedPieces > 0 && <>{gardenPulse.bloomedPieces} {gardenPulse.bloomedPieces === 1 ? "piece" : "pieces"} bloomed</>}.
                       </p>
                     )}
                     {struggleSignals && (struggleSignals.dormantThisWeek > 0 || struggleSignals.revisitedSeeds > 0) && (
-                      <div className="flex items-center gap-3 font-mono text-[8px] text-white/20 mt-1">
+                      <div className="flex items-center gap-3 font-mono text-[8px] text-white/90 mt-1">
                         {struggleSignals.dormantThisWeek > 0 && (
                           <span>{struggleSignals.dormantThisWeek} {struggleSignals.dormantThisWeek === 1 ? "piece" : "pieces"} went dormant this week</span>
                         )}
@@ -4016,7 +3883,7 @@ export default function Garden() {
                   className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
                     showA11yPanel
                       ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300"
-                      : "bg-white/[0.04] border border-white/[0.1] text-white/40 hover:text-white/60 hover:border-white/20"
+                      : "bg-white/[0.04] border border-white/[0.1] text-white/90 hover:text-white/90 hover:border-white/20"
                   }`}
                   data-testid="button-a11y-panel"
                   title="Appearance & Accessibility"
@@ -4027,7 +3894,7 @@ export default function Garden() {
                 <div className="relative">
                   <button
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className="w-7 h-7 rounded-full bg-white/[0.06] border border-white/[0.15] flex items-center justify-center text-white/50 font-mono text-[9px] uppercase hover:border-white/20 transition-colors"
+                    className="w-7 h-7 rounded-full bg-white/[0.06] border border-white/[0.15] flex items-center justify-center text-white/90 font-mono text-[9px] uppercase hover:border-white/20 transition-colors"
                     data-testid="button-profile-menu"
                   >
                     {user?.firstName?.[0] || "?"}
@@ -4043,12 +3910,12 @@ export default function Garden() {
                       >
                         <div className="p-4 border-b border-emerald-900/20">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/[0.08] border border-white/20 flex items-center justify-center text-white/70 font-display text-lg italic">
+                            <div className="w-10 h-10 rounded-full bg-white/[0.08] border border-white/20 flex items-center justify-center text-white/90 font-display text-lg italic">
                               {user?.firstName?.[0] || "?"}
                             </div>
                             <div>
                               <p className="font-display text-sm text-white/85 italic">{user?.firstName} {user?.lastName}</p>
-                              <p className="font-mono text-[8px] text-white/50 uppercase tracking-widest">{user?.role === "editor" ? "Editor" : "Writer"}</p>
+                              <p className="font-mono text-[8px] text-white/90 uppercase tracking-widest">{user?.role === "editor" ? "Editor" : "Writer"}</p>
                               {userTier === "paid" && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest border border-amber-500/20 bg-amber-500/5 text-amber-300/60">
                                   <Crown size={9} />
@@ -4071,7 +3938,7 @@ export default function Garden() {
                         <div className="p-3 border-b border-emerald-900/20 space-y-2">
                           <a
                             href={`/writer/${user?.id}`}
-                            className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm"
+                            className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/90 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm"
                             data-testid="nav-my-profile"
                           >
                             <Feather size={14} />
@@ -4103,9 +3970,17 @@ export default function Garden() {
                             <Trophy size={14} />
                             Challenges
                           </a>
+                                              <a
+                      href="/grove"
+                      className="flex items-center gap-2 px-2 py-2 rounded-lg text-green-400/60 hover:text-green-400/90 hover:bg-green-400/[0.05] transition-all font-serif text-sm"
+                      data-testid="nav-grove"
+                    >
+                      <TreePine size={14} />
+                      The Grove
+                    </a>
                           <button
                             onClick={() => { setActiveZone("desk"); setShowProfileMenu(false); }}
-                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
+                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/90 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
                             data-testid="nav-my-desk"
                           >
                             <PenLine size={14} />
@@ -4113,7 +3988,7 @@ export default function Garden() {
                           </button>
                           <button
                             onClick={() => { setShowNotifications(true); setShowProfileMenu(false); }}
-                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
+                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/90 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
                             data-testid="nav-whispers"
                           >
                             <Bell size={14} />
@@ -4121,7 +3996,7 @@ export default function Garden() {
                           </button>
                         </div>
                         <div className="p-2">
-                          <a href="/api/logout" className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/50 hover:text-red-400/80 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
+                          <a href="/api/logout" className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/90 hover:text-red-400/80 hover:bg-white/[0.03] transition-all font-serif text-sm" data-testid="nav-logout">
                             <LogOut size={13} />
                             Sign Out
                           </a>
@@ -4152,11 +4027,11 @@ export default function Garden() {
             >
               <div className="max-w-5xl mx-auto px-6 py-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
+                  <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/90">
                     <Glasses size={12} />
                     Appearance & Accessibility
                   </span>
-                  <button onClick={() => setShowA11yPanel(false)} className="text-white/30 hover:text-white/60 transition-colors" data-testid="button-close-a11y">
+                  <button onClick={() => setShowA11yPanel(false)} className="text-white/90 hover:text-white/90 transition-colors" data-testid="button-close-a11y">
                     <X size={14} />
                   </button>
                 </div>
@@ -4176,7 +4051,7 @@ export default function Garden() {
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-wider transition-all border ${
                         a11y[opt.key]
                           ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
-                          : "bg-white/[0.03] border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:text-white/70"
+                          : "bg-white/[0.03] border-white/[0.08] text-white/90 hover:bg-white/[0.06] hover:text-white/90"
                       }`}
                       data-testid={`a11y-toggle-${opt.key}`}
                     >
@@ -4195,8 +4070,8 @@ export default function Garden() {
           {currentSeason && !isEditing && (
             <div className="mb-6 rounded-2xl border border-emerald-500/10 bg-emerald-950/[0.04] p-4 text-center max-w-5xl mx-auto" data-testid="season-banner">
               <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-emerald-400/40">{currentSeason.theme}</span>
-              <p className="font-display text-sm font-light italic text-white/50 mt-1">{currentSeason.name}</p>
-              {currentSeason.description && <p className="font-serif text-[11px] text-white/30 mt-1 max-w-md mx-auto leading-relaxed">{currentSeason.description}</p>}
+              <p className="font-display text-sm font-light italic text-white/90 mt-1">{currentSeason.name}</p>
+              {currentSeason.description && <p className="font-serif text-[11px] text-white/90 mt-1 max-w-md mx-auto leading-relaxed">{currentSeason.description}</p>}
             </div>
           )}
           {activeWalk && (
@@ -4205,12 +4080,12 @@ export default function Garden() {
                 <div className="w-2 h-2 rounded-full bg-violet-400/60 animate-pulse" />
                 <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-violet-300/70">The Editors Walk</span>
               </div>
-              <p className="font-display text-lg font-light italic text-white/70">{activeWalk.title}</p>
+              <p className="font-display text-lg font-light italic text-white/90">{activeWalk.title}</p>
               {activeWalk.description && <p className="font-serif text-xs text-white/45 mt-1">{activeWalk.description}</p>}
               <p className="font-mono text-[9px] text-violet-300/50 mt-3">
                 Editors are walking through the gardens. Flag up to {activeWalk.flagLimit} pieces during this window.
               </p>
-              <p className="font-mono text-[8px] text-white/30 mt-1">
+              <p className="font-mono text-[8px] text-white/90 mt-1">
                 Ends {new Date(activeWalk.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
               </p>
             </div>
@@ -4275,8 +4150,10 @@ export default function Garden() {
                 <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} onGoToRoom={(room) => setActiveRoom(room)} />
               ) : activeZone === "submissions" ? (
                 <SubmissionsZone userTier={userTier as "free" | "paid"} />
-              ) : (
-                <GreenhouseZone />
+                    ) : activeZone === "garden-gate" ? (
+                        <GardenGateZone />
+      ) : (
+<GreenhouseZone />
               )}
             </motion.div>
           </AnimatePresence>
@@ -4292,6 +4169,60 @@ export default function Garden() {
         onSave={handlePlantingSave}
         title={plantingTarget?.title}
       />
+    </div>
+  );
+}
+
+function GardenGateZone() {
+  const { user } = useAuth();
+  const { data: writings = [] } = useQuery({
+    queryKey: ["/api/writings"],
+    enabled: !!user,
+  });
+
+  const publicWritings = (writings as any[]).filter(
+    (w: any) => w.visibility === "public" || w.visibility === "garden_gate"
+  );
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <TreePine size={18} className="text-emerald-400/70" />
+          <h2 className="font-display text-xl font-light italic text-white/80">Garden Gate</h2>
+        </div>
+        <p className="font-serif text-xs text-white/40 italic">
+          Writing you've opened to the world. Quiet, shared, unhurried.
+        </p>
+      </div>
+
+      {publicWritings.length === 0 ? (
+        <div className="text-center py-16">
+          <TreePine size={32} className="mx-auto mb-4 text-emerald-900/50" />
+          <p className="font-serif text-sm text-white/30 italic">
+            Nothing has passed through the gate yet.
+          </p>
+          <p className="font-mono text-[10px] text-white/20 mt-2 tracking-widest uppercase">
+            Open a piece from your desk to share it here
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {publicWritings.map((w: any) => (
+            <div
+              key={w.id}
+              className="group p-4 rounded-lg border border-emerald-900/30 bg-emerald-950/20 hover:border-emerald-800/40 transition-all"
+            >
+              <h3 className="font-serif text-sm text-white/70 italic mb-1">
+                {w.title || "Untitled"}
+              </h3>
+              <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+                {w.readiness || "raw seed"}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

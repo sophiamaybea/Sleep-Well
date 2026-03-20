@@ -117,7 +117,7 @@ export default function Gallery() {
 
       <div className="relative z-10">
         <header className="pt-8 pb-4 px-6 md:px-12 max-w-6xl mx-auto">
-          <Link href="/" className="inline-flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors font-mono text-xs uppercase tracking-widest group" data-testid="link-back-home">
+          <Link href="/" className="inline-flex items-center gap-2 text-white/85 hover:text-white/85 transition-colors font-mono text-xs uppercase tracking-widest group" data-testid="link-back-home">
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back
           </Link>
@@ -130,7 +130,7 @@ export default function Gallery() {
             transition={{ duration: 0.8 }}
             className="text-center space-y-6"
           >
-            <span className="font-mono text-[10px] tracking-[0.4em] text-amber-200/25 block uppercase">
+            <span className="font-mono text-[10px] tracking-[0.4em] text-amber-200/55 block uppercase">
               The Page Gallery & Garden
             </span>
             <div className="flex items-center justify-center gap-3">
@@ -142,7 +142,7 @@ export default function Gallery() {
             <p className="text-sm font-mono uppercase tracking-[0.3em] text-amber-400/60 mb-2">
               Published Works
             </p>
-            <p className="text-lg font-serif italic text-white/45 max-w-xl mx-auto leading-relaxed">
+            <p className="text-lg font-serif italic text-white/75 max-w-xl mx-auto leading-relaxed">
               This is the public journal. Here you can read stories and poems that have been selected for publication.
             </p>
             <div className="flex items-center justify-center gap-4 pt-2">
@@ -164,7 +164,7 @@ export default function Gallery() {
                 className={`px-5 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all ${
                   viewMode === "pieces"
                     ? "bg-white/[0.08] text-white/80"
-                    : "text-white/35 hover:text-white/55"
+                    : "text-white/80 hover:text-white/55"
                 }`}
                 data-testid="button-view-pieces"
               >
@@ -175,7 +175,7 @@ export default function Gallery() {
                 className={`px-5 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 ${
                   viewMode === "contributors"
                     ? "bg-white/[0.08] text-white/80"
-                    : "text-white/35 hover:text-white/55"
+                    : "text-white/80 hover:text-white/55"
                 }`}
                 data-testid="button-view-contributors"
               >
@@ -200,7 +200,7 @@ export default function Gallery() {
                     className={`px-5 py-2.5 rounded-full font-serif text-[13px] italic tracking-wide whitespace-nowrap transition-all duration-300 ${
                       activeGenre === g
                         ? "bg-amber-600/15 border border-amber-500/30 text-amber-200/90 shadow-[0_0_12px_rgba(217,169,56,0.08)]"
-                        : "border border-white/[0.07] text-white/40 hover:text-white/65 hover:border-white/15 hover:bg-white/[0.03]"
+                        : "border border-white/[0.07] text-white/85 hover:text-white/65 hover:border-white/15 hover:bg-white/[0.03]"
                     }`}
                     data-testid={`button-genre-${g}`}
                   >
@@ -210,20 +210,20 @@ export default function Gallery() {
               </div>
               <div className="flex justify-center items-center gap-3 flex-wrap">
                 <div className="relative w-full sm:w-80">
-                  <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" />
+                  <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/55" />
                   <input
                     type="text"
                     placeholder="Search published works..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-full font-serif text-sm text-white/80 placeholder:text-white/25 focus:outline-none focus:border-amber-600/30 transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-full font-serif text-sm text-white/80 placeholder:text-white/55 focus:outline-none focus:border-amber-600/30 transition-colors"
                     data-testid="input-gallery-search"
                   />
                 </div>
                 <select
                   value={wordCountFilter}
                   onChange={(e) => setWordCountFilter(e.target.value)}
-                  className="bg-transparent text-white/50 font-mono text-[10px] uppercase tracking-widest border border-white/[0.15] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
+                  className="bg-transparent text-white/75 font-mono text-[10px] uppercase tracking-widest border border-white/[0.15] rounded-full px-3 py-1.5 focus:outline-none hover:border-white/25 transition-colors cursor-pointer"
                   data-testid="select-wordcount-filter"
                 >
                   <option value="all" className="bg-[#0b101a]">All Lengths</option>
@@ -244,7 +244,7 @@ export default function Gallery() {
             >
               <button
                 onClick={() => setSelectedContributor(null)}
-                className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors font-mono text-xs uppercase tracking-widest group mb-8"
+                className="flex items-center gap-2 text-white/85 hover:text-white/85 transition-colors font-mono text-xs uppercase tracking-widest group mb-8"
                 data-testid="button-back-contributors"
               >
                 <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
@@ -255,17 +255,17 @@ export default function Gallery() {
                   {selectedContributorData.name}
                 </h2>
                 {selectedContributorData.bio && (
-                  <p className="font-serif text-sm leading-relaxed text-white/50 max-w-2xl">
+                  <p className="font-serif text-sm leading-relaxed text-white/75 max-w-2xl">
                     {selectedContributorData.bio}
                   </p>
                 )}
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-[9px] uppercase tracking-widest text-amber-200/30">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-amber-200/55">
                     {selectedContributorData.pieceCount} {selectedContributorData.pieceCount === 1 ? "piece" : "pieces"} in bloom
                   </span>
                   <Link
                     href={`/writer/${selectedContributorData.authorId}`}
-                    className="font-mono text-[9px] uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+                    className="font-mono text-[9px] uppercase tracking-widest text-white/55 hover:text-white/75 transition-colors"
                     data-testid="link-contributor-profile"
                   >
                     View Full Profile
@@ -301,20 +301,20 @@ export default function Gallery() {
                             {contributor.name}
                           </h3>
                           <div className="flex items-center gap-4 flex-wrap">
-                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/30">
+                            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/55">
                               {contributor.pieceCount} {contributor.pieceCount === 1 ? "piece" : "pieces"}
                             </span>
-                            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">
+                            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/75">
                               {Array.from(contributor.genres).join(" · ")}
                             </span>
                           </div>
                           {contributor.bio && (
-                            <p className="font-serif text-[12px] leading-relaxed text-white/30 line-clamp-2 max-w-xl">
+                            <p className="font-serif text-[12px] leading-relaxed text-white/80 line-clamp-2 max-w-xl">
                               {contributor.bio}
                             </p>
                           )}
                         </div>
-                        <ChevronRight size={18} className="text-white/15 group-hover:text-amber-200/50 group-hover:translate-x-1 transition-all duration-300 mt-2 flex-shrink-0" />
+                        <ChevronRight size={18} className="text-white/75 group-hover:text-amber-200/50 group-hover:translate-x-1 transition-all duration-300 mt-2 flex-shrink-0" />
                       </div>
                     </motion.button>
                   ))}
@@ -322,8 +322,8 @@ export default function Gallery() {
               ) : (
                 <div className="text-center py-20 space-y-6">
                   <Users size={32} className="mx-auto text-amber-200/20" />
-                  <h3 className="text-3xl font-display font-light text-white/70">No Contributors Yet</h3>
-                  <p className="text-white/40 font-serif italic">Writers will appear here once their work blooms.</p>
+                  <h3 className="text-3xl font-display font-light text-white/85">No Contributors Yet</h3>
+                  <p className="text-white/85 font-serif italic">Writers will appear here once their work blooms.</p>
                 </div>
               )}
             </motion.div>
@@ -341,7 +341,7 @@ export default function Gallery() {
             </div>
           ) : displayedGallery.length > 0 ? (
             <div className="max-w-3xl mx-auto">
-              <div className="border-t border-white/[0.06]">
+              <div className="border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-0">
                 {displayedGallery.map((item, i) => {
                   const readingTime = getReadingTime(item.content);
                   const isFeatured = i < 2 && !searchQuery && activeGenre === "all" && !selectedContributor;
@@ -368,10 +368,10 @@ export default function Gallery() {
 
                           <div className="space-y-4">
                             <div className="flex items-center gap-4">
-                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/30 group-hover:text-amber-200/50 transition-colors duration-500">
+                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/55 group-hover:text-amber-200/50 transition-colors duration-500">
                                 {item.genre}
                               </span>
-                              <span className="font-mono text-[9px] text-white/15">
+                              <span className="font-mono text-[9px] text-white/75">
                                 {readingTime} min
                               </span>
                             </div>
@@ -381,7 +381,7 @@ export default function Gallery() {
                             </h3>
 
                             {excerpt && (
-                              <p className="font-serif text-sm leading-relaxed text-white/25 group-hover:text-white/35 transition-colors duration-500 max-w-xl line-clamp-2 italic">
+                              <p className="font-serif text-sm leading-relaxed text-white/55 group-hover:text-white/80 transition-colors duration-500 max-w-xl line-clamp-2 italic">
                                 {excerpt}{excerpt.length >= 120 ? "..." : ""}
                               </p>
                             )}
@@ -389,12 +389,12 @@ export default function Gallery() {
                             <div className="flex items-center justify-between pt-2">
                               <div className="flex items-center gap-4">
                                 {item.authorName && (
-                                  <span className="font-serif text-[13px] italic text-white/30 group-hover:text-white/50 transition-colors duration-500">
+                                  <span className="font-serif text-[13px] italic text-white/80 group-hover:text-white/75 transition-colors duration-500">
                                     {item.authorName}
                                   </span>
                                 )}
                                 {item.publishedAt && (
-                                  <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
+                                  <span className="font-mono text-[8px] text-white/75 uppercase tracking-widest hidden sm:inline">
                                     {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                                   </span>
                                 )}
@@ -429,23 +429,23 @@ export default function Gallery() {
 
                         <div className="flex items-center justify-between gap-4">
                           <div className="space-y-2 min-w-0">
-                            <h3 className="text-xl md:text-2xl font-display font-light tracking-normal text-white/70 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
+                            <h3 className="text-xl md:text-2xl font-display font-light tracking-normal text-white/85 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
                               {item.title}
                             </h3>
                             <div className="flex items-center gap-4">
-                              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/25 group-hover:text-amber-200/40 transition-colors duration-500">
+                              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/55 group-hover:text-amber-200/40 transition-colors duration-500">
                                 {item.genre}
                               </span>
                               {item.authorName && (
-                                <span className="font-serif text-[12px] italic text-white/25 group-hover:text-white/35 transition-colors duration-500">
+                                <span className="font-serif text-[12px] italic text-white/55 group-hover:text-white/80 transition-colors duration-500">
                                   {item.authorName}
                                 </span>
                               )}
-                              <span className="font-mono text-[9px] text-white/20" data-testid={`text-reading-time-${item.id}`}>
+                              <span className="font-mono text-[9px] text-white/75" data-testid={`text-reading-time-${item.id}`}>
                                 {readingTime} min
                               </span>
                               {item.publishedAt && (
-                                <span className="font-mono text-[8px] text-white/15 uppercase tracking-widest hidden sm:inline">
+                                <span className="font-mono text-[8px] text-white/75 uppercase tracking-widest hidden sm:inline">
                                   {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                                 </span>
                               )}
@@ -464,13 +464,13 @@ export default function Gallery() {
           ) : (
             <div className="max-w-3xl mx-auto text-center py-20 space-y-6">
               <Flower2 size={32} className="mx-auto text-amber-200/20" />
-              <span className="inline-block px-4 py-1.5 border border-amber-200/10 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/30">
+              <span className="inline-block px-4 py-1.5 border border-amber-200/10 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/55">
                 Awaiting First Bloom
               </span>
-              <h3 className="text-3xl md:text-4xl font-display font-light tracking-wide text-white/70">
+              <h3 className="text-3xl md:text-4xl font-display font-light tracking-wide text-white/85">
                 Nothing Has Bloomed Yet
               </h3>
-              <p className="max-w-lg mx-auto text-white/40 leading-relaxed font-serif italic text-lg">
+              <p className="max-w-lg mx-auto text-white/85 leading-relaxed font-serif italic text-lg">
                 Editors are reading the Gardens. When a piece flowers, it will appear here.
               </p>
             </div>
@@ -480,7 +480,7 @@ export default function Gallery() {
         <PlantedInTheGarden />
 
         <footer className="border-t border-white/[0.04] py-12 text-center">
-          <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20">
+          <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/75">
             The Page Gallery & Garden
           </p>
         </footer>
@@ -528,7 +528,7 @@ function ShareButton({ piece }: { piece: any }) {
   return (
     <button
       onClick={handleShare}
-      className="p-2 rounded-full text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all"
+      className="p-2 rounded-full text-white/85 hover:text-white/85 hover:bg-white/[0.05] transition-all"
       title={copied ? "Link copied!" : "Share this piece"}
       data-testid="button-share-piece"
     >
@@ -617,7 +617,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
       <div className="absolute top-4 left-4 right-4 z-[105] flex items-center justify-between">
         <button
           onClick={onClose}
-          className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/30 hover:text-white/70 hover:bg-white/[0.06]"}`}
+          className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/80 hover:text-white/85 hover:bg-white/[0.06]"}`}
           data-testid="button-close-reading"
         >
           <X size={20} />
@@ -626,7 +626,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
           {prevPiece && (
             <button
               onClick={() => onNavigate(prevPiece)}
-              className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/30 hover:text-white/70 hover:bg-white/[0.06]"}`}
+              className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/80 hover:text-white/85 hover:bg-white/[0.06]"}`}
               data-testid="button-prev-piece"
             >
               <ChevronLeft size={18} />
@@ -635,7 +635,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
           {nextPiece && (
             <button
               onClick={() => onNavigate(nextPiece)}
-              className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/30 hover:text-white/70 hover:bg-white/[0.06]"}`}
+              className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/80 hover:text-white/85 hover:bg-white/[0.06]"}`}
               data-testid="button-next-piece"
             >
               <ChevronRight size={18} />
@@ -648,7 +648,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
             className={`p-2 rounded-full transition-colors ${
               isSaved
                 ? lightMode ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50" : "text-amber-400 hover:text-amber-300 hover:bg-amber-400/[0.08]"
-                : lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/30 hover:text-white/70 hover:bg-white/[0.06]"
+                : lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/80 hover:text-white/85 hover:bg-white/[0.06]"
             }`}
             data-testid="button-bookmark-piece"
           >
@@ -656,7 +656,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
           </button>
           <button
             onClick={() => setLightMode(!lightMode)}
-            className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/30 hover:text-white/70 hover:bg-white/[0.06]"}`}
+            className={`p-2 rounded-full transition-colors ${lightMode ? "text-stone-400 hover:text-stone-600 hover:bg-stone-100" : "text-white/80 hover:text-white/85 hover:bg-white/[0.06]"}`}
             data-testid="button-toggle-light"
           >
             {lightMode ? <Moon size={16} /> : <Sun size={16} />}
@@ -672,7 +672,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
         <div className="max-w-2xl mx-auto px-4 md:px-8 lg:px-16 py-12">
           <div className="space-y-8">
             <div className="space-y-4">
-              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lightMode ? "text-stone-400" : "text-amber-200/30"}`}>
+              <span className={`font-mono text-[9px] uppercase tracking-[0.3em] ${lightMode ? "text-stone-400" : "text-amber-200/55"}`}>
                 {piece.genre} · {readingTime} min read
               </span>
               <h1 className={`text-3xl md:text-5xl font-display font-light italic leading-normal ${lightMode ? "text-stone-800" : "text-white/90"}`}>
@@ -680,12 +680,12 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
               </h1>
               <div className="flex items-center gap-4">
                 {piece.authorName && (
-                  <span className={`font-serif text-sm italic ${lightMode ? "text-stone-500" : "text-white/40"}`}>
+                  <span className={`font-serif text-sm italic ${lightMode ? "text-stone-500" : "text-white/85"}`}>
                     {piece.authorName}
                   </span>
                 )}
                 {piece.publishedAt && (
-                  <span className={`font-mono text-[9px] uppercase tracking-widest ${lightMode ? "text-stone-400" : "text-white/20"}`}>
+                  <span className={`font-mono text-[9px] uppercase tracking-widest ${lightMode ? "text-stone-400" : "text-white/75"}`}>
                     {new Date(piece.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                   </span>
                 )}
@@ -696,7 +696,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
 
             <div className={`prose max-w-none break-words ${lightMode
               ? "prose-stone prose-p:text-stone-700 prose-p:leading-[1.9] prose-headings:text-stone-800"
-              : "prose-invert prose-p:text-white/60 prose-p:leading-[1.9] prose-headings:text-white/80"
+              : "prose-invert prose-p:text-white/80 prose-p:leading-[1.9] prose-headings:text-white/80"
             } prose-p:font-serif prose-p:text-base md:prose-p:text-[17px] prose-headings:font-display prose-headings:italic`} style={{ overflowWrap: "anywhere" }}>
               <ContentRenderer content={piece.content} />
             </div>
@@ -705,18 +705,18 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
 
             {piece.authorName && (
               <div className="text-center space-y-3 py-8">
-                <p className={`font-serif text-sm italic ${lightMode ? "text-stone-500" : "text-white/40"}`}>
+                <p className={`font-serif text-sm italic ${lightMode ? "text-stone-500" : "text-white/85"}`}>
                   by {piece.authorName}
                 </p>
                 {piece.authorBio && (
-                  <p className={`font-serif text-xs leading-relaxed max-w-md mx-auto ${lightMode ? "text-stone-400" : "text-white/30"}`}>
+                  <p className={`font-serif text-xs leading-relaxed max-w-md mx-auto ${lightMode ? "text-stone-400" : "text-white/80"}`}>
                     {piece.authorBio}
                   </p>
                 )}
                 {piece.authorId && (
                   <Link
                     href={`/writer/${piece.authorId}`}
-                    className={`inline-block font-mono text-[9px] uppercase tracking-widest ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/25 hover:text-white/50"} transition-colors`}
+                    className={`inline-block font-mono text-[9px] uppercase tracking-widest ${lightMode ? "text-stone-400 hover:text-stone-600" : "text-white/55 hover:text-white/75"} transition-colors`}
                     data-testid="link-author-profile"
                   >
                     View Profile
@@ -758,7 +758,7 @@ function PlantedInTheGarden() {
             <h2 className="text-3xl md:text-5xl font-display font-light italic">
               Print Editions
             </h2>
-            <p className="font-serif text-white/45 text-lg leading-relaxed">
+            <p className="font-serif text-white/75 text-lg leading-relaxed">
               Every piece in this journal was first planted in a writer's garden. These issues gather the finest harvests.
             </p>
           </motion.div>
@@ -793,7 +793,7 @@ function PlantedInTheGarden() {
               >
                 <div className={`h-48 bg-gradient-to-br ${issue.coverColor} flex items-center justify-center relative`}>
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.04),transparent_60%)]" />
-                  <span className="font-display text-3xl italic text-white/20 group-hover:text-white/30 transition-colors">{issue.title.split(":")[0]}</span>
+                  <span className="font-display text-3xl italic text-white/75 group-hover:text-white/80 transition-colors">{issue.title.split(":")[0]}</span>
                 </div>
                 <div className="p-8 space-y-4">
                   <div className="flex items-center justify-between">
@@ -801,7 +801,7 @@ function PlantedInTheGarden() {
                     <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-400/60 px-2 py-0.5 rounded-full border border-emerald-400/20 bg-emerald-400/10">Available</span>
                   </div>
                   <h4 className="font-display text-xl italic text-white/85">{issue.title}</h4>
-                  <p className="font-serif text-white/40 text-sm leading-relaxed">{issue.description}</p>
+                  <p className="font-serif text-white/85 text-sm leading-relaxed">{issue.description}</p>
                   {issue.buyLink && (
                     <a
                       href={issue.buyLink}
@@ -833,7 +833,7 @@ function PlantedInTheGarden() {
               <span className="font-mono text-[10px] tracking-[0.4em] text-emerald-400/60 uppercase">Friends</span>
             </div>
             <h3 className="text-3xl md:text-4xl font-display font-light italic">Publications We Admire</h3>
-            <p className="font-serif text-white/40 text-lg leading-relaxed max-w-2xl">
+            <p className="font-serif text-white/85 text-lg leading-relaxed max-w-2xl">
               The literary ecosystem thrives on interconnection. These are the journals, presses, and publications whose work we admire.
             </p>
           </motion.div>
@@ -852,9 +852,9 @@ function PlantedInTheGarden() {
               >
                 <div className="flex items-center justify-between">
                   <h4 className="font-display text-lg italic text-white/80 group-hover:text-white transition-colors">{friend.name}</h4>
-                  <ExternalLink size={14} className="text-white/20 group-hover:text-white/40 transition-colors" />
+                  <ExternalLink size={14} className="text-white/75 group-hover:text-white/85 transition-colors" />
                 </div>
-                <p className="font-serif text-white/35 text-sm leading-relaxed">{friend.description}</p>
+                <p className="font-serif text-white/80 text-sm leading-relaxed">{friend.description}</p>
               </motion.a>
             ))}
           </div>
@@ -871,10 +871,10 @@ function PlantedInTheGarden() {
             className="space-y-4"
           >
             <div className="flex items-center gap-3">
-              <Archive className="w-5 h-5 text-white/30" />
-              <span className="font-mono text-[10px] tracking-[0.4em] text-white/30 uppercase">Archive</span>
+              <Archive className="w-5 h-5 text-white/80" />
+              <span className="font-mono text-[10px] tracking-[0.4em] text-white/80 uppercase">Archive</span>
             </div>
-            <h3 className="text-3xl md:text-4xl font-display font-light italic text-white/60">Past Issues</h3>
+            <h3 className="text-3xl md:text-4xl font-display font-light italic text-white/80">Past Issues</h3>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -889,15 +889,15 @@ function PlantedInTheGarden() {
                 data-testid={`archive-card-${i}`}
               >
                 <div className={`h-32 bg-gradient-to-br ${issue.coverColor} flex items-center justify-center relative`}>
-                  <span className="font-display text-2xl italic text-white/15">{issue.title.split(":")[0]}</span>
-                  <span className="absolute top-3 right-3 font-mono text-[9px] uppercase tracking-widest text-white/30 px-2 py-0.5 rounded-full border border-white/10 bg-white/5">
+                  <span className="font-display text-2xl italic text-white/75">{issue.title.split(":")[0]}</span>
+                  <span className="absolute top-3 right-3 font-mono text-[9px] uppercase tracking-widest text-white/80 px-2 py-0.5 rounded-full border border-white/10 bg-white/5">
                     Out of print
                   </span>
                 </div>
                 <div className="p-6 space-y-3">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-white/25">{issue.type}</span>
-                  <h4 className="font-display text-lg italic text-white/50">{issue.title}</h4>
-                  <p className="font-serif text-white/30 text-sm leading-relaxed">{issue.description}</p>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-white/55">{issue.type}</span>
+                  <h4 className="font-display text-lg italic text-white/75">{issue.title}</h4>
+                  <p className="font-serif text-white/80 text-sm leading-relaxed">{issue.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -916,7 +916,7 @@ function PlantedInTheGarden() {
           <h2 className="text-3xl md:text-5xl font-display font-light italic">
             Want to be in our pages?
           </h2>
-          <p className="font-serif text-white/50 text-lg leading-relaxed">
+          <p className="font-serif text-white/75 text-lg leading-relaxed">
             We don't accept traditional submissions. Instead, our editors discover work through the Garden. Plant your words, and let them find you.
           </p>
           <Link
@@ -964,7 +964,7 @@ function GalleryComments({ writingId }: { writingId: string }) {
 
   return (
     <div className="mt-12 pt-8 border-t border-white/[0.08]">
-      <h3 className="font-display text-xl text-white/70 italic mb-6" data-testid="text-comments-heading">
+      <h3 className="font-display text-xl text-white/85 italic mb-6" data-testid="text-comments-heading">
         Reflections
       </h3>
 
@@ -973,14 +973,14 @@ function GalleryComments({ writingId }: { writingId: string }) {
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Share your thoughts on this piece..."
-          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 text-white/70 text-sm font-serif placeholder:text-white/25 focus:outline-none focus:border-white/20 transition-colors resize-none min-h-[80px]"
+          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 text-white/85 text-sm font-serif placeholder:text-white/55 focus:outline-none focus:border-white/20 transition-colors resize-none min-h-[80px]"
           data-testid="textarea-comment"
         />
         <div className="flex justify-end mt-2">
           <button
             onClick={() => addComment.mutate()}
             disabled={!newComment.trim() || addComment.isPending}
-            className="px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest border border-white/[0.15] text-white/60 hover:text-white/80 hover:border-white/25 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest border border-white/[0.15] text-white/80 hover:text-white/80 hover:border-white/25 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             data-testid="button-submit-comment"
           >
             {addComment.isPending ? "Posting..." : "Leave a reflection"}
@@ -992,17 +992,17 @@ function GalleryComments({ writingId }: { writingId: string }) {
         {comments.map((c: any) => (
           <div key={c.id} className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4" data-testid={`comment-${c.id}`}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="font-serif text-sm text-white/60">{c.authorName || "Anonymous"}</span>
-              <span className="text-white/20">·</span>
-              <span className="font-mono text-[9px] text-white/30">
+              <span className="font-serif text-sm text-white/80">{c.authorName || "Anonymous"}</span>
+              <span className="text-white/75">·</span>
+              <span className="font-mono text-[9px] text-white/80">
                 {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
               </span>
             </div>
-            <p className="font-serif text-sm text-white/50 leading-relaxed">{c.content}</p>
+            <p className="font-serif text-sm text-white/75 leading-relaxed">{c.content}</p>
           </div>
         ))}
         {comments.length === 0 && (
-          <p className="font-serif text-sm text-white/25 italic text-center py-6" data-testid="text-no-comments">
+          <p className="font-serif text-sm text-white/55 italic text-center py-6" data-testid="text-no-comments">
             No reflections yet. Be the first to share your thoughts.
           </p>
         )}

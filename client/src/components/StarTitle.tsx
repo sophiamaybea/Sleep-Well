@@ -1,208 +1,136 @@
 import { useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-
-interface Star {
-  x: number;
-  y: number;
-  tx: number;
-  ty: number;
-  ox: number;
-  oy: number;
-  r: number;
-  alpha: number;
-  speed: number;
-  phase: number;
-  delay: number;
-}
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function StarTitle() {
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const starsRef = useRef<Star[]>([]);
   const rafRef = useRef(0);
-  const progressRef = useRef(0);
 
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
 
-  // Time-based auto animation on mount
-  useEffect(() => {
-    const duration = 2500; // 2.5 seconds
-    const start = performance.now();
-    let cancelled = false;
-    function tick() {
-      if (cancelled) return;
-      const elapsed = performance.now() - start;
-      const t = Math.min(elapsed / duration, 1);
-      // Ease out cubic for smooth deceleration
-      const eased = 1 - Math.pow(1 - t, 3);
-      progressRef.current = eased;
-      if (t < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-    return () => { cancelled = true; };
-  }, []);
+  const logoScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.6]);
+  const logoOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const logoY = useTransform(scrollYProgress, [0, 0.5], ["0%", "20%"]);
 
+  // Star particle field
   useEffect(() => {
     const cvs = canvasRef.current;
     if (!cvs) return;
-
     let cancelled = false;
 
-    async function init() {
-      try { await document.fonts.load('400 80px "Special Elite"'); } catch {}
+    const rect = cvs.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    cvs.width = rect.width * dpr;
+    cvs.height = rect.height * dpr;
+    const ctx = cvs.getContext("2d")!;
 
-      if (cancelled || !cvs) return;
-      const rect = cvs.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return;
+    interface Particle {
+      x: number;
+      y: number;
+      r: number;
+      speed: number;
+      phase: number;
+      alpha: number;
+      drift: number;
+    }
 
-      const dpr = window.devicePixelRatio || 1;
-      cvs.width = rect.width * dpr;
-      cvs.height = rect.height * dpr;
-
-      const w = Math.round(rect.width);
-      const h = Math.round(rect.height);
-      const fontSize = Math.min(Math.round(w / 7.5), 130);
-
-      const off = document.createElement("canvas");
-      off.width = w;
-      off.height = h;
-      const oc = off.getContext("2d")!;
-      oc.fillStyle = "#000";
-      oc.fillRect(0, 0, w, h);
-      oc.font = `400 ${fontSize}px "Special Elite", "Courier New", monospace`;
-      oc.fillStyle = "#fff";
-      oc.textAlign = "center";
-      oc.textBaseline = "middle";
-
-      const lines = ["THE PAGE", "GALLERY", "& GARDEN"];
-      const gap = fontSize * 1.25;
-      const top = h / 2 - ((lines.length - 1) * gap) / 2;
-      lines.forEach((l, i) => oc.fillText(l, w / 2, top + i * gap));
-
-      const img = oc.getImageData(0, 0, w, h);
-      const pts: { x: number; y: number }[] = [];
-      const step = 3;
-      for (let py = 0; py < h; py += step) {
-        for (let px = 0; px < w; px += step) {
-          if (img.data[(py * w + px) * 4] > 100) pts.push({ x: px, y: py });
-        }
-      }
-
-      if (pts.length === 0) {
-        const fallbackPts = generateFallbackPoints(w, h, fontSize);
-        pts.push(...fallbackPts);
-      }
-
-      const stars: Star[] = pts.map((p) => {
-        const a = Math.random() * Math.PI * 2;
-        const d = 400 + Math.random() * 800;
-        return {
-          x: 0, y: 0,
-          tx: p.x, ty: p.y,
-          ox: w / 2 + Math.cos(a) * d,
-          oy: h / 2 + Math.sin(a) * d,
-          r: 0.6 + Math.random() * 2,
-          alpha: 0.3 + Math.random() * 0.7,
-          speed: 1 + Math.random() * 3,
-          phase: Math.random() * Math.PI * 2,
-          delay: Math.random() * 0.35,
-        };
+    const particles: Particle[] = [];
+    const count = 200;
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * cvs.width,
+        y: Math.random() * cvs.height,
+        r: 0.3 + Math.random() * 1.8,
+        speed: 0.5 + Math.random() * 2,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.15 + Math.random() * 0.6,
+        drift: (Math.random() - 0.5) * 0.3,
       });
+    }
 
-      starsRef.current = stars;
+    function frame() {
+      if (cancelled) return;
+      const t = performance.now() / 1000;
+      ctx.clearRect(0, 0, cvs!.width, cvs!.height);
 
-      const ctx = cvs!.getContext("2d")!;
-      const cvsLocal = cvs!;
+      for (const p of particles) {
+        const twinkle = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * p.speed + p.phase));
+        const a = p.alpha * twinkle;
 
-      function frame() {
-        if (cancelled) return;
-        const cw = cvsLocal.width;
-        const ch = cvsLocal.height;
-        ctx.clearRect(0, 0, cw, ch);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(237,233,227,${a})`;
+        ctx.fill();
 
-        const p = progressRef.current;
-        const form = Math.max(0, Math.min(1, (p - 0.02) / 0.5));
-        const t = performance.now() / 1000;
-
-        for (const s of starsRef.current) {
-          const raw = Math.max(0, Math.min(1, (form - s.delay) / (1 - s.delay)));
-          const e = raw < 0.5 ? 4 * raw ** 3 : 1 - (-2 * raw + 2) ** 3 / 2;
-
-          const sx = s.ox + (s.tx - s.ox) * e;
-          const sy = s.oy + (s.ty - s.oy) * e;
-
-          const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
-          const vis = Math.min(1, form * 4);
-          const a = s.alpha * twinkle * Math.max(0.15, vis);
-
+        // Glow on larger stars
+        if (p.r > 1.2) {
           ctx.beginPath();
-          ctx.arc(sx * dpr, sy * dpr, s.r * dpr, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(237,233,227,${a})`;
+          ctx.arc(p.x, p.y, p.r * 3 * dpr, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(237,233,227,${a * 0.08})`;
           ctx.fill();
-
-          if (s.r > 1.3 && e > 0.85) {
-            ctx.beginPath();
-            ctx.arc(sx * dpr, sy * dpr, s.r * 3 * dpr, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(237,233,227,${a * 0.12 * ((e - 0.85) / 0.15)})`;
-            ctx.fill();
-          }
         }
 
-        rafRef.current = requestAnimationFrame(frame);
+        // Slow drift
+        p.y += p.drift * 0.2;
+        p.x += Math.sin(t * 0.3 + p.phase) * 0.1;
+
+        // Wrap around
+        if (p.y < 0) p.y = cvs!.height;
+        if (p.y > cvs!.height) p.y = 0;
+        if (p.x < 0) p.x = cvs!.width;
+        if (p.x > cvs!.width) p.x = 0;
       }
 
       rafRef.current = requestAnimationFrame(frame);
     }
 
-    const timer = setTimeout(init, 200);
+    rafRef.current = requestAnimationFrame(frame);
 
-    const onResize = () => { clearTimeout(timer); setTimeout(init, 100); };
+    const onResize = () => {
+      const r = cvs.getBoundingClientRect();
+      cvs.width = r.width * dpr;
+      cvs.height = r.height * dpr;
+    };
     window.addEventListener("resize", onResize);
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", onResize);
-      clearTimeout(timer);
     };
   }, []);
 
-
-
-
-
   return (
-    <div ref={wrapRef} className="h-screen w-full relative">
-      <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center overflow-hidden">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+    <div ref={containerRef} className="h-screen w-full relative overflow-hidden">
+      {/* Star particle field */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      />
 
+      {/* Logo with scroll parallax */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div
+          style={{
+            scale: logoScale,
+            opacity: logoOpacity,
+            y: logoY,
+          }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative"
+        >
+          <img
+            src="/logo%20(2).png"
+            alt="The Page Gallery"
+            className="w-[320px] md:w-[420px] lg:w-[500px] h-auto drop-shadow-[0_0_60px_rgba(255,255,255,0.15)]"
+          />
+        </motion.div>
       </div>
     </div>
   );
-}
-
-function generateFallbackPoints(w: number, h: number, fontSize: number): { x: number; y: number }[] {
-  const pts: { x: number; y: number }[] = [];
-  const lines = ["THE PAGE", "GALLERY", "& GARDEN"];
-  const gap = fontSize * 1.25;
-  const top = h / 2 - ((lines.length - 1) * gap) / 2;
-
-  lines.forEach((line, li) => {
-    const cy = top + li * gap;
-    const charW = fontSize * 0.55;
-    const lineW = line.length * charW;
-    const startX = w / 2 - lineW / 2;
-
-    for (let ci = 0; ci < line.length; ci++) {
-      if (line[ci] === " ") continue;
-      const cx = startX + ci * charW + charW / 2;
-      for (let i = 0; i < 25; i++) {
-        pts.push({
-          x: cx + (Math.random() - 0.5) * charW * 0.8,
-          y: cy + (Math.random() - 0.5) * fontSize * 0.7,
-        });
-      }
-    }
-  });
-
-  return pts;
 }

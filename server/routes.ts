@@ -77,14 +77,26 @@ import {
   insertContactMessageSchema,
   insertConversationSchema,
   insertChatMessageSchema,
-  insertMindWalkThemeSchema,
-  insertMindWalkFragmentSchema,
+    editorialWaitlist,
+  insertEditorialWaitlistSchema,
+    writings,
+  ritualSessions,
+  innerWeather,
+  reflections,
+    insertBoardPostSchema,
+  boardPosts,
+  growthJournalEntries,
+  pollinations,
+  savedPieces,
+  resonances,
+  
+  
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
 import { eq, and, sql, desc, count } from "drizzle-orm";
 import { dailyPrompts } from "@shared/schema";
-import { circles, circleMembers } from "@shared/schema";
+import { circles, circleMembers, circleShares } from "@shared/schema";
 
 const joinMoonlitReadingSchema = z.object({
   writingId: z.string().optional(),
@@ -146,6 +158,19 @@ export async function registerRoutes(
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+    // === KEEP-ALIVE SELF-PING (prevents Render free-tier spin-down) ===
+  const KEEP_ALIVE_URL = "https://thepagegalleryjournal.com/health";
+  const KEEP_ALIVE_INTERVAL_MS = 13 * 60 * 1000; // 13 minutes
+  setInterval(async () => {
+    try {
+      const res = await fetch(KEEP_ALIVE_URL);
+      console.log(`[keep-alive] pinged ${KEEP_ALIVE_URL} — status ${res.status}`);
+    } catch (err) {
+      console.error("[keep-alive] ping failed:", err);
+    }
+  }, KEEP_ALIVE_INTERVAL_MS);
+  console.log(`[keep-alive] self-ping active every ${KEEP_ALIVE_INTERVAL_MS / 60000} min → ${KEEP_ALIVE_URL}`);
+
   // === SEO: ROBOTS.TXT ===
   app.get("/robots.txt", (_req, res) => {
     res
@@ -200,6 +225,27 @@ export async function registerRoutes(
       res.status(500).json({ message: "Failed to fetch writings" });
     }
   });
+
+  // GET /api/garden/last-draft — returns the user's most recently updated writing
+app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const writings = await storage.getWritingsByAuthor(userId);
+    if (!writings || writings.length === 0) {
+      return res.json(null);
+    }
+    // Sort by updated_at descending, return the most recent
+    const lastDraft = writings.sort((a: any, b: any) => {
+      const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+      const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+      return dateB - dateA;
+    })[0];
+    res.json(lastDraft);
+  } catch (error) {
+    console.error("Error fetching last draft:", error);
+    res.status(500).json({ message: "Failed to fetch last draft" });
+  }
+});
 
   app.post("/api/writings", isAuthenticated, async (req: any, res) => {
     try {
@@ -334,7 +380,7 @@ export async function registerRoutes(
       res.json(published);
     } catch (error) {
       console.error("Error fetching gallery:", error);
-      res.status(500).json({ message: "Failed to fetch gallery" });
+      res.status(500).json({ message: "Failed to fetch gallery", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -2514,7 +2560,6 @@ export async function registerRoutes(
 
   app.get(
     "/api/submission-calls/open",
-    isAuthenticated,
     async (req: any, res) => {
       try {
         const calls = await storage.getOpenSubmissionCalls();
@@ -3235,7 +3280,7 @@ export async function registerRoutes(
   );
 
   // === REJECTION WALL ===
-  app.get("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
+  app.get("/api/rejection-wall", async (req: any, res) => {
     try {
       const items = await storage.getRejectionWallEntries();
       res.json(items);
@@ -3281,7 +3326,7 @@ export async function registerRoutes(
   );
 
   // === OPPORTUNITIES ===
-  app.get("/api/opportunities", isAuthenticated, async (req: any, res) => {
+  app.get("/api/opportunities", async (req: any, res) => {
     try {
       const items = await storage.getOpportunities();
       res.json(items);
@@ -3290,7 +3335,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
+  app.post("/api/opportunities", async (req: any, res) => {
     try {
       const parsed = insertOpportunitySchema.safeParse(req.body);
       if (!parsed.success)
@@ -3711,7 +3756,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/garden-pulse", isAuthenticated, async (req: any, res) => {
+  app.get("/api/garden-pulse", async (req: any, res) => {
     try {
       const activeCount = await storage.getActiveWriterCount();
       const summary = await storage.getGardenSummary();
@@ -5303,6 +5348,227 @@ export async function registerRoutes(
     },
   );
 
+  // === EIC STUDIO - SUPER ROBUST OVERVIEW FOR SOPHIA ===
+
+  // EIC Studio: Get all raw seeds (unpublished writings with readiness raw_seed)
+  app.get("/api/eic/raw-seeds", isEditorInChief, async (req: any, res) => {
+    try {
+      const rawSeeds = await db.select({
+        id: writings.id,
+        title: writings.title,
+        content: writings.content,
+        stage: writings.stage,
+        genre: writings.genre,
+        readiness: writings.readiness,
+        visibility: writings.visibility,
+        editorialAvailable: writings.editorialAvailable,
+        isPublished: writings.isPublished,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorId: writings.authorId,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(eq(writings.readiness, "raw_seed"))
+        .orderBy(desc(writings.createdAt));
+      res.json(rawSeeds);
+    } catch (error) {
+      console.error("Error fetching raw seeds:", error);
+      res.status(500).json({ message: "Failed to fetch raw seeds" });
+    }
+  });
+
+  // EIC Studio: Get all unsaved/draft writings (not published, not editorial available)
+  app.get("/api/eic/unsaved-drafts", isEditorInChief, async (req: any, res) => {
+    try {
+      const drafts = await db.select({
+        id: writings.id,
+        title: writings.title,
+        content: writings.content,
+        stage: writings.stage,
+        genre: writings.genre,
+        readiness: writings.readiness,
+        visibility: writings.visibility,
+        editorialAvailable: writings.editorialAvailable,
+        isPublished: writings.isPublished,
+        isPublicGarden: writings.isPublicGarden,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorId: writings.authorId,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(
+          and(
+            eq(writings.isPublished, false),
+            eq(writings.editorialAvailable, false),
+            eq(writings.isPublicGarden, false)
+          )
+        )
+        .orderBy(desc(writings.updatedAt));
+      res.json(drafts);
+    } catch (error) {
+      console.error("Error fetching unsaved drafts:", error);
+      res.status(500).json({ message: "Failed to fetch unsaved drafts" });
+    }
+  });
+
+  // EIC Studio: Per-user usage/engagement stats
+  app.get("/api/eic/user-activity", isEditorInChief, async (req: any, res) => {
+    try {
+      const allUsers = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        createdAt: users.createdAt,
+      }).from(users).orderBy(desc(users.createdAt));
+
+      const userActivity = await Promise.all(allUsers.map(async (u) => {
+        const [writingsCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(eq(writings.authorId, u.id));
+        const [publishedCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(and(eq(writings.authorId, u.id), eq(writings.isPublished, true)));
+        const [rawSeedCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(and(eq(writings.authorId, u.id), eq(writings.readiness, "raw_seed")));
+        const [editorialCount] = await db.select({ count: sql<number>`count(*)::int` }).from(writings).where(and(eq(writings.authorId, u.id), eq(writings.editorialAvailable, true)));
+        const [ritualCount] = await db.select({ count: sql<number>`count(*)::int` }).from(ritualSessions).where(eq(ritualSessions.userId, u.id));
+        const [weatherCount] = await db.select({ count: sql<number>`count(*)::int` }).from(innerWeather).where(eq(innerWeather.userId, u.id));
+        const [reflectionCount] = await db.select({ count: sql<number>`count(*)::int` }).from(reflections).where(eq(reflections.userId, u.id));
+        const [journalCount] = await db.select({ count: sql<number>`count(*)::int` }).from(growthJournalEntries).where(eq(growthJournalEntries.userId, u.id));
+        const [pollinationCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pollinations).where(eq(pollinations.fromUserId, u.id));
+        const [savedCount] = await db.select({ count: sql<number>`count(*)::int` }).from(savedPieces).where(eq(savedPieces.userId, u.id));
+        const [lastWriting] = await db.select({ updatedAt: writings.updatedAt }).from(writings).where(eq(writings.authorId, u.id)).orderBy(desc(writings.updatedAt)).limit(1);
+
+        return {
+          ...u,
+          totalWritings: writingsCount?.count || 0,
+          publishedWritings: publishedCount?.count || 0,
+          rawSeeds: rawSeedCount?.count || 0,
+          editorialAvailable: editorialCount?.count || 0,
+          ritualSessions: ritualCount?.count || 0,
+          innerWeatherEntries: weatherCount?.count || 0,
+          reflections: reflectionCount?.count || 0,
+          journalEntries: journalCount?.count || 0,
+          pollinations: pollinationCount?.count || 0,
+          savedPieces: savedCount?.count || 0,
+          lastActivity: lastWriting?.updatedAt || u.createdAt,
+        };
+      }));
+      res.json(userActivity);
+    } catch (error) {
+      console.error("Error fetching user activity:", error);
+      res.status(500).json({ message: "Failed to fetch user activity" });
+    }
+  });
+
+  // EIC Studio: Get single writing content for EIC preview
+  app.get("/api/eic/writing/:id", isEditorInChief, async (req: any, res) => {
+    try {
+      const [writing] = await db.select({
+        id: writings.id,
+        title: writings.title,
+        content: writings.content,
+        stage: writings.stage,
+        genre: writings.genre,
+        readiness: writings.readiness,
+        visibility: writings.visibility,
+        editorialAvailable: writings.editorialAvailable,
+        isPublished: writings.isPublished,
+        isPublicGarden: writings.isPublicGarden,
+        galleryOptIn: writings.galleryOptIn,
+        tags: writings.tags,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorId: writings.authorId,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(eq(writings.id, req.params.id));
+      if (!writing) return res.status(404).json({ message: "Writing not found" });
+      res.json(writing);
+    } catch (error) {
+      console.error("Error fetching writing:", error);
+      res.status(500).json({ message: "Failed to fetch writing" });
+    }
+  });
+
+  // EIC Studio: Recent activity feed across all users
+  app.get("/api/eic/activity-feed", isEditorInChief, async (req: any, res) => {
+    try {
+      const recentWritings = await db.select({
+        id: writings.id,
+        title: writings.title,
+        readiness: writings.readiness,
+        isPublished: writings.isPublished,
+        editorialAvailable: writings.editorialAvailable,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .orderBy(desc(writings.updatedAt))
+        .limit(50);
+
+      const recentRituals = await db.select({
+        id: ritualSessions.id,
+        durationMinutes: ritualSessions.durationMinutes,
+        completedAt: ritualSessions.completedAt,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email,
+      }).from(ritualSessions)
+        .leftJoin(users, eq(ritualSessions.userId, users.id))
+        .orderBy(desc(ritualSessions.completedAt))
+        .limit(20);
+
+      const recentWeather = await db.select({
+        id: innerWeather.id,
+        mood: innerWeather.mood,
+        energy: innerWeather.energy,
+        createdAt: innerWeather.createdAt,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+      }).from(innerWeather)
+        .leftJoin(users, eq(innerWeather.userId, users.id))
+        .orderBy(desc(innerWeather.createdAt))
+        .limit(20);
+
+      res.json({
+        recentWritings,
+        recentRituals,
+        recentWeather,
+      });
+    } catch (error) {
+      console.error("Error fetching activity feed:", error);
+      res.status(500).json({ message: "Failed to fetch activity feed" });
+    }
+  });
+
+    // EIC: Update user role
+  app.post("/api/eic/update-role", isEditorInChief, async (req: any, res) => {
+    try {
+      const { userId, role } = req.body;
+      if (!userId || !role) {
+        return res.status(400).json({ message: "userId and role are required" });
+      }
+      const validRoles = ["writer", "editor", "editor_in_chief"];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      await storage.setEditorRole(userId, role);
+      res.json({ success: true, userId, role });
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+  
   // === EXHIBITS ===
   app.get("/api/exhibits", async (req: any, res) => {
     try {
@@ -6259,228 +6525,7 @@ export async function registerRoutes(
     },
   );
 
-  // === CIRCLES (Writing Groups) ===
-
-  // Create a circle
-  app.post("/api/circles", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { name, description } = req.body;
-    if (!name?.trim())
-      return res.status(400).json({ message: "Name is required" });
-    const [circle] = await db
-      .insert(circles)
-      .values({
-        name: name.trim(),
-        description: description || "",
-        createdById: req.user!.id,
-      })
-      .returning();
-    // Auto-add creator as admin member
-    await db.insert(circleMembers).values({
-      circleId: circle.id,
-      userId: req.user!.id,
-      role: "admin",
-    });
-    res.json(circle);
-  });
-
-  // List user circles
-  app.get("/api/circles", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const memberships = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.userId, req.user!.id));
-    const userCircles = [];
-    for (const m of memberships) {
-      const [circle] = await db
-        .select()
-        .from(circles)
-        .where(eq(circles.id, m.circleId));
-      if (circle) {
-        const members = await db
-          .select()
-          .from(circleMembers)
-          .where(eq(circleMembers.circleId, circle.id));
-        userCircles.push({
-          ...circle,
-          role: m.role,
-          memberCount: members.length,
-        });
-      }
-    }
-    res.json(userCircles);
-  });
-
-  // Get circle details with members and shared pieces
-  app.get("/api/circles/:id", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    const members = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.circleId, circle.id));
-    const isMember = members.some((m) => m.userId === req.user!.id);
-    if (!isMember) return res.status(403).json({ message: "Not a member" });
-    const memberDetails = [];
-    for (const m of members) {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, m.userId));
-      if (user)
-        memberDetails.push({
-          ...m,
-          username: user.username,
-          displayName: user.displayName,
-        });
-    }
-    const sharedPieces = await db
-      .select()
-      .from(writings)
-      .where(eq(writings.circleId, circle.id));
-    res.json({ ...circle, members: memberDetails, pieces: sharedPieces });
-  });
-
-  // Add member to circle by username
-  app.post("/api/circles/:id/members", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { username } = req.body;
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    const members = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.circleId, circle.id));
-    const callerMembership = members.find((m) => m.userId === req.user!.id);
-    if (!callerMembership || callerMembership.role !== "admin")
-      return res.status(403).json({ message: "Only admins can add members" });
-    const [targetUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, username));
-    if (!targetUser) return res.status(404).json({ message: "User not found" });
-    const existing = members.find((m) => m.userId === targetUser.id);
-    if (existing) return res.status(400).json({ message: "Already a member" });
-    const [member] = await db
-      .insert(circleMembers)
-      .values({
-        circleId: circle.id,
-        userId: targetUser.id,
-      })
-      .returning();
-    res.json(member);
-  });
-
-  // Remove member from circle
-  app.delete("/api/circles/:id/members/:userId", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    const members = await db
-      .select()
-      .from(circleMembers)
-      .where(eq(circleMembers.circleId, circle.id));
-    const callerMembership = members.find((m) => m.userId === req.user!.id);
-    const isAdmin = callerMembership?.role === "admin";
-    const isSelf = req.params.userId === req.user!.id;
-    if (!isAdmin && !isSelf)
-      return res.status(403).json({ message: "Not authorized" });
-    await db
-      .delete(circleMembers)
-      .where(
-        and(
-          eq(circleMembers.circleId, circle.id),
-          eq(circleMembers.userId, req.params.userId),
-        ),
-      );
-    res.json({ success: true });
-  });
-
-  // Delete circle (creator only)
-  app.delete("/api/circles/:id", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const [circle] = await db
-      .select()
-      .from(circles)
-      .where(eq(circles.id, req.params.id));
-    if (!circle) return res.status(404).json({ message: "Circle not found" });
-    if (circle.createdById !== req.user!.id)
-      return res.status(403).json({ message: "Only the creator can delete" });
-    await db.delete(circleMembers).where(eq(circleMembers.circleId, circle.id));
-    await db
-      .update(writings)
-      .set({ circleId: null })
-      .where(eq(writings.circleId, circle.id));
-    await db.delete(circles).where(eq(circles.id, circle.id));
-    res.json({ success: true });
-  });
-
-  // Update writing visibility
-  app.patch("/api/writings/:id/visibility", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { visibility } = req.body;
-    if (!["personal", "circle", "public"].includes(visibility))
-      return res.status(400).json({ message: "Invalid visibility" });
-    const [writing] = await db
-      .select()
-      .from(writings)
-      .where(eq(writings.id, req.params.id));
-    if (!writing || writing.authorId !== req.user!.id)
-      return res.status(403).json({ message: "Not authorized" });
-    const [updated] = await db
-      .update(writings)
-      .set({ visibility })
-      .where(eq(writings.id, req.params.id))
-      .returning();
-    res.json(updated);
-  });
-
-  // Share writing to a circle
-  app.patch("/api/writings/:id/circle", async (req, res) => {
-    if (!req.isAuthenticated())
-      return res.status(401).json({ message: "Not authenticated" });
-    const { circleId: cId } = req.body;
-    const [writing] = await db
-      .select()
-      .from(writings)
-      .where(eq(writings.id, req.params.id));
-    if (!writing || writing.authorId !== req.user!.id)
-      return res.status(403).json({ message: "Not authorized" });
-    if (cId) {
-      const members = await db
-        .select()
-        .from(circleMembers)
-        .where(eq(circleMembers.circleId, cId));
-      if (!members.some((m) => m.userId === req.user!.id))
-        return res.status(403).json({ message: "Not a member of this circle" });
-    }
-    const [updated] = await db
-      .update(writings)
-      .set({ circleId: cId || null, visibility: cId ? "circle" : "personal" })
-      .where(eq(writings.id, req.params.id))
-      .returning();
-    res.json(updated);
-  });
-
-  // === PROMPTS MANAGEMENT ===
+    // === PROMPTS MANAGEMENT ===
 
   app.post("/api/editor/prompts", isEditor, async (req, res) => {
     try {
@@ -7285,111 +7330,6 @@ export async function registerRoutes(
     }
   });
 
-  // ===== Mind Walks =====
-  // Mind Walks - editor-initiated themed collections
-  app.get("/api/mind-walks", async (req, res) => {
-    const walks = await storage.getMindWalkThemes();
-    res.json(walks);
-  });
-
-  app.get("/api/mind-walks/open", async (req, res) => {
-    const walks = await storage.getOpenMindWalkThemes();
-    res.json(walks);
-  });
-
-  app.get("/api/mind-walks/:slug", async (req, res) => {
-    const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
-    if (!walk) return res.status(404).json({ error: "Walk not found" });
-    const fragments = await storage.getFragmentsByWalkId(walk.id);
-    res.json({ ...walk, fragments });
-  });
-
-  app.post("/api/mind-walks", async (req, res) => {
-    const { theme, prompt, editorId, editorName, durationDays } = req.body;
-    const slug = theme
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-    const closesAt = new Date();
-    closesAt.setDate(closesAt.getDate() + (durationDays || 7));
-    const walk = await storage.createMindWalkTheme({
-      theme,
-      prompt,
-      editorId,
-      editorName,
-      slug,
-      closesAt,
-    });
-    res.json(walk);
-  });
-
-  app.post("/api/mind-walks/:slug/fragments", async (req, res) => {
-    const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
-    if (!walk) return res.status(404).json({ error: "Walk not found" });
-    if (walk.status !== "open")
-      return res.status(400).json({ error: "Walk is closed" });
-    const { authorName, authorEmail, content } = req.body;
-    const fragment = await storage.createMindWalkFragment({
-      walkId: walk.id,
-      authorName,
-      authorEmail,
-      content,
-    });
-    res.json(fragment);
-  });
-
-  app.patch("/api/mind-walks/:slug/close", async (req, res) => {
-    const walk = await storage.closeMindWalkTheme(req.params.slug);
-    if (!walk) return res.status(404).json({ error: "Walk not found" });
-    res.json(walk);
-  });
-
-
-  // === MIND WALKS FRAGMENT MANAGEMENT ===
-  app.get("/api/mind-walks/:slug/fragments", async (req, res) => {
-    try {
-      const walk = await storage.getMindWalkThemeBySlug(req.params.slug);
-      if (!walk) return res.status(404).json({ error: "Walk not found" });
-      const fragments = await storage.getFragmentsByWalkId(walk.id);
-      res.json(fragments);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch fragments" });
-    }
-  });
-
-  app.patch("/api/mind-walks/fragments/:id", async (req: any, res) => {
-    try {
-      const { content } = req.body;
-      const updated = await storage.updateMindWalkFragment(req.params.id, content);
-      if (!updated) return res.status(404).json({ error: "Fragment not found" });
-      res.json(updated);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update fragment" });
-    }
-  });
-
-  app.delete("/api/mind-walks/fragments/:id", async (req: any, res) => {
-    try {
-      await storage.deleteMindWalkFragment(req.params.id);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete fragment" });
-    }
-  });
-
-  app.patch("/api/mind-walks/:slug/theme", async (req: any, res) => {
-    try {
-      const updates: any = {};
-      if (req.body.theme) updates.theme = req.body.theme;
-      if (req.body.prompt) updates.prompt = req.body.prompt;
-      const updated = await storage.updateMindWalkTheme(req.params.slug, updates);
-      if (!updated) return res.status(404).json({ error: "Walk not found" });
-      res.json(updated);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update walk" });
-    }
-  });
-
   // === EDITOR BIO MANAGEMENT ===
   app.get("/api/admin/users", async (req: any, res) => {
     try {
@@ -7410,15 +7350,690 @@ export async function registerRoutes(
     }
   });
 
-  // === MIND WALKS GET API ===
-  app.get("/api/mind-walks", async (req, res) => {
+    // === EIC DASHBOARD STATS ===
+  app.get("/api/eic/dashboard-stats", isEditorInChief, async (req: any, res) => {
     try {
-      const themes = await storage.getMindWalkThemes();
-      res.json(themes);
+      const allUsers = await storage.getAllUsers();
+      const allWritings = await storage.getAllWritingsForEIC();
+      const gardenPresenceData = await storage.getActiveGardenPresence();
+
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const totalUsers = allUsers.length;
+      const newUsersThisMonth = allUsers.filter((u: any) => u.createdAt && new Date(u.createdAt) > thirtyDaysAgo).length;
+      const newUsersThisWeek = allUsers.filter((u: any) => u.createdAt && new Date(u.createdAt) > sevenDaysAgo).length;
+      const activeInGarden = gardenPresenceData.length;
+
+      const totalWritings = allWritings.length;
+      const seeds = allWritings.filter((w: any) => w.readiness === "raw_seed").length;
+      const growing = allWritings.filter((w: any) => w.readiness === "growing").length;
+      const readyToShow = allWritings.filter((w: any) => w.readiness === "ready_to_show").length;
+      const published = allWritings.filter((w: any) => w.isPublished).length;
+      const editorialAvailable = allWritings.filter((w: any) => w.editorialAvailable).length;
+      const writingsThisWeek = allWritings.filter((w: any) => w.createdAt && new Date(w.createdAt) > sevenDaysAgo).length;
+      const writingsThisMonth = allWritings.filter((w: any) => w.createdAt && new Date(w.createdAt) > thirtyDaysAgo).length;
+
+      res.json({
+        users: { total: totalUsers, newThisMonth: newUsersThisMonth, newThisWeek: newUsersThisWeek, activeInGarden },
+        writings: { total: totalWritings, seeds, growing, readyToShow, published, editorialAvailable, thisWeek: writingsThisWeek, thisMonth: writingsThisMonth },
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch mind walks" });
+      console.error("Error fetching EIC dashboard stats:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
 
+  app.get("/api/eic/all-writings", isEditorInChief, async (req: any, res) => {
+    try {
+      const writings = await storage.getAllWritingsForEIC();
+      res.json(writings);
+    } catch (error) {
+      console.error("Error fetching all writings for EIC:", error);
+      res.status(500).json({ message: "Failed to fetch writings" });
+    }
+  });
+
+  app.get("/api/eic/all-users", isEditorInChief, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching all users for EIC:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+    // === EDITORIAL SERVICES WAITLIST ===
+  app.post("/api/editorial-waitlist", async (req: any, res) => {
+    try {
+      const data = insertEditorialWaitlistSchema.parse(req.body);
+      const [entry] = await db.insert(editorialWaitlist).values(data).returning();
+      res.json(entry);
+    } catch (error: any) {
+      if (error?.code === "23505") {
+        res.status(409).json({ message: "duplicate" });
+      } else {
+        console.error("Editorial waitlist error:", error);
+        res.status(400).json({ message: error?.message || "Invalid data" });
+      }
+    }
+  });
+
+  app.get("/api/editorial-waitlist", isAuthenticated, async (req: any, res) => {
+    if (req.user?.email !== "sophiamaybea@gmail.com") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    try {
+      const entries = await db.select().from(editorialWaitlist).orderBy(desc(editorialWaitlist.createdAt));
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching waitlist:", error);
+      res.status(500).json({ message: "Failed to fetch waitlist" });
+    }
+  });
+
+  app.patch("/api/editorial-waitlist/:id", isAuthenticated, async (req: any, res) => {
+    if (req.user?.email !== "sophiamaybea@gmail.com") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    try {
+      const { id } = req.params;
+      const [updated] = await db.update(editorialWaitlist)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(editorialWaitlist.id, id))
+        .returning();
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating waitlist entry:", error);
+      res.status(500).json({ message: "Failed to update" });
+    }
+  });
+
+  // PayPal create order
+  app.post("/api/paypal/create-order", async (req: any, res) => {
+    try {
+      const { waitlistId, amount } = req.body;
+      const [entry] = await db.select().from(editorialWaitlist).where(eq(editorialWaitlist.id, waitlistId));
+      if (!entry || entry.status !== "invited") {
+        return res.status(403).json({ message: "Not eligible for payment" });
+      }
+      const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
+      const response = await fetch("https://api-m.paypal.com/v2/checkout/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` },
+        body: JSON.stringify({
+          intent: "CAPTURE",
+          purchase_units: [{ amount: { currency_code: "GBP", value: String(amount) }, description: "Page Gallery Editorial Services" }],
+        }),
+      });
+      const order = await response.json();
+      res.json(order);
+    } catch (error) {
+      console.error("PayPal create order error:", error);
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  // PayPal capture order
+  app.post("/api/paypal/capture-order", async (req: any, res) => {
+    try {
+      const { orderId, waitlistId } = req.body;
+      const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
+      const response = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${orderId}/capture`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` },
+      });
+      const capture = await response.json();
+      if (capture.status === "COMPLETED") {
+        await db.update(editorialWaitlist)
+          .set({ paymentConfirmed: true, paypalOrderId: orderId, status: "paid", updatedAt: new Date() })
+          .where(eq(editorialWaitlist.id, waitlistId));
+      }
+      res.json(capture);
+    } catch (error) {
+      console.error("PayPal capture error:", error);
+      res.status(500).json({ message: "Failed to capture payment" });
+    }
+  });
+
+    // Get editorial waitlist entry by payment token
+  app.get("/api/editorial-waitlist/payment/:token", async (req: any, res) => {
+    try {
+      const { token } = req.params;
+      const [entry] = await db.select().from(editorialWaitlist).where(eq(editorialWaitlist.paymentToken, token));
+      if (!entry) return res.status(404).json({ error: "Invalid or expired payment link." });
+      if (entry.status !== "invited") return res.status(400).json({ error: "This payment link is no longer valid." });
+      res.json({ id: entry.id, quotedPrice: entry.quotedPrice, status: entry.status, paypalClientId: process.env.PAYPAL_CLIENT_ID });
+    } catch (error) {
+      console.error("Payment token lookup error:", error);
+      res.status(500).json({ error: "Failed to load payment details." });
+    }
+  });
+
+
+    // === EIC STUDIO: CIRCLES OVERSIGHT FOR SOPHIA ===
+  // EIC can see all circles, their members, activity, and shared pieces
+  app.get("/api/eic/circles-overview", isEditorInChief, async (req: any, res) => {
+    try {
+      const allCircles = await db.select({
+        id: circles.id,
+        name: circles.name,
+        description: circles.description,
+        createdById: circles.createdById,
+        createdAt: circles.createdAt,
+      }).from(circles).orderBy(desc(circles.createdAt));
+
+      const circlesWithDetails = await Promise.all(allCircles.map(async (circle) => {
+        const members = await db.select({
+          userId: circleMembers.userId,
+           
+          joinedAt: circleMembers.joinedAt,
+          userFirstName: users.firstName,
+          userLastName: users.lastName,
+          userEmail: users.email,
+        }).from(circleMembers)
+          .leftJoin(users, eq(circleMembers.userId, users.id))
+          .where(eq(circleMembers.circleId, circle.id));
+
+const sharedPieces = await db.select({
+              shareId: circleShares.id,
+              writingId: circleShares.writingId,
+              userId: circleShares.userId,
+              weekOf: circleShares.weekOf,
+               
+            }).from(circleShares)
+              .where(eq(circleShares.circleId, circle.id))
+              .orderBy(desc(circleShares.id));
+
+        const creator = await db.select({
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        }).from(users).where(eq(users.id, circle.createdById)).limit(1);
+
+        return {
+          ...circle,
+          creator: creator[0] || null,
+          memberCount: members.length,
+          members,
+          sharedPieceCount: sharedPieces.length,
+          sharedPieces,
+        };
+      }));
+
+      res.json(circlesWithDetails);
+    } catch (error) {
+      console.error("Error fetching circles overview:", error);
+      res.status(500).json({ message: "Failed to fetch circles overview" });
+    }
+  });
+
+  // EIC Studio: Full platform usage dashboard - everything Sophia needs in one call
+  app.get("/api/eic/full-usage-dashboard", isEditorInChief, async (req: any, res) => {
+    try {
+      // Total counts
+      const [userCount] = await db.select({ count: sql`count(*)::int` }).from(users);
+      const [writingCount] = await db.select({ count: sql`count(*)::int` }).from(writings);
+      const [publishedCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.isPublished, true));
+      const [rawSeedCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.readiness, "raw_seed"));
+      const [growingCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.readiness, "growing"));
+      const [editorialCount] = await db.select({ count: sql`count(*)::int` }).from(writings).where(eq(writings.editorialAvailable, true));
+      const [ritualCount] = await db.select({ count: sql`count(*)::int` }).from(ritualSessions);
+      const [weatherCount] = await db.select({ count: sql`count(*)::int` }).from(innerWeather);
+      const [reflectionCount] = await db.select({ count: sql`count(*)::int` }).from(reflections);
+      const [journalCount] = await db.select({ count: sql`count(*)::int` }).from(growthJournalEntries);
+      const [pollinationCount] = await db.select({ count: sql`count(*)::int` }).from(pollinations);
+      const [savedCount] = await db.select({ count: sql`count(*)::int` }).from(savedPieces);
+      const [resonanceCount] = await db.select({ count: sql`count(*)::int` }).from(resonances);
+      const [circleCount] = await db.select({ count: sql`count(*)::int` }).from(circles);
+      const [circleMemberCount] = await db.select({ count: sql`count(*)::int` }).from(circleMembers);
+
+      // Time-based metrics
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const [writingsThisWeek] = await db.select({ count: sql`count(*)::int` }).from(writings).where(sql`${writings.createdAt} > ${sevenDaysAgo}`);
+      const [writingsThisMonth] = await db.select({ count: sql`count(*)::int` }).from(writings).where(sql`${writings.createdAt} > ${thirtyDaysAgo}`);
+      const [usersThisWeek] = await db.select({ count: sql`count(*)::int` }).from(users).where(sql`${users.createdAt} > ${sevenDaysAgo}`);
+      const [usersThisMonth] = await db.select({ count: sql`count(*)::int` }).from(users).where(sql`${users.createdAt} > ${thirtyDaysAgo}`);
+      const [ritualsThisWeek] = await db.select({ count: sql`count(*)::int` }).from(ritualSessions).where(sql`${ritualSessions.completedAt} > ${sevenDaysAgo}`);
+
+      // Most active users (by writing count in last 30 days)
+      const activeUsers = await db.select({
+        userId: writings.authorId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        writingCount: sql`count(*)::int`,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(sql`${writings.createdAt} > ${thirtyDaysAgo}`)
+        .groupBy(writings.authorId, users.firstName, users.lastName, users.email)
+        .orderBy(sql`count(*) DESC`)
+        .limit(20);
+
+      // Recent writings (last 20 across all users)
+      const recentWritings = await db.select({
+        id: writings.id,
+        title: writings.title,
+        readiness: writings.readiness,
+        isPublished: writings.isPublished,
+        editorialAvailable: writings.editorialAvailable,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorFirstName: users.firstName,
+        authorLastName: users.lastName,
+        authorEmail: users.email,
+      }).from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .orderBy(desc(writings.updatedAt))
+        .limit(20);
+
+      // Active garden presence
+      const activePresence = await storage.getActiveWriterCount();
+
+      res.json({
+        totals: {
+          users: userCount?.count || 0,
+          writings: writingCount?.count || 0,
+          published: publishedCount?.count || 0,
+          rawSeeds: rawSeedCount?.count || 0,
+          growing: growingCount?.count || 0,
+          editorialAvailable: editorialCount?.count || 0,
+          rituals: ritualCount?.count || 0,
+          innerWeather: weatherCount?.count || 0,
+          reflections: reflectionCount?.count || 0,
+          journalEntries: journalCount?.count || 0,
+          pollinations: pollinationCount?.count || 0,
+          savedPieces: savedCount?.count || 0,
+          resonances: resonanceCount?.count || 0,
+          circles: circleCount?.count || 0,
+          circleMembers: circleMemberCount?.count || 0,
+        },
+        thisWeek: {
+          newWritings: writingsThisWeek?.count || 0,
+          newUsers: usersThisWeek?.count || 0,
+          rituals: ritualsThisWeek?.count || 0,
+        },
+        thisMonth: {
+          newWritings: writingsThisMonth?.count || 0,
+          newUsers: usersThisMonth?.count || 0,
+        },
+        activePresence,
+        mostActiveUsers: activeUsers,
+        recentWritings,
+      });
+    } catch (error) {
+      console.error("Error fetching full usage dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch usage dashboard" });
+    }
+  });
+
+    // === CIRCLE BOARD POSTS ===
+  app.get("/api/circles/:circleId/board-posts", isAuthenticated, async (req, res) => {
+    try {
+      const { circleId } = req.params;
+      const posts = await db
+        .select()
+        .from(boardPosts)
+        .where(eq(boardPosts.circleId, circleId))
+        .orderBy(desc(boardPosts.createdAt));
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching board posts:", error);
+      res.status(500).json({ message: "Failed to fetch board posts" });
+    }
+  });
+
+  app.post("/api/circles/:circleId/board-posts", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.claims.sub;
+      const { circleId } = req.params;
+      const validated = insertBoardPostSchema.parse({ ...req.body, circleId });
+      const [post] = await db.insert(boardPosts).values({ ...validated, userId }).returning();
+      res.status(201).json(post);
+    } catch (error) {
+      console.error("Error creating board post:", error);
+      res.status(500).json({ message: "Failed to create board post" });
+    }
+  });
+
+  // === PUBLIC PIECE (Open Graph / SEO) ===
+  app.get("/api/public-piece/:id", async (req, res) => {
+    try {
+      const writing = await storage.getWriting(req.params.id);
+      if (!writing || !writing.isPublished)
+        return res.status(404).json({ message: "Not found" });
+      const author = await storage.getUser(writing.authorId);
+      const plainText = (writing.content || "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const description = plainText.slice(0, 160);
+      res.json({
+        id: writing.id,
+        title: writing.title,
+        content: writing.content,
+        genre: writing.genre,
+        tags: writing.tags,
+        createdAt: writing.createdAt,
+        description,
+        author: author
+          ? {
+              id: author.id,
+              displayName: author.displayName || author.firstName || "Anonymous",
+              bio: author.bio,
+              profileImageUrl: author.profileImageUrl,
+            }
+          : null,
+      });
+    } catch (error) {
+      console.error("Error fetching public piece:", error);
+      res.status(500).json({ message: "Failed to fetch piece" });
+    }
+  });
+
+  // Public writer profile (SEO)
+  app.get("/api/public-writer/:userId", async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.userId);
+      if (!user) return res.status(404).json({ message: "Writer not found" });
+      const writings = await storage.getPublishedWritingsByAuthor(req.params.userId).catch(() => []);
+      res.json({
+        id: user.id,
+        displayName: user.displayName || user.firstName || "Anonymous",
+        bio: user.bio,
+        profileImageUrl: user.profileImageUrl,
+        publishedCount: writings.length,
+        recentPieces: writings.slice(0, 6).map((w: any) => ({
+          id: w.id,
+          title: w.title,
+          genre: w.genre,
+          createdAt: w.createdAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching public writer:", error);
+      res.status(500).json({ message: "Failed to fetch writer" });
+    }
+  });
+
+    // ============================================================
+  // THE GROVE — Botanical Social Layer
+  // ============================================================
+
+  // GET /api/grove/my-plant — fetch or initialise the current user's plant
+  app.get("/api/grove/my-plant", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const { rows } = await (await import("./db")).pool.query(
+        `SELECT * FROM grove_plants WHERE user_id = $1`,
+        [userId]
+      );
+      if (rows.length === 0) {
+        // Auto-create plant on first visit
+        const { rows: newRows } = await (await import("./db")).pool.query(
+          `INSERT INTO grove_plants (user_id) VALUES ($1) RETURNING *`,
+          [userId]
+        );
+        return res.json(newRows[0]);
+      }
+      res.json(rows[0]);
+    } catch (error) {
+      console.error("Error fetching grove plant:", error);
+      res.status(500).json({ message: "Failed to fetch grove plant" });
+    }
+  });
+
+  // POST /api/grove/water — daily watering (private streak)
+  app.post("/api/grove/water", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const db = await import("./db");
+      // Check if already watered today
+      const today = new Date().toISOString().slice(0, 10);
+      const { rows: existing } = await db.pool.query(
+        `SELECT id FROM grove_watering_sessions WHERE user_id = $1 AND watered_on = $2`,
+        [userId, today]
+      );
+      if (existing.length > 0) {
+        return res.status(409).json({ message: "Already watered today" });
+      }
+      // Log watering session
+      await db.pool.query(
+        `INSERT INTO grove_watering_sessions (user_id, watered_on) VALUES ($1, $2)`,
+        [userId, today]
+      );
+      // Update streak on plant
+      const { rows: plant } = await db.pool.query(
+        `SELECT * FROM grove_plants WHERE user_id = $1`,
+        [userId]
+      );
+      let currentPlant = plant[0];
+      if (!currentPlant) {
+        const { rows: newPlant } = await db.pool.query(
+          `INSERT INTO grove_plants (user_id) VALUES ($1) RETURNING *`,
+          [userId]
+        );
+        currentPlant = newPlant[0];
+      }
+      const lastWatered = currentPlant.last_watered_at
+        ? new Date(currentPlant.last_watered_at).toISOString().slice(0, 10)
+        : null;
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      const newStreak =
+        lastWatered === yesterday ? (currentPlant.streak_days || 0) + 1 : 1;
+      const { rows: updated } = await db.pool.query(
+        `UPDATE grove_plants SET streak_days = $1, last_watered_at = NOW(), updated_at = NOW() WHERE user_id = $2 RETURNING *`,
+        [newStreak, userId]
+      );
+      res.json({ plant: updated[0], streakDays: newStreak });
+    } catch (error) {
+      console.error("Error watering plant:", error);
+      res.status(500).json({ message: "Failed to water plant" });
+    }
+  });
+
+  // GET /api/grove/connections — list mutual tending connections
+  app.get("/api/grove/connections", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `SELECT gc.*, u.display_name, u.profile_image_url
+         FROM grove_connections gc
+         JOIN users u ON (
+           CASE WHEN gc.requester_id = $1 THEN u.id = gc.addressee_id
+                ELSE u.id = gc.requester_id END
+         )
+         WHERE (gc.requester_id = $1 OR gc.addressee_id = $1)
+           AND gc.status = 'accepted'`,
+        [userId]
+      );
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching grove connections:", error);
+      res.status(500).json({ message: "Failed to fetch connections" });
+    }
+  });
+
+  // POST /api/grove/connections/request — send a tending request
+  app.post("/api/grove/connections/request", isAuthenticated, async (req, res) => {
+    try {
+      const requesterId = (req.user as any).claims.sub;
+      const { addresseeId } = req.body;
+      if (!addresseeId) return res.status(400).json({ message: "addresseeId required" });
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `INSERT INTO grove_connections (requester_id, addressee_id)
+         VALUES ($1, $2)
+         ON CONFLICT (requester_id, addressee_id) DO NOTHING
+         RETURNING *`,
+        [requesterId, addresseeId]
+      );
+      res.json(rows[0] || { message: "Request already sent" });
+    } catch (error) {
+      console.error("Error sending grove connection request:", error);
+      res.status(500).json({ message: "Failed to send request" });
+    }
+  });
+
+  // POST /api/grove/connections/:id/accept — accept a tending request
+  app.post("/api/grove/connections/:id/accept", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const { id } = req.params;
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `UPDATE grove_connections SET status = 'accepted', updated_at = NOW()
+         WHERE id = $1 AND addressee_id = $2
+         RETURNING *`,
+        [id, userId]
+      );
+      if (!rows[0]) return res.status(404).json({ message: "Request not found" });
+      res.json(rows[0]);
+    } catch (error) {
+      console.error("Error accepting grove connection:", error);
+      res.status(500).json({ message: "Failed to accept request" });
+    }
+  });
+
+  // GET /api/grove/seed-packets — list my referral seed packets
+  app.get("/api/grove/seed-packets", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `SELECT * FROM grove_seed_packets WHERE sender_id = $1 ORDER BY created_at DESC`,
+        [userId]
+      );
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching seed packets:", error);
+      res.status(500).json({ message: "Failed to fetch seed packets" });
+    }
+  });
+
+  // POST /api/grove/seed-packets — create a new referral seed packet
+  app.post("/api/grove/seed-packets", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const db = await import("./db");
+      // Limit: max 10 pending packets per user
+      const { rows: existing } = await db.pool.query(
+        `SELECT id FROM grove_seed_packets WHERE sender_id = $1 AND status = 'pending'`,
+        [userId]
+      );
+      if (existing.length >= 10) {
+        return res.status(429).json({ message: "Seed packet limit reached" });
+      }
+      const token = randomUUID();
+      const { rows } = await db.pool.query(
+        `INSERT INTO grove_seed_packets (sender_id, token) VALUES ($1, $2) RETURNING *`,
+        [userId, token]
+      );
+      res.json({ ...rows[0], inviteUrl: `/grove/join?seed=${token}` });
+    } catch (error) {
+      console.error("Error creating seed packet:", error);
+      res.status(500).json({ message: "Failed to create seed packet" });
+    }
+  });
+
+  // GET /api/grove/seed-packets/redeem/:token — redeem a referral (public)
+  app.get("/api/grove/seed-packets/redeem/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `SELECT gsp.*, u.display_name as sender_name
+         FROM grove_seed_packets gsp
+         JOIN users u ON u.id = gsp.sender_id
+         WHERE gsp.token = $1 AND gsp.status = 'pending'`,
+        [token]
+      );
+      if (!rows[0]) return res.status(404).json({ message: "Seed packet not found or already used" });
+      res.json({
+        token,
+        senderName: rows[0].sender_name,
+        rarePlantUnlock: rows[0].rare_plant_unlock,
+        message: "Sign up to plant your rare seed and join the Grove!",
+      });
+    } catch (error) {
+      console.error("Error redeeming seed packet:", error);
+      res.status(500).json({ message: "Failed to redeem seed packet" });
+    }
+  });
+
+  // POST /api/grove/seed-packets/redeem — mark a seed packet used after signup
+  app.post("/api/grove/seed-packets/redeem", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const { token } = req.body;
+      if (!token) return res.status(400).json({ message: "token required" });
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `UPDATE grove_seed_packets
+         SET status = 'redeemed', redeemed_by_id = $1, redeemed_at = NOW()
+         WHERE token = $2 AND status = 'pending'
+         RETURNING *`,
+        [userId, token]
+      );
+      if (!rows[0]) return res.status(404).json({ message: "Token invalid or already redeemed" });
+      // Unlock rare plant on the new user's plant
+      await db.pool.query(
+        `INSERT INTO grove_plants (user_id, rare_plant_unlocked)
+         VALUES ($1, $2)
+         ON CONFLICT (user_id) DO UPDATE SET rare_plant_unlocked = $2`,
+        [userId, rows[0].rare_plant_unlock]
+      );
+      res.json({ message: "Rare seed planted! Welcome to the Grove.", rarePlantUnlock: rows[0].rare_plant_unlock });
+    } catch (error) {
+      console.error("Error redeeming seed packet:", error);
+      res.status(500).json({ message: "Failed to redeem seed packet" });
+    }
+  });
+
+  // GET /api/grove/plants - get current user's grove plants
+  app.get("/api/grove/plants", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `SELECT * FROM grove_plants WHERE user_id = $1 ORDER BY created_at DESC`,
+        [userId]
+      );
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching grove plants:", error);
+      res.status(500).json({ message: "Failed to fetch grove plants" });
+    }
+  });
+
+  // GET /api/grove/community - get all public grove plants
+  app.get("/api/grove/community", async (req, res) => {
+    try {
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `SELECT gp.*, p.display_name as author_name FROM grove_plants gp LEFT JOIN profiles p ON gp.user_id = p.id ORDER BY gp.created_at DESC LIMIT 50`
+      );
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching community plants:", error);
+      res.status(500).json({ message: "Failed to fetch community plants" });
+    }
+  });
+
+    // ─── HEALTH CHECK (keep-warm ping endpoint) ───────────────────────────────
+  app.get('/health', (_req, res) => {
+    res.status(200).json({
+      status: 'OK',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+  // ─────────────────────────────────────────────────────────────────────────────
   return httpServer;
 }

@@ -3,7 +3,7 @@ import Hero from "@/components/sections/Hero";
 import GardenIntro from "@/components/sections/GardenIntro";
 import Featured from "@/components/sections/Featured";
 import Footer from "@/components/Footer";
-import StarBackground from "@/components/StarBackground";
+import SocialCTA from "@/components/sections/SocialCTA";
 import { useEffect, useState } from "react";
 
 function ScrollAtmosphere() {
@@ -58,14 +58,15 @@ function ScrollAtmosphere() {
 export default function Home() {
   return (
     <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-background relative">
-      <StarBackground />
+
       <ScrollAtmosphere />
       <Navigation />
-      
-      <main className="relative z-10">
+
+              <main>
         <Hero />
         <Featured />
-        <GardenIntro />
+        <GardenIntro />            
+                          <SocialCTA />
       </main>
 
       <div className="relative z-10">

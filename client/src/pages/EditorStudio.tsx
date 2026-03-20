@@ -1972,7 +1972,7 @@ export default function EditorStudio() {
   }
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
+        <div className="min-h-screen relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => navigate("/garden")}
@@ -1981,6 +1981,14 @@ export default function EditorStudio() {
           <ArrowLeft size={16} />
         </button>
         <h1 className="font-display text-2xl font-light italic text-amber-200">Editor Studio</h1>
+                {user?.role === "editor_in_chief" && (
+          <button
+            onClick={() => navigate("/eic-dashboard")}
+            className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all"
+          >
+            <Crown size={14} /> EIC Dashboard
+          </button>
+        )}
       </div>
 
       <div className="flex gap-1 mb-8 overflow-x-auto scrollbar-hide border-b border-white/5 pb-px">

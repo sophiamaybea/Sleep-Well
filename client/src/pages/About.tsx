@@ -74,7 +74,7 @@ export default function About() {
                 <span className="text-amber-400/80">We publish writing that we can't stop thinking about.</span>
               </h2>
               <p className="font-serif text-white/50 text-lg leading-relaxed max-w-2xl mx-auto">
-                The Page Gallery Journal is a literary journal that publishes thematic print editions. Each issue is assembled by hand — selected, sequenced, and designed with the care of a gallery exhibition. We believe print is not dead; it's a deliberate act.
+                The Page Gallery Journal publishes writing that we can't stop thinking about. Each issue is assembled with care — selected, sequenced, and presented with the attention of a gallery exhibition. We believe every piece deserves to be held in context, not lost in a feed.
               </p>
             </motion.div>
 
@@ -82,8 +82,8 @@ export default function About() {
               {[
                 {
                   icon: <BookOpen className="w-6 h-6 text-amber-400/70" />,
-                  title: "Print First",
-                  description: "Our editions are physical objects. Each issue has a theme, a cover, a spine. We design for the shelf, the hand, the bedside table."
+                  title: "Writing First",
+                  description: "Writing's most important life happens before it is presentable. The Garden exists for that life — the fragments, the rough edges, the ideas that haven't declared their form."
                 },
                 {
                   icon: <Eye className="w-6 h-6 text-amber-400/70" />,
@@ -117,10 +117,10 @@ export default function About() {
               
               <div className="space-y-12">
                 {[
-                  { step: "01", title: "Open Calls", detail: "Each print edition has a theme. We publish open calls with clear deadlines. Anyone can submit. Every submission is read by at least two editors." },
+                  { step: "01", title: "Open Calls", detail: "Each issue has a theme. When we open submissions, writers submit through their Gardens. Every submission is read by at least two editors." },
                   { step: "02", title: "Garden Scouting", detail: "Our editors also browse the Garden — reading freely, following their instincts. When they find something that resonates, they note it privately." },
                   { step: "03", title: "Invitation & Consent", detail: "If an editor wants to include your work, they reach out directly. Nothing is ever published without your explicit agreement. We ask. Always." },
-                  { step: "04", title: "Publication", detail: "Selected work appears in a print edition — designed, typeset, and printed as a physical object. Your name, your words, given the care they deserve." },
+                  { step: "04", title: "Publication", detail: "Selected work appears in the Journal — curated, sequenced, and presented as part of an issue. Your name, your words, given the context they deserve." },
                 ].map((item, i) => (
                   <motion.div
                     key={item.step}
@@ -143,15 +143,15 @@ export default function About() {
 
             <div className="space-y-8 pt-12">
               <div className="text-center space-y-4">
-                <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Submitting for Print</span>
+                <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">SUBMITTING WORK</span>
                 <h3 className="text-2xl md:text-4xl font-display font-light italic">How to Get Published</h3>
               </div>
               <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm rounded-2xl p-8 md:p-12 space-y-6">
                 <p className="font-serif text-white/55 text-lg leading-relaxed">
-                  To be considered for our print editions, you need to be part of the Garden — which is completely free to join. When we announce open calls for upcoming issues, you can submit your work directly through the platform.
+                  To be considered for the Journal, you need to be part of the Garden — which is completely free to join. When we announce open calls for upcoming issues, you submit your work directly through your Garden.
                 </p>
                 <p className="font-serif text-white/55 text-lg leading-relaxed">
-                  Our editors also read the Gardens, discovering work that resonates. If they find something they'd like to feature, they'll always reach out to you first. Nothing is ever published without your explicit consent.
+                  Our editors also read the Gardens freely, following their instincts. When they find something that resonates, they note it privately. If they want to include your work, they reach out directly. Nothing is ever published without your explicit consent.
                 </p>
                 <p className="font-serif text-amber-400/60 text-lg leading-relaxed italic">
                   Join the Garden, write freely, and when the time is right — let your work bloom.

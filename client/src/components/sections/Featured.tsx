@@ -23,12 +23,11 @@ export default function Featured() {
     },
   });
 
-  const pieceCount = gallery.length;
+  const genres = [...new Set(gallery.map((item) => item.genre).filter(Boolean))];
 
   return (
     <Section id="featured" className="bg-transparent text-primary py-40 relative">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(196,162,77,0.04) 0%, transparent 55%)" }} />
-
       <div className="max-w-4xl mx-auto w-full px-6 space-y-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 40, filter: "blur(6px)" }}
@@ -38,7 +37,7 @@ export default function Featured() {
           className="text-center space-y-6"
         >
           <motion.span
-            className="font-mono text-[10px] tracking-[0.4em] text-amber-200/25 block uppercase"
+            className="font-mono text-[10px] tracking-[0.4em] text-amber-200 block uppercase"
             initial={{ opacity: 0, letterSpacing: "0.2em" }}
             whileInView={{ opacity: 1, letterSpacing: "0.4em" }}
             transition={{ duration: 1.2 }}
@@ -49,12 +48,10 @@ export default function Featured() {
           <h2 className="text-5xl md:text-6xl font-display font-light tracking-normal">
             From the Journal
           </h2>
-          <p className="font-serif text-[13px] text-white/40 tracking-wide mt-2">
+          <p className="font-serif text-[13px] text-white tracking-wide mt-2">
             Published stories and poems, selected by our editors
           </p>
-          <p className="text-lg font-serif italic text-white/40 max-w-xl mx-auto leading-relaxed mt-4">
-            Planted in the Garden. Chosen because they wouldn't let go.
-          </p>
+
           <motion.div
             className="flex items-center justify-center gap-4 pt-2"
             initial={{ opacity: 0, scaleX: 0 }}
@@ -62,9 +59,9 @@ export default function Featured() {
             transition={{ delay: 0.3, duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/20" />
-            <div className="w-1.5 h-1.5 rotate-45 border border-amber-600/20" />
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-600/20" />
+            <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-600/40" />
+            <div className="w-1.5 h-1.5 rotate-45 border border-amber-600/40" />
+            <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-600/40" />
           </motion.div>
         </motion.div>
 
@@ -76,65 +73,61 @@ export default function Featured() {
         >
           <Link href="/in-bloom" data-testid="link-read-journal">
             <div className="relative group cursor-pointer">
-              <div className="absolute -inset-2 bg-gradient-to-b from-amber-900/10 via-transparent to-amber-900/5 rounded-sm blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              <div className="relative museum-frame-outer">
+              <div className="hidden" />
+              <div className="relative relative">
                 <div
                   className="relative"
                   style={{
-                    borderImage: `url("${frameImg}") 120 fill / 40px / 0 stretch`,
-                    borderWidth: "40px",
+                    /* removed */
+                    borderWidth: "0px",
                     borderStyle: "solid",
                   }}
                 >
-                  <div className="relative bg-[#0a0e17] py-16 px-8 md:px-16">
-                    <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 40px rgba(0,0,0,0.4)" }} />
+                  <div className="relative py-16 px-8 md:px-16">
+                    <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "none" }} />
                     <div className="relative z-10 text-center space-y-8">
-                      <BookOpen size={36} className="mx-auto text-amber-200/20 group-hover:text-amber-200/40 transition-colors duration-500" />
+                      <BookOpen size={36} className="mx-auto text-amber-200/90 group-hover:text-amber-200 transition-colors duration-500" />
 
-                      {pieceCount > 0 ? (
+                      {gallery.length > 0 ? (
                         <>
                           <div className="space-y-3">
-                            <p className="font-display text-2xl md:text-3xl font-light text-white/80 group-hover:text-white transition-colors duration-500 italic">
-                              {pieceCount} {pieceCount === 1 ? "piece" : "pieces"} on exhibition
+                            <p className="font-display text-2xl md:text-3xl font-light text-white group-hover:text-white transition-colors duration-500 italic">
+                              Now Reading
                             </p>
-                            <p className="font-serif text-white/35 text-sm">
+                            <p className="font-serif text-white text-sm">
                               Poetry, fiction, essays, and fragments — each one discovered in a writer's garden
                             </p>
                           </div>
 
-                          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                            {gallery.slice(0, 3).map((item) => (
-                              <span
-                                key={item.id}
-                                className="font-mono text-[8px] uppercase tracking-[0.2em] text-amber-200/25 px-3 py-1.5 border border-amber-200/8 bg-amber-200/[0.02]"
-                              >
-                                {item.genre}
-                              </span>
-                            ))}
-                            {pieceCount > 3 && (
-                              <span className="font-mono text-[8px] text-white/20 tracking-widest">
-                                + {pieceCount - 3} more
-                              </span>
-                            )}
-                          </div>
+                          {genres.length > 0 && (
+                            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                              {genres.slice(0, 4).map((genre) => (
+                                <span
+                                  key={genre}
+                                  className="font-mono text-[8px] uppercase tracking-[0.2em] text-amber-200 px-3 py-1.5 border border-amber-200/20 bg-amber-200/[0.04]"
+                                >
+                                  {genre}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </>
                       ) : (
                         <div className="space-y-3">
-                          <p className="font-display text-2xl md:text-3xl font-light text-white/70 italic">
+                          <p className="font-display text-2xl md:text-3xl font-light text-white italic">
                             Awaiting First Bloom
                           </p>
-                          <p className="font-serif text-white/35 text-sm max-w-md mx-auto">
+                          <p className="font-serif text-white text-sm max-w-md mx-auto">
                             Editors are reading the Gardens. When a piece blooms, it will appear here.
                           </p>
                         </div>
                       )}
 
                       <div className="flex items-center justify-center gap-3 pt-4">
-                        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200/50 group-hover:text-amber-200/80 transition-colors duration-500">
-                          Read All Published Work
+                        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-200 group-hover:text-amber-200/90 transition-colors duration-500">
+                          Read Published Work
                         </span>
-                        <ArrowRight size={16} className="text-amber-200/40 group-hover:text-amber-200/70 group-hover:translate-x-1 transition-all duration-500" />
+                        <ArrowRight size={16} className="text-amber-200 group-hover:text-amber-200/80 group-hover:translate-x-1 transition-all duration-500" />
                       </div>
                     </div>
                   </div>

@@ -4,31 +4,32 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Lora', serif;
-  --font-display: 'Cormorant Garamond', serif;
+    --font-sans: 'Libre Baskerville', serif;
+  --font-display: 'Playfair Display', serif;
   --font-mono: 'Space Mono', monospace;
+      --font-serif: 'Libre Baskerville', serif;
 
   /* Teal-Indigo Watercolor Night — bioluminescent garden palette */
   --color-background: #0d1e2d;
-  --color-foreground: #e0ddd5;
+  --color-foreground: #ffffff;
   
   --color-card: #112838;
-  --color-card-foreground: #e0ddd5;
+  --color-card-foreground: #ffffff;
   
   --color-popover: #0d1e2d;
-  --color-popover-foreground: #e0ddd5;
+  --color-popover-foreground: #ffffff;
   
-  --color-primary: #e0ddd5;
+  --color-primary: #ffffff;
   --color-primary-foreground: #0d1e2d;
   
-  --color-secondary: #c8c4b8;
-  --color-secondary-foreground: #0d1e2d;
+  --color-secondary: #ffffff;
+  --color-secondary-foreground: #ffffff;
   
   --color-muted: #1a3040;
-  --color-muted-foreground: #8aa0aa;
+  --color-muted-foreground: #a8b8c8;
   
   --color-accent: #c4a24d;
-  --color-accent-foreground: #0d1e2d;
+  --color-accent-foreground: #ffffff;
   
   --color-destructive: hsl(0 60% 50%);
   --color-destructive-foreground: hsl(0 0% 98%);
@@ -37,7 +38,7 @@
   --color-input: #1a3040;
   --color-ring: #c4a24d;
   
-  --radius: 0rem;
+  --radius: 0.5rem;
 }
 
 @layer base {
@@ -54,6 +55,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-normal font-light;
+              font-style: normal !important;
   }
   p {
     @apply leading-relaxed;
@@ -174,7 +176,7 @@
   line-height: 2;
 }
 .prose-editor .tiptap h2 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.75rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.85);
@@ -182,7 +184,7 @@
   font-style: italic;
 }
 .prose-editor .tiptap h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.35rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.8);
@@ -232,7 +234,7 @@
   line-height: 2;
 }
 .prose-content h2 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.5rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.8);
@@ -240,7 +242,7 @@
   font-style: italic;
 }
 .prose-content h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   font-size: 1.2rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.75);
@@ -277,7 +279,7 @@
   margin: 1.5em 0;
 }
 .prose-content pre {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Libre Baskerville', serif;
   white-space: pre;
   line-height: 2;
   font-size: inherit;
@@ -961,7 +963,7 @@ html.a11y-high-contrast button {
   transform: translateX(-50%);
   padding: 4px 8px;
   background: #1a2a3a;
-  color: #e0ddd5;
+  color: #ffffff;
   font-size: 11px;
   font-family: 'Space Mono', monospace;
   border-radius: 4px;
@@ -981,7 +983,7 @@ html.a11y-high-contrast button {
   transform: translateX(-50%);
   padding: 4px 8px;
   background: #1a2a3a;
-  color: #e0ddd5;
+  color: #ffffff;
   font-size: 11px;
   font-family: 'Space Mono', monospace;
   border-radius: 4px;
@@ -1296,4 +1298,109 @@ html.light-theme .border-white\/15 {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+
+/* Editorial refinements — less WordPress, more literary journal */
+::selection {
+  background: rgba(196, 162, 77, 0.25);
+  color: inherit;
+}
+
+/* Refined body typography */
+body {
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Editorial heading treatment */
+h1, h1, h2, h3, h4, h5, h6,
+    h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+  text-wrap: balance;
+        font-style: normal !important;
+}
+
+/* Subtle scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+
+/* —— Garden Font Legibility Fix — ensure text is readable with proper hierarchy —— */
+.garden-bg {
+  color: #ffffff;
+}
+.garden-bg .text-muted-foreground,
+.garden-bg .text-muted,
+.garden-bg [class*="text-muted"] {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.garden-bg [class*="text-white/"] {
+  opacity: 1 !important;
+}
+.garden-bg .text-secondary-foreground,
+.garden-bg [class*="text-secondary"] {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.garden-bg p,
+.garden-bg li,
+.garden-bg label,
+.garden-bg td,
+.garden-bg th {
+  color: rgba(255, 255, 255, 0.92);
+}
+.garden-bg h1,
+.garden-bg h2,
+.garden-bg h3,
+.garden-bg h4,
+.garden-bg h5,
+.garden-bg h6 {
+  color: #ffffff;
+}
+.garden-bg a {
+  color: rgba(255, 255, 255, 0.9);
+}
+.garden-bg small {
+  color: rgba(255, 255, 255, 0.6);
+}
+.garden-bg button,
+.garden-bg input,
+.garden-bg textarea,
+.garden-bg select {
+  color: #ffffff;
+}
+
+
+
+/* Global star background: make all page wrappers transparent so 3D stars show through */
+.min-h-screen[style*="background"],
+div.min-h-screen.bg-transparent,
+div.min-h-screen.relative {
+    background-color: transparent !important;
+}
+
+/* Override all Tailwind arbitrary bg colors on page wrappers */
+[class*="min-h-screen"][class*="bg-["] {
+    background-color: transparent !important;
+}
+
+/* Make body and garden backgrounds transparent for global stars */
+body {
+    background-color: transparent !important;
+}
+.garden-bg {
+    background: transparent !important;
+}
+.night-garden-atmosphere {
+    background: transparent !important;
 }

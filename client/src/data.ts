@@ -2,7 +2,7 @@
 export const content = {
   hero: {
     title: "A Room for Writing",
-    subtitle: "You don't submit. You don't query. You just write — and the editors come to you.",
+    subtitle: "Write freely. Our editors read everything — and the editors come to you.",
     links: [
       { text: "View Collection", href: "#collection" },
       { text: "About the Gallery", href: "#about" }
@@ -17,9 +17,9 @@ export const content = {
         description: "Where work arrives because an editor noticed it. Not because a writer applied. Every piece here was found growing in someone's Garden, and the editor who found it couldn't leave it alone.",
         points: [
           "Work goes live the moment an editor selects it",
-          "No submissions. No slush pile.",
+          "No slush pile. No query letters.",
           "Writers are paid when their work is selected",
-          "Editorially curated by attention, not application"
+          "Selected by editors, not algorithms"
         ],
         cta: "Explore",
         href: "/gallery"

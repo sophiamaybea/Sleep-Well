@@ -2,20 +2,18 @@ import { Section } from "@/components/ui/section";
 import { content } from "@/data";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-
 export default function Layers() {
   return (
     <Section id="section-6" className="bg-background text-primary">
       <div className="max-w-6xl mx-auto w-full space-y-16">
         <div className="text-center space-y-4">
-          <span className="font-mono text-xs tracking-[0.2em] opacity-60 block">
+          <span className="font-mono text-xs tracking-[0.2em] opacity-80 block">
             {content.layers.eyebrow}
           </span>
           <h2 className="text-4xl md:text-6xl font-display font-bold">
             {content.layers.title}
           </h2>
         </div>
-
         <div className="grid gap-4">
           {content.layers.steps.map((step, index) => (
             <motion.div
@@ -43,7 +41,7 @@ export default function Layers() {
                       {step.subtitle}
                     </span>
                   </div>
-                  <p className="text-lg opacity-80 max-w-2xl">
+                  <p className="text-lg opacity-90 max-w-2xl">
                     {step.desc}
                   </p>
                 </div>

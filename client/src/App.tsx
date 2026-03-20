@@ -1,15 +1,14 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { lazy, Suspense } from "react";
-
+import { lazy, Suspense, useEffect } from "react";
 import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import OnboardingModal from "@/components/OnboardingModal";
-
+import StarBackground from "@/components/StarBackground";
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
 const WriterProfile = lazy(() => import("@/pages/WriterProfile"));
@@ -19,20 +18,55 @@ const InBloom = lazy(() => import("@/pages/Gallery"));
 const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
 const EICDashboard = lazy(() => import("@/pages/EICDashboard"));
-const MindWalks = lazy(() => import("@/pages/MindWalks"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const Accessibility = lazy(() => import("@/pages/Accessibility"));
 const Commons = lazy(() => import("@/pages/Commons"));
 const HowItWorks = lazy(() => import("@/pages/HowItWorks"));
 const GardenInfo = lazy(() => import("@/pages/GardenInfo"));
 const FieldGuide = lazy(() => import("@/pages/FieldGuide"));
-const Greenhouse = lazy(() => import("@/pages/Nursery"));
 const EditProfile = lazy(() => import("@/pages/EditProfile"));
 const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
+const Opportunities = lazy(() => import("@/pages/Opportunities"));
+const Grove = lazy(() => import("@/pages/Grove"));
+// V2 Redesign pages
+const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
+const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
+const V2Community = lazy(() => import("@/pages/V2Community"));
+const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
+const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
+const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
+
+const PAGE_TITLES: Record<string, string> = {
+  "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
+  "/in-bloom": "The Journal — The Page Gallery",
+  "/publications": "Archive & Contributors — The Page Gallery",
+  "/gallery": "The Journal — The Page Gallery",
+  "/about": "About — The Page Gallery Journal",
+  "/garden": "My Garden — The Page Gallery",
+  "/grove": "The Grove — The Page Gallery",
+  "/commons": "The Commons — The Page Gallery",
+  "/how-it-works": "How It Works — The Page Gallery",
+  "/garden-info": "Garden Seasons — The Page Gallery",
+  "/editor-studio": "Editorial Studio — The Page Gallery",
+  "/privacy": "Privacy Policy — The Page Gallery",
+  "/terms": "Terms of Service — The Page Gallery",
+  "/accessibility": "Accessibility — The Page Gallery",
+  "/sign-in": "Sign In — The Page Gallery",
+};
+
+function PageTitle() {
+  const [location] = useLocation();
+  useEffect(() => {
+    const title = PAGE_TITLES[location] || "The Page Gallery Journal";
+    document.title = title;
+  }, [location]);
+  return null;
+}
 
 function PageLoader() {
   return (
@@ -51,21 +85,19 @@ function PageLoader() {
     </div>
   );
 }
-
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/sign-in" component={SignIn} />
         <Route path="/garden" component={Garden} />
+        <Route path="/grove" component={Grove} />
         <Route path="/garden/:username" component={PublicGarden} />
         <Route path="/edit-profile" component={EditProfile} />
         <Route path="/writer/:id" component={WriterProfile} />
         <Route path="/public-garden/:userId" component={PublicGarden} />
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={InBloom} />
-          <Route path="/mind-walks" component={MindWalks} />
-          <Route path="/mind-walks/:slug" component={MindWalks} />
         <Route path="/editor-studio" component={EditorStudio} />
         <Route path="/about" component={About} />
         <Route path="/courses" component={Courses} />
@@ -75,34 +107,42 @@ function Router() {
         <Route path="/terms" component={Terms} />
         <Route path="/commons" component={Commons} />
         <Route path="/how-it-works" component={HowItWorks} />
-          <Route path="/garden-info" component={GardenInfo} />
+        <Route path="/garden-info" component={GardenInfo} />
         <Route path="/field-guide" component={FieldGuide} />
+        <Route path="/accessibility" component={Accessibility} />
         <Route path="/garden-guide" component={GardenGuide} />
-        <Route path="/greenhouse" component={Greenhouse} />
-        <Route path="/nursery" component={Greenhouse} />
         <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
+        <Route path="/v2" component={V2Dashboard} />
+        <Route path="/v2/reading-room" component={V2ReadingRoom} />
+        <Route path="/v2/community" component={V2Community} />
+        <Route path="/editorial-services" component={EditorialServices} />
+        <Route path="/dashboard/editorial" component={EditorialDashboard} />
+        <Route path="/editorial-payment" component={EditorialPayment} />
+        <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
+        <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
+        <Route path="/opportunities" component={Opportunities} />
         <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
   );
 }
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScroll>
           <NoiseOverlay />
-          <Toaster />
-          <Router />
-          <OnboardingModal />
+          <StarBackground />
           <AccessibilityToolbar />
+          <OnboardingModal />
+          <PageTitle />
+          <Router />
+          <Toaster />
         </SmoothScroll>
       </TooltipProvider>
     </QueryClientProvider>
   );
 }
-
 export default App;

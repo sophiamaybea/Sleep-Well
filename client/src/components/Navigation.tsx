@@ -57,24 +57,24 @@ export default function Navigation() {
     refetchInterval: 30000,
   });
 
+    // Navigation menu items — Mind Walks removed
   const publicMenuItems = [
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
-    { label: "Seasons", href: "/seasons", isPage: true, tooltip: "Writing Challenges" },
     { label: "About", href: "/about", isPage: true },
   ];
 
   const writerMenuItems = [
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
-    { label: "Seasons", href: "/seasons", isPage: true, tooltip: "Writing Challenges" },
-    { label: "My Garden", href: "/garden", isPage: true, tooltip: "Your Writing Space" },
-    { label: "Studio", href: "/editor-studio", isPage: true },
+    { label: "My Garden", href: "/garden", isPage: true, tooltip: "Write & Grow Your Work" },
+        { label: "The Grove", href: "/grove", isPage: true, tooltip: "Botanical Social Layer" },
+    { label: "Drafts", href: "/editor-studio", isPage: true },
   ];
 
   const editorMenuItems = [
-    ...writerMenuItems,
-    { label: "Command", href: "/eic-dashboard", isPage: true },
+    ...writerMenuItems.filter(item => item.label !== "Drafts"),
+    { label: "Editorial", href: "/editor-studio", isPage: true },
   ];
 
   const activeMenuItems = !isAuthenticated 
@@ -86,29 +86,27 @@ export default function Navigation() {
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-4' : 'py-8'}`}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           <Link href="/" className="relative group">
-            <span className="font-display font-medium text-2xl tracking-normal italic mix-blend-difference text-white">
-              The Page Gallery Journal
-            </span>
+<img src="/logo%20(2).png" alt="The Page Gallery Journal" className="h-10 w-auto" />
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
 
-          <div className={`hidden lg:flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
+          <div className={`hidden lg:flex items-center gap-4 font-mono text-[11px] tracking-[0.15em] transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
             {activeMenuItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`transition-colors relative group ${item.label === "Command" ? "text-[#c4a24d]/70 hover:text-[#c4a24d]" : "text-white/70 hover:text-white"}`}
+                className={`transition-colors relative group ${item.label === "Editorial" ? "text-[#c4a24d]/70 hover:text-[#c4a24d]" : "text-white/90 hover:text-white"}`}
                 data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
                 title={(item as any).tooltip}
               >
                 {item.label}
-                <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Command" ? "bg-[#c4a24d]" : "bg-white"}`} />
+                <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Editorial" ? "bg-[#c4a24d]" : "bg-white"}`} />
               </Link>
             ))}
             
             <button
               onClick={() => setIsLight(!isLight)}
-              className="p-2 text-white/50 hover:text-white/80 transition-colors"
+              className="p-2 text-white/90 hover:text-white/80 transition-colors"
               data-testid="button-theme-toggle"
               title={isLight ? "Switch to dark mode" : "Switch to light mode"}
             >
@@ -119,7 +117,7 @@ export default function Navigation() {
               <div className="relative">
                 <button
                   onClick={() => setShowNotifs(!showNotifs)}
-                  className="p-2 text-white/50 hover:text-white/80 transition-colors relative"
+                  className="p-2 text-white/90 hover:text-white/80 transition-colors relative"
                   data-testid="button-notifications"
                 >
                   <Bell size={16} />
@@ -132,17 +130,17 @@ export default function Navigation() {
                 {showNotifs && (
                   <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 max-h-80 overflow-y-auto">
                     <div className="p-3 border-b border-white/[0.06]">
-                      <h3 className="font-display text-sm text-white/70 italic">Wind Chimes (Notifications)</h3>
-                      <p className="font-serif text-[10px] text-white/30 italic mt-0.5">Something happened in the garden (like a new comment or like).</p>
+                      <h3 className="font-display text-sm text-white/90 italic">Notifications</h3>
+                      <p className="font-serif text-[10px] text-white/90 italic mt-0.5">Recent activity on your work.</p>
                     </div>
                     <div className="p-2">
                       {(notifData?.notifications || []).length === 0 ? (
-                        <p className="text-center py-4 font-serif text-sm text-white/25 italic">All quiet in the garden</p>
+                        <p className="text-center py-4 font-serif text-sm text-white/90 italic">No new notifications</p>
                       ) : (
                         (notifData?.notifications || []).map((n: any) => (
                           <div key={n.id} className={`p-3 rounded-lg mb-1 ${n.isRead ? "opacity-60" : "bg-white/[0.03]"}`} data-testid={`notification-${n.id}`}>
-                            <p className="font-serif text-xs text-white/60">{n.message}</p>
-                            <span className="font-mono text-[8px] text-white/25 mt-1 block">
+                            <p className="font-serif text-xs text-white/90">{n.message}</p>
+                            <span className="font-mono text-[8px] text-white/90 mt-1 block">
                               {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}
                             </span>
                           </div>
@@ -160,29 +158,29 @@ export default function Navigation() {
               isAuthenticated && user ? (
                 <div className="relative group/user">
                   <button className="flex items-center gap-2 p-1 pl-3 rounded-full border border-white/10 hover:border-white/20 transition-all bg-white/5" data-testid="nav-user-dropdown">
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-white/70">
+                    <span className="font-mono text-[9px] tracking-[0.15em] text-white/90">
                       {(user as any).username?.slice(0, 1) || (user as any).email?.slice(0, 1) || "U"}
                     </span>
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500/20 to-teal-500/20 border border-white/10 flex items-center justify-center overflow-hidden">
-                      <span className="text-[10px] text-white/40">{(user as any).username?.slice(0, 1).toUpperCase() || (user as any).email?.slice(0, 1).toUpperCase() || "U"}</span>
+                      <span className="text-[10px] text-white/90">{(user as any).username?.slice(0, 1).toUpperCase() || (user as any).email?.slice(0, 1).toUpperCase() || "U"}</span>
                     </div>
                   </button>
                   
                   <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 py-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300">
-                    <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/60 hover:text-white hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest">
+                    <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]">
                       Profile
                     </Link>
-                    <Link href="/settings" className="block px-4 py-2 text-white/60 hover:text-white hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest">
+                    <Link href="/settings" className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]">
                       Settings
                     </Link>
                     <div className="h-[1px] bg-white/5 my-1" />
-                    <a href="/api/logout" className="block px-4 py-2 text-white/40 hover:text-white/60 hover:bg-white/5 transition-colors font-mono text-[10px] uppercase tracking-widest" data-testid="nav-logout">
+                    <a href="/api/logout" className="block px-4 py-2 text-white/90 hover:text-white/90 hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]" data-testid="nav-logout">
                       Sign Out
                     </a>
                   </div>
                 </div>
               ) : (
-                <Link href="/sign-in" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all font-mono text-[10px] uppercase tracking-widest" data-testid="nav-login">
+                <Link href="/sign-in" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all font-mono text-[11px] tracking-[0.15em]" data-testid="nav-login">
                   Sign In
                 </Link>
               )
@@ -208,7 +206,7 @@ export default function Navigation() {
           >
             <button 
               onClick={() => setIsOpen(false)}
-              className="absolute top-8 right-8 p-2 text-white/50 hover:text-white transition-colors"
+              className="absolute top-8 right-8 p-2 text-white/90 hover:text-white transition-colors"
             >
               <X size={32} />
             </button>
@@ -224,7 +222,7 @@ export default function Navigation() {
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`font-display text-4xl italic hover:scale-105 transition-transform ${item.label === "Command" ? "text-[#c4a24d]/80 hover:text-[#c4a24d]" : "text-white/80 hover:text-white"}`}
+                    className={`font-display text-4xl italic hover:scale-105 transition-transform ${item.label === "Editorial" ? "text-[#c4a24d]/80 hover:text-[#c4a24d]" : "text-white/80 hover:text-white"}`}
                   >
                     {item.label}
                   </Link>
@@ -237,12 +235,12 @@ export default function Navigation() {
                 isAuthenticated && user ? (
                   <>
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
-                      <Link href={`/writer/${user.id}`} onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/60 hover:text-white italic hover:scale-105 transition-transform">
+                      <Link href={`/writer/${user.id}`} onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/90 hover:text-white italic hover:scale-105 transition-transform">
                         Profile
                       </Link>
                     </motion.div>
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.55 }}>
-                      <Link href="/settings" onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/60 hover:text-white italic hover:scale-105 transition-transform">
+                      <Link href="/settings" onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/90 hover:text-white italic hover:scale-105 transition-transform">
                         Settings
                       </Link>
                     </motion.div>
@@ -251,7 +249,7 @@ export default function Navigation() {
                       initial={{ y: 20, opacity: 0 }} 
                       animate={{ y: 0, opacity: 1 }} 
                       transition={{ delay: 0.6 }}
-                      className="font-mono text-[11px] text-white/30 hover:text-white/60 lowercase tracking-[0.15em] transition-colors"
+                      className="font-mono text-[11px] text-white/90 hover:text-white/90 lowercase tracking-[0.15em] transition-colors"
                     >
                       Sign Out
                     </motion.a>

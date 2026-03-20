@@ -125,6 +125,12 @@ export async function runMigrations() {
       ALTER TABLE writings ADD COLUMN IF NOT EXISTS circle_id varchar REFERENCES circles(id);
     `);
     await pool.query(`
+      ALTER TABLE circles ADD COLUMN IF NOT EXISTS theme text;
+    `);
+    await pool.query(`
+      ALTER TABLE circles ADD COLUMN IF NOT EXISTS max_members integer NOT NULL DEFAULT 5;
+    `);
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS site_content (
         id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
         page_key text NOT NULL,
@@ -163,6 +169,56 @@ export async function runMigrations() {
       ALTER TABLE editor_notes ADD COLUMN IF NOT EXISTS note_type text NOT NULL DEFAULT 'general_feedback';
     `);
 
+    // Grove botanical social layer
+    await pool.query(`
+      ALTER TABLE editorial_waitlist ADD COLUMN IF NOT EXISTS payment_token text;
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS grove_plants (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id varchar NOT NULL REFERENCES users(id),
+        name text NOT NULL,
+        species text,
+        nickname text,
+        image_url text,
+        watering_frequency_days integer DEFAULT 7,
+        last_watered_at timestamp,
+        next_water_due timestamp,
+        is_public boolean NOT NULL DEFAULT false,
+        notes text,
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS grove_watering_sessions (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        plant_id varchar NOT NULL REFERENCES grove_plants(id),
+        user_id varchar NOT NULL REFERENCES users(id),
+        watered_at timestamp DEFAULT now(),
+        notes text
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS grove_connections (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        follower_id varchar NOT NULL REFERENCES users(id),
+        following_id varchar NOT NULL REFERENCES users(id),
+        created_at timestamp DEFAULT now()
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS grove_seed_packets (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        sender_id varchar NOT NULL REFERENCES users(id),
+        recipient_id varchar NOT NULL REFERENCES users(id),
+        plant_id varchar REFERENCES grove_plants(id),
+        message text,
+        seed_type text NOT NULL,
+        is_opened boolean NOT NULL DEFAULT false,
+        created_at timestamp DEFAULT now()
+      );
+    `);
     console.log("Database migrations completed successfully");
   } catch (error) {
     console.error("Migration error:", error);
