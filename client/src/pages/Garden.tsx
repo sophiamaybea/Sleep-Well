@@ -28,7 +28,7 @@ import ExportMenu from "@/components/garden/ExportMenu";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
 type Zone = "desk" | "reading-room" | "greenhouse" | "submissions";
-type ActiveRoom = "" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
+type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
 
 function BloomCelebration({ onComplete }: { onComplete: () => void }) {
@@ -432,12 +432,12 @@ function timeAgo(date: string | Date | null | undefined) {
 }
 
 const rooms = [
-  { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Post a question about craft, challenges, or the writing life", comingSoon: false },
-  { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Join a writing prompt or share a timed free-write with the group", comingSoon: false },
-  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Share a line from today's work — no context needed", comingSoon: false },
-  { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Exchange drafts for deep beta feedback — give and receive", comingSoon: false },
-  { id: "first-reader", label: "First Reader", icon: <Eye size={13} />, desc: "Post something raw and ask: what lands, what needs work? Get honest first impressions", comingSoon: false },
-  { id: "shelf", label: "Reading Shelf", icon: <BookOpen size={13} />, desc: "Recommended reads, essays, and things worth returning to", comingSoon: false },
+  { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Community discussions", comingSoon: false },
+  { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises", comingSoon: false },
+  { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Shared writing space", comingSoon: false },
+  { id: "swap", label: "Swap", icon: <MessageCircle size={13} />, desc: "Beta reading exchange", comingSoon: false },
+  { id: "first-reader", label: "First Reader", icon: <Eye size={13} />, desc: "Drop fresh writing, get honest first impressions", comingSoon: false },
+  { id: "shelf", label: "Reading Shelf", icon: <BookOpen size={13} />, desc: "What the community is reading", comingSoon: false },
 ];
 
 function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
@@ -653,7 +653,6 @@ function DailyPromptCard({ onWriteFromPrompt }: { onWriteFromPrompt: (prompt: st
       return res.json();
     },
   });
-    const skipKey = 'garden-prompt-skip-' + new Date().toDateString();  const [skipped, setSkipped] = useState(() => !!localStorage.getItem(skipKey));  if (skipped) return null;
 
   if (!prompt) return null;
 
@@ -677,7 +676,7 @@ function DailyPromptCard({ onWriteFromPrompt }: { onWriteFromPrompt: (prompt: st
       >
         <PenLine size={11} />
         Write from this prompt
-      </button> <button onClick={() => { setSkipped(true); localStorage.setItem(skipKey, '1'); }} className="ml-2 text-[9px] font-mono uppercase tracking-widest text-white/25 hover:text-amber-400/50 transition-colors">skip for today</button>
+      </button>
     </motion.div>
   );
 }
@@ -770,7 +769,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
   return (
     <div className="max-w-3xl mx-auto">
-{showLayerGuide &&       <div className="mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
+      <div className="mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
         <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90 block mb-2">Your Creative Layers</span>
         <div className="flex items-center gap-1 text-[9px] font-mono overflow-x-auto scrollbar-hide">
           {[
@@ -789,7 +788,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           ))}
         </div>
         <p className="font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
-      <button onClick={() => { setShowLayerGuide(false); localStorage.setItem('garden-layer-guide-dismissed', '1'); }} className="absolute top-2 right-2 text-white/30 hover:text-white/60 text-[9px] font-mono uppercase tracking-widest transition-colors">got it ×</button></div>}
+      </div>
       <PublishInvitations />
 
       <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />          <button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
@@ -1380,7 +1379,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         <button
           onClick={() => { doSave(); onBack(); }}
           className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/90 hover:text-white/80 transition-colors group"
-          <p className="font-mono text-[9px] uppercase tracking-widest text-white/25 mb-4"><span>Write</span><span className="mx-1.5 text-white/15">/</span><span className="text-white/40">{editTitle || 'Untitled'}</span></p>data-testid="button-back"
+          data-testid="button-back"
         >
           <ChevronLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
           Back
@@ -1752,7 +1751,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
               content={editContent}
               onChange={setEditContent}
               placeholder="Begin writing..."
-              {showStageHint && <div className="mb-3 p-3 rounded-lg border border-emerald-800/20 bg-emerald-950/20 text-[10px] font-mono text-white/50 flex items-start justify-between gap-3"><span><strong className="text-emerald-400/70">Stages:</strong> Soil = private seeds. Garden = shared draft. Commons = open workshop. Gallery = final work.</span><button onClick={() => { setShowStageHint(false); localStorage.setItem('garden-stage-hint-seen', '1'); }} className="text-white/30 hover:text-white/60 shrink-0 transition-colors">×</button></div>}autoFocus
+              autoFocus
             />
           </div>
         </div>
@@ -2442,7 +2441,6 @@ const toolColorMap: Record<string, { border: string; text: string; bg: string; g
 
 function GreenhouseZone() {
   const [activeTool, setActiveTool] = useState<GreenhouseTool>(null);
-    const [showAllTools, setShowAllTools] = useState(false);
 
   if (activeTool) {
     return <GreenhouseToolView tool={activeTool} onBack={() => setActiveTool(null)} />;
@@ -2461,7 +2459,7 @@ function GreenhouseZone() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {(showAllTools ? greenhouseTools : greenhouseTools.slice(0, 2)).map((tool, i) => {
+        {greenhouseTools.map((tool, i) => {
           const colors = toolColorMap[tool.color];
           return (
             <motion.button
@@ -2491,7 +2489,7 @@ function GreenhouseZone() {
             </motion.button>
           );
         })}
-      </div> <button onClick={() => setShowAllTools(v => !v)} className="mt-4 text-[10px] font-mono uppercase tracking-widest text-white/35 hover:text-white/60 transition-colors w-full text-center">{showAllTools ? '− Show fewer tools' : '+ Show all tools'}</button>
+      </div>
     </div>
   );
 }
@@ -3565,11 +3563,11 @@ export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [activeZone, setActiveZone] = useState<Zone>("desk");
-    const [showDeskStats, setShowDeskStats] = useState(false);  const [showLayerGuide, setShowLayerGuide] = useState(() => !localStorage.getItem('garden-layer-guide-dismissed'));
+    const [showDeskStats, setShowDeskStats] = useState(false);
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
-  const [showPlantingFlow, setShowPlantingFlow] = useState(false);  const [showStageHint, setShowStageHint] = useState(() => !localStorage.getItem('garden-stage-hint-seen'));
+  const [showPlantingFlow, setShowPlantingFlow] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showA11yPanel, setShowA11yPanel] = useState(false);
