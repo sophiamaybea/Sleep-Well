@@ -769,7 +769,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
+{showLayerGuide &&       <div className="mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
         <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90 block mb-2">Your Creative Layers</span>
         <div className="flex items-center gap-1 text-[9px] font-mono overflow-x-auto scrollbar-hide">
           {[
@@ -788,7 +788,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           ))}
         </div>
         <p className="font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
-      </div>
+      </div> <button onClick={() => { setShowLayerGuide(false); localStorage.setItem('garden-layer-guide-dismissed', '1'); }} className="absolute top-2 right-2 text-white/30 hover:text-white/60 text-[9px] font-mono uppercase tracking-widest transition-colors">got it ×</button>}
       <PublishInvitations />
 
       <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />          <button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
@@ -3563,7 +3563,7 @@ export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [activeZone, setActiveZone] = useState<Zone>("desk");
-    const [showDeskStats, setShowDeskStats] = useState(false);
+    const [showDeskStats, setShowDeskStats] = useState(false);  const [showLayerGuide, setShowLayerGuide] = useState(() => !localStorage.getItem('garden-layer-guide-dismissed'));
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
