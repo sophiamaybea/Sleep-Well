@@ -118,7 +118,7 @@ export default function Grove() {
                       <Leaf style={{ width: "1.25rem", height: "1.25rem", color: "#4ade80" }} />
                       <span style={{ fontWeight: 500, color: "#fff" }}>{plant.plantType}</span>
                     </div>
-                    <p style={{ color: "#86efac", fontSize: "0.875rem", margin: 0 }}>{plant.nickname || plant.plantType}</p>
+                    <p style={{ color: "#86efac", fontSize: "0.875rem", margin: 0 }}>{plant.nickname || plant.plantType || "My Plant"}</p>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", marginTop: "0.75rem", fontSize: "0.75rem", color: "#4ade80" }}>
                       <Droplets style={{ width: "0.75rem", height: "0.75rem" }} />
                       <span>Streak: {plant.wateringStreak || 0} days</span>
@@ -153,7 +153,7 @@ export default function Grove() {
                   <div key={plant.id} style={{ background: "rgba(22,101,52,0.5)", borderRadius: "0.75rem", padding: "1rem", border: "1px solid rgba(74,222,128,0.3)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
                       <Leaf style={{ width: "1.25rem", height: "1.25rem", color: "#4ade80" }} />
-                      <span style={{ fontWeight: 500, color: "#fff" }}>{plant.nickname || plant.plantType}</span>
+                      <span style={{ fontWeight: 500, color: "#fff" }}>{plant.nickname || plant.plantType || "My Plant"}</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem", fontSize: "0.75rem", color: "#4ade80" }}>
                       <Heart style={{ width: "0.75rem", height: "0.75rem" }} />
