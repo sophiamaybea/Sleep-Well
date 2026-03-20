@@ -653,6 +653,7 @@ function DailyPromptCard({ onWriteFromPrompt }: { onWriteFromPrompt: (prompt: st
       return res.json();
     },
   });
+    const skipKey = 'garden-prompt-skip-' + new Date().toDateString();  const [skipped, setSkipped] = useState(() => !!localStorage.getItem(skipKey));  if (skipped) return null;
 
   if (!prompt) return null;
 
@@ -676,7 +677,7 @@ function DailyPromptCard({ onWriteFromPrompt }: { onWriteFromPrompt: (prompt: st
       >
         <PenLine size={11} />
         Write from this prompt
-      </button>
+      </button> <button onClick={() => { setSkipped(true); localStorage.setItem(skipKey, '1'); }} className="ml-2 text-[9px] font-mono uppercase tracking-widest text-white/25 hover:text-amber-400/50 transition-colors">skip for today</button>
     </motion.div>
   );
 }
