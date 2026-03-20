@@ -2539,7 +2539,6 @@ export async function registerRoutes(
 
   app.get(
     "/api/submission-calls/open",
-    isAuthenticated,
     async (req: any, res) => {
       try {
         const calls = await storage.getOpenSubmissionCalls();
