@@ -2066,7 +2066,9 @@ export const editorialWaitlist = pgTable("editorial_waitlist", {
   sophiaNote: text("sophia_note"),
   quotedPrice: integer("quoted_price"),
   paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
-  paypalOrderId: text("paypal_order_id"),
+  paypalOrderId
+    : text("paypal_order_id"),
+    paymentToken: text("payment_token"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -2114,3 +2116,106 @@ export const insertBoardPostSchema = createInsertSchema(boardPosts).omit({
 
 export type BoardPost = typeof boardPosts.$inferSelect;
 export type InsertBoardPost = z.infer<typeof insertBoardPostSchema>;
+
+// === THE GROVE ===
+export const grovePlants = pgTable("grove_plants", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  name: text("name").notNull(),
+  species: text("species"),
+  nickname: text("nickname"),
+  imageUrl: text("image_url"),
+  wateringFrequencyDays: integer("watering_frequency_days").default(7),
+  lastWateredAt: timestamp("last_watered_at"),
+  nextWaterDue: timestamp("next_water_due"),
+  isPublic: boolean("is_public").notNull().default(false),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertGrovePlantSchema = createInsertSchema(grovePlants).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type GrovePlant = typeof grovePlants.$inferSelect;
+export type InsertGrovePlant = z.infer<typeof insertGrovePlantSchema>;
+
+export const groveWateringSessions = pgTable("grove_watering_sessions", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  plantId: varchar("plant_id")
+    .notNull()
+    .references(() => grovePlants.id),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  wateredAt: timestamp("watered_at").defaultNow(),
+  notes: text("notes"),
+});
+
+export const insertGroveWateringSessionSchema = createInsertSchema(groveWateringSessions).omit({
+  id: true,
+  userId: true,
+  wateredAt: true,
+});
+
+export type GroveWateringSession = typeof groveWateringSessions.$inferSelect;
+export type InsertGroveWateringSession = z.infer<typeof insertGroveWateringSessionSchema>;
+
+export const groveConnections = pgTable("grove_connections", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  followerId: varchar("follower_id")
+    .notNull()
+    .references(() => users.id),
+  followingId: varchar("following_id")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGroveConnectionSchema = createInsertSchema(groveConnections).omit({
+  id: true,
+  followerId: true,
+  createdAt: true,
+});
+
+export type GroveConnection = typeof groveConnections.$inferSelect;
+export type InsertGroveConnection = z.infer<typeof insertGroveConnectionSchema>;
+
+export const groveSeedPackets = pgTable("grove_seed_packets", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  senderId: varchar("sender_id")
+    .notNull()
+    .references(() => users.id),
+  recipientId: varchar("recipient_id")
+    .notNull()
+    .references(() => users.id),
+  plantId: varchar("plant_id")
+    .references(() => grovePlants.id),
+  message: text("message"),
+  seedType: text("seed_type").notNull(),
+  isOpened: boolean("is_opened").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGroveSeedPacketSchema = createInsertSchema(groveSeedPackets).omit({
+  id: true,
+  senderId: true,
+  createdAt: true,
+});
+
+export type GroveSeedPacket = typeof groveSeedPackets.$inferSelect;
+export type InsertGroveSeedPacket = z.infer<typeof insertGroveSeedPacketSchema>;
