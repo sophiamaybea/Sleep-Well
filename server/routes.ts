@@ -8026,5 +8026,14 @@ const sharedPieces = await db.select({
     }
   });
 
+    // ─── HEALTH CHECK (keep-warm ping endpoint) ───────────────────────────────
+  app.get('/health', (_req, res) => {
+    res.status(200).json({
+      status: 'OK',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+  // ─────────────────────────────────────────────────────────────────────────────
   return httpServer;
 }
