@@ -7681,5 +7681,65 @@ const sharedPieces = await db.select({
     }
   });
 
+  // === PUBLIC PIECE (Open Graph / SEO) ===
+  app.get("/api/public-piece/:id", async (req, res) => {
+    try {
+      const writing = await storage.getWriting(req.params.id);
+      if (!writing || !writing.isPublished)
+        return res.status(404).json({ message: "Not found" });
+      const author = await storage.getUser(writing.authorId);
+      const plainText = (writing.content || "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const description = plainText.slice(0, 160);
+      res.json({
+        id: writing.id,
+        title: writing.title,
+        content: writing.content,
+        genre: writing.genre,
+        tags: writing.tags,
+        createdAt: writing.createdAt,
+        description,
+        author: author
+          ? {
+              id: author.id,
+              displayName: author.displayName || author.firstName || "Anonymous",
+              bio: author.bio,
+              profileImageUrl: author.profileImageUrl,
+            }
+          : null,
+      });
+    } catch (error) {
+      console.error("Error fetching public piece:", error);
+      res.status(500).json({ message: "Failed to fetch piece" });
+    }
+  });
+
+  // Public writer profile (SEO)
+  app.get("/api/public-writer/:userId", async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.userId);
+      if (!user) return res.status(404).json({ message: "Writer not found" });
+      const writings = await storage.getPublishedWritingsByAuthor(req.params.userId).catch(() => []);
+      res.json({
+        id: user.id,
+        displayName: user.displayName || user.firstName || "Anonymous",
+        bio: user.bio,
+        profileImageUrl: user.profileImageUrl,
+        publishedCount: writings.length,
+        recentPieces: writings.slice(0, 6).map((w: any) => ({
+          id: w.id,
+          title: w.title,
+          genre: w.genre,
+          createdAt: w.createdAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching public writer:", error);
+      res.status(500).json({ message: "Failed to fetch writer" });
+    }
+  });
+
   return httpServer;
 }
