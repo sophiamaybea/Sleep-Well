@@ -1380,7 +1380,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         <button
           onClick={() => { doSave(); onBack(); }}
           className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-white/90 hover:text-white/80 transition-colors group"
-          data-testid="button-back"
+          <p className="font-mono text-[9px] uppercase tracking-widest text-white/25 mb-4"><span>Write</span><span className="mx-1.5 text-white/15">/</span><span className="text-white/40">{editTitle || 'Untitled'}</span></p>data-testid="button-back"
         >
           <ChevronLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
           Back
