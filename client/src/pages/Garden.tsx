@@ -3967,6 +3967,14 @@ export default function Garden() {
                             <Trophy size={14} />
                             Challenges
                           </a>
+                                              <a
+                      href="/grove"
+                      className="flex items-center gap-2 px-2 py-2 rounded-lg text-green-400/60 hover:text-green-400/90 hover:bg-green-400/[0.05] transition-all font-serif text-sm"
+                      data-testid="nav-grove"
+                    >
+                      <TreePine size={14} />
+                      The Grove
+                    </a>
                           <button
                             onClick={() => { setActiveZone("desk"); setShowProfileMenu(false); }}
                             className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-white/90 hover:text-white/80 hover:bg-white/[0.05] transition-all font-serif text-sm text-left"
