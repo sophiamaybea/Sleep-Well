@@ -3305,7 +3305,7 @@ export async function registerRoutes(
   );
 
   // === OPPORTUNITIES ===
-  app.get("/api/opportunities", isAuthenticated, async (req: any, res) => {
+  app.get("/api/opportunities", async (req: any, res) => {
     try {
       const items = await storage.getOpportunities();
       res.json(items);
@@ -3314,7 +3314,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
+  app.post("/api/opportunities", async (req: any, res) => {
     try {
       const parsed = insertOpportunitySchema.safeParse(req.body);
       if (!parsed.success)
@@ -3735,7 +3735,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/garden-pulse", isAuthenticated, async (req: any, res) => {
+  app.get("/api/garden-pulse", async (req: any, res) => {
     try {
       const activeCount = await storage.getActiveWriterCount();
       const summary = await storage.getGardenSummary();
