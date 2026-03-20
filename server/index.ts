@@ -202,4 +202,19 @@ app.get("/api/debug/db", async (_req, res) => {
       log(`serving on port ${port}`);
     },
   );
+  
+  // Keep-warm: ping the health endpoint every 14 minutes to prevent Render cold starts
+  if (process.env.NODE_ENV === "production") {
+    const KEEP_WARM_INTERVAL = 14 * 60 * 1000; // 14 minutes
+    setInterval(async () => {
+      try {
+        const appUrl = process.env.APP_URL || `http://localhost:${port}`;
+        await fetch(`${appUrl}/health`);
+        log("Keep-warm ping sent", "keep-warm");
+      } catch (err) {
+        log(`Keep-warm ping failed: ${err}`, "keep-warm");
+      }
+    }, KEEP_WARM_INTERVAL);
+    log("Keep-warm interval started (14 min)", "keep-warm");
+  }
 })();
