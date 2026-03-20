@@ -3,6 +3,7 @@ import Hero from "@/components/sections/Hero";
 import GardenIntro from "@/components/sections/GardenIntro";
 import Featured from "@/components/sections/Featured";
 import Footer from "@/components/Footer";
+import SocialCTA from "@/components/sections/SocialCTA";
 import { useEffect, useState } from "react";
 
 function ScrollAtmosphere() {
@@ -65,6 +66,7 @@ export default function Home() {
         <Hero />
         <Featured />
         <GardenIntro />            
+                          <SocialCTA />
       </main>
 
       <div className="relative z-10">
