@@ -7996,5 +7996,35 @@ const sharedPieces = await db.select({
     }
   });
 
+  // GET /api/grove/plants - get current user's grove plants
+  app.get("/api/grove/plants", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `SELECT * FROM grove_plants WHERE user_id = $1 ORDER BY created_at DESC`,
+        [userId]
+      );
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching grove plants:", error);
+      res.status(500).json({ message: "Failed to fetch grove plants" });
+    }
+  });
+
+  // GET /api/grove/community - get all public grove plants
+  app.get("/api/grove/community", async (req, res) => {
+    try {
+      const db = await import("./db");
+      const { rows } = await db.pool.query(
+        `SELECT gp.*, p.display_name as author_name FROM grove_plants gp LEFT JOIN profiles p ON gp.user_id = p.id ORDER BY gp.created_at DESC LIMIT 50`
+      );
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching community plants:", error);
+      res.status(500).json({ message: "Failed to fetch community plants" });
+    }
+  });
+
   return httpServer;
 }
