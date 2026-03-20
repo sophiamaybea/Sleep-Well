@@ -1291,6 +1291,13 @@ html.light-theme .border-white\/15 {
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
+/* Scrollbar hide utility for horizontal tab bars */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 
 /* Editorial refinements — less WordPress, more literary journal */
 ::selection {
