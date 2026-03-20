@@ -24,7 +24,7 @@ export default function Grove() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(to bottom, #052e16, #14532d)", color: "#fff" }}>
+    <div style={{ position: "relative", zIndex: 10, minHeight: "100vh", background: "linear-gradient(to bottom, #052e16, #14532d)", color: "#fff" }}>
       <Navigation />
       <div style={{ maxWidth: "56rem", margin: "0 auto", padding: "2rem 1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2rem" }}>
@@ -77,14 +77,14 @@ export default function Grove() {
               <div style={{ color: "#4ade80", textAlign: "center", padding: "3rem 0" }}>Growing your grove...</div>
             ) : myPlants.length === 0 ? (
               <div style={{ textAlign: "center", padding: "4rem 0", color: "#4ade80" }}>
-                <Sprout style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5 }} />
+                <Sprout style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5, display: "block" }} />
                 <p style={{ fontSize: "1.125rem", margin: 0 }}>Your grove is empty</p>
                 <p style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.75 }}>Plant something to get started</p>
               </div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
                 {(myPlants as any[]).map((plant: any) => (
-                  <div key={plant.id} style={{ background: "rgba(22,101,52,0.5)", borderRadius: "0.75rem", padding: "1rem", border: "1px solid rgba(22,101,52,0.5)" }}>
+                  <div key={plant.id} style={{ background: "rgba(22,101,52,0.5)", borderRadius: "0.75rem", padding: "1rem", border: "1px solid rgba(74,222,128,0.3)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
                       <Leaf style={{ width: "1.25rem", height: "1.25rem", color: "#4ade80" }} />
                       <span style={{ fontWeight: 500, color: "#fff" }}>{plant.plantType}</span>
@@ -105,14 +105,14 @@ export default function Grove() {
             <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", marginBottom: "1rem" }}>Community Grove</h2>
             {communityPlants.length === 0 ? (
               <div style={{ textAlign: "center", padding: "4rem 0", color: "#4ade80" }}>
-                <Users style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5 }} />
+                <Users style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5, display: "block" }} />
                 <p style={{ fontSize: "1.125rem", margin: 0 }}>No community plants yet</p>
                 <p style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.75 }}>Be the first to plant something</p>
               </div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1rem" }}>
                 {(communityPlants as any[]).map((plant: any) => (
-                  <div key={plant.id} style={{ background: "rgba(22,101,52,0.5)", borderRadius: "0.75rem", padding: "1rem", border: "1px solid rgba(22,101,52,0.5)" }}>
+                  <div key={plant.id} style={{ background: "rgba(22,101,52,0.5)", borderRadius: "0.75rem", padding: "1rem", border: "1px solid rgba(74,222,128,0.3)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
                       <Leaf style={{ width: "1.25rem", height: "1.25rem", color: "#4ade80" }} />
                       <span style={{ fontWeight: 500, color: "#fff" }}>{plant.nickname || plant.plantType}</span>
@@ -131,7 +131,7 @@ export default function Grove() {
           <div>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", marginBottom: "1rem" }}>Watering Log</h2>
             <div style={{ textAlign: "center", padding: "4rem 0", color: "#4ade80" }}>
-              <Droplets style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5 }} />
+              <Droplets style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5, display: "block" }} />
               <p style={{ fontSize: "1.125rem", margin: 0 }}>No watering history yet</p>
               <p style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.75 }}>Water your plants to start a streak</p>
             </div>
