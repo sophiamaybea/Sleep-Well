@@ -53,17 +53,17 @@ export default function Hero() {
                     The Page Gallery Journal
                   </motion.span>
                 </h2>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6, duration: 0.8 }}
-                viewport={{ once: true }}
-                className="max-w-xl text-xl md:text-2xl leading-relaxed font-serif italic text-white"
-                data-testid="text-hero-hook"
-              >
-                A literary journal for writing that lingers.
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.8 }}
+                  viewport={{ once: true }}
+                  className="mt-6"
+                >
+                  <p className="font-serif italic text-xl md:text-2xl text-white/50 leading-relaxed max-w-xl">
+                    A literary journal for writing that lingers.
+                  </p>
+                </motion.div>
               </motion.div>
 
               <motion.p
@@ -71,7 +71,7 @@ export default function Hero() {
                 whileInView={{ opacity: 1 }}
                 transition={{ delay: 0.9, duration: 1.0 }}
                 viewport={{ once: true }}
-                className="max-w-lg text-sm md:text-base leading-relaxed font-mono tracking-wide text-white/60"
+                className="max-w-lg text-sm md:text-base leading-relaxed font-mono tracking-wide text-white/40"
                 data-testid="text-hero-garden-proposition"
               >
                 You don't submit. You don't query. You just write.
@@ -83,25 +83,27 @@ export default function Hero() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.0, duration: 0.8 }}
                 viewport={{ once: true }}
-                className="flex flex-wrap items-center gap-6 pt-4"
+                className="flex items-center gap-12 pt-8"
               >
                 <Link
                   href="/in-bloom"
-                  className="px-10 py-5 bg-white text-[#0d1e2d] font-mono text-sm uppercase tracking-[0.2em] hover:bg-white/90 transition-all duration-300 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.1)] font-bold"
+                  className="group flex items-center gap-3"
                   data-testid="cta-read-journal"
                 >
-                  Read the Journal
+                  <span className="font-serif italic text-lg text-white/70 group-hover:text-white transition-colors duration-500">Read the Journal</span>
+                  <span className="text-white/30 group-hover:text-white/70 group-hover:translate-x-1 transition-all duration-500">&rarr;</span>
                 </Link>
                 <Link
                   href="/garden"
-                  className="px-8 py-4 bg-white/[0.06] border border-white/20 backdrop-blur-sm font-mono text-sm uppercase tracking-widest text-white hover:bg-white/12 hover:text-white transition-all duration-300 rounded-full"
+                  className="group flex items-center gap-3"
                   data-testid="cta-start-writing"
                 >
-                  Start Writing
+                  <span className="font-serif italic text-lg text-white/40 group-hover:text-white/80 transition-colors duration-500">Start Writing</span>
+                  <span className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all duration-500">&rarr;</span>
                 </Link>
                 <Link
                   href="/about"
-                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white hover:text-white transition-colors border-b border-transparent hover:border-white/20 pb-1 ml-2"
+                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/25 hover:text-white/50 transition-colors duration-500 border-b border-transparent hover:border-white/20 pb-1"
                   data-testid="cta-about-us"
                 >
                   About Us
