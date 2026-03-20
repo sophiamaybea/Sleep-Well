@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Sprout, Leaf, Droplets, Users, Heart, TreePine, Plus } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Grove() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("my-grove");
+  const queryClient = useQueryClient();
 
   const { data: myPlants = [], isLoading } = useQuery({
     queryKey: ["/api/grove/plants"],
@@ -15,6 +17,27 @@ export default function Grove() {
 
   const { data: communityPlants = [] } = useQuery({
     queryKey: ["/api/grove/community"],
+  });
+
+  const plantMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("GET", "/api/grove/my-plant");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/grove/plants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/grove/community"] });
+    },
+  });
+
+  const waterMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/grove/water");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/grove/plants"] });
+    },
   });
 
   const tabs = [
@@ -34,6 +57,7 @@ export default function Grove() {
             <p style={{ fontSize: "0.875rem", color: "#4ade80", margin: 0 }}>Your botanical social layer</p>
           </div>
         </div>
+
         <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", background: "rgba(20,83,45,0.5)", borderRadius: "0.5rem", padding: "0.25rem" }}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -64,13 +88,18 @@ export default function Grove() {
             );
           })}
         </div>
+
         {activeTab === "my-grove" && (
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
               <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", margin: 0 }}>My Plants</h2>
-              <button style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#16a34a", color: "#fff", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem", border: "none", cursor: "pointer" }}>
+              <button
+                onClick={() => plantMutation.mutate()}
+                disabled={plantMutation.isPending}
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#16a34a", color: "#fff", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem", border: "none", cursor: "pointer", opacity: plantMutation.isPending ? 0.6 : 1 }}
+              >
                 <Plus style={{ width: "1rem", height: "1rem" }} />
-                Plant Something
+                {plantMutation.isPending ? "Planting..." : "Plant Something"}
               </button>
             </div>
             {isLoading ? (
@@ -94,12 +123,21 @@ export default function Grove() {
                       <Droplets style={{ width: "0.75rem", height: "0.75rem" }} />
                       <span>Streak: {plant.wateringStreak || 0} days</span>
                     </div>
+                    <button
+                      onClick={() => waterMutation.mutate()}
+                      disabled={waterMutation.isPending}
+                      style={{ marginTop: "0.75rem", width: "100%", padding: "0.4rem", background: "rgba(74,222,128,0.2)", border: "1px solid rgba(74,222,128,0.4)", borderRadius: "0.375rem", color: "#4ade80", cursor: "pointer", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}
+                    >
+                      <Droplets style={{ width: "0.875rem", height: "0.875rem" }} />
+                      {waterMutation.isPending ? "Watering..." : "Water Plant"}
+                    </button>
                   </div>
                 ))}
               </div>
             )}
           </div>
         )}
+
         {activeTab === "community" && (
           <div>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", marginBottom: "1rem" }}>Community Grove</h2>
@@ -127,6 +165,7 @@ export default function Grove() {
             )}
           </div>
         )}
+
         {activeTab === "watering" && (
           <div>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", marginBottom: "1rem" }}>Watering Log</h2>
