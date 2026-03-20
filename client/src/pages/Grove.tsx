@@ -24,26 +24,41 @@ export default function Grove() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-950 to-green-900 text-white">
+    <div style={{ minHeight: "100vh", background: "linear-gradient(to bottom, #052e16, #14532d)", color: "#fff" }}>
       <Navigation />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <TreePine className="w-8 h-8 text-green-400" />
+      <div style={{ maxWidth: "56rem", margin: "0 auto", padding: "2rem 1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2rem" }}>
+          <TreePine style={{ width: "2rem", height: "2rem", color: "#4ade80" }} />
           <div>
-            <h1 className="text-3xl font-bold text-green-300">The Grove</h1>
-            <p className="text-green-400 text-sm">Your botanical social layer</p>
+            <h1 style={{ fontSize: "1.875rem", fontWeight: "bold", color: "#86efac", margin: 0 }}>The Grove</h1>
+            <p style={{ fontSize: "0.875rem", color: "#4ade80", margin: 0 }}>Your botanical social layer</p>
           </div>
         </div>
-        <div className="flex gap-1 mb-6 bg-green-900/50 rounded-lg p-1">
+        <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", background: "rgba(20,83,45,0.5)", borderRadius: "0.5rem", padding: "0.25rem" }}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={"flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 " + (activeTab === tab.id ? "bg-green-600 text-white" : "text-green-300 hover:text-white")}
+                style={{
+                  flex: 1,
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "0.375rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                  border: "none",
+                  cursor: "pointer",
+                  background: activeTab === tab.id ? "#16a34a" : "transparent",
+                  color: activeTab === tab.id ? "#fff" : "#86efac",
+                  transition: "all 0.2s",
+                }}
               >
-                <Icon className="w-4 h-4" />
+                <Icon style={{ width: "1rem", height: "1rem" }} />
                 {tab.label}
               </button>
             );
@@ -51,32 +66,32 @@ export default function Grove() {
         </div>
         {activeTab === "my-grove" && (
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-green-300">My Plants</h2>
-              <button className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                <Plus className="w-4 h-4" />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", margin: 0 }}>My Plants</h2>
+              <button style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#16a34a", color: "#fff", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem", border: "none", cursor: "pointer" }}>
+                <Plus style={{ width: "1rem", height: "1rem" }} />
                 Plant Something
               </button>
             </div>
             {isLoading ? (
-              <div className="text-green-400 text-center py-12">Growing your grove...</div>
+              <div style={{ color: "#4ade80", textAlign: "center", padding: "3rem 0" }}>Growing your grove...</div>
             ) : myPlants.length === 0 ? (
-              <div className="text-center py-16 text-green-400">
-                <Sprout className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Your grove is empty</p>
-                <p className="text-sm mt-2 opacity-75">Plant something to get started</p>
+              <div style={{ textAlign: "center", padding: "4rem 0", color: "#4ade80" }}>
+                <Sprout style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5 }} />
+                <p style={{ fontSize: "1.125rem", margin: 0 }}>Your grove is empty</p>
+                <p style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.75 }}>Plant something to get started</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
                 {(myPlants as any[]).map((plant: any) => (
-                  <div key={plant.id} className="bg-green-800/50 rounded-xl p-4 border border-green-700/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Leaf className="w-5 h-5 text-green-400" />
-                      <span className="font-medium">{plant.plantType}</span>
+                  <div key={plant.id} style={{ background: "rgba(22,101,52,0.5)", borderRadius: "0.75rem", padding: "1rem", border: "1px solid rgba(22,101,52,0.5)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                      <Leaf style={{ width: "1.25rem", height: "1.25rem", color: "#4ade80" }} />
+                      <span style={{ fontWeight: 500, color: "#fff" }}>{plant.plantType}</span>
                     </div>
-                    <p className="text-green-300 text-sm">{plant.nickname || plant.plantType}</p>
-                    <div className="flex items-center gap-1 mt-3 text-xs text-green-400">
-                      <Droplets className="w-3 h-3" />
+                    <p style={{ color: "#86efac", fontSize: "0.875rem", margin: 0 }}>{plant.nickname || plant.plantType}</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", marginTop: "0.75rem", fontSize: "0.75rem", color: "#4ade80" }}>
+                      <Droplets style={{ width: "0.75rem", height: "0.75rem" }} />
                       <span>Streak: {plant.wateringStreak || 0} days</span>
                     </div>
                   </div>
@@ -87,23 +102,23 @@ export default function Grove() {
         )}
         {activeTab === "community" && (
           <div>
-            <h2 className="text-xl font-semibold text-green-300 mb-4">Community Grove</h2>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", marginBottom: "1rem" }}>Community Grove</h2>
             {communityPlants.length === 0 ? (
-              <div className="text-center py-16 text-green-400">
-                <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No community plants yet</p>
-                <p className="text-sm mt-2 opacity-75">Be the first to plant something</p>
+              <div style={{ textAlign: "center", padding: "4rem 0", color: "#4ade80" }}>
+                <Users style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5 }} />
+                <p style={{ fontSize: "1.125rem", margin: 0 }}>No community plants yet</p>
+                <p style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.75 }}>Be the first to plant something</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1rem" }}>
                 {(communityPlants as any[]).map((plant: any) => (
-                  <div key={plant.id} className="bg-green-800/50 rounded-xl p-4 border border-green-700/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Leaf className="w-5 h-5 text-green-400" />
-                      <span className="font-medium">{plant.nickname || plant.plantType}</span>
+                  <div key={plant.id} style={{ background: "rgba(22,101,52,0.5)", borderRadius: "0.75rem", padding: "1rem", border: "1px solid rgba(22,101,52,0.5)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                      <Leaf style={{ width: "1.25rem", height: "1.25rem", color: "#4ade80" }} />
+                      <span style={{ fontWeight: 500, color: "#fff" }}>{plant.nickname || plant.plantType}</span>
                     </div>
-                    <div className="flex items-center gap-2 mt-2 text-xs text-green-400">
-                      <Heart className="w-3 h-3" />
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem", fontSize: "0.75rem", color: "#4ade80" }}>
+                      <Heart style={{ width: "0.75rem", height: "0.75rem" }} />
                       <span>{plant.totalWaterings || 0} waterings</span>
                     </div>
                   </div>
@@ -114,11 +129,11 @@ export default function Grove() {
         )}
         {activeTab === "watering" && (
           <div>
-            <h2 className="text-xl font-semibold text-green-300 mb-4">Watering Log</h2>
-            <div className="text-center py-16 text-green-400">
-              <Droplets className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">No watering history yet</p>
-              <p className="text-sm mt-2 opacity-75">Water your plants to start a streak</p>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#86efac", marginBottom: "1rem" }}>Watering Log</h2>
+            <div style={{ textAlign: "center", padding: "4rem 0", color: "#4ade80" }}>
+              <Droplets style={{ width: "4rem", height: "4rem", margin: "0 auto 1rem", opacity: 0.5 }} />
+              <p style={{ fontSize: "1.125rem", margin: 0 }}>No watering history yet</p>
+              <p style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.75 }}>Water your plants to start a streak</p>
             </div>
           </div>
         )}
