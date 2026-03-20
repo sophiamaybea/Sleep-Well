@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Sprout, Leaf, Droplets, Users, Heart, TreePine, Plus } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 export default function Grove() {
   const { user } = useAuth();
@@ -9,6 +10,7 @@ export default function Grove() {
 
   const { data: myPlants = [], isLoading } = useQuery({
     queryKey: ["/api/grove/plants"],
+    enabled: !!user,
   });
 
   const { data: communityPlants = [] } = useQuery({
@@ -23,6 +25,7 @@ export default function Grove() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-950 to-green-900 text-white">
+      <Navigation />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <TreePine className="w-8 h-8 text-green-400" />
@@ -31,7 +34,6 @@ export default function Grove() {
             <p className="text-green-400 text-sm">Your botanical social layer</p>
           </div>
         </div>
-
         <div className="flex gap-1 mb-6 bg-green-900/50 rounded-lg p-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -47,7 +49,6 @@ export default function Grove() {
             );
           })}
         </div>
-
         {activeTab === "my-grove" && (
           <div>
             <div className="flex justify-between items-center mb-4">
@@ -84,7 +85,6 @@ export default function Grove() {
             )}
           </div>
         )}
-
         {activeTab === "community" && (
           <div>
             <h2 className="text-xl font-semibold text-green-300 mb-4">Community Grove</h2>
@@ -112,7 +112,6 @@ export default function Grove() {
             )}
           </div>
         )}
-
         {activeTab === "watering" && (
           <div>
             <h2 className="text-xl font-semibold text-green-300 mb-4">Watering Log</h2>
