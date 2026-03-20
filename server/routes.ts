@@ -3268,7 +3268,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/rejection-wall", async (req: any, res) => {
+  app.post("/api/rejection-wall", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertRejectionWallSchema.safeParse(req.body);
       if (!parsed.success)
@@ -7669,7 +7669,7 @@ const sharedPieces = await db.select({
 
   app.post("/api/circles/:circleId/board-posts", isAuthenticated, async (req, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req as any).user.claims.sub;
       const { circleId } = req.params;
       const validated = insertBoardPostSchema.parse({ ...req.body, circleId });
       const [post] = await db.insert(boardPosts).values({ ...validated, userId }).returning();
