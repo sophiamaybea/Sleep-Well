@@ -68,6 +68,7 @@ export default function Navigation() {
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
     { label: "My Garden", href: "/garden", isPage: true, tooltip: "Write & Grow Your Work" },
+        { label: "The Grove", href: "/grove", isPage: true, tooltip: "Botanical Social Layer" },
     { label: "Drafts", href: "/editor-studio", isPage: true },
   ];
 
