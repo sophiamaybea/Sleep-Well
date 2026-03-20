@@ -23,6 +23,7 @@ const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const Accessibility = lazy(() => import("@/pages/Accessibility"));
 const Commons = lazy(() => import("@/pages/Commons"));
 const HowItWorks = lazy(() => import("@/pages/HowItWorks"));
 const GardenInfo = lazy(() => import("@/pages/GardenInfo"));
@@ -81,6 +82,7 @@ function Router() {
         <Route path="/how-it-works" component={HowItWorks} />
         <Route path="/garden-info" component={GardenInfo} />
         <Route path="/field-guide" component={FieldGuide} />
+                  <Route path="/accessibility" component={Accessibility} />
         <Route path="/garden-guide" component={GardenGuide} />
         <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
