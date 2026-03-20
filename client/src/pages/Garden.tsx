@@ -791,9 +791,9 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
       </div>
       <PublishInvitations />
 
-      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />
+      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />          <button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
 
-      {writings.length > 0 && (() => {
+      {writings.length > 0 && showDeskStats && (() => {
         const totalWords = writings.reduce((a, w) => a + wordCount(w.content), 0);
         const avgLength = Math.round(totalWords / writings.length);
         const longestPiece = writings.reduce((best, w) => {
@@ -3563,6 +3563,7 @@ export default function Garden() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [activeZone, setActiveZone] = useState<Zone>("desk");
+    const [showDeskStats, setShowDeskStats] = useState(false);
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
