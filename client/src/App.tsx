@@ -1,15 +1,14 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import OnboardingModal from "@/components/OnboardingModal";
 import StarBackground from "@/components/StarBackground";
-
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
 const WriterProfile = lazy(() => import("@/pages/WriterProfile"));
@@ -34,7 +33,6 @@ const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Opportunities = lazy(() => import("@/pages/Opportunities"));
 const Grove = lazy(() => import("@/pages/Grove"));
-
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
@@ -42,6 +40,33 @@ const V2Community = lazy(() => import("@/pages/V2Community"));
 const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
+
+const PAGE_TITLES: Record<string, string> = {
+  "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
+  "/in-bloom": "The Journal — The Page Gallery",
+  "/publications": "Archive & Contributors — The Page Gallery",
+  "/gallery": "The Journal — The Page Gallery",
+  "/about": "About — The Page Gallery Journal",
+  "/garden": "My Garden — The Page Gallery",
+  "/grove": "The Grove — The Page Gallery",
+  "/commons": "The Commons — The Page Gallery",
+  "/how-it-works": "How It Works — The Page Gallery",
+  "/garden-info": "Garden Seasons — The Page Gallery",
+  "/editor-studio": "Editorial Studio — The Page Gallery",
+  "/privacy": "Privacy Policy — The Page Gallery",
+  "/terms": "Terms of Service — The Page Gallery",
+  "/accessibility": "Accessibility — The Page Gallery",
+  "/sign-in": "Sign In — The Page Gallery",
+};
+
+function PageTitle() {
+  const [location] = useLocation();
+  useEffect(() => {
+    const title = PAGE_TITLES[location] || "The Page Gallery Journal";
+    document.title = title;
+  }, [location]);
+  return null;
+}
 
 function PageLoader() {
   return (
@@ -60,14 +85,13 @@ function PageLoader() {
     </div>
   );
 }
-
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/sign-in" component={SignIn} />
         <Route path="/garden" component={Garden} />
-                  <Route path="/grove" component={Grove} />
+        <Route path="/grove" component={Grove} />
         <Route path="/garden/:username" component={PublicGarden} />
         <Route path="/edit-profile" component={EditProfile} />
         <Route path="/writer/:id" component={WriterProfile} />
@@ -104,7 +128,6 @@ function Router() {
     </Suspense>
   );
 }
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -114,6 +137,7 @@ function App() {
           <StarBackground />
           <AccessibilityToolbar />
           <OnboardingModal />
+          <PageTitle />
           <Router />
           <Toaster />
         </SmoothScroll>
@@ -121,5 +145,4 @@ function App() {
     </QueryClientProvider>
   );
 }
-
 export default App;
