@@ -40,7 +40,7 @@ export default function Footer() {
                 <Instagram size={14} className="opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
                 <span>@pagegalleryjournal</span>
               </a>
-              <a href="mailto:hello@thepagegalleryjournal.com" className="flex items-center gap-2 font-serif italic text-white/30 hover:text-white/70 transition-colors duration-500 group">
+                      <a href="mailto:submissions@pagegalleryjournal.com"
                 <Mail size={14} className="opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
                 <span>Contact</span>
               </a>
