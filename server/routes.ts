@@ -8424,6 +8424,11 @@ const sharedPieces = await db.select({
       const { state, decisionNote } = req.body;
       const editorId = req.user?.claims?.sub;
       const result = await storage.updateEditorialInboxState(writingId, editorId, state, decisionNote);
+
+            // When accepted, also publish the writing to the gallery
+      if (state === "accepted") {
+        await storage.publishWriting(writingId);
+      }
       res.json(result);
     } catch (error) {
       console.error("Update inbox state error:", error);
