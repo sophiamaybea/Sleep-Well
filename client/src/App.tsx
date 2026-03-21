@@ -42,6 +42,7 @@ const V2Community = lazy(() => import("@/pages/V2Community"));
 const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
+const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 const PAGE_TITLES: Record<string, string> = {
  "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
  "/in-bloom": "The Journal — The Page Gallery",
@@ -127,6 +128,7 @@ function Router() {
  <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
  <Route path="/journal">{() => <Redirect to="/in-bloom" />}</Route>
  <Route path="/read">{() => <Redirect to="/in-bloom" />}</Route>
+          <Route path="/editorial-room" component={EditorialRoom} />
  <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
  <Route path="/opportunities" component={Opportunities} />
         <Route path="/" component={Home} />
