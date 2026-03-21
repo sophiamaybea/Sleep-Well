@@ -43,7 +43,7 @@ export default function Hero() {
                   style={{ x: textX, y: textY }}
                   className="font-mono text-[10px] tracking-[0.4em] text-amber-200/60 uppercase mb-6 block"
                 >
-                  A Literary Journal & Writing Garden
+                              A Literary Journal & Digital Writing Garden
                 </motion.p>
                 <h1 className="font-display text-[clamp(2.5rem,8vw,6rem)] font-light leading-[0.95] tracking-tight text-white">
                   Writing that lingers.
@@ -58,8 +58,8 @@ export default function Hero() {
                 className="max-w-lg text-sm md:text-base leading-relaxed font-mono text-white/60"
                 data-testid="text-hero-garden-proposition"
               >
-                You don't submit. You don't query. You just write.
-                {" "}Every writer gets a Garden — a private space to draft, revise, and bloom.
+            No slush pile. No query letters. No waiting rooms.
+            {" "}Every writer gets a Garden — a private space for drafts, fragments, and work that isn't ready yet.
               </motion.p>
 
               <motion.div
