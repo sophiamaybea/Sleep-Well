@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2, Bookmark, Share2, Check, Heart, Archive, ExternalLink } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
+import NewsletterSignup from "@/components/ui/NewsletterSignup";
 
 const frameImg = "/images/gold-frame.png";
 
@@ -432,6 +433,11 @@ export default function Gallery() {
                             <h3 className="text-xl md:text-2xl font-display font-light tracking-normal text-white/85 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
                               {item.title}
                             </h3>
+                                            {stripHtml(item.content).slice(0, 80).trim() && (
+                  <p className="font-serif text-[11px] leading-relaxed text-white/35 line-clamp-1 italic mt-0.5">
+                    {stripHtml(item.content).slice(0, 80).trim()}...
+                  </p>
+                )}
                             <div className="flex items-center gap-4">
                               <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/55 group-hover:text-amber-200/40 transition-colors duration-500">
                                 {item.genre}
@@ -477,6 +483,9 @@ export default function Gallery() {
           )}
         </div>
 
+          <div className="max-w-3xl mx-auto px-6">
+            <NewsletterSignup variant="inline" heading="Letters from the Garden" subheading="A new piece and a writing prompt, every two weeks." />
+          </div>
         <PlantedInTheGarden />
 
         <footer className="border-t border-white/[0.04] py-12 text-center">
