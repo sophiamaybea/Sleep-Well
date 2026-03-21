@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { useAuth } from "@hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
-import { toast } from "@hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Plus, BookOpen, Lock, Globe, Link2, Archive, Leaf, ArrowLeft, Trash2 } from "lucide-react";
 
 type Collection = {
