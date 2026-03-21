@@ -8055,6 +8055,86 @@ const sharedPieces = await db.select({
       timestamp: new Date().toISOString(),
     });
   });
+
+  // ── PUBLIC GARDEN ENTRIES (public writings shared to the garden) ────────
+  app.get("/api/garden/entries", async (_req, res) => {
+    try {
+      const { db } = await import("./db");
+      const { writings, users } = await import("../shared/schema");
+      const { eq, and, desc } = await import("drizzle-orm");
+      const entries = await db
+        .select({
+          id: writings.id,
+          title: writings.title,
+          content: writings.content,
+          stage: writings.stage,
+          genre: writings.genre,
+          tags: writings.tags,
+          publishedAt: writings.publishedAt,
+          createdAt: writings.createdAt,
+          authorId: writings.authorId,
+          authorName: users.displayName,
+        })
+        .from(writings)
+        .leftJoin(users, eq(writings.authorId, users.id))
+        .where(
+          and(
+            eq(writings.isPublicGarden, true),
+            eq(writings.isArchived, false)
+          )
+        )
+        .orderBy(desc(writings.createdAt))
+        .limit(50);
+      res.json(entries);
+    } catch (error) {
+      console.error("Garden entries error:", error);
+      res.status(500).json({ message: "Failed to fetch garden entries" });
+    }
+  });
+
+  // ── STUDIO PRODUCTS ──────────────────────────────────────────────────────
+  // GET /api/studio/products — list all published studio products
+  app.get("/api/studio/products", async (_req, res) => {
+    try {
+      const { db } = await import("./db");
+      // Use exhibits table as studio products (slug, title, subtitle, price, isPublished)
+      const { exhibits } = await import("../shared/schema");
+      const { eq } = await import("drizzle-orm");
+      const products = await db
+        .select()
+        .from(exhibits)
+        .where(eq(exhibits.isPublished, true))
+        .orderBy(exhibits.slug);
+      res.json(products);
+    } catch (error) {
+      console.error("Studio products error:", error);
+      res.status(500).json({ message: "Failed to fetch studio products" });
+    }
+  });
+
+  // GET /api/studio/products/:slug — single product detail
+  app.get("/api/studio/products/:slug", async (req, res) => {
+    try {
+      const { db } = await import("./db");
+      const { exhibits } = await import("../shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      const [product] = await db
+        .select()
+        .from(exhibits)
+        .where(
+          and(
+            eq(exhibits.slug, req.params.slug),
+            eq(exhibits.isPublished, true)
+          )
+        )
+        .limit(1);
+      if (!product) return res.status(404).json({ message: "Product not found" });
+      res.json(product);
+    } catch (error) {
+      console.error("Studio product error:", error);
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
   // ─────────────────────────────────────────────────────────────────────────────
   return httpServer;
 }
