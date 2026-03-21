@@ -8404,6 +8404,162 @@ const sharedPieces = await db.select({
     }
   });
 
+    // === EDITORIAL ROOM ROUTES ===
+
+  // GET /api/editorial/inbox
+  app.get("/api/editorial/inbox", isEditor, async (req, res) => {
+    try {
+      const inbox = await storage.getEditorialInbox();
+      res.json(inbox);
+    } catch (error) {
+      console.error("Editorial inbox error:", error);
+      res.status(500).json({ message: "Failed to load editorial inbox" });
+    }
+  });
+
+  // PUT /api/editorial/inbox/:writingId/state
+  app.put("/api/editorial/inbox/:writingId/state", isEditor, async (req, res) => {
+    try {
+      const { writingId } = req.params;
+      const { state, decisionNote } = req.body;
+      const editorId = req.user?.claims?.sub;
+      const result = await storage.updateEditorialInboxState(writingId, editorId, state, decisionNote);
+      res.json(result);
+    } catch (error) {
+      console.error("Update inbox state error:", error);
+      res.status(500).json({ message: "Failed to update inbox state" });
+    }
+  });
+
+  // GET /api/editorial/threads
+  app.get("/api/editorial/threads", isEditor, async (req, res) => {
+    try {
+      const issueId = req.query.issueId as string | undefined;
+      const threads = await storage.getEditorialThreads(issueId);
+      res.json(threads);
+    } catch (error) {
+      console.error("Editorial threads error:", error);
+      res.status(500).json({ message: "Failed to load threads" });
+    }
+  });
+
+  // POST /api/editorial/threads
+  app.post("/api/editorial/threads", isEditor, async (req, res) => {
+    try {
+      const editorId = req.user?.claims?.sub;
+      const thread = await storage.createEditorialThread(editorId, req.body);
+      res.json(thread);
+    } catch (error) {
+      console.error("Create thread error:", error);
+      res.status(500).json({ message: "Failed to create thread" });
+    }
+  });
+
+  // GET /api/editorial/threads/:id
+  app.get("/api/editorial/threads/:id", isEditor, async (req, res) => {
+    try {
+      const thread = await storage.getEditorialThread(req.params.id);
+      if (!thread) return res.status(404).json({ message: "Thread not found" });
+      res.json(thread);
+    } catch (error) {
+      console.error("Get thread error:", error);
+      res.status(500).json({ message: "Failed to load thread" });
+    }
+  });
+
+  // POST /api/editorial/threads/:id/messages
+  app.post("/api/editorial/threads/:id/messages", isEditor, async (req, res) => {
+    try {
+      const senderId = req.user?.claims?.sub;
+      const msg = await storage.addEditorialThreadMessage(senderId, { threadId: req.params.id, content: req.body.content });
+      res.json(msg);
+    } catch (error) {
+      console.error("Add thread message error:", error);
+      res.status(500).json({ message: "Failed to add message" });
+    }
+  });
+
+  // PATCH /api/editorial/threads/:id
+  app.patch("/api/editorial/threads/:id", isEditor, async (req, res) => {
+    try {
+      const updated = await storage.updateEditorialThread(req.params.id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Update thread error:", error);
+      res.status(500).json({ message: "Failed to update thread" });
+    }
+  });
+
+  // GET /api/editorial/tasks
+  app.get("/api/editorial/tasks", isEditor, async (req, res) => {
+    try {
+      const assigneeId = req.query.assigneeId as string | undefined;
+      const status = req.query.status as string | undefined;
+      const tasks = await storage.getEditorialTasks(assigneeId, status);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Editorial tasks error:", error);
+      res.status(500).json({ message: "Failed to load tasks" });
+    }
+  });
+
+  // POST /api/editorial/tasks
+  app.post("/api/editorial/tasks", isEditor, async (req, res) => {
+    try {
+      const editorId = req.user?.claims?.sub;
+      const task = await storage.createEditorialTask(editorId, req.body);
+      res.json(task);
+    } catch (error) {
+      console.error("Create task error:", error);
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  // PATCH /api/editorial/tasks/:id
+  app.patch("/api/editorial/tasks/:id", isEditor, async (req, res) => {
+    try {
+      const updated = await storage.updateEditorialTask(req.params.id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Update task error:", error);
+      res.status(500).json({ message: "Failed to update task" });
+    }
+  });
+
+  // GET /api/editorial/contributors
+  app.get("/api/editorial/contributors", isEditor, async (req, res) => {
+    try {
+      const contributors = await storage.getContributorRecords();
+      res.json(contributors);
+    } catch (error) {
+      console.error("Contributors error:", error);
+      res.status(500).json({ message: "Failed to load contributors" });
+    }
+  });
+
+  // GET /api/editorial/contributor-notes/:userId
+  app.get("/api/editorial/contributor-notes/:userId", isEditor, async (req, res) => {
+    try {
+      const notes = await storage.getContributorNotes(req.params.userId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Contributor notes error:", error);
+      res.status(500).json({ message: "Failed to load notes" });
+    }
+  });
+
+  // POST /api/editorial/contributor-notes/:userId
+  app.post("/api/editorial/contributor-notes/:userId", isEditor, async (req, res) => {
+    try {
+      const editorId = req.user?.claims?.sub;
+      const note = await storage.upsertContributorNote(editorId, req.params.userId, req.body.content);
+      res.json(note);
+    } catch (error) {
+      console.error("Upsert contributor note error:", error);
+      res.status(500).json({ message: "Failed to save note" });
+    }
+  });
+
   // ========================================
   return httpServer;
 }
