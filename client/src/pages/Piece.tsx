@@ -82,7 +82,7 @@ export default function Piece() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center relative z-10">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-[#8B7355] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-[#8B7355] font-serif italic">Loading...</p>
@@ -93,7 +93,7 @@ export default function Piece() {
 
   if (isError || !piece) {
     return (
-      <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center relative z-10">
         <div className="text-center max-w-md px-6">
           <div className="text-6xl mb-6">🌿</div>
           <h1 className="text-2xl font-serif text-[#4a3728] mb-3">This page has wandered off</h1>
@@ -128,7 +128,7 @@ export default function Piece() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]">
+    <div className="min-h-screen bg-[#faf8f5] relative z-10">
       {/* Top nav */}
       <div className="border-b border-[#e8e0d5] bg-[#faf8f5]/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
