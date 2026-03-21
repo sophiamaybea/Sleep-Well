@@ -2351,3 +2351,115 @@ export type ChapbookCollection = typeof chapbookCollections.$inferSelect;
 export type InsertChapbookCollection = z.infer<typeof insertChapbookCollectionSchema>;
 export type CollectionItem = typeof collectionItems.$inferSelect;
 export type CollectionUnlock = typeof collectionUnlocks.$inferSelect;
+
+
+// ─── EDITORIAL ROOM ──────────────────────────────────────────────────────────
+
+export const editorialInboxStates = pgTable("editorial_inbox_states", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id")
+    .notNull()
+    .references(() => writings.id),
+  state: varchar("state", { length: 32 }).notNull().default("unread"),
+  assignedEditorId: varchar("assigned_editor_id").references(() => users.id),
+  issueId: varchar("issue_id"),
+  decisionNote: text("decision_note"),
+  flaggedAt: timestamp("flagged_at"),
+  decidedAt: timestamp("decided_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const editorialThreads = pgTable("editorial_threads", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id").references(() => writings.id),
+  subject: text("subject").notNull(),
+  createdByEditorId: varchar("created_by_editor_id")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const editorialThreadMessages = pgTable("editorial_thread_messages", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  threadId: varchar("thread_id")
+    .notNull()
+    .references(() => editorialThreads.id),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const editorialTasks = pgTable("editorial_tasks", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  assignedEditorId: varchar("assigned_editor_id").references(() => users.id),
+  createdByEditorId: varchar("created_by_editor_id")
+    .notNull()
+    .references(() => users.id),
+  status: varchar("status", { length: 32 }).notNull().default("open"),
+  dueDate: timestamp("due_date"),
+  issueId: varchar("issue_id"),
+  writingId: varchar("writing_id").references(() => writings.id),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const contributorNotes = pgTable("contributor_notes", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  contributorId: varchar("contributor_id")
+    .notNull()
+    .references(() => users.id),
+  editorId: varchar("editor_id")
+    .notNull()
+    .references(() => users.id),
+  note: text("note").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEditorialInboxStateSchema = createInsertSchema(
+  editorialInboxStates
+).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertEditorialThreadSchema = createInsertSchema(
+  editorialThreads
+).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertEditorialThreadMessageSchema = createInsertSchema(
+  editorialThreadMessages
+).omit({ id: true, createdAt: true });
+
+export const insertEditorialTaskSchema = createInsertSchema(
+  editorialTasks
+).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertContributorNoteSchema = createInsertSchema(
+  contributorNotes
+).omit({ id: true, createdAt: true, updatedAt: true });
+
+export type EditorialInboxState = typeof editorialInboxStates.$inferSelect;
+export type InsertEditorialInboxState = z.infer<typeof insertEditorialInboxStateSchema>;
+export type EditorialThread = typeof editorialThreads.$inferSelect;
+export type InsertEditorialThread = z.infer<typeof insertEditorialThreadSchema>;
+export type EditorialThreadMessage = typeof editorialThreadMessages.$inferSelect;
+export type InsertEditorialThreadMessage = z.infer<typeof insertEditorialThreadMessageSchema>;
+export type EditorialTask = typeof editorialTasks.$inferSelect;
+export type InsertEditorialTask = z.infer<typeof insertEditorialTaskSchema>;
+export type ContributorNote = typeof contributorNotes.$inferSelect;
+export type InsertContributorNote = z.infer<typeof insertContributorNoteSchema>;
