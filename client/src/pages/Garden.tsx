@@ -27,7 +27,7 @@ import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/
 import ExportMenu from "@/components/garden/ExportMenu";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
-type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate";
+type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
 
@@ -446,7 +446,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
     { id: "reading-room", label: "Read", desc: "The public garden — what blooms here, others can tend", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
     { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
     { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
-      { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },
+      { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },     { id: "collections", label: "Beds", desc: "Curate your work into chapbook collections", icon: <BookOpen size={14} />, activeColor: "border-violet-500/25 bg-violet-900/20 text-violet-200/90" },
   ];
 
   return (
@@ -4171,7 +4171,7 @@ export default function Garden() {
   );
 }
 
-function GardenGateZone() {
+function CollectionsRedirect() {   useEffect(() => { window.location.href = "/garden/collections"; }, []);   return <div className="flex items-center justify-center py-20"><p className="font-mono text-[10px] uppercase tracking-widest text-white/40">Opening your beds...</p></div>; } function GardenGateZone() {
   const { user } = useAuth();
   const { data: writings = [] } = useQuery({
     queryKey: ["/api/writings"],
