@@ -8563,6 +8563,94 @@ const sharedPieces = await db.select({
       console.error("Upsert contributor note error:", error);
       res.status(500).json({ message: "Failed to save note" });
     }
+
+      // ===== EDITOR TASK COMMENTS =====
+
+  // GET /api/editorial/tasks/:taskId/comments
+  app.get("/api/editorial/tasks/:taskId/comments", isEditor, async (req, res) => {
+    try {
+      const comments = await storage.getTaskComments(req.params.taskId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Task comments error:", error);
+      res.status(500).json({ message: "Failed to load task comments" });
+    }
+  });
+
+  // POST /api/editorial/tasks/:taskId/comments
+  app.post("/api/editorial/tasks/:taskId/comments", isEditor, async (req, res) => {
+    try {
+      const authorId = req.user?.claims?.sub;
+      const comment = await storage.createTaskComment({
+        taskId: req.params.taskId,
+        authorId,
+        content: req.body.content,
+      });
+      res.json(comment);
+    } catch (error) {
+      console.error("Create task comment error:", error);
+      res.status(500).json({ message: "Failed to create comment" });
+    }
+  });
+
+  // DELETE /api/editorial/task-comments/:id
+  app.delete("/api/editorial/task-comments/:id", isEditor, async (req, res) => {
+    try {
+      await storage.deleteTaskComment(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete task comment error:", error);
+      res.status(500).json({ message: "Failed to delete comment" });
+    }
+  });
+
+  // ===== STUDIO NOTES =====
+
+  // GET /api/editorial/studio-notes
+  app.get("/api/editorial/studio-notes", isEditor, async (req, res) => {
+    try {
+      const authorId = req.query.authorId as string | undefined;
+      const notes = await storage.getStudioNotes(authorId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Studio notes error:", error);
+      res.status(500).json({ message: "Failed to load studio notes" });
+    }
+  });
+
+  // POST /api/editorial/studio-notes
+  app.post("/api/editorial/studio-notes", isEditor, async (req, res) => {
+    try {
+      const authorId = req.user?.claims?.sub;
+      const note = await storage.createStudioNote({ ...req.body, authorId });
+      res.json(note);
+    } catch (error) {
+      console.error("Create studio note error:", error);
+      res.status(500).json({ message: "Failed to create studio note" });
+    }
+  });
+
+  // PATCH /api/editorial/studio-notes/:id
+  app.patch("/api/editorial/studio-notes/:id", isEditor, async (req, res) => {
+    try {
+      const updated = await storage.updateStudioNote(req.params.id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Update studio note error:", error);
+      res.status(500).json({ message: "Failed to update studio note" });
+    }
+  });
+
+  // DELETE /api/editorial/studio-notes/:id
+  app.delete("/api/editorial/studio-notes/:id", isEditor, async (req, res) => {
+    try {
+      await storage.deleteStudioNote(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete studio note error:", error);
+      res.status(500).json({ message: "Failed to delete studio note" });
+    }
+  });
   });
 
   // ========================================
