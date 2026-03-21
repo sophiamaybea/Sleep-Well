@@ -8017,7 +8017,7 @@ const sharedPieces = await db.select({
     try {
       const db = await import("./db");
       const { rows } = await db.pool.query(
-        `SELECT gp.*, p.display_name as author_name FROM grove_plants gp LEFT JOIN profiles p ON gp.user_id = p.id ORDER BY gp.created_at DESC LIMIT 50`
+        `SELECT gp.*, u.username as author_name FROM grove_plants gp LEFT JOIN users u ON gp.user_id = u.id ORDER BY gp.created_at DESC LIMIT 50`
       );
       res.json(rows);
     } catch (error) {
