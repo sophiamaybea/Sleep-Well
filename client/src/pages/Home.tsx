@@ -4,6 +4,7 @@ import GardenIntro from "@/components/sections/GardenIntro";
 import Featured from "@/components/sections/Featured";
 import Footer from "@/components/Footer";
 import SocialCTA from "@/components/sections/SocialCTA";
+import NewsletterSignup from "@/components/ui/NewsletterSignup";
 import { useEffect, useState } from "react";
 
 function ScrollAtmosphere() {
@@ -24,24 +25,12 @@ function ScrollAtmosphere() {
   const warmShift = Math.min(scrollProgress * 1.5, 1);
 
   return (
-    <div className="fixed inset-0 z-[1] pointer-events-none">
+    <div className="fixed inset-0 pointer-events-none z-0">
       <div
-        className="absolute inset-0 transition-opacity duration-700"
+        className="absolute inset-0"
         style={{
-          opacity: fogOpacity,
-          background: `linear-gradient(180deg, 
-            transparent 0%, 
-            rgba(13,30,45,${0.3 * warmShift}) 30%, 
-            rgba(13,30,45,${0.5 * warmShift}) 60%, 
-            rgba(13,30,45,${0.7 * warmShift}) 100%
-          )`,
-        }}
-      />
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[40vh]"
-        style={{
-          opacity: warmShift * 0.4,
-          background: "radial-gradient(ellipse at 50% 100%, rgba(196,162,77,0.08) 0%, transparent 60%)",
+          background: `radial-gradient(ellipse at 50% 100%, rgba(196,162,77,0.08) 0%, transparent 60%)`,
+          opacity: warmShift,
         }}
       />
       <div
@@ -57,17 +46,18 @@ function ScrollAtmosphere() {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-background relative">
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-secondary-foreground">
 
       <ScrollAtmosphere />
       <Navigation />
 
-              <main>
-        <Hero />
-        <Featured />
-        <GardenIntro />            
-                          <SocialCTA />
-      </main>
+        <main>
+          <Hero />
+          <Featured />
+          <GardenIntro />
+          <NewsletterSignup />
+          <SocialCTA />
+        </main>
 
       <div className="relative z-10">
         <Footer />
