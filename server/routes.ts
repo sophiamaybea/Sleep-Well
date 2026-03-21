@@ -65,6 +65,12 @@ import {
   insertExhibitResponseSchema,
   insertExhibitReflectionSchema,
   galleryComments,
+  chapbookCollections,
+  collectionItems,
+  collectionUnlocks,
+  insertChapbookCollectionSchema,
+  updateChapbookCollectionSchema,
+  insertCollectionItemSchema,
   users,
   insertSiteContentSchema,
   siteContent,
@@ -8136,5 +8142,268 @@ const sharedPieces = await db.select({
     }
   });
   // ─────────────────────────────────────────────────────────────────────────────
+
+  // === CHAPBOOK COLLECTIONS / BEDS ===
+  // POST /api/collections - create a new collection
+  app.post("/api/collections", isAuthenticated, async (req, res) => {
+    try {
+      const data = insertChapbookCollectionSchema.parse(req.body);
+      const [collection] = await db
+        .insert(chapbookCollections)
+        .values({ ...data, authorId: req.user!.id })
+        .returning();
+      res.json(collection);
+    } catch (error) {
+      console.error("Create collection error:", error);
+      res.status(500).json({ message: "Failed to create collection" });
+    }
+  });
+
+  // GET /api/collections - get my collections
+  app.get("/api/collections", isAuthenticated, async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const collections = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.authorId, req.user!.id));
+      res.json(collections);
+    } catch (error) {
+      console.error("Fetch collections error:", error);
+      res.status(500).json({ message: "Failed to fetch collections" });
+    }
+  });
+
+  // GET /api/collections/:id - get a single collection with items
+  app.get("/api/collections/:id", async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const { id } = req.params;
+      const [collection] = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.id, id));
+
+      if (!collection) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      // Check access: public OR logged-in author OR reader who unlocked
+      let canView = collection.isPublic;
+      if (req.user) {
+        if (req.user.id === collection.authorId) {
+          canView = true;
+        } else if (collection.allowTip) {
+          const unlocks = await db
+            .select()
+            .from(collectionUnlocks)
+            .where(
+              eq(collectionUnlocks.collectionId, id),
+              eq(collectionUnlocks.readerId, req.user.id)
+            );
+          if (unlocks.length > 0) {
+            canView = true;
+          }
+        }
+      }
+
+      if (!canView) {
+        return res.status(403).json({ message: "Collection is private or requires unlock" });
+      }
+
+      // Fetch items
+      const items = await db
+        .select()
+        .from(collectionItems)
+        .where(eq(collectionItems.collectionId, id))
+        .orderBy(collectionItems.sortOrder);
+
+      res.json({ collection, items });
+    } catch (error) {
+      console.error("Fetch collection error:", error);
+      res.status(500).json({ message: "Failed to fetch collection" });
+    }
+  });
+
+  // PATCH /api/collections/:id - update collection
+  app.patch("/api/collections/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const { id } = req.params;
+      const data = updateChapbookCollectionSchema.parse(req.body);
+
+      const [existing] = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.id, id));
+
+      if (!existing || existing.authorId !== req.user!.id) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      const [updated] = await db
+        .update(chapbookCollections)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(chapbookCollections.id, id))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Update collection error:", error);
+      res.status(500).json({ message: "Failed to update collection" });
+    }
+  });
+
+  // DELETE /api/collections/:id - delete a collection
+  app.delete("/api/collections/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const { id } = req.params;
+
+      const [existing] = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.id, id));
+
+      if (!existing || existing.authorId !== req.user!.id) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      // Delete items first
+      await db.delete(collectionItems).where(eq(collectionItems.collectionId, id));
+      // Delete unlocks
+      await db.delete(collectionUnlocks).where(eq(collectionUnlocks.collectionId, id));
+      // Delete collection
+      await db.delete(chapbookCollections).where(eq(chapbookCollections.id, id));
+
+      res.json({ message: "Collection deleted" });
+    } catch (error) {
+      console.error("Delete collection error:", error);
+      res.status(500).json({ message: "Failed to delete collection" });
+    }
+  });
+
+  // POST /api/collections/:id/items - add a writing to collection
+  app.post("/api/collections/:id/items", isAuthenticated, async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const { id } = req.params;
+      const data = insertCollectionItemSchema.parse(req.body);
+
+      const [collection] = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.id, id));
+
+      if (!collection || collection.authorId !== req.user!.id) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      const [item] = await db
+        .insert(collectionItems)
+        .values({ ...data, collectionId: id })
+        .returning();
+
+      res.json(item);
+    } catch (error) {
+      console.error("Add item error:", error);
+      res.status(500).json({ message: "Failed to add item to collection" });
+    }
+  });
+
+  // DELETE /api/collections/:id/items/:itemId - remove item from collection
+  app.delete("/api/collections/:id/items/:itemId", isAuthenticated, async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const { id, itemId } = req.params;
+
+      const [collection] = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.id, id));
+
+      if (!collection || collection.authorId !== req.user!.id) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      await db.delete(collectionItems).where(eq(collectionItems.id, itemId));
+      res.json({ message: "Item removed" });
+    } catch (error) {
+      console.error("Remove item error:", error);
+      res.status(500).json({ message: "Failed to remove item" });
+    }
+  });
+
+  // POST /api/collections/:id/unlock - record an unlock (tip payment confirmed externally)
+  app.post("/api/collections/:id/unlock", isAuthenticated, async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const { id } = req.params;
+      const { paypalOrderId, amountPaidPence } = req.body;
+
+      // Check collection exists
+      const [collection] = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.id, id));
+
+      if (!collection) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      // Check if already unlocked
+      const existing = await db
+        .select()
+        .from(collectionUnlocks)
+        .where(
+          eq(collectionUnlocks.collectionId, id),
+          eq(collectionUnlocks.readerId, req.user!.id)
+        );
+
+      if (existing.length > 0) {
+        return res.json({ message: "Already unlocked" });
+      }
+
+      // Record unlock
+      const [unlock] = await db
+        .insert(collectionUnlocks)
+        .values({
+          collectionId: id,
+          readerId: req.user!.id,
+          paypalOrderId,
+          amountPaidPence: amountPaidPence || collection.tipAmountPence,
+        })
+        .returning();
+
+      res.json(unlock);
+    } catch (error) {
+      console.error("Unlock collection error:", error);
+      res.status(500).json({ message: "Failed to unlock collection" });
+    }
+  });
+
+  // GET /api/collections/:id/share - get shareable public link
+  app.get("/api/collections/:id/share", async (req, res) => {
+    try {
+      const { eq } = await import("drizzle-orm");
+      const { id } = req.params;
+      const [collection] = await db
+        .select()
+        .from(chapbookCollections)
+        .where(eq(chapbookCollections.id, id));
+
+      if (!collection || !collection.isPublic) {
+        return res.status(404).json({ message: "Collection not found or not public" });
+      }
+
+      const shareUrl = `/collections/${collection.shareSlug || collection.id}`;
+      res.json({ shareUrl });
+    } catch (error) {
+      console.error("Get share link error:", error);
+      res.status(500).json({ message: "Failed to generate share link" });
+    }
+  });
+
+  // ========================================
   return httpServer;
 }
