@@ -2219,3 +2219,15 @@ export const insertGroveSeedPacketSchema = createInsertSchema(groveSeedPackets).
 
 export type GroveSeedPacket = typeof groveSeedPackets.$inferSelect;
 export type InsertGroveSeedPacket = z.infer<typeof insertGroveSeedPacketSchema>;
+
+// === NEWSLETTER SUBSCRIBERS ===
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
+  subscribedAt: timestamp("subscribed_at").defaultNow(),
+  source: text("source").default("homepage"),
+});
+
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
