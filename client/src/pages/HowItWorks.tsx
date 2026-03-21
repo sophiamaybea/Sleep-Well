@@ -19,7 +19,7 @@ export default function HowItWorks() {
               transition={{ delay: 0.3, duration: 1 }}
               className="font-mono text-[10px] tracking-[0.4em] block uppercase"
             >
-              Understanding the Platform
+                          The Garden & The Journal
             </motion.span>
             <motion.h1
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
@@ -71,7 +71,7 @@ export default function HowItWorks() {
               },
               {
                 label: "What We Offer",
-                text: "A collaborative writing platform. Paid courses. Feedback to support your writing journey. And traditional publishing opportunities through our chapbook series and quarterly issues. Whether you\u2019re here to grow quietly or to put your work into the world, there\u2019s a space for you.",
+                        text: "A collaborative writing platform. Paid courses. Editorial feedback. And traditional publishing opportunities through our chapbook series and quarterly issues.",
               },
             ].map((item, i) => (
               <motion.div
@@ -187,7 +187,7 @@ export default function HowItWorks() {
               viewport={{ once: true }}
               className="text-center space-y-4"
             >
-              <span className="font-mono text-[10px] tracking-[0.4em] text-white/30 uppercase">Feature Walkthrough</span>
+                          <span className="font-mono text-[10px] tracking-[0.4em] text-white/30 uppercase">What's Inside</span>
               <h2 className="text-3xl md:text-5xl font-display font-light italic">Inside the Garden</h2>
             </motion.div>
 
