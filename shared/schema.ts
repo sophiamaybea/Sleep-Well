@@ -2414,6 +2414,11 @@ export const editorialTasks = pgTable("editorial_tasks", {
   issueId: varchar("issue_id"),
   writingId: varchar("writing_id").references(() => writings.id),
   sortOrder: integer("sort_order").notNull().default(0),
+    taskType: text("task_type").notNull().default("ops"),
+  boardColumn: text("board_column").notNull().default("inbox"),
+  completedAt: timestamp("completed_at"),
+  notifyOnComplete: boolean("notify_on_complete").notNull().default(true),
+  priority: text("priority").notNull().default("medium"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -2463,3 +2468,45 @@ export type EditorialTask = typeof editorialTasks.$inferSelect;
 export type InsertEditorialTask = z.infer<typeof insertEditorialTaskSchema>;
 export type ContributorNote = typeof contributorNotes.$inferSelect;
 export type InsertContributorNote = z.infer<typeof insertContributorNoteSchema>;
+
+export const editorTaskComments = pgTable("editor_task_comments", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  taskId: varchar("task_id")
+    .notNull()
+    .references(() => editorialTasks.id),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const studioNotes = pgTable("studio_notes", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  category: text("category").notNull().default("general"),
+  pinned: boolean("pinned").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEditorTaskCommentSchema = createInsertSchema(
+  editorTaskComments
+).omit({ id: true, createdAt: true });
+
+export const insertStudioNoteSchema = createInsertSchema(
+  studioNotes
+).omit({ id: true, createdAt: true, updatedAt: true });
+
+export type EditorTaskComment = typeof editorTaskComments.$inferSelect;
+export type InsertEditorTaskComment = z.infer<typeof insertEditorTaskCommentSchema>;
+export type StudioNote = typeof studioNotes.$inferSelect;
+export type InsertStudioNote = z.infer<typeof insertStudioNoteSchema>;
