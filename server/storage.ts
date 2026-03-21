@@ -7856,6 +7856,280 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(gardenPresence.userId, users.id))
       .orderBy(gardenPresence.lastSeen);
   }
+
+  // === EDITORIAL ROOM ===
+  async getEditorialInbox(): Promise<any[]> {
+    const optIns = await db
+      .select({
+        id: writings.id,
+        title: writings.title,
+        authorId: writings.authorId,
+        genre: writings.genre,
+        stage: writings.stage,
+        readiness: writings.readiness,
+        createdAt: writings.createdAt,
+        updatedAt: writings.updatedAt,
+        authorName: users.firstName,
+        source: sql`'gallery_opt_in'`.as('source'),
+      })
+      .from(writings)
+      .leftJoin(users, eq(writings.authorId, users.id))
+      .where(eq(writings.galleryOptIn, true))
+      .orderBy(desc(writings.galleryOptInAt));
+
+    const flags = await db
+      .select({
+        id: editorialFlags.id,
+        writingId: editorialFlags.writingId,
+        writingTitle: writings.title,
+        authorId: editorialFlags.authorId,
+        authorName: users.firstName,
+        genre: writings.genre,
+        status: editorialFlags.status,
+        isPaidFlag: editorialFlags.isPaidFlag,
+        createdAt: editorialFlags.createdAt,
+        source: sql`'editorial_flag'`.as('source'),
+      })
+      .from(editorialFlags)
+      .leftJoin(writings, eq(editorialFlags.writingId, writings.id))
+      .leftJoin(users, eq(editorialFlags.authorId, users.id))
+      .where(eq(editorialFlags.status, 'flagged'))
+      .orderBy(desc(editorialFlags.createdAt));
+
+    const callResponses = await db
+      .select({
+        id: submissionCallResponses.id,
+        callId: submissionCallResponses.callId,
+        writingId: submissionCallResponses.writingId,
+        writerId: submissionCallResponses.writerId,
+        writerName: users.firstName,
+        writingTitle: writings.title,
+        genre: writings.genre,
+        status: submissionCallResponses.status,
+        createdAt: submissionCallResponses.createdAt,
+        source: sql`'submission_call'`.as('source'),
+      })
+      .from(submissionCallResponses)
+      .leftJoin(users, eq(submissionCallResponses.writerId, users.id))
+      .leftJoin(writings, eq(submissionCallResponses.writingId, writings.id))
+      .where(eq(submissionCallResponses.status, 'pending'))
+      .orderBy(desc(submissionCallResponses.createdAt));
+
+    return [...optIns.map(o => ({ ...o, inboxType: 'gallery_opt_in' })), ...flags.map(f => ({ ...f, inboxType: 'editorial_flag' })), ...callResponses.map(c => ({ ...c, inboxType: 'submission_call' }))];
+  }
+
+  async updateEditorialInboxState(writingId: string, editorId: string, state: string, decisionNote?: string): Promise<any> {
+    const existing = await db
+      .select()
+      .from(editorialInboxStates)
+      .where(eq(editorialInboxStates.writingId, writingId));
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(editorialInboxStates)
+        .set({ state, reviewedByEditorId: editorId, decisionNote: decisionNote || existing[0].decisionNote, updatedAt: new Date() })
+        .where(eq(editorialInboxStates.writingId, writingId))
+        .returning();
+      return updated;
+    }
+    const [created] = await db
+      .insert(editorialInboxStates)
+      .values({ writingId, state, reviewedByEditorId: editorId, decisionNote })
+      .returning();
+    return created;
+  }
+
+  async getEditorialThreads(issueId?: string): Promise<any[]> {
+    const conditions: any[] = [];
+    if (issueId) conditions.push(eq(editorialThreads.issueId, issueId));
+    return await db
+      .select({
+        id: editorialThreads.id,
+        subject: editorialThreads.subject,
+        issueId: editorialThreads.issueId,
+        createdById: editorialThreads.createdById,
+        status: editorialThreads.status,
+        createdAt: editorialThreads.createdAt,
+        updatedAt: editorialThreads.updatedAt,
+        creatorName: users.firstName,
+      })
+      .from(editorialThreads)
+      .leftJoin(users, eq(editorialThreads.createdById, users.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(editorialThreads.updatedAt));
+  }
+
+  async createEditorialThread(createdById: string, data: { subject: string; issueId?: string }): Promise<any> {
+    const [thread] = await db
+      .insert(editorialThreads)
+      .values({ createdById, ...data })
+      .returning();
+    return thread;
+  }
+
+  async getEditorialThread(id: string): Promise<any> {
+    const [thread] = await db
+      .select({
+        id: editorialThreads.id,
+        subject: editorialThreads.subject,
+        issueId: editorialThreads.issueId,
+        createdById: editorialThreads.createdById,
+        status: editorialThreads.status,
+        createdAt: editorialThreads.createdAt,
+        updatedAt: editorialThreads.updatedAt,
+        creatorName: users.firstName,
+      })
+      .from(editorialThreads)
+      .leftJoin(users, eq(editorialThreads.createdById, users.id))
+      .where(eq(editorialThreads.id, id));
+    if (!thread) return undefined;
+    const messages = await db
+      .select({
+        id: editorialThreadMessages.id,
+        threadId: editorialThreadMessages.threadId,
+        senderId: editorialThreadMessages.senderId,
+        content: editorialThreadMessages.content,
+        createdAt: editorialThreadMessages.createdAt,
+        senderName: users.firstName,
+      })
+      .from(editorialThreadMessages)
+      .leftJoin(users, eq(editorialThreadMessages.senderId, users.id))
+      .where(eq(editorialThreadMessages.threadId, id))
+      .orderBy(asc(editorialThreadMessages.createdAt));
+    return { ...thread, messages };
+  }
+
+  async addEditorialThreadMessage(senderId: string, data: { threadId: string; content: string }): Promise<any> {
+    const [msg] = await db
+      .insert(editorialThreadMessages)
+      .values({ senderId, ...data })
+      .returning();
+    await db
+      .update(editorialThreads)
+      .set({ updatedAt: new Date() })
+      .where(eq(editorialThreads.id, data.threadId));
+    return msg;
+  }
+
+  async updateEditorialThread(id: string, data: { status?: string; subject?: string }): Promise<any> {
+    const [updated] = await db
+      .update(editorialThreads)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(editorialThreads.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getEditorialTasks(assigneeId?: string, status?: string): Promise<any[]> {
+    const conditions: any[] = [];
+    if (assigneeId) conditions.push(eq(editorialTasks.assigneeId, assigneeId));
+    if (status) conditions.push(eq(editorialTasks.status, status));
+    return await db
+      .select({
+        id: editorialTasks.id,
+        title: editorialTasks.title,
+        description: editorialTasks.description,
+        status: editorialTasks.status,
+        priority: editorialTasks.priority,
+        assigneeId: editorialTasks.assigneeId,
+        createdById: editorialTasks.createdById,
+        issueId: editorialTasks.issueId,
+        writingId: editorialTasks.writingId,
+        dueDate: editorialTasks.dueDate,
+        createdAt: editorialTasks.createdAt,
+        updatedAt: editorialTasks.updatedAt,
+        assigneeName: users.firstName,
+      })
+      .from(editorialTasks)
+      .leftJoin(users, eq(editorialTasks.assigneeId, users.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(editorialTasks.createdAt));
+  }
+
+  async createEditorialTask(createdById: string, data: { title: string; description?: string; priority?: string; assigneeId?: string; issueId?: string; writingId?: string; dueDate?: Date }): Promise<any> {
+    const [task] = await db
+      .insert(editorialTasks)
+      .values({ createdById, ...data })
+      .returning();
+    return task;
+  }
+
+  async updateEditorialTask(id: string, data: { title?: string; description?: string; status?: string; priority?: string; assigneeId?: string; dueDate?: Date }): Promise<any> {
+    const [updated] = await db
+      .update(editorialTasks)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(editorialTasks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getContributorRecords(): Promise<any[]> {
+    const writers = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        bio: users.bio,
+      })
+      .from(users)
+      .orderBy(users.firstName);
+    const enriched: any[] = [];
+    for (const writer of writers) {
+      const [writingCount] = await db
+        .select({ cnt: count() })
+        .from(writings)
+        .where(eq(writings.authorId, writer.id));
+      const [publishedCount] = await db
+        .select({ cnt: count() })
+        .from(writings)
+        .where(and(eq(writings.authorId, writer.id), eq(writings.isPublished, true)));
+      if ((writingCount?.cnt ?? 0) > 0) {
+        enriched.push({
+          ...writer,
+          totalWritings: writingCount?.cnt ?? 0,
+          publishedWritings: publishedCount?.cnt ?? 0,
+        });
+      }
+    }
+    return enriched;
+  }
+
+  async getContributorNotes(subjectUserId: string): Promise<any[]> {
+    return await db
+      .select({
+        id: contributorNotes.id,
+        subjectUserId: contributorNotes.subjectUserId,
+        editorId: contributorNotes.editorId,
+        content: contributorNotes.content,
+        createdAt: contributorNotes.createdAt,
+        updatedAt: contributorNotes.updatedAt,
+        editorName: users.firstName,
+      })
+      .from(contributorNotes)
+      .leftJoin(users, eq(contributorNotes.editorId, users.id))
+      .where(eq(contributorNotes.subjectUserId, subjectUserId))
+      .orderBy(desc(contributorNotes.createdAt));
+  }
+
+  async upsertContributorNote(editorId: string, subjectUserId: string, content: string): Promise<any> {
+    const [existing] = await db
+      .select()
+      .from(contributorNotes)
+      .where(and(eq(contributorNotes.editorId, editorId), eq(contributorNotes.subjectUserId, subjectUserId)));
+    if (existing) {
+      const [updated] = await db
+        .update(contributorNotes)
+        .set({ content, updatedAt: new Date() })
+        .where(eq(contributorNotes.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [created] = await db
+      .insert(contributorNotes)
+      .values({ editorId, subjectUserId, content })
+      .returning();
+    return created;
+  }
 }
 
 export const storage = new DatabaseStorage();
