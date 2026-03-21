@@ -606,6 +606,12 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [piece.id]);
+    useEffect(() => {
+    window.history.pushState({}, '', `/piece/${piece.id}`);
+    return () => {
+      window.history.replaceState({}, '', '/in-bloom');
+    };
+  }, [piece.id]);
 
   return (
     <motion.div
