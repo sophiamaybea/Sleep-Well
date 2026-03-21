@@ -2231,3 +2231,53 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
 });
 
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+
+// === WRITERS' STUDIO PRODUCTS ===
+export const studioProducts = pgTable("studio_products", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  slug: varchar("slug").notNull().unique(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  description: text("description").notNull().default(""),
+  productType: text("product_type").notNull().default("prompt_pack"),
+  price: integer("price").notNull().default(0),
+  currency: text("currency").notNull().default("gbp"),
+  promptCount: integer("prompt_count"),
+  season: text("season"),
+  theme: text("theme"),
+  coverImageUrl: text("cover_image_url"),
+  downloadUrl: text("download_url"),
+  stripeProductId: text("stripe_product_id"),
+  stripePriceId: text("stripe_price_id"),
+  isPublished: boolean("is_published").notNull().default(false),
+  isFeatured: boolean("is_featured").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+export const studioPurchases = pgTable("studio_purchases", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  productId: varchar("product_id")
+    .notNull()
+    .references(() => studioProducts.id),
+  stripeSessionId: text("stripe_session_id"),
+  amountPaid: integer("amount_paid").notNull().default(0),
+  currency: text("currency").notNull().default("gbp"),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+});
+export const insertStudioProductSchema = createInsertSchema(studioProducts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type StudioProduct = typeof studioProducts.$inferSelect;
+export type InsertStudioProduct = z.infer<typeof insertStudioProductSchema>;
+export type StudioPurchase = typeof studioPurchases.$inferSelect;
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
