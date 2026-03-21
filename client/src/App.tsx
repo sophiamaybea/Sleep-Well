@@ -11,6 +11,8 @@ import OnboardingModal from "@/components/OnboardingModal";
 import StarBackground from "@/components/StarBackground";
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
+const Collections = lazy(() => import("@/pages/Collections"));
+const PublicCollection = lazy(() => import("@/pages/PublicCollection"));
 const WriterProfile = lazy(() => import("@/pages/WriterProfile"));
 const PublicGarden = lazy(() => import("@/pages/PublicGarden"));
 const EditorStudio = lazy(() => import("@/pages/EditorStudio"));
@@ -127,6 +129,9 @@ function Router() {
  <Route path="/read">{() => <Redirect to="/in-bloom" />}</Route>
  <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
  <Route path="/opportunities" component={Opportunities} />
+          <Route path="/garden/collections" component={Collections} />
+        <Route path="/garden/collections/:id" component={Collections} />
+        <Route path="/collections/:slug" component={PublicCollection} />
  <Route path="/" component={Home} />
  <Route component={NotFound} />
  </Switch>
