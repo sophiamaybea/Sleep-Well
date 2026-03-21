@@ -8,7 +8,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import OnboardingModal from "@/components/OnboardingModal";
-import StarBackground from "@/components/StarBackground";
+import StarBackground from "@/components/StarBackground"; import LoadingScreen from "@/components/garden/LoadingScreen";
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
 const Collections = lazy(() => import("@/pages/Collections"));
@@ -91,7 +91,7 @@ function PageLoader() {
 }
 function Router() {
  return (
- <Suspense fallback={<PageLoader />}>
+ <Suspense fallback={<LoadingScreen />}>
  <Switch>
  <Route path="/sign-in" component={SignIn} />
  <Route path="/garden" component={Garden} />
