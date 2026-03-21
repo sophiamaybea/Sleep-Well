@@ -10,7 +10,7 @@ import {
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 
-type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged";
+type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged" | "editorial-inbox" | "threads" | "tasks";
 
 function stripHtmlForExcerpt(html: string): string {
   return html.replace(/<[^>]*>/g, "").slice(0, 200);
@@ -77,6 +77,9 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "requests", label: "Requests", icon: <Inbox size={15} /> },
   { id: "issues", label: "Issues", icon: <FileText size={15} /> },
   { id: "flagged", label: "Flagged", icon: <Flag size={15} /> },
+    { id: "editorial-inbox", label: "Inbox", icon: <Inbox size={15} /> },
+  { id: "threads", label: "Threads", icon: <MessageCircle size={15} /> },
+  { id: "tasks", label: "Tasks", icon: <CheckCircle size={15} /> },
 ];
 
 function CuratedOpportunitiesSection() {
@@ -1953,6 +1956,493 @@ function IssuesTab() {
   );
 }
 
+function EditorialInboxTab() {
+  const queryClient = useQueryClient();
+  const [filter, setFilter] = useState("all");
+  const { data: inboxItems = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/editorial/inbox", filter],
+    queryFn: async () => {
+      const params = filter !== "all" ? `?state=${filter}` : "";
+      const res = await fetch(`/api/editorial/inbox${params}`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+  const updateState = useMutation({
+    mutationFn: async ({ id, state, decisionNote }: { id: string; state: string; decisionNote?: string }) => {
+      const res = await apiRequest("PATCH", `/api/editorial/inbox/${id}`, { state, decisionNote });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editorial/inbox"] });
+    },
+  });
+  const states = ["all", "unread", "in_review", "accepted", "declined"];
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5 animate-pulse space-y-3">
+            <div className="h-4 w-48 bg-white/10 rounded" />
+            <div className="h-3 w-full bg-white/[0.06] rounded" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <div className="flex items-center gap-2 flex-wrap">
+        {states.map(s => (
+          <button
+            key={s}
+            onClick={() => setFilter(s)}
+            className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${
+              filter === s ? "border-amber-500/30 bg-amber-500/10 text-amber-300" : "border-white/10 text-white/40 hover:text-white/60"
+            }`}
+          >
+            {s === "all" ? "All" : s.replace(/_/g, " ")}
+          </button>
+        ))}
+      </div>
+      {inboxItems.length === 0 ? (
+        <div className="text-center py-16">
+          <Inbox size={24} className="mx-auto mb-3 text-amber-400/30" />
+          <p className="font-serif text-sm text-white/40">No items in the editorial inbox.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {inboxItems.map((item: any) => (
+            <div key={item.id} className="bg-white/5 border border-white/10 rounded-xl p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-grow">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <h3 className="font-display text-base font-light italic text-amber-200/90">{item.writingTitle || "Untitled"}</h3>
+                    <span className={`px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest ${
+                      item.state === "accepted" ? "bg-emerald-500/20 text-emerald-300" :
+                      item.state === "declined" ? "bg-rose-500/20 text-rose-300" :
+                      item.state === "in_review" ? "bg-blue-500/20 text-blue-300" :
+                      "bg-white/10 text-white/60"
+                    }`}>
+                      {(item.state || "unread").replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <p className="text-xs font-serif text-white/40">
+                    by {item.authorName || "Unknown"} · {timeAgo(item.createdAt)}
+                  </p>
+                  {item.decisionNote && (
+                    <p className="text-xs font-serif text-white/30 italic mt-2 pl-3 border-l-2 border-amber-500/20">{item.decisionNote}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <select
+                    value={item.state || "unread"}
+                    onChange={e => updateState.mutate({ id: item.id, state: e.target.value })}
+                    className="bg-transparent border border-white/10 rounded px-1.5 py-1 font-mono text-[8px] text-white/40 focus:outline-none"
+                  >
+                    <option value="unread">Unread</option>
+                    <option value="in_review">In Review</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="declined">Declined</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+function ThreadsTab() {
+  const queryClient = useQueryClient();
+  const [selectedThread, setSelectedThread] = useState<string | null>(null);
+  const [newSubject, setNewSubject] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [showNewThread, setShowNewThread] = useState(false);
+  const { data: threads = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/editorial/threads"],
+    queryFn: async () => {
+      const res = await fetch("/api/editorial/threads", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+  const { data: messages = [] } = useQuery<any[]>({
+    queryKey: ["/api/editorial/threads", selectedThread, "messages"],
+    queryFn: async () => {
+      if (!selectedThread) return [];
+      const res = await fetch(`/api/editorial/threads/${selectedThread}/messages`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!selectedThread,
+  });
+  const createThread = useMutation({
+    mutationFn: async (data: { subject: string }) => {
+      const res = await apiRequest("POST", "/api/editorial/threads", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editorial/threads"] });
+      setShowNewThread(false);
+      setNewSubject("");
+    },
+  });
+  const sendMessage = useMutation({
+    mutationFn: async ({ threadId, content }: { threadId: string; content: string }) => {
+      const res = await apiRequest("POST", `/api/editorial/threads/${threadId}/messages`, { content });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editorial/threads", selectedThread, "messages"] });
+      setNewMessage("");
+    },
+  });
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5 animate-pulse space-y-3">
+            <div className="h-4 w-48 bg-white/10 rounded" />
+            <div className="h-3 w-full bg-white/[0.06] rounded" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-sm text-amber-200/70 italic">Editorial Threads</h3>
+        <button
+          onClick={() => setShowNewThread(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all"
+        >
+          <Plus size={12} /> New Thread
+        </button>
+      </div>
+      {showNewThread && (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+          <input
+            value={newSubject}
+            onChange={e => setNewSubject(e.target.value)}
+            placeholder="Thread subject..."
+            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30"
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setShowNewThread(false)} className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all">Cancel</button>
+            <button
+              onClick={() => { if (newSubject.trim()) createThread.mutate({ subject: newSubject.trim() }); }}
+              disabled={!newSubject.trim() || createThread.isPending}
+              className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+            >
+              {createThread.isPending ? "Creating..." : "Create"}
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          {threads.length === 0 ? (
+            <p className="text-center py-8 font-serif text-xs text-white/30">No threads yet.</p>
+          ) : (
+            threads.map((thread: any) => (
+              <button
+                key={thread.id}
+                onClick={() => setSelectedThread(thread.id)}
+                className={`w-full text-left p-3 rounded-xl border transition-all ${
+                  selectedThread === thread.id
+                    ? "bg-amber-500/10 border-amber-500/20 text-amber-200"
+                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/[0.08]"
+                }`}
+              >
+                <h4 className="font-display text-sm font-light italic truncate">{thread.subject}</h4>
+                <p className="font-mono text-[8px] text-white/30 mt-1">{timeAgo(thread.updatedAt || thread.createdAt)}</p>
+              </button>
+            ))
+          )}
+        </div>
+        <div className="lg:col-span-2">
+          {selectedThread ? (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-4">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {messages.length === 0 ? (
+                  <p className="text-center py-8 font-serif text-xs text-white/25">No messages yet. Start the conversation.</p>
+                ) : (
+                  messages.map((msg: any) => (
+                    <div key={msg.id} className="bg-white/[0.03] rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-mono text-[8px] text-white/40">{msg.senderName || "Editor"}</span>
+                        <span className="font-mono text-[8px] text-white/25">{timeAgo(msg.createdAt)}</span>
+                      </div>
+                      <p className="text-xs font-serif text-amber-100/60">{msg.content}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2 pt-2 border-t border-white/5">
+                <input
+                  value={newMessage}
+                  onChange={e => setNewMessage(e.target.value)}
+                  placeholder="Write a message..."
+                  className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30"
+                  onKeyDown={e => { if (e.key === "Enter" && newMessage.trim()) sendMessage.mutate({ threadId: selectedThread, content: newMessage.trim() }); }}
+                />
+                <button
+                  onClick={() => { if (newMessage.trim()) sendMessage.mutate({ threadId: selectedThread, content: newMessage.trim() }); }}
+                  disabled={!newMessage.trim() || sendMessage.isPending}
+                  className="px-3 py-2 rounded-lg border border-amber-500/20 text-amber-300/60 hover:text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-30"
+                >
+                  <Send size={12} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <MessageCircle size={24} className="mx-auto mb-3 text-white/15" />
+              <p className="font-serif text-sm text-white/30">Select a thread to view messages</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+function TasksTab() {
+  const queryClient = useQueryClient();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDesc, setNewTaskDesc] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState("medium");
+  const [newComment, setNewComment] = useState("");
+  const { data: tasks = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/editorial/tasks", statusFilter],
+    queryFn: async () => {
+      const params = statusFilter !== "all" ? `?status=${statusFilter}` : "";
+      const res = await fetch(`/api/editorial/tasks${params}`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+  const { data: comments = [] } = useQuery<any[]>({
+    queryKey: ["/api/editorial/tasks", expandedTask, "comments"],
+    queryFn: async () => {
+      if (!expandedTask) return [];
+      const res = await fetch(`/api/editorial/tasks/${expandedTask}/comments`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!expandedTask,
+  });
+  const createTask = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/editorial/tasks", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editorial/tasks"] });
+      setShowNewTask(false);
+      setNewTaskTitle("");
+      setNewTaskDesc("");
+      setNewTaskPriority("medium");
+    },
+  });
+  const updateTask = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const res = await apiRequest("PATCH", `/api/editorial/tasks/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editorial/tasks"] });
+    },
+  });
+  const addComment = useMutation({
+    mutationFn: async ({ taskId, content }: { taskId: string; content: string }) => {
+      const res = await apiRequest("POST", `/api/editorial/tasks/${taskId}/comments`, { content });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/editorial/tasks", expandedTask, "comments"] });
+      setNewComment("");
+    },
+  });
+  const taskStatuses = ["all", "open", "in_progress", "done"];
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5 animate-pulse space-y-3">
+            <div className="h-4 w-48 bg-white/10 rounded" />
+            <div className="h-3 w-full bg-white/[0.06] rounded" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {taskStatuses.map(s => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border transition-all ${
+                statusFilter === s ? "border-amber-500/30 bg-amber-500/10 text-amber-300" : "border-white/10 text-white/40 hover:text-white/60"
+              }`}
+            >
+              {s === "all" ? "All" : s.replace(/_/g, " ")}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setShowNewTask(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all"
+        >
+          <Plus size={12} /> New Task
+        </button>
+      </div>
+      {showNewTask && (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+          <input
+            value={newTaskTitle}
+            onChange={e => setNewTaskTitle(e.target.value)}
+            placeholder="Task title..."
+            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30"
+          />
+          <textarea
+            value={newTaskDesc}
+            onChange={e => setNewTaskDesc(e.target.value)}
+            placeholder="Description (optional)..."
+            rows={2}
+            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30 resize-none"
+          />
+          <div className="flex items-center gap-3">
+            <select
+              value={newTaskPriority}
+              onChange={e => setNewTaskPriority(e.target.value)}
+              className="px-2 py-1 bg-white/5 border border-white/10 rounded font-mono text-[9px] text-white/50 focus:outline-none"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            <div className="flex gap-2 ml-auto">
+              <button onClick={() => setShowNewTask(false)} className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all">Cancel</button>
+              <button
+                onClick={() => { if (newTaskTitle.trim()) createTask.mutate({ title: newTaskTitle.trim(), description: newTaskDesc || undefined, priority: newTaskPriority }); }}
+                disabled={!newTaskTitle.trim() || createTask.isPending}
+                className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+              >
+                {createTask.isPending ? "Creating..." : "Create"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {tasks.length === 0 ? (
+        <div className="text-center py-16">
+          <CheckCircle size={24} className="mx-auto mb-3 text-white/15" />
+          <p className="font-serif text-sm text-white/40">No tasks found.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {tasks.map((task: any) => (
+            <div key={task.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                className="w-full text-left p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-grow">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h4 className="font-display text-sm font-light italic text-amber-200/90">{task.title}</h4>
+                      <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest border ${priorityColors[task.priority] || priorityColors.medium}`}>
+                        {task.priority}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest ${
+                        task.status === "done" ? "bg-emerald-500/20 text-emerald-300" :
+                        task.status === "in_progress" ? "bg-blue-500/20 text-blue-300" :
+                        "bg-white/10 text-white/50"
+                      }`}>
+                        {(task.status || "open").replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    {task.description && <p className="text-xs font-serif text-white/35">{task.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <select
+                      value={task.status || "open"}
+                      onChange={e => { e.stopPropagation(); updateTask.mutate({ id: task.id, data: { status: e.target.value } }); }}
+                      onClick={e => e.stopPropagation()}
+                      className="bg-transparent border border-white/10 rounded px-1.5 py-1 font-mono text-[8px] text-white/40 focus:outline-none"
+                    >
+                      <option value="open">Open</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="done">Done</option>
+                    </select>
+                    <ChevronDown size={14} className={`text-white/30 transition-transform ${expandedTask === task.id ? "rotate-180" : ""}`} />
+                  </div>
+                </div>
+              </button>
+              <AnimatePresence>
+                {expandedTask === task.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-3">
+                      <span className="font-mono text-[8px] uppercase tracking-widest text-white/30 flex items-center gap-1">
+                        <MessageCircle size={10} /> Comments
+                      </span>
+                      {comments.length === 0 ? (
+                        <p className="text-xs font-serif text-white/25 italic">No comments yet.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {comments.map((c: any) => (
+                            <div key={c.id} className="bg-white/[0.03] rounded-lg p-2.5">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-mono text-[8px] text-white/40">{c.authorName || "Editor"}</span>
+                                <span className="font-mono text-[8px] text-white/25">{timeAgo(c.createdAt)}</span>
+                              </div>
+                              <p className="text-xs font-serif text-amber-100/60">{c.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <input
+                          value={newComment}
+                          onChange={e => setNewComment(e.target.value)}
+                          placeholder="Add a comment..."
+                          className="flex-grow px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500/30"
+                          onKeyDown={e => { if (e.key === "Enter" && newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
+                        />
+                        <button
+                          onClick={() => { if (newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
+                          disabled={!newComment.trim() || addComment.isPending}
+                          className="px-2.5 py-1.5 rounded-lg border border-amber-500/20 text-amber-300/60 hover:text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-30"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
 export default function EditorStudio() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
@@ -2066,8 +2556,10 @@ export default function EditorStudio() {
           {activeTab === "requests" && <RequestsTab />}
           {activeTab === "issues" && <IssuesTab />}
           {activeTab === "flagged" && <FlaggedTab />}
+          {activeTab === "editorial-inbox" && <EditorialInboxTab />}
+          {activeTab === "threads" && <ThreadsTab />}
+          {activeTab === "tasks" && <TasksTab />}
         </motion.div>
       </AnimatePresence>
     </div>
-  );
-}
+    
