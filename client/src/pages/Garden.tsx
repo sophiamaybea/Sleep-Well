@@ -4150,9 +4150,9 @@ export default function Garden() {
                 <SubmissionsZone userTier={userTier as "free" | "paid"} />
                     ) : activeZone === "garden-gate" ? (
                         <GardenGateZone />
-      ) : (
-<GreenhouseZone />
-              )}
+                  ) : activeZone === "collections" ? (
+                          <CollectionsRedirect />
+                          ) : (<GreenhouseZone /> )}
             </motion.div>
           </AnimatePresence>
         </main>
