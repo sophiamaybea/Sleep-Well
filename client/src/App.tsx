@@ -33,7 +33,6 @@ const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Opportunities = lazy(() => import("@/pages/Opportunities"));
-const Grove = lazy(() => import("@/pages/Grove"));
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
@@ -49,11 +48,9 @@ const PAGE_TITLES: Record<string, string> = {
  "/journal": "The Journal — The Page Gallery",
  "/about": "About — The Page Gallery Journal",
  "/garden": "My Garden — The Page Gallery",
- "/grove": "The Grove — The Page Gallery",
  "/commons": "The Commons — The Page Gallery",
  "/how-it-works": "How It Works — The Page Gallery",
  "/garden-info": "Garden Seasons — The Page Gallery",
- "/editor-studio": "Editorial Studio — The Page Gallery",
  "/privacy": "Privacy Policy — The Page Gallery",
  "/terms": "Terms of Service — The Page Gallery",
  "/accessibility": "Accessibility — The Page Gallery",
@@ -95,7 +92,7 @@ function Router() {
  <Switch>
  <Route path="/sign-in" component={SignIn} />
  <Route path="/garden" component={Garden} />
- <Route path="/grove" component={Grove} />
+ <Route path="/grove">{() => <Redirect to="/garden" />}</Route>
  <Route path="/garden/:username" component={PublicGarden} />
  <Route path="/edit-profile" component={EditProfile} />
  <Route path="/writer/:id" component={WriterProfile} />
