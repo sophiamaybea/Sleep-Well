@@ -55,7 +55,7 @@ const stages = [
     stage: "Bloom",
     icon: <BloomDoodle />,
     color: "text-pink-400/70",
-    desc: "Share your work publicly. Our editors read from here when selecting pieces for the journal.",
+            desc: "When you're ready, share your work. Our editors browse the Garden. When something stops them, they reach out.",
   },
 ];
 
@@ -142,7 +142,7 @@ export default function GardenIntro() {
             viewport={{ once: true }}
             className="font-mono text-[10px] tracking-[0.3em] text-white/25 block mb-6"
           >
-            HOW IT WORKS
+                        YOUR WRITING GARDEN
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
@@ -160,8 +160,8 @@ export default function GardenIntro() {
             viewport={{ once: true }}
             className="font-serif italic text-lg md:text-xl text-white/30 mt-6 max-w-xl mx-auto"
           >
-            Every writer here gets a private space &mdash; somewhere to work
-            without an audience, on your own terms, at your own pace.
+            A private space for drafts, fragments, and half-formed ideas.
+            Yours alone, until you decide otherwise.
           </motion.p>
         </div>
 
