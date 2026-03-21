@@ -2358,7 +2358,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                       <span className="w-px h-3 bg-white/[0.06]" />
                       <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{piece.genre}</span>
                       <ResonanceBar writingId={piece.id} compact />
-                      <MarginaliaCount writingId={piece.id} />
+                      <MarginaliaCount writingId={piece.id} /><motion.button onClick={(e) => { e.stopPropagation(); apiRequest("POST", "/api/saved", { writingId: piece.id }).then(() => toast({ title: "Saved to your collection" })).catch(() => toast({ title: "Could not save", variant: "destructive" })); }} whileTap={{ scale: 1.3 }} whileHover={{ scale: 1.1 }} className="p-1.5 rounded-lg text-white/30 hover:text-amber-400/70 hover:bg-amber-500/[0.06] transition-all" title="Save piece" data-testid={`button-save-${piece.id}`}><Bookmark size={12} /></motion.button>
                       <PauseStoneButton writingId={piece.id} />
                       <button
                         onClick={(e) => { e.stopPropagation(); setExpandedId(piece.id); }}
