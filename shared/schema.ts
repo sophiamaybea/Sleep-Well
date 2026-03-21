@@ -2281,3 +2281,73 @@ export type StudioProduct = typeof studioProducts.$inferSelect;
 export type InsertStudioProduct = z.infer<typeof insertStudioProductSchema>;
 export type StudioPurchase = typeof studioPurchases.$inferSelect;
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+
+// === CHAPBOOK COLLECTIONS / BEDS ===
+export const chapbookCollections = pgTable("chapbook_collections", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  coverNote: text("cover_note"),
+  isPublic: boolean("is_public").notNull().default(false),
+  allowTip: boolean("allow_tip").notNull().default(false),
+  tipAmountPence: integer("tip_amount_pence").notNull().default(0),
+  paypalLink: text("paypal_link"),
+  shareSlug: varchar("share_slug").unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const collectionItems = pgTable("collection_items", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  collectionId: varchar("collection_id")
+    .notNull()
+    .references(() => chapbookCollections.id),
+  writingId: varchar("writing_id")
+    .notNull()
+    .references(() => writings.id),
+  sortOrder: integer("sort_order").notNull().default(0),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const collectionUnlocks = pgTable("collection_unlocks", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  collectionId: varchar("collection_id")
+    .notNull()
+    .references(() => chapbookCollections.id),
+  readerId: varchar("reader_id")
+    .notNull()
+    .references(() => users.id),
+  paypalOrderId: text("paypal_order_id"),
+  amountPaidPence: integer("amount_paid_pence").notNull().default(0),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+});
+
+export const insertChapbookCollectionSchema = createInsertSchema(
+  chapbookCollections,
+).omit({ id: true, authorId: true, createdAt: true, updatedAt: true });
+
+export const updateChapbookCollectionSchema =
+  insertChapbookCollectionSchema.partial();
+
+export const insertCollectionItemSchema = createInsertSchema(
+  collectionItems,
+).omit({ id: true, createdAt: true });
+
+export const insertCollectionUnlockSchema = createInsertSchema(
+  collectionUnlocks,
+).omit({ id: true, unlockedAt: true });
+
+export type ChapbookCollection = typeof chapbookCollections.$inferSelect;
+export type InsertChapbookCollection = z.infer<typeof insertChapbookCollectionSchema>;
+export type CollectionItem = typeof collectionItems.$inferSelect;
+export type CollectionUnlock = typeof collectionUnlocks.$inferSelect;
