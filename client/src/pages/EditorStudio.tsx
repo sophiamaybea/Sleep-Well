@@ -395,7 +395,7 @@ function FlaggedTab() {
   );
 }
 
-function OverviewTab() {
+function OverviewTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   const queryClient = useQueryClient();
   const [showWalkForm, setShowWalkForm] = useState(false);
   const [showWalkQueue, setShowWalkQueue] = useState(false);
@@ -430,10 +430,10 @@ function OverviewTab() {
   });
 
   const cards = [
-    { key: "new", testId: "card-overview-new", label: "New to Garden", value: overview?.newPieces ?? 0, icon: <Leaf size={20} className="text-emerald-400/70" /> },
-    { key: "editorial", testId: "card-overview-editorial", label: "Available for Editorial", value: overview?.editorialAvailable ?? 0, icon: <Eye size={20} className="text-amber-400/70" /> },
-    { key: "pending", testId: "card-overview-pending", label: "Pending Requests", value: overview?.pendingRequests ?? 0, icon: <Clock size={20} className="text-blue-400/70" /> },
-    { key: "issues", testId: "card-overview-issues", label: "Draft Issues", value: overview?.draftIssues ?? 0, icon: <FileText size={20} className="text-violet-400/70" /> },
+    { key: "new", testId: "card-overview-new", tabTarget: "garden-stream" as Tab, label: "New to Garden", value: overview?.newPieces ?? 0, icon: <Leaf size={20} className="text-emerald-400/70" /> },
+    { key: "editorial", testId: "card-overview-editorial", tabTarget: "garden-stream" as Tab, label: "Available for Editorial", value: overview?.editorialAvailable ?? 0, icon: <Eye size={20} className="text-amber-400/70" /> },
+    { key: "pending", testId: "card-overview-pending", tabTarget: "requests" as Tab, label: "Pending Requests", value: overview?.pendingRequests ?? 0, icon: <Clock size={20} className="text-blue-400/70" /> },
+    { key: "issues", testId: "card-overview-issues", tabTarget: "issues" as Tab, label: "Draft Issues", value: overview?.draftIssues ?? 0, icon: <FileText size={20} className="text-violet-400/70" /> },
   ];
 
   if (isLoading) {
@@ -459,7 +459,7 @@ function OverviewTab() {
           <div
             key={card.key}
             data-testid={card.testId}
-            className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur"
+            onClick={() => onNavigate(card.tabTarget)} className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur cursor-pointer hover:bg-white/[0.08] hover:border-amber-500/20 transition-all"
           >
             <div className="flex items-center justify-between mb-4">
               <span className="font-serif text-sm text-amber-100/60">{card.label}</span>
@@ -2017,7 +2017,7 @@ export default function EditorStudio() {
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.15 }}
         >
-          {activeTab === "overview" && <OverviewTab />}
+          {activeTab === "overview" && <OverviewTab onNavigate={setActiveTab} />}
           {activeTab === "garden-stream" && <GardenStreamTab />}
           {activeTab === "greenhouse" && <GreenhouseTab />}
           {activeTab === "requests" && <RequestsTab />}
