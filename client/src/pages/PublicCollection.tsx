@@ -35,7 +35,7 @@ export default function PublicCollection() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#060d06" }}>
+      <div className="min-h-screen flex items-center justify-center relative z-10" style={{ backgroundColor: "#060d06" }}>
         <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/30">Loading collection...</p>
       </div>
     );
@@ -43,7 +43,7 @@ export default function PublicCollection() {
 
   if (error || !collection) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ backgroundColor: "#060d06" }}>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 relative z-10" style={{ backgroundColor: "#060d06" }}>
         <Feather size={24} className="text-white/20" />
         <h1 className="text-white/60 text-lg font-serif">Collection not found</h1>
         <p className="text-white/30 text-sm">This collection may have been moved or made private.</p>
@@ -55,7 +55,7 @@ export default function PublicCollection() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#060d06" }}>
+    <div className="min-h-screen relative z-10" style={{ backgroundColor: "#060d06" }}>
       <div className="max-w-2xl mx-auto px-6 py-16">
         {/* Header */}
         <div className="mb-12">
@@ -63,7 +63,6 @@ export default function PublicCollection() {
             <ArrowLeft size={10} />
             The Page Gallery
           </Link>
-
           <div className="flex items-start gap-3 mb-6">
             <BookOpen size={16} className="text-violet-400/60 mt-1 shrink-0" />
             <div>
@@ -75,13 +74,11 @@ export default function PublicCollection() {
               )}
             </div>
           </div>
-
           {collection.description && (
             <p className="text-white/50 text-sm leading-relaxed font-serif italic border-l border-white/10 pl-4">
               {collection.description}
             </p>
           )}
-
           {collection.coverNote && (
             <div className="mt-6 p-4 rounded border border-violet-500/10 bg-violet-900/10">
               <p className="text-white/50 text-xs leading-relaxed">{collection.coverNote}</p>
