@@ -2081,7 +2081,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [dailyLetterExpanded, setDailyLetterExpanded] = useState(false);
   const [page, setPage] = useState(1);
-  const [activeSort, setActiveSort] = useState<ReadingRoomSort>("recent");
+  const [activeSort, setActiveSort] = useState<ReadingRoomSort>("recent");     const [readingRoomSearch, setReadingRoomSearch] = useState("");
   const [genreFilter, setGenreFilter] = useState("all");
   const perPage = 8;
 
@@ -2129,7 +2129,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
     ? [...allPieces]
     : allPieces.filter(p => p.genre === genreFilter);
 
-  if (activeSort === "tended") {
+  const [activif (readingRoomSearch.trim()) {     const q = readingRoomSearch.toLowerCase();     filteredPieces = filteredPieces.filter(p => (p.title || "").toLowerCase().includes(q) || (p.authorName || "").toLowerCase().includes(q) || (p.content || "").toLowerCase().includes(q));   }   if (activeSort === "tended") {eSort, setActiveSort] = useState<ReadingRoomSort>("recent");     const [readingRoomSearch, setReadingRoomSearch] = useState("");
     filteredPieces = filteredPieces.filter(p => tendedAuthorIds.has(p.authorId));
   }
 
@@ -2241,7 +2241,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
         </div>
       )}
 
-      <CuratedOpportunitiesBanner />
+      <div className="relative mb-4"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" /><input type="text" value={readingRoomSearch} onChange={(e) => { setReadingRoomSearch(e.target.value); setPage(1); }} placeholder="Search by title, author, or keyword..." className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] focus:bg-white/[0.04] focus:border-white/[0.12] text-white/60 placeholder-white/20 font-serif text-sm outline-none transition-all" data-testid="input-reading-room-search" /></div><CuratedOpportunitiesBanner />
 
       <div className="flex flex-col items-center gap-3 mb-8">
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
