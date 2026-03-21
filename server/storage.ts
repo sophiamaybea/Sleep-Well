@@ -1627,6 +1627,7 @@ export class DatabaseStorage implements IStorage {
       marginaliaVisibility: writings.marginaliaVisibility,
       createdAt: writings.createdAt,
       updatedAt: writings.updatedAt,
+      circleId: writings.circleId,
     };
   }
 
