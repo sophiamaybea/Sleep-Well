@@ -454,6 +454,12 @@ function OverviewTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
+                {/* Today in the Garden */}
+          <div className="mb-6">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.3em] text-amber-400/70 mb-1">Today in the Garden</h2>
+            <p className="font-serif text-sm text-white/30 italic">A glance at what needs your attention</p>
+          </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
           <div
@@ -469,6 +475,43 @@ function OverviewTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
           </div>
         ))}
       </div>
+
+                {/* Recent Activity */}
+          <div className="mt-8 pt-6 border-t border-white/[0.06]">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400/60 flex items-center gap-2 mb-4">
+              <Clock size={14} className="text-amber-400/50" />
+              Recent Activity
+            </h3>
+            <div className="space-y-2">
+              {overview?.newPieces > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-emerald-300/60">{overview.newPieces} new piece{overview.newPieces !== 1 ? 's' : ''}</span>{' '}
+                  arrived in the garden this week
+                </p>
+              )}
+              {overview?.editorialAvailable > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-amber-300/60">{overview.editorialAvailable} piece{overview.editorialAvailable !== 1 ? 's' : ''}</span>{' '}
+                  ready for editorial attention
+                </p>
+              )}
+              {overview?.pendingRequests > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-blue-300/60">{overview.pendingRequests} request{overview.pendingRequests !== 1 ? 's' : ''}</span>{' '}
+                  awaiting writer response
+                </p>
+              )}
+              {overview?.draftIssues > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-violet-300/60">{overview.draftIssues} issue{overview.draftIssues !== 1 ? 's' : ''}</span>{' '}
+                  in draft
+                </p>
+              )}
+              {(!overview?.newPieces && !overview?.editorialAvailable && !overview?.pendingRequests && !overview?.draftIssues) && (
+                <p className="font-serif text-sm text-white/30 italic">The garden is quiet. No recent changes.</p>
+              )}
+            </div>
+          </div>
       <CuratedOpportunitiesSection />
       <div className="mt-8 pt-6 border-t border-white/[0.06]">
         <div className="flex items-center justify-between mb-4">
