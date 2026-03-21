@@ -219,6 +219,15 @@ export async function runMigrations() {
         created_at timestamp DEFAULT now()
       );
     `);
+        await pool.query(`
+      // Newsletter subscribers
+      CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        email text NOT NULL UNIQUE,
+        subscribed_at timestamp with time zone DEFAULT now(),
+        source text DEFAULT 'homepage'
+      );
+    `);
     console.log("Database migrations completed successfully");
   } catch (error) {
     console.error("Migration error:", error);
