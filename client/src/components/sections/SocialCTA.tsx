@@ -26,7 +26,7 @@ export default function SocialCTA() {
             The garden grows in public
           </h2>
           <p className="font-serif italic text-white/40 text-[15px] leading-relaxed max-w-sm mx-auto">
-            Behind-the-scenes glimpses, new issues, and fragments from the garden.
+                        New work, occasional editorial notes, and glimpses of what's growing in the Garden.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
