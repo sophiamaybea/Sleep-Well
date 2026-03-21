@@ -192,6 +192,12 @@ import {
   type InsertMindWalkTheme,
   type MindWalkFragment,
   type InsertMindWalkFragment,
+    editorTaskComments,
+  type EditorTaskComment,
+  type InsertEditorTaskComment,
+  studioNotes,
+  type StudioNote,
+  type InsertStudioNote,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -8130,6 +8136,67 @@ export class DatabaseStorage implements IStorage {
       .values({ editorId, subjectUserId, content })
       .returning();
     return created;
+  }
+
+  // ===== EDITOR TASK COMMENTS =====
+
+  async getTaskComments(taskId: string): Promise<EditorTaskComment[]> {
+    return await db
+      .select()
+      .from(editorTaskComments)
+      .where(eq(editorTaskComments.taskId, taskId))
+      .orderBy(asc(editorTaskComments.createdAt));
+  }
+
+  async createTaskComment(data: { taskId: string; authorId: string; content: string }): Promise<EditorTaskComment> {
+    const [comment] = await db
+      .insert(editorTaskComments)
+      .values(data)
+      .returning();
+    return comment;
+  }
+
+  async deleteTaskComment(id: string): Promise<boolean> {
+    const result = await db
+      .delete(editorTaskComments)
+      .where(eq(editorTaskComments.id, id));
+    return true;
+  }
+
+  // ===== STUDIO NOTES =====
+
+  async getStudioNotes(authorId?: string): Promise<StudioNote[]> {
+    const conditions: any[] = [];
+    if (authorId) conditions.push(eq(studioNotes.authorId, authorId));
+    return await db
+      .select()
+      .from(studioNotes)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(studioNotes.pinned), desc(studioNotes.createdAt));
+  }
+
+  async createStudioNote(data: InsertStudioNote): Promise<StudioNote> {
+    const [note] = await db
+      .insert(studioNotes)
+      .values(data)
+      .returning();
+    return note;
+  }
+
+  async updateStudioNote(id: string, data: Partial<InsertStudioNote>): Promise<StudioNote> {
+    const [updated] = await db
+      .update(studioNotes)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(studioNotes.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteStudioNote(id: string): Promise<boolean> {
+    await db
+      .delete(studioNotes)
+      .where(eq(studioNotes.id, id));
+    return true;
   }
 }
 
