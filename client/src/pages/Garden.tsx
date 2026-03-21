@@ -3564,6 +3564,7 @@ export default function Garden() {
   const queryClient = useQueryClient();
   const [activeZone, setActiveZone] = useState<Zone>("desk");
     const [showDeskStats, setShowDeskStats] = useState(false);
+    const [hasVisited] = useState(() => typeof window !== 'undefined' && !!localStorage.getItem('garden_hasVisited'));
   const [activeWriting, setActiveWriting] = useState<Writing | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [plantingTarget, setPlantingTarget] = useState<Writing | null>(null);
@@ -3596,6 +3597,10 @@ export default function Garden() {
     refetchInterval: 60000,
   });
 
+    useEffect(() => {
+          localStorage.setItem('garden_hasVisited', 'true');
+        }, []);
+  
   useEffect(() => {
     if (!isAuthenticated) return;
     const sendHeartbeat = () => {
@@ -4014,6 +4019,11 @@ export default function Garden() {
           </div>
         </header>
 
+                {hasVisited && (
+                <div className="max-w-5xl mx-auto px-6 pt-3 pb-1">
+                              <p className="font-serif text-xs text-amber-400/40 italic" data-testid="returning-user-greeting">Welcome back.</p>
+                            </div>
+              )}
         <AnimatePresence>
           {showA11yPanel && (
             <motion.div
