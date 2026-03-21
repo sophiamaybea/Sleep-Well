@@ -29,7 +29,7 @@ export default function About() {
               className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-normal italic"
               data-testid="about-title"
             >
-              About Us
+                          The Page Gallery Journal
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -37,7 +37,7 @@ export default function About() {
               transition={{ delay: 0.9, duration: 1 }}
               className="font-serif italic text-lg text-white/50 max-w-lg mx-auto leading-relaxed"
             >
-              A literary journal and a collaborative writing garden.
+                          A literary journal that discovers. A writing garden where drafts live, grow, and find their form.
             </motion.p>
           </div>
 
@@ -68,7 +68,7 @@ export default function About() {
               viewport={{ once: true }}
               className="text-center space-y-8"
             >
-              <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">Institutional</span>
+                          <span className="font-mono text-[10px] tracking-[0.4em] text-amber-400/60 uppercase">LITERARY JOURNAL</span>
               <h2 className="text-3xl md:text-5xl font-display font-light italic leading-normal">
                 The Journal<br />
                 <span className="text-amber-400/80">We publish writing that we can't stop thinking about.</span>
