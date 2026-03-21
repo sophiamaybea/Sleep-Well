@@ -68,7 +68,6 @@ export default function Navigation() {
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
     { label: "My Garden", href: "/garden", isPage: true, tooltip: "Write & Grow Your Work" },
-        { label: "The Grove", href: "/grove", isPage: true, tooltip: "Botanical Social Layer" },
     { label: "Drafts", href: "/editor-studio", isPage: true },
   ];
 
@@ -166,7 +165,7 @@ export default function Navigation() {
                     </div>
                   </button>
                   
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 py-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300">
+                  <div className="absolute right-0 top-full mt-0 pt-2 w-48 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 py-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300">
                     <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]">
                       Profile
                     </Link>
