@@ -95,7 +95,7 @@ function Router() {
  <Route path="/sign-in" component={SignIn} />
  <Route path="/garden" component={Garden} />
  <Route path="/grove">{() => <Redirect to="/garden" />}</Route>
- <Route path="/garden/:username" component={PublicGarden} />
+ <Route path="/garden/collections" component={Collections} />         <Route path="/garden/collections/:id" component={Collections} />         <Route path="/collections/:slug" component={PublicCollection} />         <Route path="/garden/:username" component={PublicGarden} />
  <Route path="/edit-profile" component={EditProfile} />
  <Route path="/writer/:id" component={WriterProfile} />
  <Route path="/public-garden/:userId" component={PublicGarden} />
@@ -129,10 +129,7 @@ function Router() {
  <Route path="/read">{() => <Redirect to="/in-bloom" />}</Route>
  <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
  <Route path="/opportunities" component={Opportunities} />
-          <Route path="/garden/collections" component={Collections} />
-        <Route path="/garden/collections/:id" component={Collections} />
-        <Route path="/collections/:slug" component={PublicCollection} />
- <Route path="/" component={Home} />
+        <Route path="/" component={Home} />
  <Route component={NotFound} />
  </Switch>
  </Suspense>
