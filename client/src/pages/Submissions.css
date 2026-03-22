@@ -1,0 +1,281 @@
+/* ============================================================
+   SUBMISSIONS PAGE
+   A scroll-through manifesto. Seven rooms. Gallery pace.
+   ============================================================ */
+
+/* Base scroll-reveal setup */
+.submissions-page .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submissions-page .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---- Page wrapper ---- */
+.submissions-page {
+  font-family: var(--font-serif, 'Georgia', serif);
+  color: var(--color-ink, #1a1a1a);
+  background: var(--color-paper, #faf8f4);
+}
+
+/* ---- Rooms (sections) ---- */
+.submissions-room {
+  padding: 7rem 1.5rem;
+  max-width: 100%;
+}
+
+.room-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ---- Room 1: The interrupt ---- */
+.room-interrupt {
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 6rem 2rem 4rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.interrupt-label {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted, #888);
+  margin-bottom: 2rem;
+}
+
+.interrupt-heading {
+  font-family: var(--font-serif, 'Georgia', serif);
+  font-size: clamp(2.4rem, 6vw, 5.5rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink, #1a1a1a);
+  margin-bottom: 2rem;
+  max-width: 780px;
+}
+
+.interrupt-subline {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--color-muted, #888);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ---- Shared section typography ---- */
+.section-eyebrow {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted, #888);
+  margin-bottom: 1.25rem;
+}
+
+.section-heading {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin-bottom: 2rem;
+}
+
+.section-heading--light {
+  color: var(--color-paper, #faf8f4);
+}
+
+.section-body {
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.85;
+  color: var(--color-ink-mid, #3a3a3a);
+  margin-bottom: 1.5rem;
+}
+
+.section-body--light {
+  color: rgba(250, 248, 244, 0.82);
+}
+
+.section-body--accent {
+  font-style: italic;
+  color: var(--color-ink, #1a1a1a);
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  border-left: 2px solid var(--color-ink, #1a1a1a);
+  padding-left: 1.25rem;
+  margin-top: 2rem;
+}
+
+.section-body--note {
+  font-size: 0.9rem;
+  color: var(--color-muted, #888);
+  margin-top: 2.5rem;
+  font-style: italic;
+}
+
+/* ---- Room 3: Garden intro ---- */
+.room-garden-intro {
+  background-color: var(--color-sage-light, #f2f5ef);
+}
+
+/* ---- Room 4: Stages ---- */
+.stages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.stage-card {
+  padding: 2rem 1.5rem;
+  border: 1px solid var(--color-border, #ddd9d2);
+  background: var(--color-paper, #faf8f4);
+}
+
+.stage-name {
+  display: block;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-muted, #888);
+  margin-bottom: 1rem;
+}
+
+.stage-description {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--color-ink-mid, #3a3a3a);
+  margin: 0;
+}
+
+/* ---- Room 5: Architecture (dark room) ---- */
+.room-architecture {
+  background-color: var(--color-ink, #1a1a1a);
+}
+
+.room-inner--dark {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ---- Room 7: Invitation ---- */
+.room-invitation {
+  background-color: var(--color-paper, #faf8f4);
+  border-top: 1px solid var(--color-border, #ddd9d2);
+}
+
+.room-inner--invitation {
+  text-align: center;
+  max-width: 560px;
+}
+
+.invitation-heading {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.75rem;
+}
+
+.invitation-body {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.8;
+  color: var(--color-ink-mid, #3a3a3a);
+  margin-bottom: 3rem;
+}
+
+.invitation-ctas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 480px) {
+  .invitation-ctas {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.cta-primary {
+  display: inline-block;
+  padding: 0.85rem 2.25rem;
+  background: var(--color-ink, #1a1a1a);
+  color: var(--color-paper, #faf8f4);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.cta-primary:hover {
+  background: var(--color-sage, #7a8e72);
+  color: #fff;
+}
+
+.cta-secondary {
+  display: inline-block;
+  padding: 0.85rem 2.25rem;
+  border: 1px solid var(--color-ink, #1a1a1a);
+  color: var(--color-ink, #1a1a1a);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.cta-secondary:hover {
+  background: var(--color-ink, #1a1a1a);
+  color: var(--color-paper, #faf8f4);
+}
+
+.invitation-note {
+  font-size: 0.825rem;
+  color: var(--color-muted, #888);
+  letter-spacing: 0.05em;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .submissions-room {
+    padding: 5rem 1.25rem;
+  }
+
+  .room-interrupt {
+    padding: 5rem 1.25rem 3rem;
+    min-height: 85vh;
+  }
+
+  .stages-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .room-interrupt {
+    min-height: 80vh;
+    padding: 4rem 1rem 2.5rem;
+  }
+
+  .interrupt-heading {
+    font-size: 2rem;
+  }
+}
