@@ -1,3 +1,4 @@
+import { registerEditorialRoomRoutes } from "./routes/editorialRooms";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import {
@@ -8757,5 +8758,6 @@ const sharedPieces = await db.select({
     }
   });
 
+  registerEditorialRoomRoutes(app);
   return httpServer;
 }
