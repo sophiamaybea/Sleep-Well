@@ -1,15 +1,15 @@
 import type { Express } from "express";
 import { isAuthenticated } from "../replit_integrations/auth";
 import { randomUUID } from "crypto";
+import { pool } from "../db";
 
 export function registerEditorialRoomRoutes(app: Express) {
 
-  // ─── THREADS ──────────────────────────────────────────────────────────
+  // —— THREADS ——————————————————————————————————————————
 
   // GET /api/editorial/threads
   app.get("/api/editorial/threads", isAuthenticated, async (req: any, res) => {
     try {
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
         `SELECT * FROM editorial_threads ORDER BY updated_at DESC`
       );
@@ -28,12 +28,11 @@ export function registerEditorialRoomRoutes(app: Express) {
       if (!subject?.trim()) {
         return res.status(400).json({ error: "subject is required" });
       }
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
-        `INSERT INTO editorial_threads (id, subject, writing_id, created_by_editor_id)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO editorial_threads (id, subject, writing_id, created_by, updated_at)
+         VALUES ($1, $2, $3, $4, NOW())
          RETURNING *`,
-        [randomUUID(), subject.trim(), writingId ?? null, userId]
+        [randomUUID(), subject.trim(), writingId || null, userId]
       );
       res.status(201).json(rows[0]);
     } catch (err) {
@@ -45,7 +44,6 @@ export function registerEditorialRoomRoutes(app: Express) {
   // GET /api/editorial/threads/:id/messages
   app.get("/api/editorial/threads/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
         `SELECT * FROM editorial_thread_messages WHERE thread_id = $1 ORDER BY created_at ASC`,
         [req.params.id]
@@ -61,16 +59,15 @@ export function registerEditorialRoomRoutes(app: Express) {
   app.post("/api/editorial/threads/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.user?.id;
-      const { body } = req.body;
-      if (!body?.trim()) {
-        return res.status(400).json({ error: "body is required" });
+      const { content } = req.body;
+      if (!content?.trim()) {
+        return res.status(400).json({ error: "content is required" });
       }
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
-        `INSERT INTO editorial_thread_messages (id, thread_id, author_id, body)
+        `INSERT INTO editorial_thread_messages (id, thread_id, author_id, content)
          VALUES ($1, $2, $3, $4)
          RETURNING *`,
-        [randomUUID(), req.params.id, userId, body.trim()]
+        [randomUUID(), req.params.id, userId, content.trim()]
       );
       await pool.query(
         `UPDATE editorial_threads SET updated_at = NOW() WHERE id = $1`,
@@ -83,14 +80,13 @@ export function registerEditorialRoomRoutes(app: Express) {
     }
   });
 
-  // ─── TASKS ────────────────────────────────────────────────────────────
+  // —— TASKS ——————————————————————————————————————————
 
   // GET /api/editorial/tasks
   app.get("/api/editorial/tasks", isAuthenticated, async (req: any, res) => {
     try {
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
-        `SELECT * FROM editorial_tasks ORDER BY sort_order ASC, created_at DESC`
+        `SELECT * FROM editorial_tasks ORDER BY created_at DESC`
       );
       res.json(rows);
     } catch (err) {
@@ -103,32 +99,15 @@ export function registerEditorialRoomRoutes(app: Express) {
   app.post("/api/editorial/tasks", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.user?.id;
-      const { title, description, assignedEditorId, status, dueDate,
-              issueId, writingId, taskType, boardColumn, priority } = req.body;
+      const { title, description, assignedTo, writingId, priority } = req.body;
       if (!title?.trim()) {
         return res.status(400).json({ error: "title is required" });
       }
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
-        `INSERT INTO editorial_tasks
-           (id, title, description, assigned_editor_id, created_by_editor_id,
-            status, due_date, issue_id, writing_id, task_type, board_column, priority)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        `INSERT INTO editorial_tasks (id, title, description, assigned_to, writing_id, priority, created_by, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'open')
          RETURNING *`,
-        [
-          randomUUID(),
-          title.trim(),
-          description ?? null,
-          assignedEditorId ?? null,
-          userId,
-          status ?? "open",
-          dueDate ? new Date(dueDate) : null,
-          issueId ?? null,
-          writingId ?? null,
-          taskType ?? "ops",
-          boardColumn ?? "inbox",
-          priority ?? "medium",
-        ]
+        [randomUUID(), title.trim(), description || null, assignedTo || null, writingId || null, priority || 'medium', userId]
       );
       res.status(201).json(rows[0]);
     } catch (err) {
@@ -140,35 +119,15 @@ export function registerEditorialRoomRoutes(app: Express) {
   // PATCH /api/editorial/tasks/:id
   app.patch("/api/editorial/tasks/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const { pool } = await import("../db");
-      const fields: string[] = [];
-      const vals: any[] = [];
-      let i = 1;
-      const map: Record<string, string> = {
-        title: "title", description: "description",
-        assignedEditorId: "assigned_editor_id", status: "status",
-        dueDate: "due_date", issueId: "issue_id", writingId: "writing_id",
-        taskType: "task_type", boardColumn: "board_column",
-        priority: "priority", sortOrder: "sort_order", completedAt: "completed_at",
-      };
-      for (const [key, col] of Object.entries(map)) {
-        if (key in req.body) {
-          fields.push(`${col} = $${i++}`);
-          vals.push(key === "dueDate" && req.body[key] ? new Date(req.body[key]) : req.body[key]);
-        }
-      }
-      if (req.body.status === "done" && !("completedAt" in req.body)) {
-        fields.push(`completed_at = $${i++}`);
-        vals.push(new Date());
-      }
-      fields.push(`updated_at = $${i++}`);
-      vals.push(new Date());
-      vals.push(req.params.id);
+      const { status, assignedTo } = req.body;
       const { rows } = await pool.query(
-        `UPDATE editorial_tasks SET ${fields.join(", ")} WHERE id = $${i} RETURNING *`,
-        vals
+        `UPDATE editorial_tasks
+         SET status = COALESCE($1, status), assigned_to = COALESCE($2, assigned_to)
+         WHERE id = $3
+         RETURNING *`,
+        [status || null, assignedTo || null, req.params.id]
       );
-      if (!rows[0]) return res.status(404).json({ error: "Task not found" });
+      if (rows.length === 0) return res.status(404).json({ error: "Task not found" });
       res.json(rows[0]);
     } catch (err) {
       console.error("[editorialRooms] PATCH /tasks/:id error:", err);
@@ -176,22 +135,9 @@ export function registerEditorialRoomRoutes(app: Express) {
     }
   });
 
-  // DELETE /api/editorial/tasks/:id
-  app.delete("/api/editorial/tasks/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const { pool } = await import("../db");
-      await pool.query(`DELETE FROM editorial_tasks WHERE id = $1`, [req.params.id]);
-      res.json({ success: true });
-    } catch (err) {
-      console.error("[editorialRooms] DELETE /tasks/:id error:", err);
-      res.status(500).json({ error: "Failed to delete task" });
-    }
-  });
-
   // GET /api/editorial/tasks/:id/comments
   app.get("/api/editorial/tasks/:id/comments", isAuthenticated, async (req: any, res) => {
     try {
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
         `SELECT * FROM editor_task_comments WHERE task_id = $1 ORDER BY created_at ASC`,
         [req.params.id]
@@ -211,7 +157,6 @@ export function registerEditorialRoomRoutes(app: Express) {
       if (!content?.trim()) {
         return res.status(400).json({ error: "content is required" });
       }
-      const { pool } = await import("../db");
       const { rows } = await pool.query(
         `INSERT INTO editor_task_comments (id, task_id, author_id, content)
          VALUES ($1, $2, $3, $4)
@@ -224,4 +169,39 @@ export function registerEditorialRoomRoutes(app: Express) {
       res.status(500).json({ error: "Failed to post comment" });
     }
   });
+
+  // —— FLAGS ——————————————————————————————————————————
+
+  // GET /api/editorial/flags
+  app.get("/api/editorial/flags", isAuthenticated, async (req: any, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT * FROM editorial_flags ORDER BY created_at DESC`
+      );
+      res.json(rows);
+    } catch (err) {
+      console.error("[editorialRooms] GET /flags error:", err);
+      res.status(500).json({ error: "Failed to fetch flags" });
+    }
+  });
+
+  // PATCH /api/editorial/flags/:id
+  app.patch("/api/editorial/flags/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { status, resolution } = req.body;
+      const { rows } = await pool.query(
+        `UPDATE editorial_flags
+         SET status = COALESCE($1, status), resolution = COALESCE($2, resolution)
+         WHERE id = $3
+         RETURNING *`,
+        [status || null, resolution || null, req.params.id]
+      );
+      if (rows.length === 0) return res.status(404).json({ error: "Flag not found" });
+      res.json(rows[0]);
+    } catch (err) {
+      console.error("[editorialRooms] PATCH /flags/:id error:", err);
+      res.status(500).json({ error: "Failed to update flag" });
+    }
+  });
+
 }
