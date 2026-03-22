@@ -1,15 +1,13 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sprout, PenLine, BookOpen, Compass, Heart, Bookmark,
-  MessageCircle, Flame, Archive, NotebookPen, FileCheck,
-  CloudSun, Brain, CalendarRange, Network, Users, Mic,
-  Mail, BarChart3, ChevronDown, Menu, X, Home, Moon, Wind,
-  Search, Settings, LogOut, Globe, GraduationCap, Bell
+  PenLine, Sprout, Compass, BookOpen,
+  Users, FileCheck, Wind, Home, Menu, X, LogOut,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
-type GardenView =
+// The GardenView type is kept broad so other pages that consume it
+// still compile. Only the 8 anchors below are wired to nav items.
+export type GardenView =
   | "landing" | "my-garden" | "write" | "garden-feed" | "tending-feed" | "notifications"
   | "gallery" | "queue" | "explore" | "saved" | "pollination"
   | "rituals" | "compost" | "growth-journal" | "submissions"
@@ -20,56 +18,17 @@ interface NavItem {
   id: GardenView;
   label: string;
   icon: React.ReactNode;
-  available?: boolean;
 }
 
-interface NavGroup {
-  title: string;
-  tagline: string;
-  items: NavItem[];
-}
-
-const navGroups: NavGroup[] = [
-  {
-    title: "Seeding",
-    tagline: "Your first words into the soil.",
-    items: [
-      { id: "landing", label: "Garden Home", icon: <Home size={16} />, available: true },
-      { id: "write", label: "Write", icon: <PenLine size={16} />, available: true },
-      { id: "my-garden", label: "My Garden", icon: <Sprout size={16} />, available: true },
-    ],
-  },
-  {
-    title: "Sunlight",
-    tagline: "Where your words are seen.",
-    items: [
-      { id: "explore", label: "Explore", icon: <Compass size={16} />, available: true },
-      { id: "garden-feed", label: "Garden Feed", icon: <Globe size={16} />, available: true },
-      { id: "tending-feed", label: "Gardens I Tend", icon: <Sprout size={16} />, available: true },
-      { id: "queue", label: "Reading Queue", icon: <Bookmark size={16} />, available: true },
-      { id: "saved", label: "Bookmarks", icon: <Heart size={16} />, available: true },
-    ],
-  },
-  {
-    title: "Nutrients",
-    tagline: "The space for nurturing your voice.",
-    items: [
-      { id: "rituals", label: "Writing Rituals", icon: <Flame size={16} />, available: true },
-      { id: "growth-journal", label: "Growth Journal", icon: <NotebookPen size={16} />, available: true },
-      { id: "inner-weather", label: "Inner Weather", icon: <CloudSun size={16} />, available: true },
-      { id: "reflections", label: "Reflections", icon: <Brain size={16} />, available: true },
-      { id: "circles", label: "Circles", icon: <Users size={16} />, available: true },
-    ],
-  },
-  {
-    title: "Greenhouse",
-    tagline: "Growth under optimal conditions.",
-    items: [
-      { id: "gallery", label: "Courses", icon: <GraduationCap size={16} />, available: true },
-      { id: "submissions", label: "Submissions", icon: <FileCheck size={16} />, available: true },
-      { id: "pollination", label: "Paid Feedback", icon: <MessageCircle size={16} />, available: true },
-    ],
-  },
+// ── The 8 anchors that actually exist ─────────────────────────────────────
+const navItems: NavItem[] = [
+  { id: "my-garden",    label: "My Garden",     icon: <Sprout size={15} /> },
+  { id: "write",        label: "Write",         icon: <PenLine size={15} /> },
+  { id: "explore",      label: "Explore",       icon: <Compass size={15} /> },
+  { id: "queue",        label: "Reading",       icon: <BookOpen size={15} /> },
+  { id: "circles",      label: "Circles",       icon: <Users size={15} /> },
+  { id: "submissions",  label: "Submissions",   icon: <FileCheck size={15} /> },
+  { id: "notifications",label: "Wind Chimes",   icon: <Wind size={15} /> },
 ];
 
 interface GardenSidebarProps {
@@ -79,28 +38,18 @@ interface GardenSidebarProps {
   onToggle: () => void;
 }
 
-export type { GardenView };
-
 export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggle }: GardenSidebarProps) {
   const { user } = useAuth();
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    Seeding: true,
-    Sunlight: false,
-    Nutrients: false,
-    Greenhouse: false,
-  });
-
-  function toggleGroup(title: string) {
-    setExpandedGroups(prev => ({ ...prev, [title]: !prev[title] }));
-  }
 
   return (
     <>
+      {/* ── toggle button + back-home pill, always visible ──────────────── */}
       <div className="fixed top-6 left-6 z-[60] flex items-center gap-2">
         <button
           onClick={onToggle}
           className="p-2.5 rounded-lg border border-white/10 bg-white/[0.03] backdrop-blur-sm text-white/50 hover:text-white hover:bg-white/[0.08] transition-all"
           data-testid="button-toggle-sidebar"
+          aria-label={isOpen ? "Close navigation" : "Open navigation"}
         >
           {isOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
@@ -119,6 +68,7 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
       <AnimatePresence>
         {isOpen && (
           <>
+            {/* backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -127,16 +77,18 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
               onClick={onToggle}
             />
 
+            {/* drawer */}
             <motion.aside
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-0 left-0 z-[50] w-[260px] h-screen bg-[#080d15]/95 backdrop-blur-xl border-r border-white/[0.06] flex flex-col overflow-hidden"
+              className="fixed top-0 left-0 z-[50] w-[240px] h-screen bg-[#080d15]/95 backdrop-blur-xl border-r border-white/[0.06] flex flex-col overflow-hidden"
             >
+              {/* writer identity */}
               <div className="pt-6 pb-4 px-5 border-b border-white/[0.06]">
-                <div className="flex items-center gap-3 mb-1 mt-8">
-                  <div className="w-8 h-8 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/50 font-mono text-xs uppercase">
+                <div className="flex items-center gap-3 mt-8">
+                  <div className="w-8 h-8 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/50 font-mono text-xs uppercase shrink-0">
                     {user?.firstName?.[0] || "?"}
                   </div>
                   <div className="min-w-0">
@@ -148,87 +100,36 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto py-3 px-3 scrollbar-thin scrollbar-thumb-white/5">
-                {navGroups.map((group) => (
-                  <div key={group.title} className="mb-1">
+              {/* flat nav anchors */}
+              <nav className="flex-1 overflow-y-auto py-4 px-3">
+                {navItems.map((item) => {
+                  const isActive = currentView === item.id;
+                  return (
                     <button
-                      onClick={() => toggleGroup(group.title)}
-                      className="w-full flex items-center justify-between px-2 py-2 text-white/30 hover:text-white/50 transition-colors group"
-                      data-testid={`nav-group-${group.title.toLowerCase()}`}
+                      key={item.id}
+                      onClick={() => onNavigate(item.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 mb-0.5 ${
+                        isActive
+                          ? "bg-white/[0.08] text-white/90"
+                          : "text-white/40 hover:text-white/70 hover:bg-white/[0.03]"
+                      }`}
+                      data-testid={`nav-item-${item.id}`}
                     >
-                      <div className="flex flex-col items-start">
-                        <span className="font-mono text-[9px] tracking-[0.25em] uppercase">{group.title}</span>
-                      </div>
-                      <ChevronDown
-                        size={12}
-                        className={`transition-transform duration-200 ${expandedGroups[group.title] ? "rotate-0" : "-rotate-90"}`}
-                      />
+                      <span className={isActive ? "text-white/80" : ""}>{item.icon}</span>
+                      <span className="text-[13px] font-serif">{item.label}</span>
                     </button>
+                  );
+                })}
+              </nav>
 
-                    <AnimatePresence initial={false}>
-                      {expandedGroups[group.title] && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
-                        >
-                          {group.items.map((item) => {
-                            const isActive = currentView === item.id;
-                            const isAvailable = item.available !== false;
-
-                            return (
-                              <button
-                                key={item.id}
-                                onClick={() => {
-                                  if (isAvailable) {
-                                    onNavigate(item.id);
-                                  }
-                                }}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all duration-200 ${
-                                  isActive
-                                    ? "bg-white/[0.08] text-white/90"
-                                    : isAvailable
-                                    ? "text-white/40 hover:text-white/70 hover:bg-white/[0.03]"
-                                    : "text-white/15 cursor-default"
-                                }`}
-                                data-testid={`nav-item-${item.id}`}
-                              >
-                                <span className={isActive ? "text-white/80" : ""}>{item.icon}</span>
-                                <span className="text-[13px] font-serif">{item.label}</span>
-                                {!isAvailable && (
-                                  <span className="ml-auto text-[8px] font-mono tracking-widest text-white/15 uppercase">Soon</span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ))}
-              </div>
-
-              <div className="px-3 py-3 border-t border-white/[0.06] space-y-1">
-                <button
-                  onClick={() => onNavigate("notifications" as GardenView)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                    currentView === "notifications"
-                      ? "bg-white/[0.08] text-white/90"
-                      : "text-white/30 hover:text-white/60 hover:bg-white/[0.03]"
-                  }`}
-                  data-testid="nav-notifications"
-                >
-                  <Wind size={16} />
-                  <span className="text-[13px] font-serif">Wind Chimes</span>
-                </button>
+              {/* footer: home + sign out */}
+              <div className="px-3 py-3 border-t border-white/[0.06] space-y-0.5">
                 <a
                   href="/"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.03] transition-all"
                   data-testid="nav-home"
                 >
-                  <Home size={16} />
+                  <Home size={15} />
                   <span className="text-[13px] font-serif">Back to Home</span>
                 </a>
                 <a
@@ -236,7 +137,7 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/30 hover:text-red-400/60 hover:bg-white/[0.03] transition-all"
                   data-testid="nav-logout"
                 >
-                  <LogOut size={16} />
+                  <LogOut size={15} />
                   <span className="text-[13px] font-serif">Sign Out</span>
                 </a>
               </div>
