@@ -181,8 +181,8 @@ export default function StarBackground() {
           <Canvas
             key={canvasKey}
             camera={{ position: [0, 0, 15], fov: 75 }}
-        gl={{ alpha: false, antialias: true, powerPreference: "default" }}
-                    className="bg-[#060b14]"
+        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+                    style={{ background: 'transparent' }}
             onCreated={handleCreated}
           >
             <fog attach="fog" args={['#060b14', 30, 100]} />
