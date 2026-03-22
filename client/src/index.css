@@ -1436,3 +1436,28 @@ body {
 .min-h-screen[class*="text-foreground"] a:not([class*="text-"]) {
     color: rgba(255, 255, 255, 0.9) !important
 }
+
+
+/* === Fix text-primary on dark bg homepage sections === */
+.text-primary h1,
+.text-primary h2,
+.text-primary h3,
+.text-primary h4,
+.text-primary h5,
+.text-primary h6 {
+    color: #ffffff !important;
+}
+.text-primary p,
+.text-primary span,
+.text-primary li {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+/* === bg-transparent headings === */
+.bg-transparent h1,
+.bg-transparent h2,
+.bg-transparent h3,
+.bg-transparent h4,
+.bg-transparent h5,
+.bg-transparent h6 {
+    color: #ffffff !important;
+}
