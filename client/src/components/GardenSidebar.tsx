@@ -4,6 +4,8 @@ import {
   Users, FileCheck, Wind, Home, Menu, X, LogOut,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import type { Notification } from "@shared/schema";
 
 // The GardenView type is kept broad so other pages that consume it
 // still compile. Only the 8 anchors below are wired to nav items.
@@ -40,6 +42,11 @@ interface GardenSidebarProps {
 
 export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggle }: GardenSidebarProps) {
   const { user } = useAuth();
+    const { data: notifications = [] } = useQuery<Notification[]>({
+    queryKey: ["/api/notifications"],
+    enabled: !!user,
+  });
+  const hasUnread = (notifications as Notification[]).some((n) => !n.isRead);
 
   return (
     <>
@@ -117,6 +124,9 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
                     >
                       <span className={isActive ? "text-white/80" : ""}>{item.icon}</span>
                       <span className="text-[13px] font-serif">{item.label}</span>
+                                    {item.id === "notifications" && hasUnread && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400/70" />
+              )}
                     </button>
                   );
                 })}
