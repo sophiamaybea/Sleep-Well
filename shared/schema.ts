@@ -2560,4 +2560,27 @@ export type RejectionFeedbackRequest =
 export type InsertRejectionFeedbackRequest = z.infer<
   typeof insertRejectionFeedbackRequestSchema
 >;
+
+// === EDITOR DIRECT MESSAGES (editor-to-editor private messaging) ===
+export const editorDirectMessages = pgTable("editor_direct_messages", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  fromEditorId: varchar("from_editor_id")
+    .notNull()
+    .references(() => users.id),
+  toEditorId: varchar("to_editor_id")
+    .notNull()
+    .references(() => users.id),
+  body: text("body").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEditorDirectMessageSchema = createInsertSchema(
+  editorDirectMessages
+).omit({ id: true, isRead: true, createdAt: true });
+
+export type EditorDirectMessage = typeof editorDirectMessages.$inferSelect;
+export type InsertEditorDirectMessage = z.infer<typeof insertEditorDirectMessageSchema>;
 export type InsertStudioNote = z.infer<typeof insertStudioNoteSchema>;
