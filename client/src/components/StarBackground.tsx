@@ -37,30 +37,37 @@ class WebGLErrorBoundary extends Component<{ children: ReactNode; fallback: Reac
   render() { return this.state.hasError ? this.props.fallback : this.props.children; }
 }
 
-function StarField({ count = 1200 }) {
+/** Enhanced 3D star field: more stars, brighter, faster tunnel effect */
+function StarField({ count = 2500 }) {
   const points = useRef<THREE.Points>(null!);
 
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 100;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 100;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 100;
+      // Spread stars in a wide sphere around camera
+      pos[i * 3]     = (Math.random() - 0.5) * 120;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 120;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 120;
     }
     return pos;
   }, [count]);
 
   useFrame((_, delta) => {
     if (points.current) {
-      points.current.rotation.z += delta * 0.02;
-      const positions = points.current.geometry.attributes.position.array as Float32Array;
-      const speed = 5;
+      // Slow drift rotation for depth
+      points.current.rotation.y += delta * 0.015;
+      points.current.rotation.x += delta * 0.008;
+
+      // Fly-through: stars rush toward camera
+      const pos = points.current.geometry.attributes.position.array as Float32Array;
+      const speed = 8;
       for (let i = 0; i < count; i++) {
-        positions[i * 3 + 2] += delta * speed;
-        if (positions[i * 3 + 2] > 20) {
-          positions[i * 3 + 2] = -80;
-          positions[i * 3] = (Math.random() - 0.5) * 100;
-          positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+        pos[i * 3 + 2] += delta * speed;
+        // Recycle stars that pass the camera
+        if (pos[i * 3 + 2] > 25) {
+          pos[i * 3 + 2] = -95;
+          pos[i * 3]     = (Math.random() - 0.5) * 120;
+          pos[i * 3 + 1] = (Math.random() - 0.5) * 120;
         }
       }
       points.current.geometry.attributes.position.needsUpdate = true;
@@ -71,27 +78,28 @@ function StarField({ count = 1200 }) {
     <Points ref={points} positions={positions} stride={3} frustumCulled={false}>
       <PointMaterial
         transparent
-        color="#ede9e3"
-        size={0.06}
+        color="#ffffff"
+        size={0.12}
         sizeAttenuation={true}
         depthWrite={false}
-        opacity={0.35}
+        opacity={0.85}
         blending={THREE.AdditiveBlending}
       />
     </Points>
   );
 }
 
+/** CSS fallback for devices without WebGL */
 function CSSStarFallback() {
   const stars = useMemo(() => {
-    return Array.from({ length: 80 }, (_, i) => ({
+    return Array.from({ length: 150 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: 0.5 + Math.random() * 2,
-      opacity: 0.15 + Math.random() * 0.3,
-      duration: 2 + Math.random() * 4,
-      delay: Math.random() * 3,
+      size: 0.8 + Math.random() * 2.5,
+      opacity: 0.4 + Math.random() * 0.6,
+      duration: 2 + Math.random() * 5,
+      delay: Math.random() * 4,
     }));
   }, []);
 
@@ -100,7 +108,7 @@ function CSSStarFallback() {
       {stars.map((s) => (
         <div
           key={s.id}
-          className="absolute rounded-full bg-[#ede9e3] animate-pulse"
+          className="absolute rounded-full bg-white animate-pulse"
           style={{
             left: `${s.x}%`,
             top: `${s.y}%`,
@@ -158,32 +166,26 @@ export default function StarBackground() {
   }, [contextLost]);
 
   if (!starsVisible) {
-    return <div className="fixed inset-0 z-0 pointer-events-none bg-background" />;
+    return <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: '#060b14' }} />;
   }
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none bg-background">
+    <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: '#060b14' }}>
       {webgl && !contextLost && !canvasReady && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative w-12 h-12">
-              <div className="absolute inset-0 rounded-full border border-white/10 border-t-white/40 animate-spin" />
-              <div className="absolute inset-2 rounded-full border border-white/5 border-b-white/20 animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}} />
-            </div>
-            <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/30">Preparing the night sky...</p>
-          </div>
+          <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/20">Preparing the night sky...</p>
         </div>
       )}
       {webgl && !contextLost ? (
         <WebGLErrorBoundary fallback={<CSSStarFallback />}>
           <Canvas
             key={canvasKey}
-            camera={{ position: [0, 0, 10], fov: 60 }}
-            gl={{ alpha: false, antialias: true, powerPreference: "low-power" }}
-            className="bg-background"
+            camera={{ position: [0, 0, 15], fov: 75 }}
+            gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+            style={{ background: 'transparent' }}
             onCreated={handleCreated}
           >
-            <fog attach="fog" args={['#0e141f', 20, 90]} />
+            <fog attach="fog" args={['#060b14', 30, 100]} />
             <StarField />
           </Canvas>
         </WebGLErrorBoundary>
