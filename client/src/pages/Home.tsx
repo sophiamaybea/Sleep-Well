@@ -58,6 +58,10 @@ function ScrollAtmosphere() {
 }
 
 export default function Home() {
+    useEffect(() => {
+    document.body.classList.add('starfield-active');
+    return () => document.body.classList.remove('starfield-active');
+  }, []);
   return (
     <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-secondary-foreground">
       <ScrollAtmosphere />
