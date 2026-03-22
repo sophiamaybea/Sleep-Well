@@ -812,6 +812,10 @@ export const editorialFlags = pgTable("editorial_flags", {
   editorResponse: text("editor_response"),
   respondedAt: timestamp("responded_at"),
   createdAt: timestamp("created_at").defaultNow(),
+    decision: text("decision").notNull().default("pending"),
+  freeNote: text("free_note"),
+  freeNoteSentAt: timestamp("free_note_sent_at"),
+  isPublishable: boolean("is_publishable").notNull().default(false),
 });
 
 export const submissionCalls = pgTable("submission_calls", {
