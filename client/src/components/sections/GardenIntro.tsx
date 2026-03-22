@@ -121,7 +121,7 @@ function StageRow({ item, index }: { item: typeof stages[0]; index: number }) {
         <h3 className={`font-display text-2xl md:text-3xl font-light italic ${item.color}`}>
           {item.stage}
         </h3>
-        <p className="font-serif text-base md:text-lg leading-relaxed text-white/50 max-w-md">
+        <p className="font-sans text-base md:text-lg leading-relaxed text-white/50 max-w-md">
           {item.desc}
         </p>
       </div>
@@ -140,7 +140,7 @@ export default function GardenIntro() {
             whileInView={{ opacity: 1 }}
             transition={{ duration: 1 }}
             viewport={{ once: true }}
-            className="font-mono text-[10px] tracking-[0.3em] text-white/25 block mb-6"
+            className="font-sans text-[length:var(--text-label)] tracking-[0.06em] text-white/25 block mb-6"
           >
                         YOUR WRITING GARDEN
           </motion.span>
@@ -158,7 +158,7 @@ export default function GardenIntro() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
             viewport={{ once: true }}
-            className="font-serif italic text-lg md:text-xl text-white/30 mt-6 max-w-xl mx-auto"
+            className="font-display italic text-lg md:text-xl text-white/30 mt-6 max-w-xl mx-auto"
           >
             A private space for drafts, fragments, and half-formed ideas.
             Yours alone, until you decide otherwise.
@@ -182,7 +182,7 @@ export default function GardenIntro() {
         >
           <Link
             href="/garden"
-            className="inline-block font-serif italic text-lg text-white/40 hover:text-white/80 transition-colors duration-700 border-b border-white/10 hover:border-white/30 pb-1"
+            className="inline-block font-display italic text-lg text-white/40 hover:text-white/80 transition-colors duration-700 border-b border-white/10 hover:border-white/30 pb-1"
             data-testid="link-enter-garden"
           >
             Begin writing &rarr;
