@@ -851,10 +851,10 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                 disabled={cleanupMutation.isPending}
                 className="flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/90 hover:text-red-300/60 border border-white/[0.06] hover:border-red-400/20 bg-white/[0.02] hover:bg-red-950/10 transition-all"
                 data-testid="button-cleanup-drafts"
-                title={`Remove ${emptyDraftCount} empty untitled ${emptyDraftCount === 1 ? "draft" : "drafts"}`}
+                title={`Remove ${emptyDraftCount} untitled ${emptyDraftCount === 1 ? "draft" : "drafts"}`}
               >
                 <Trash2 size={9} />
-                {cleanupMutation.isPending ? "Cleaning..." : `${emptyDraftCount} empty`}
+                {cleanupMutation.isPending ? "Cleaning..." : `${emptyDraftCount} untitled`}
               </button>
             )}
           </div>
