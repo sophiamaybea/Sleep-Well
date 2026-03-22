@@ -248,7 +248,7 @@ export default function WriterProfile() {
                           <span className="font-mono text-[9px] uppercase tracking-widest hidden sm:inline">
                             {w.genre}
                           </span>
-                          <span className="font-mono text-[9px]">{words}w</span>
+                          <span className="font-mono text-[9px]">{words > 0 ? `~${Math.ceil(words / 200)} min read` : 'short read'}</span>
                           {w.resonanceCount > 0 && (
                             <span className="flex items-center gap-1 font-mono text-[9px] text-amber-400/40">
                               <Sparkles size={9} />
