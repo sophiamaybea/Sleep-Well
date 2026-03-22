@@ -35,6 +35,7 @@ const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Opportunities = lazy(() => import("@/pages/Opportunities"));
+const Submissions = lazy(() => import("@/pages/Submissions"));
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
@@ -131,6 +132,7 @@ function Router() {
           <Route path="/editorial-room" component={EditorialRoom} />
  <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
  <Route path="/opportunities" component={Opportunities} />
+            <Route path="/submissions" component={Submissions} />
         <Route path="/" component={Home} />
  <Route component={NotFound} />
  </Switch>
