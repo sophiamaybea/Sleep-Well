@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, ChevronLeft, Feather, PenLine,
@@ -3601,6 +3602,20 @@ export default function Garden() {
     useEffect(() => {
           localStorage.setItem('garden_hasVisited', 'true');
         }, []);
+
+          // Deep-link: open a specific piece from ?pieceId=<id> query param
+            useEffect(() => {
+                  if (!writings.length) return;
+                      const params = new URLSearchParams(window.location.search);
+                          const pieceId = params.get('pieceId');
+                              if (!pieceId) return;
+                                  const target = writings.find((w) => String(w.id) === pieceId);
+                                      if (target) {
+                                              setActiveWriting(target);
+                                                    setIsEditing(true);
+                                                          window.history.replaceState({}, '', '/garden');
+                                                              }
+                                                                }, [writings]);
   
   useEffect(() => {
     if (!isAuthenticated) return;

@@ -115,7 +115,7 @@ export default function V2Dashboard() {
                 return (
                   <button
                     key={piece.id}
-                    onClick={() => navigate("/garden")}
+                    onClick={() => navigate("/garden?pieceId=" + piece.id)}
                     className="w-full flex items-center gap-4 px-4 py-3.5 rounded-lg border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10 transition-all text-left group"
                   >
                     <span className={`text-[10px] shrink-0 ${mark.color}`} title={mark.label}>
