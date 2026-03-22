@@ -1,3 +1,4 @@
+import StarBackground from "@/components/StarBackground";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/sections/Hero";
 import GardenIntro from "@/components/sections/GardenIntro";
@@ -65,6 +66,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-secondary-foreground">
       <ScrollAtmosphere />
+      <StarBackground />
       <Navigation />
       <main>
         <Hero />
