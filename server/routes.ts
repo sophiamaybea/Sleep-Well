@@ -7486,7 +7486,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // PayPal capture order
   app.post("/api/paypal/capture-order", async (req: any, res) => {
     try {
-      const { orderId, waitlistId } = req.body;
+      const { orderId, waitlistId, writingId, tier, userId } = req.body;
       const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
       const response = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${orderId}/capture`, {
         method: "POST",
