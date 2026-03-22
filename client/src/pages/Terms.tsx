@@ -18,7 +18,7 @@ export default function Terms() {
             Terms of Service
           </h1>
           <div className="prose prose-invert max-w-none space-y-8 text-white/70 leading-relaxed">
-            <p className="text-lg">Effective Date: February 2025</p>
+            <p className="text-lg">Effective Date: February 2026</p>
             <section>
               <h2 className="text-2xl font-display text-white/90 mb-4">1. Acceptance of Terms</h2>
               <p>By accessing or using The Page Gallery & Garden, you agree to be bound by these Terms of Service. If you do not agree, please do not use our platform.</p>
