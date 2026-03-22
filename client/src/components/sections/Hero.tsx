@@ -65,7 +65,7 @@ export default function Hero() {
               <div>
                 <motion.p
                   style={{ x: textX, y: textY }}
-                  className="font-mono text-[10px] tracking-[0.4em] text-amber-200/60 uppercase mb-6 block"
+                  className="font-sans text-[length:var(--text-label)] uppercase tracking-[0.06em] text-amber-200/60 uppercase mb-6 block"
                 >
                   A Literary Journal &amp; Digital Writing Garden
                 </motion.p>
@@ -75,7 +75,7 @@ export default function Hero() {
               </div>
 
               <p
-                className="max-w-lg text-sm md:text-base leading-relaxed font-mono text-white/60"
+                className="max-w-lg text-sm md:text-base leading-relaxed font-sans text-white/60"
                 data-testid="text-hero-garden-proposition"
               >
                 No slush pile. No query letters. No waiting rooms.{" "}
@@ -89,7 +89,7 @@ export default function Hero() {
                   className="group flex items-center gap-3"
                   data-testid="cta-read-journal"
                 >
-                  <span className="font-serif italic text-lg text-white group-hover:text-amber-100 transition-colors">
+                  <span className="font-display italic text-lg text-white group-hover:text-amber-100 transition-colors">
                     Read the Journal
                   </span>
                   <span className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all">
@@ -101,7 +101,7 @@ export default function Hero() {
                   className="group flex items-center gap-3"
                   data-testid="cta-start-writing"
                 >
-                  <span className="font-serif italic text-lg text-white/80 group-hover:text-white transition-colors">
+                  <span className="font-display italic text-lg text-white/80 group-hover:text-white transition-colors">
                     Start Writing
                   </span>
                   <span className="text-white/40 group-hover:text-white/70 group-hover:translate-x-1 transition-all">
@@ -110,7 +110,7 @@ export default function Hero() {
                 </Link>
                 <Link
                   href="/about"
-                  className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40 hover:text-white/70 transition-colors"
+                  className="font-sans text-[length:var(--text-label)] uppercase tracking-[0.06em] text-white/40 hover:text-white/70 transition-colors"
                   data-testid="cta-about-us"
                 >
                   About Us
