@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Feather, ChevronDown, Home, Sparkles } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
 import { TendButton } from "@/components/garden/SocialFeatures";
-import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
+import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor"; import { usePageMeta } from "@/hooks/usePageMeta";
 
 type WriterWriting = {
   id: string;
@@ -52,6 +52,7 @@ export default function WriterProfile() {
     enabled: !!id,
     retry: false,
   });
+    usePageMeta({ title: data ? [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') : 'Writer' });
 
   if (isLoading) {
     return (
