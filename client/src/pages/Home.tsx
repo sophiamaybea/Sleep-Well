@@ -9,8 +9,10 @@ import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap-init";
 
 /**
- * GSAP-powered atmosphere layer — replaces the old useState scroll tracker.
- * Drives depth glow and warm-shift purely through ScrollTrigger progress.
+ * GSAP-powered atmosphere layer.
+ * NOTE: perspective is intentionally NOT on this root div — putting
+ * CSS perspective on a scroll container breaks position:fixed children.
+ * Perspective lives on individual scene elements instead.
  */
 function ScrollAtmosphere() {
   const warmRef = useRef<HTMLDivElement>(null);
@@ -18,7 +20,6 @@ function ScrollAtmosphere() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Warm gold glow rises from bottom as user scrolls
       ScrollTrigger.create({
         start: "top top",
         end: "bottom bottom",
@@ -35,7 +36,6 @@ function ScrollAtmosphere() {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-      {/* Warm gold ambient — grows on scroll */}
       <div
         ref={warmRef}
         className="absolute inset-0"
@@ -45,7 +45,6 @@ function ScrollAtmosphere() {
           opacity: 0,
         }}
       />
-      {/* Cool top vignette — fades on scroll */}
       <div
         ref={coolRef}
         className="absolute top-0 left-0 right-0 h-[30vh]"
@@ -60,13 +59,10 @@ function ScrollAtmosphere() {
 
 export default function Home() {
   return (
-    <div
-      className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-secondary-foreground"
-      style={{ perspective: "1200px", perspectiveOrigin: "50% 40%" }}
-    >
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-secondary-foreground">
       <ScrollAtmosphere />
       <Navigation />
-      <main style={{ transformStyle: "preserve-3d" }}>
+      <main>
         <Hero />
         <Featured />
         <GardenIntro />
