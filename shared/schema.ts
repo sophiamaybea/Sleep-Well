@@ -2509,4 +2509,51 @@ export const insertStudioNoteSchema = createInsertSchema(
 export type EditorTaskComment = typeof editorTaskComments.$inferSelect;
 export type InsertEditorTaskComment = z.infer<typeof insertEditorTaskCommentSchema>;
 export type StudioNote = typeof studioNotes.$inferSelect;
+
+// === REJECTION FEEDBACK REQUESTS ===
+
+export const rejectionFeedbackRequests = pgTable("rejection_feedback_requests", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id")
+    .notNull()
+    .references(() => writings.id),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  flagId: varchar("flag_id")
+    .notNull()
+    .references(() => editorialFlags.id),
+  // 'free' = brief paragraph note | 'paid' = full editorial letter
+  tier: text("tier").notNull().default("free"),
+  // 'requested' | 'delivered' | 'cancelled'
+  status: text("status").notNull().default("requested"),
+  paidAmountPence: integer("paid_amount_pence").notNull().default(0),
+  paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
+  paypalOrderId: text("paypal_order_id"),
+  editorLetter: text("editor_letter"),
+  deliveredAt: timestamp("delivered_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertRejectionFeedbackRequestSchema = createInsertSchema(
+  rejectionFeedbackRequests,
+).omit({
+  id: true,
+  status: true,
+  paymentConfirmed: true,
+  paypalOrderId: true,
+  editorLetter: true,
+  deliveredAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type RejectionFeedbackRequest =
+  typeof rejectionFeedbackRequests.$inferSelect;
+export type InsertRejectionFeedbackRequest = z.infer<
+  typeof insertRejectionFeedbackRequestSchema
+>;
 export type InsertStudioNote = z.infer<typeof insertStudioNoteSchema>;
