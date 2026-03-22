@@ -4,7 +4,6 @@ import { randomUUID } from "crypto";
 import { pool } from "../db";
 
 export function registerEditorialRoomRoutes(app: Express) {
-
   // —— THREADS ——————————————————————————————————————————
 
   // GET /api/editorial/threads
@@ -45,7 +44,11 @@ export function registerEditorialRoomRoutes(app: Express) {
   app.get("/api/editorial/threads/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT * FROM editorial_thread_messages WHERE thread_id = $1 ORDER BY created_at ASC`,
+        `SELECT etm.*, u.first_name || ' ' || u.last_name AS sender_name
+         FROM editorial_thread_messages etm
+         LEFT JOIN users u ON etm.author_id = u.id
+         WHERE etm.thread_id = $1
+         ORDER BY etm.created_at ASC`,
         [req.params.id]
       );
       res.json(rows);
@@ -56,18 +59,20 @@ export function registerEditorialRoomRoutes(app: Express) {
   });
 
   // POST /api/editorial/threads/:id/messages
+  // Frontend sends { content }, we store it as body in the DB
   app.post("/api/editorial/threads/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const editorId = req.user?.claims?.sub || req.user?.id;
-      const { body } = req.body;
-      if (!body?.trim()) {
-        return res.status(400).json({ error: "body is required" });
+      // Frontend sends 'content', schema column is 'body'
+      const content = req.body.content || req.body.body;
+      if (!content?.trim()) {
+        return res.status(400).json({ error: "content is required" });
       }
       const { rows } = await pool.query(
         `INSERT INTO editorial_thread_messages (id, thread_id, author_id, body)
          VALUES ($1, $2, $3, $4)
          RETURNING *`,
-        [randomUUID(), req.params.id, editorId, body.trim()]
+        [randomUUID(), req.params.id, editorId, content.trim()]
       );
       await pool.query(
         `UPDATE editorial_threads SET updated_at = NOW() WHERE id = $1`,
@@ -85,9 +90,15 @@ export function registerEditorialRoomRoutes(app: Express) {
   // GET /api/editorial/tasks
   app.get("/api/editorial/tasks", isAuthenticated, async (req: any, res) => {
     try {
-      const { rows } = await pool.query(
-        `SELECT * FROM editorial_tasks ORDER BY created_at DESC`
-      );
+      const statusFilter = req.query.status;
+      let query = `SELECT * FROM editorial_tasks`;
+      const params: any[] = [];
+      if (statusFilter && statusFilter !== 'all') {
+        query += ` WHERE status = $1`;
+        params.push(statusFilter);
+      }
+      query += ` ORDER BY created_at DESC`;
+      const { rows } = await pool.query(query, params);
       res.json(rows);
     } catch (err) {
       console.error("[editorialRooms] GET /tasks error:", err);
@@ -105,7 +116,7 @@ export function registerEditorialRoomRoutes(app: Express) {
       }
       const { rows } = await pool.query(
         `INSERT INTO editorial_tasks
-           (id, title, description, assigned_editor_id, writing_id, priority, task_type, created_by_editor_id, status)
+         (id, title, description, assigned_editor_id, writing_id, priority, task_type, created_by_editor_id, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open')
          RETURNING *`,
         [
@@ -153,7 +164,11 @@ export function registerEditorialRoomRoutes(app: Express) {
   app.get("/api/editorial/tasks/:id/comments", isAuthenticated, async (req: any, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT * FROM editor_task_comments WHERE task_id = $1 ORDER BY created_at ASC`,
+        `SELECT etc.*, u.first_name || ' ' || u.last_name AS author_name
+         FROM editor_task_comments etc
+         LEFT JOIN users u ON etc.author_id = u.id
+         WHERE etc.task_id = $1
+         ORDER BY etc.created_at ASC`,
         [req.params.id]
       );
       res.json(rows);
@@ -229,5 +244,4 @@ export function registerEditorialRoomRoutes(app: Express) {
       res.status(500).json({ error: "Failed to update flag" });
     }
   });
-
 }
