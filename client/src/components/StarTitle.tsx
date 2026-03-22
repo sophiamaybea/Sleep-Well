@@ -133,7 +133,7 @@ export default function StarTitle() {
           className="relative"
         >
           <img
-            src="/hero-illustration.png"
+                      src="/logo%20(2).png"
             alt="The Page Gallery"
             className="w-[320px] md:w-[420px] lg:w-[500px] h-auto drop-shadow-[0_0_60px_rgba(255,255,255,0.15)]"
           />
