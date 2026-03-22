@@ -79,10 +79,10 @@ function StarField({ count = 2500 }) {
       <PointMaterial
         transparent
         color="#ffffff"
-        size={0.12}
+                size={0.4}
         sizeAttenuation={true}
         depthWrite={false}
-        opacity={0.85}
+        opacity={1}
         blending={THREE.AdditiveBlending}
       />
     </Points>
@@ -185,7 +185,6 @@ export default function StarBackground() {
                     style={{ background: 'transparent' }}
             onCreated={handleCreated}
           >
-            <fog attach="fog" args={['#060b14', 30, 100]} />
             <StarField />
           </Canvas>
         </WebGLErrorBoundary>
