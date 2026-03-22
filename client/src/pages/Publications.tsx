@@ -72,7 +72,7 @@ export default function Publications() {
           </motion.div>
         </section>
 
-        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-available-now">
+        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-available-now" style={{ display: currentIssues.length === 0 ? 'none' : undefined }}>
           <div className="max-w-5xl mx-auto space-y-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -169,7 +169,7 @@ export default function Publications() {
           </div>
         </section>
 
-        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-archive">
+        <section className="py-24 px-6 md:px-12 border-t border-white/[0.04]" data-testid="section-archive" style={{ display: pastIssues.length === 0 ? 'none' : undefined }}>
           <div className="max-w-5xl mx-auto space-y-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
