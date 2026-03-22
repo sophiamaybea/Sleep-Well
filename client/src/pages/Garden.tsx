@@ -26,6 +26,7 @@ import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden
 import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, FirstReaderRoom, ReadingShelfRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
+import SendToEditors from "@/components/garden/SendToEditors";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
 type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
