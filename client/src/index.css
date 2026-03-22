@@ -3,13 +3,35 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-sans: 'Libre Baskerville', serif;
-  --font-display: 'Playfair Display', serif;
+        --font-sans: 'Inter', sans-serif;
+      --font-display: 'Fraunces', serif;
   --font-mono: 'Space Mono', monospace;
-      --font-serif: 'Libre Baskerville', serif;
+          --font-serif: 'Fraunces', serif;
+        --font-body: 'Inter', sans-serif;
+
+    /* Type scale tokens */
+    --text-hero: clamp(2.5rem, 8vw, 6rem);
+    --text-section: clamp(2rem, 6vw, 3.5rem);
+    --text-card-title: 1.25rem;
+    --text-label: 0.6875rem;
+    --text-body: 1rem;
+    --text-small: 0.875rem;
+
+    /* Grid tokens */
+    --content-width: 1120px;
+    --side-padding-desktop: 80px;
+    --side-padding-mobile: 24px;
+
+    /* Spacing scale */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-6: 48px;
+    --space-10: 80px;
 
   /* Teal-Indigo Watercolor Night — bioluminescent garden palette */
-  --color-background: #0d1e2d;
+      --color-background: #060b14;
   --color-foreground: #ffffff;
   
   --color-card: #112838;
@@ -27,7 +49,10 @@
   --color-muted: #1a3040;
   --color-muted-foreground: #a8b8c8;
   
-  --color-accent: #c4a24d;
+      /* Accent split: CTA green + ornament gold */
+    --color-accent-cta: #335B3B;
+    --color-accent-ornament: #c4a24d;
+    --color-accent: #335B3B;
   --color-accent-foreground: #ffffff;
   
   --color-destructive: hsl(0 60% 50%);
@@ -35,7 +60,7 @@
 
   --color-border: #1a3040;
   --color-input: #1a3040;
-  --color-ring: #c4a24d;
+      --color-ring: #335B3B;
   
   --radius: 0.5rem;
 }
@@ -54,8 +79,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-normal font-light;
-              font-style: normal !important;
-  }
+              }
   p {
     @apply leading-relaxed;
   }
