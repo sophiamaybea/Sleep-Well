@@ -23,16 +23,16 @@ export function registerEditorialRoomRoutes(app: Express) {
   // POST /api/editorial/threads
   app.post("/api/editorial/threads", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const editorId = req.user?.claims?.sub || req.user?.id;
       const { subject, writingId } = req.body;
       if (!subject?.trim()) {
         return res.status(400).json({ error: "subject is required" });
       }
       const { rows } = await pool.query(
-        `INSERT INTO editorial_threads (id, subject, writing_id, created_by, updated_at)
-         VALUES ($1, $2, $3, $4, NOW())
+        `INSERT INTO editorial_threads (id, subject, writing_id, created_by_editor_id)
+         VALUES ($1, $2, $3, $4)
          RETURNING *`,
-        [randomUUID(), subject.trim(), writingId || null, userId]
+        [randomUUID(), subject.trim(), writingId || null, editorId]
       );
       res.status(201).json(rows[0]);
     } catch (err) {
@@ -58,16 +58,16 @@ export function registerEditorialRoomRoutes(app: Express) {
   // POST /api/editorial/threads/:id/messages
   app.post("/api/editorial/threads/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.id;
-      const { content } = req.body;
-      if (!content?.trim()) {
-        return res.status(400).json({ error: "content is required" });
+      const editorId = req.user?.claims?.sub || req.user?.id;
+      const { body } = req.body;
+      if (!body?.trim()) {
+        return res.status(400).json({ error: "body is required" });
       }
       const { rows } = await pool.query(
-        `INSERT INTO editorial_thread_messages (id, thread_id, author_id, content)
+        `INSERT INTO editorial_thread_messages (id, thread_id, author_id, body)
          VALUES ($1, $2, $3, $4)
          RETURNING *`,
-        [randomUUID(), req.params.id, userId, content.trim()]
+        [randomUUID(), req.params.id, editorId, body.trim()]
       );
       await pool.query(
         `UPDATE editorial_threads SET updated_at = NOW() WHERE id = $1`,
@@ -98,16 +98,26 @@ export function registerEditorialRoomRoutes(app: Express) {
   // POST /api/editorial/tasks
   app.post("/api/editorial/tasks", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.id;
-      const { title, description, assignedTo, writingId, priority } = req.body;
+      const editorId = req.user?.claims?.sub || req.user?.id;
+      const { title, description, assignedEditorId, writingId, priority, taskType } = req.body;
       if (!title?.trim()) {
         return res.status(400).json({ error: "title is required" });
       }
       const { rows } = await pool.query(
-        `INSERT INTO editorial_tasks (id, title, description, assigned_to, writing_id, priority, created_by, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'open')
+        `INSERT INTO editorial_tasks
+           (id, title, description, assigned_editor_id, writing_id, priority, task_type, created_by_editor_id, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open')
          RETURNING *`,
-        [randomUUID(), title.trim(), description || null, assignedTo || null, writingId || null, priority || 'medium', userId]
+        [
+          randomUUID(),
+          title.trim(),
+          description || null,
+          assignedEditorId || null,
+          writingId || null,
+          priority || 'medium',
+          taskType || 'ops',
+          editorId
+        ]
       );
       res.status(201).json(rows[0]);
     } catch (err) {
@@ -119,13 +129,17 @@ export function registerEditorialRoomRoutes(app: Express) {
   // PATCH /api/editorial/tasks/:id
   app.patch("/api/editorial/tasks/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const { status, assignedTo } = req.body;
+      const { status, assignedEditorId, boardColumn } = req.body;
       const { rows } = await pool.query(
         `UPDATE editorial_tasks
-         SET status = COALESCE($1, status), assigned_to = COALESCE($2, assigned_to)
-         WHERE id = $3
+         SET
+           status = COALESCE($1, status),
+           assigned_editor_id = COALESCE($2, assigned_editor_id),
+           board_column = COALESCE($3, board_column),
+           updated_at = NOW()
+         WHERE id = $4
          RETURNING *`,
-        [status || null, assignedTo || null, req.params.id]
+        [status || null, assignedEditorId || null, boardColumn || null, req.params.id]
       );
       if (rows.length === 0) return res.status(404).json({ error: "Task not found" });
       res.json(rows[0]);
@@ -152,7 +166,7 @@ export function registerEditorialRoomRoutes(app: Express) {
   // POST /api/editorial/tasks/:id/comments
   app.post("/api/editorial/tasks/:id/comments", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const editorId = req.user?.claims?.sub || req.user?.id;
       const { content } = req.body;
       if (!content?.trim()) {
         return res.status(400).json({ error: "content is required" });
@@ -161,7 +175,7 @@ export function registerEditorialRoomRoutes(app: Express) {
         `INSERT INTO editor_task_comments (id, task_id, author_id, content)
          VALUES ($1, $2, $3, $4)
          RETURNING *`,
-        [randomUUID(), req.params.id, userId, content.trim()]
+        [randomUUID(), req.params.id, editorId, content.trim()]
       );
       res.status(201).json(rows[0]);
     } catch (err) {
@@ -176,7 +190,12 @@ export function registerEditorialRoomRoutes(app: Express) {
   app.get("/api/editorial/flags", isAuthenticated, async (req: any, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT * FROM editorial_flags ORDER BY created_at DESC`
+        `SELECT ef.*, w.title as writing_title, w.content as writing_content,
+                u.username as author_username
+         FROM editorial_flags ef
+         LEFT JOIN writings w ON ef.writing_id = w.id
+         LEFT JOIN users u ON ef.author_id = u.id
+         ORDER BY ef.created_at DESC`
       );
       res.json(rows);
     } catch (err) {
@@ -188,13 +207,20 @@ export function registerEditorialRoomRoutes(app: Express) {
   // PATCH /api/editorial/flags/:id
   app.patch("/api/editorial/flags/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const { status, resolution } = req.body;
+      const editorId = req.user?.claims?.sub || req.user?.id;
+      const { decision, editorResponse, status } = req.body;
       const { rows } = await pool.query(
         `UPDATE editorial_flags
-         SET status = COALESCE($1, status), resolution = COALESCE($2, resolution)
-         WHERE id = $3
+         SET
+           decision = COALESCE($1, decision),
+           editor_response = COALESCE($2, editor_response),
+           status = COALESCE($3, status),
+           seen_by_editor_id = $4,
+           seen_at = NOW(),
+           responded_at = NOW()
+         WHERE id = $5
          RETURNING *`,
-        [status || null, resolution || null, req.params.id]
+        [decision || null, editorResponse || null, status || null, editorId, req.params.id]
       );
       if (rows.length === 0) return res.status(404).json({ error: "Flag not found" });
       res.json(rows[0]);
