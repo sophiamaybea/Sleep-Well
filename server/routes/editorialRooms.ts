@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { pool } from "../db";
 
 export function registerEditorialRoomRoutes(app: Express) {
-  // —— THREADS ——————————————————————————————————————————
+  // —— THREADS ————————————————————————————————————————
 
   // GET /api/editorial/threads
   app.get("/api/editorial/threads", isAuthenticated, async (req: any, res) => {
@@ -44,7 +44,13 @@ export function registerEditorialRoomRoutes(app: Express) {
   app.get("/api/editorial/threads/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT etm.*, u.first_name || ' ' || u.last_name AS sender_name
+        `SELECT
+           etm.id,
+           etm.thread_id,
+           etm.author_id,
+           etm.body AS content,
+           etm.created_at,
+           u.first_name || ' ' || u.last_name AS sender_name
          FROM editorial_thread_messages etm
          LEFT JOIN users u ON etm.author_id = u.id
          WHERE etm.thread_id = $1
@@ -71,7 +77,7 @@ export function registerEditorialRoomRoutes(app: Express) {
       const { rows } = await pool.query(
         `INSERT INTO editorial_thread_messages (id, thread_id, author_id, body)
          VALUES ($1, $2, $3, $4)
-         RETURNING *`,
+         RETURNING id, thread_id, author_id, body AS content, created_at`,
         [randomUUID(), req.params.id, editorId, content.trim()]
       );
       await pool.query(
@@ -85,7 +91,7 @@ export function registerEditorialRoomRoutes(app: Express) {
     }
   });
 
-  // —— TASKS ——————————————————————————————————————————
+  // —— TASKS ————————————————————————————————————————
 
   // GET /api/editorial/tasks
   app.get("/api/editorial/tasks", isAuthenticated, async (req: any, res) => {
@@ -160,6 +166,21 @@ export function registerEditorialRoomRoutes(app: Express) {
     }
   });
 
+  // DELETE /api/editorial/tasks/:id
+  app.delete("/api/editorial/tasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { rowCount } = await pool.query(
+        `DELETE FROM editorial_tasks WHERE id = $1`,
+        [req.params.id]
+      );
+      if (rowCount === 0) return res.status(404).json({ error: "Task not found" });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[editorialRooms] DELETE /tasks/:id error:", err);
+      res.status(500).json({ error: "Failed to delete task" });
+    }
+  });
+
   // GET /api/editorial/tasks/:id/comments
   app.get("/api/editorial/tasks/:id/comments", isAuthenticated, async (req: any, res) => {
     try {
@@ -199,14 +220,14 @@ export function registerEditorialRoomRoutes(app: Express) {
     }
   });
 
-  // —— FLAGS ——————————————————————————————————————————
+  // —— FLAGS ————————————————————————————————————————
 
   // GET /api/editorial/flags
   app.get("/api/editorial/flags", isAuthenticated, async (req: any, res) => {
     try {
       const { rows } = await pool.query(
         `SELECT ef.*, w.title as writing_title, w.content as writing_content,
-                u.username as author_username
+         u.username as author_username
          FROM editorial_flags ef
          LEFT JOIN writings w ON ef.writing_id = w.id
          LEFT JOIN users u ON ef.author_id = u.id
