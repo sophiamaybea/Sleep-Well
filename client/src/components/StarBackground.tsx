@@ -1,4 +1,6 @@
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 
 const STARS_KEY = "page-gallery-stars-visible";
 
@@ -9,6 +11,7 @@ export function useStarsVisible() {
       return stored === null ? true : stored === "true";
     } catch { return true; }
   });
+
   const toggle = useCallback(() => {
     setVisible(prev => {
       const next = !prev;
@@ -17,83 +20,131 @@ export function useStarsVisible() {
       return next;
     });
   }, []);
+
   useEffect(() => {
     const handler = (e: Event) => setVisible((e as CustomEvent).detail);
     window.addEventListener("stars-toggle", handler);
     return () => window.removeEventListener("stars-toggle", handler);
   }, []);
+
   return { starsVisible: visible, toggleStars: toggle };
 }
 
-interface Star {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  opacity: number;
-  duration: number;
-  delay: number;
+/* ---------- Three.js star field ---------- */
+
+function StarField() {
+  const ref = useRef<THREE.Points>(null);
+  const count = 2000;
+
+  const positions = useMemo(() => {
+    const arr = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 60;
+      arr[i * 3 + 1] = (Math.random() - 0.5) * 60;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 60;
+    }
+    return arr;
+  }, []);
+
+  const sizes = useMemo(() => {
+    const arr = new Float32Array(count);
+    for (let i = 0; i < count; i++) arr[i] = Math.random() * 0.08 + 0.02;
+    return arr;
+  }, []);
+
+  useFrame((_state, delta) => {
+    if (!ref.current) return;
+    const geo = ref.current.geometry;
+    const pos = geo.attributes.position as THREE.BufferAttribute;
+    for (let i = 0; i < count; i++) {
+      let z = pos.getZ(i);
+      z += delta * 1.2;
+      if (z > 30) z = -30;
+      pos.setZ(i, z);
+    }
+    pos.needsUpdate = true;
+  });
+
+  return (
+    <points ref={ref}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
+      </bufferGeometry>
+      <pointsMaterial
+        color="#ffffff"
+        size={0.1}
+        sizeAttenuation
+        transparent
+        opacity={0.8}
+        depthWrite={false}
+      />
+    </points>
+  );
 }
 
-function generateStars(count: number): Star[] {
-  const stars: Star[] = [];
-  for (let i = 0; i < count; i++) {
-    stars.push({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 0.8 + Math.random() * 2.2,
-      opacity: 0.4 + Math.random() * 0.6,
-      duration: 2 + Math.random() * 4,
-      delay: Math.random() * 6,
-    });
-  }
-  return stars;
-}
+/* ---------- Main component with GSAP scroll fade ---------- */
 
 export default function StarBackground() {
   const { starsVisible } = useStarsVisible();
-  const stars = useMemo(() => generateStars(250), []);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  if (!starsVisible) {
-    return (
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{ background: '#060b14' }}
-      />
-    );
-  }
+  // GSAP scroll-driven fade: stars recede as user scrolls down
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    let rafId: number;
+    let lastScroll = 0;
+
+    const handleScroll = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (!containerRef.current) return;
+        const scrollY = window.scrollY;
+        const viewportHeight = window.innerHeight;
+        // Fade from full opacity at top to 0.1 over 3 viewport heights
+        const progress = Math.min(scrollY / (viewportHeight * 2.5), 1);
+        const opacity = 1 - progress * 0.85; // goes from 1.0 to 0.15
+        const scale = 1 + progress * 0.15; // slight zoom as stars recede
+        containerRef.current.style.opacity = String(opacity);
+        containerRef.current.style.transform = `scale(${scale})`;
+        lastScroll = scrollY;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // set initial state
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  if (!starsVisible) return null;
 
   return (
     <div
-      className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
-      style={{ background: '#060b14' }}
-      aria-hidden="true"
+      ref={containerRef}
+      className="fixed inset-0 z-0 pointer-events-none"
+      style={{
+        willChange: 'opacity, transform',
+        transformOrigin: 'center center',
+        transition: 'opacity 0.1s ease-out, transform 0.1s ease-out',
+      }}
     >
-      <style>{`
-        @keyframes star-twinkle {
-          0%, 100% { opacity: var(--star-opacity); transform: scale(1); }
-          50% { opacity: calc(var(--star-opacity) * 0.3); transform: scale(0.7); }
-        }
-      `}</style>
-      {stars.map((star) => (
-        <div
-          key={star.id}
-          style={{
-            position: 'absolute',
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            borderRadius: '50%',
-            backgroundColor: '#ffffff',
-            '--star-opacity': star.opacity,
-            opacity: star.opacity,
-            boxShadow: star.size > 2 ? `0 0 ${star.size * 2}px rgba(255,255,255,0.6)` : 'none',
-            animation: `star-twinkle ${star.duration}s ease-in-out ${star.delay}s infinite`,
-          } as React.CSSProperties}
-        />
-      ))}
+      <Canvas
+        camera={{ position: [0, 0, 20], fov: 60 }}
+        style={{ background: 'transparent' }}
+        gl={{ alpha: true, antialias: false }}
+        dpr={[1, 1.5]}
+      >
+        <StarField />
+      </Canvas>
     </div>
   );
 }
