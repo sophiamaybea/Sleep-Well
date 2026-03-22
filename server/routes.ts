@@ -8654,5 +8654,108 @@ const sharedPieces = await db.select({
   });
 
   // ========================================
+    // === EDITOR DIRECT MESSAGES ===
+  // GET /api/editor/direct-messages/conversations — list editors I've messaged or who messaged me
+  app.get("/api/editor/direct-messages/conversations", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const myId = req.user.claims.sub;
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(`
+        SELECT DISTINCT ON (other_id)
+          other_id,
+          other_name,
+          other_email,
+          last_message,
+          last_at,
+          unread_count
+        FROM (
+          SELECT
+            CASE WHEN from_editor_id = $1 THEN to_editor_id ELSE from_editor_id END AS other_id,
+            CASE WHEN from_editor_id = $1 THEN u2.first_name ELSE u1.first_name END AS other_name,
+            CASE WHEN from_editor_id = $1 THEN u2.email ELSE u1.email END AS other_email,
+            edm.content AS last_message,
+            edm.created_at AS last_at,
+            SUM(CASE WHEN edm.to_editor_id = $1 AND edm.is_read = false THEN 1 ELSE 0 END)
+              OVER (PARTITION BY CASE WHEN from_editor_id = $1 THEN to_editor_id ELSE from_editor_id END) AS unread_count
+          FROM editor_direct_messages edm
+          JOIN users u1 ON u1.id = edm.from_editor_id
+          JOIN users u2 ON u2.id = edm.to_editor_id
+          WHERE edm.from_editor_id = $1 OR edm.to_editor_id = $1
+        ) sub
+        ORDER BY other_id, last_at DESC
+      `, [myId]);
+      res.json(rows);
+    } catch (error) {
+      console.error("DM conversations error:", error);
+      res.status(500).json({ message: "Failed to load conversations" });
+    }
+  });
+
+  // GET /api/editor/direct-messages/:editorId — full thread with a specific editor
+  app.get("/api/editor/direct-messages/:editorId", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const myId = req.user.claims.sub;
+      const otherId = req.params.editorId;
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(`
+        SELECT edm.id, edm.from_editor_id, edm.to_editor_id, edm.content, edm.is_read, edm.created_at,
+               u.first_name AS sender_name
+        FROM editor_direct_messages edm
+        JOIN users u ON u.id = edm.from_editor_id
+        WHERE (edm.from_editor_id = $1 AND edm.to_editor_id = $2)
+           OR (edm.from_editor_id = $2 AND edm.to_editor_id = $1)
+        ORDER BY edm.created_at ASC
+      `, [myId, otherId]);
+      // Mark incoming messages as read
+      await pool.query(`
+        UPDATE editor_direct_messages
+        SET is_read = true
+        WHERE to_editor_id = $1 AND from_editor_id = $2 AND is_read = false
+      `, [myId, otherId]);
+      res.json(rows);
+    } catch (error) {
+      console.error("DM thread error:", error);
+      res.status(500).json({ message: "Failed to load messages" });
+    }
+  });
+
+  // POST /api/editor/direct-messages/:editorId — send a message to another editor
+  app.post("/api/editor/direct-messages/:editorId", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const myId = req.user.claims.sub;
+      const toId = req.params.editorId;
+      const { content } = req.body;
+      if (!content || typeof content !== "string" || !content.trim()) {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(`
+        INSERT INTO editor_direct_messages (from_editor_id, to_editor_id, content)
+        VALUES ($1, $2, $3)
+        RETURNING *
+      `, [myId, toId, content.trim()]);
+      res.status(201).json(rows[0]);
+    } catch (error) {
+      console.error("Send DM error:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // GET /api/editor/direct-messages/unread-count — badge count for nav
+  app.get("/api/editor/dm-unread", isAuthenticated, isEditor, async (req: any, res) => {
+    try {
+      const myId = req.user.claims.sub;
+      const { pool } = await import("./db");
+      const { rows } = await pool.query(`
+        SELECT COUNT(*) as count
+        FROM editor_direct_messages
+        WHERE to_editor_id = $1 AND is_read = false
+      `, [myId]);
+      res.json({ count: Number(rows[0]?.count || 0) });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
   return httpServer;
 }
