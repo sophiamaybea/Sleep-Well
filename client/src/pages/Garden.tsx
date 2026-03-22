@@ -2129,7 +2129,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
     ? [...allPieces]
     : allPieces.filter(p => p.genre === genreFilter);
 
-  if (readingRoomSearch.trim()) {     const q = readingRoomSearch.toLowerCase();     filteredPieces = filteredPieces.filter(p => (p.title || "").toLowerCase().includes(q) || (p.authorName || "").toLowerCase().includes(q) || (p.content || "").toLowerCase().includes(q));   }   if (activeSort === "tended") {eSort, setActiveSort] = useState<ReadingRoomSort>("recent");     const [readingRoomSearch, setReadingRoomSearch] = useState("");
+  if (readingRoomSearch.trim()) {     const q = readingRoomSearch.toLowerCase();     filteredPieces = filteredPieces.filter(p => (p.title || "").toLowerCase().includes(q) || (p.authorName || "").toLowerCase().includes(q) || (p.content || "").toLowerCase().includes(q));   }
     filteredPieces = filteredPieces.filter(p => tendedAuthorIds.has(p.authorId));
   }
 
