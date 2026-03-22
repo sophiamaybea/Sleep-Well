@@ -1660,3 +1660,112 @@ body.starfield-active [class*="excerpt"],
 body.starfield-active li {
     color: rgba(237, 233, 227, 0.9);
 }
+
+
+/* =============================================================
+   TEXT CONTRAST FIX — 2026-03-22
+   All writing: white on dark (dark mode), #2d2d2d on light (light mode).
+   Additive overrides only — nothing above this line is altered.
+   ============================================================= */
+
+/* ── 1. Cover bare .text-white (headings h1/h2/h3 use this) ── */
+html.light-theme .text-white {
+    color: #2d2d2d !important;
+}
+
+/* ── 2. Fill in the missing opacity steps (/55 /65 /75 /95) ── */
+html.light-theme .text-white\/55 {
+    color: rgba(45, 45, 45, 0.7) !important;
+}
+html.light-theme .text-white\/65 {
+    color: rgba(45, 45, 45, 0.75) !important;
+}
+html.light-theme .text-white\/75 {
+    color: rgba(45, 45, 45, 0.8) !important;
+}
+html.light-theme .text-white\/95 {
+    color: rgba(45, 45, 45, 0.92) !important;
+}
+
+/* ── 3. prose-content: override all hardcoded rgba(255,255,255,*) ── */
+html.light-theme .prose-content,
+html.light-theme .prose-content p,
+html.light-theme .prose-content span {
+    color: #2d2d2d !important;
+}
+html.light-theme .prose-content h1,
+html.light-theme .prose-content h2,
+html.light-theme .prose-content h3,
+html.light-theme .prose-content h4 {
+    color: #1a1a1a !important;
+}
+html.light-theme .prose-content strong {
+    color: #1a1a1a !important;
+}
+html.light-theme .prose-content em {
+    color: #2d2d2d !important;
+}
+html.light-theme .prose-content blockquote {
+    color: #4a4a4a !important;
+    border-left-color: #a0522d !important;
+}
+html.light-theme .prose-content a {
+    color: #a0522d !important;
+}
+
+/* ── 4. prose-editor (Garden Tiptap): same treatment ── */
+html.light-theme .prose-editor .tiptap,
+html.light-theme .prose-editor .tiptap p {
+    color: #2d2d2d !important;
+}
+html.light-theme .prose-editor .tiptap h1,
+html.light-theme .prose-editor .tiptap h2,
+html.light-theme .prose-editor .tiptap h3 {
+    color: #1a1a1a !important;
+}
+html.light-theme .prose-editor .tiptap strong {
+    color: #1a1a1a !important;
+}
+html.light-theme .prose-editor .tiptap em {
+    color: #2d2d2d !important;
+}
+html.light-theme .prose-editor .tiptap blockquote {
+    color: #4a4a4a !important;
+}
+
+/* ── 5. Garden light (.garden-light) prose override ── */
+.garden-light .prose-content p,
+.garden-light .prose-content span,
+.garden-light .prose-content li {
+    color: #2d2d2d !important;
+}
+.garden-light .prose-content h1,
+.garden-light .prose-content h2,
+.garden-light .prose-content h3 {
+    color: #1a1a1a !important;
+}
+
+/* ── 6. Fix #hero-content .garden-light copy-paste bug ──
+   The second block mistakenly set text to #ffffff (white on light).
+   Override it here to the correct dark text. */
+#hero-content.garden-light h1,
+#hero-content.garden-light p,
+#hero-content.garden-light span {
+    color: #2d2d2d !important;
+}
+
+/* ── 7. Dark mode: ensure headings and body are properly white ──
+   In dark mode, text-white on near-black should render clearly.
+   body paragraphs use rgba(255,255,255,0.88) — soft white, not harsh. */
+body:not(.light-theme) .prose-content p,
+html:not(.light-theme) .prose-content p {
+    color: rgba(255, 255, 255, 0.88);
+}
+body:not(.light-theme) .prose-content h1,
+body:not(.light-theme) .prose-content h2,
+body:not(.light-theme) .prose-content h3,
+html:not(.light-theme) .prose-content h1,
+html:not(.light-theme) .prose-content h2,
+html:not(.light-theme) .prose-content h3 {
+    color: rgba(255, 255, 255, 0.96);
+}
