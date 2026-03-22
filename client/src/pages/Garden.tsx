@@ -21,7 +21,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
 import NotificationPanel from "@/components/garden/NotificationPanel";
-import { ResonanceBar, MarginaliaSecti      uon, TendButton } from "@/components/garden/SocialFeatures";
+import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden/SocialFeatures";
 import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, FirstReaderRoom, ReadingShelfRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
