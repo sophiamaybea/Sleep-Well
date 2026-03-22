@@ -46,7 +46,7 @@ export default function Featured() {
           className="text-center space-y-6"
         >
           <motion.span
-            className="font-mono text-[10px] tracking-[0.4em] text-amber-200 block uppercase"
+            className="font-sans text-[length:var(--text-label)] tracking-[0.06em] text-amber-200 block uppercase"
             initial={{ opacity: 0, letterSpacing: "0.2em" }}
             whileInView={{ opacity: 1, letterSpacing: "0.4em" }}
             transition={{ duration: 1.2 }}
@@ -57,7 +57,7 @@ export default function Featured() {
           <h2 className="text-5xl md:text-6xl font-display font-light tracking-normal">
             From the Journal
           </h2>
-          <p className="font-serif text-[13px] text-white/70 tracking-wide mt-2">
+          <p className="font-sans text-[length:var(--text-small)] text-white/70 tracking-wide mt-2">
             Published stories and poems, selected by our editors
           </p>
           <motion.div
@@ -99,7 +99,7 @@ export default function Featured() {
                   <div className="group border-t border-white/8 py-7 px-2 flex flex-col md:flex-row md:items-start gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors">
                     {/* Genre + index */}
                     <div className="flex-shrink-0 w-28">
-                      <span className="font-mono text-[9px] tracking-[0.3em] text-amber-300/60 uppercase">
+                      <span className="font-sans text-[length:var(--text-label)] tracking-[0.06em] text-amber-300/60 uppercase">
                         {piece.genre || "Piece"}
                       </span>
                     </div>
@@ -109,7 +109,7 @@ export default function Featured() {
                         {piece.title}
                       </h3>
                       {piece.content && (
-                        <p className="font-serif text-[13px] text-white/40 leading-relaxed line-clamp-2">
+                        <p className="font-sans text-[length:var(--text-small)] text-white/40 leading-relaxed line-clamp-2">
                           {getExcerpt(piece.content, 140)}
                         </p>
                       )}
@@ -117,7 +117,7 @@ export default function Featured() {
                     {/* Author + arrow */}
                     <div className="flex-shrink-0 flex items-center gap-3 md:pt-1">
                       {piece.authorName && (
-                        <span className="font-mono text-[10px] text-white/30 tracking-wide">
+                        <span className="font-sans text-[length:var(--text-label)] text-white/30 tracking-wide">
                           {piece.authorName}
                         </span>
                       )}
@@ -140,7 +140,7 @@ export default function Featured() {
           className="flex justify-center pt-4"
         >
           <Link href="/in-bloom">
-            <button className="flex items-center gap-2 font-mono text-[10px] tracking-[0.3em] text-amber-200/70 hover:text-amber-200 transition-colors uppercase border border-amber-600/20 hover:border-amber-600/50 px-6 py-3 rounded-sm">
+            <button className="flex items-center gap-2 font-sans text-[length:var(--text-label)] tracking-[0.3em] text-amber-200/70 hover:text-amber-200 transition-colors uppercase border border-amber-600/20 hover:border-amber-600/50 px-6 py-3 rounded-sm">
               Read Published Work
               <ArrowRight className="w-3 h-3" />
             </button>
