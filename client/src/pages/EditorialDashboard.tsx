@@ -19,7 +19,7 @@ type WaitlistEntry = {
 };
 
 export default function EditorialDashboard() {
-  const { user } = useAuth();
+    const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: entries = [], isLoading } = useQuery<WaitlistEntry[]>({
@@ -33,6 +33,9 @@ export default function EditorialDashboard() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/editorial-waitlist"] }),
   });
 
+    if (authLoading) {
+    return <div className="min-h-screen bg-[#0a0908] text-[#e8e0d4] flex items-center justify-center">Loading...</div>;
+  }
   if (user?.email !== "sophiamaybea@gmail.com") {
     return <div className="min-h-screen bg-[#0a0908] text-[#e8e0d4] flex items-center justify-center">Not authorized.</div>;
   }
