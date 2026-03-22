@@ -52,7 +52,7 @@ export default function WriterProfile() {
     enabled: !!id,
     retry: false,
   });
-    usePageMeta({ title: data ? [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') : 'Writer' });
+    usePageMeta({ title: data ? [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') : 'Writer', description: data?.user ? `${[data.user.firstName, data.user.lastName].filter(Boolean).join(' ')}'s writing garden on The Page Gallery Journal.` : 'A writer on The Page Gallery Journal.' });
 
   if (isLoading) {
     return (
