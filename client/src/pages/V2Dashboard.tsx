@@ -3,7 +3,8 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { PenLine, BookOpen, Compass, Users, FileCheck, Wind, ArrowRight } from "lucide-react";
-import type { Writing } from "@shared/schema";
+import type { Writing, SubmissionCall } from "@shared/schema";
+
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,10 @@ export default function V2Dashboard() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 
+    const { data: openCalls = [] } = useQuery<SubmissionCall[]>({
+    queryKey: ["/api/submission-calls/open"],
+    enabled: !!user,
+  });
   const { data: writings = [] } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
     enabled: !!user,
@@ -145,6 +150,20 @@ export default function V2Dashboard() {
             </button>
           )}
         </div>
+      {/* ── submission strip ────────────────────────────────────────────── */}
+      {openCalls.length > 0 && (
+        <div className="mb-6 rounded-lg border border-amber-500/15 bg-amber-500/[0.04] px-4 py-3">
+          <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-300/60 mb-1">
+            Open for submissions
+          </p>
+          <p className="font-serif text-xs text-white/60">
+            {openCalls[0].title}
+            {openCalls[0].endsAt
+              ? " — closes " + new Date(openCalls[0].endsAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
+              : ""}
+          </p>
+        </div>
+      )}
 
         {/* ── write invitation ──────────────────────────────────────────── */}
         <div className="mb-14">
