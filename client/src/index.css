@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -1561,10 +1560,13 @@ body {
  * ensures the fixed 3D star canvas shows through all sections
  * ============================================================ */
 
-/* Body and root: dark deep-space background */
-body.starfield-active, body.starfield-active #root {
+/* Body bg: always dark so transparent canvas shows stars */
+html, body, #root {
   background-color: #060b14;
-  color: #ffffff;
+
+}
+body.starfield-active, body.starfield-active #root {
+    color: #ffffff;
 }
 
 /* Home page: all direct section children are transparent */
