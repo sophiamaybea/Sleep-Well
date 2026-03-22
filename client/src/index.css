@@ -1417,3 +1417,22 @@ body {
 .garden-light #hero-content span {
         color: #ffffff !important;
 }
+
+/* === Homepage legibility fix: force white text on dark bg sections === */
+.min-h-screen[class*="text-foreground"] h1,
+.min-h-screen[class*="text-foreground"] h2,
+.min-h-screen[class*="text-foreground"] h3,
+.min-h-screen[class*="text-foreground"] h4,
+.min-h-screen[class*="text-foreground"] h5,
+.min-h-screen[class*="text-foreground"] h6 {
+    color: #ffffff !important;
+}
+.min-h-screen[class*="text-foreground"] p,
+.min-h-screen[class*="text-foreground"] span,
+.min-h-screen[class*="text-foreground"] li,
+.min-h-screen[class*="text-foreground"] small {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+.min-h-screen[class*="text-foreground"] a:not([class*="text-"]) {
+    color: rgba(255, 255, 255, 0.9) !important
+}
