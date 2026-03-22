@@ -1461,3 +1461,97 @@ body {
 .bg-transparent h6 {
     color: #ffffff !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   3D SCROLL SYSTEM — Page Gallery Journal
+   Appended — do not modify rules above
+   ═══════════════════════════════════════════════════════════ */
+
+/* 3D perspective container */
+.scene-3d {
+  perspective: 1200px;
+  perspective-origin: 50% 40%;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Depth layers */
+.layer-far  { transform: translateZ(-80px) scale(1.07); }
+.layer-mid  { transform: translateZ(0px); }
+.layer-near { transform: translateZ(80px); }
+
+/* Glass card with depth tilt */
+.room-card-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: box-shadow 0.4s ease;
+}
+.room-card-3d:hover {
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(196, 162, 77, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* GSAP scroll-reveal base state */
+.gsap-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+/* Ornamental gold rule */
+.gold-rule {
+  width: clamp(60px, 12vw, 120px);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(196, 162, 77, 0.55),
+    transparent
+  );
+  margin: 0 auto;
+}
+
+/* Scroll cue line */
+.scroll-line {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(180deg, rgba(196, 162, 77, 0.45), transparent);
+  margin: 0 auto;
+  animation: scrollLinePulse 2s ease-in-out infinite;
+}
+@keyframes scrollLinePulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scaleY(1.1);
+  }
+}
+
+/* Reduced motion: strip all transforms, keep content */
+@media (prefers-reduced-motion: reduce) {
+  .scene-3d,
+  .preserve-3d,
+  .layer-far,
+  .layer-mid,
+  .layer-near,
+  .room-card-3d {
+    transform: none !important;
+    perspective: none !important;
+    transition: none !important;
+  }
+  .gsap-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .scroll-line {
+    animation: none !important;
+    opacity: 0.4;
+  }
+}
