@@ -7493,7 +7493,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` },
       });
       const capture = await response.json();
-      if (capture.status === "COMPLETED") {
+      if (capture.status === "COMPLETED" && waitlistId) {
         await db.update(editorialWaitlist)
           .set({ paymentConfirmed: true, paypalOrderId: orderId, status: "paid", updatedAt: new Date() })
           .where(eq(editorialWaitlist.id, waitlistId));
