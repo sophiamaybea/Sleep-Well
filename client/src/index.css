@@ -1165,7 +1165,7 @@ html.a11y-high-contrast button {
   box-shadow: none !important;
 }
 
-.a11y-plain-mode footer {
+.a11y-plain-mode body.starfield-active footer {
   background: #f9fafb !important;
   border-top: 1px solid #e5e7eb !important;
 }
@@ -1562,7 +1562,7 @@ body {
  * ============================================================ */
 
 /* Body and root: dark deep-space background */
-html, body, #root {
+body.starfield-active, body.starfield-active #root {
   background-color: #060b14;
   color: #ffffff;
 }
@@ -1598,23 +1598,23 @@ html, body, #root {
   z-index: 0 !important;
 }
 
-/* Cards on homepage: semi-transparent glass so stars show through */
-.bg-card,
-.card {
+/* Cards on starfield homepage: semi-transparent glass so stars show through */
+body.starfield-active .bg-card,
+body.starfield-active .card {
   background-color: rgba(6, 11, 20, 0.55) !important;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* Footer: semi-transparent */
-footer {
+/* Footer on starfield homepage: semi-transparent */
+body.starfield-active footer {
   background-color: rgba(6, 11, 20, 0.7) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Navigation: glassy dark */
-nav {
+/* Navigation on starfield homepage: glassy dark */
+body.starfield-active nav {
   background-color: rgba(6, 11, 20, 0.6) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -1624,4 +1624,13 @@ nav {
 .noise-overlay {
   z-index: 1 !important;
   pointer-events: none;
+}
+
+
+/* Warm cream body text — readable on dark starfield sections */
+body.starfield-active p,
+body.starfield-active .card p,
+body.starfield-active [class*="excerpt"],
+body.starfield-active li {
+    color: rgba(237, 233, 227, 0.9);
 }
