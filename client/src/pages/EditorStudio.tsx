@@ -2562,4 +2562,6 @@ export default function EditorStudio() {
         </motion.div>
       </AnimatePresence>
     </div>
+  );
+}
     
