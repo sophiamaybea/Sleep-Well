@@ -8,7 +8,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import OnboardingModal from "@/components/OnboardingModal";
-import StarBackground from "@/components/StarBackground"; import LoadingScreen from "@/components/garden/LoadingScreen";
+import LoadingScreen from "@/components/garden/LoadingScreen";
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
 const Collections = lazy(() => import("@/pages/Collections"));
@@ -45,115 +45,114 @@ const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 const PAGE_TITLES: Record<string, string> = {
- "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
- "/in-bloom": "The Journal — The Page Gallery",
- "/publications": "Archive & Contributors — The Page Gallery",
- "/gallery": "The Journal — The Page Gallery",
- "/journal": "The Journal — The Page Gallery",
- "/about": "About — The Page Gallery Journal",
- "/garden": "My Garden — The Page Gallery",
- "/commons": "The Commons — The Page Gallery",
- "/how-it-works": "How It Works — The Page Gallery",
- "/garden-info": "Garden Seasons — The Page Gallery",
- "/privacy": "Privacy Policy — The Page Gallery",
- "/terms": "Terms of Service — The Page Gallery",
- "/accessibility": "Accessibility — The Page Gallery",
- "/sign-in": "Sign In — The Page Gallery",
+  "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
+  "/in-bloom": "The Journal — The Page Gallery",
+  "/publications": "Archive & Contributors — The Page Gallery",
+  "/gallery": "The Journal — The Page Gallery",
+  "/journal": "The Journal — The Page Gallery",
+  "/about": "About — The Page Gallery Journal",
+  "/garden": "My Garden — The Page Gallery",
+  "/commons": "The Commons — The Page Gallery",
+  "/how-it-works": "How It Works — The Page Gallery",
+  "/garden-info": "Garden Seasons — The Page Gallery",
+  "/privacy": "Privacy Policy — The Page Gallery",
+  "/terms": "Terms of Service — The Page Gallery",
+  "/accessibility": "Accessibility — The Page Gallery",
+  "/sign-in": "Sign In — The Page Gallery",
 };
 function PageTitle() {
- const [location] = useLocation();
- useEffect(() => {
- // Dynamic title for piece pages
- if (location.startsWith("/piece/")) {
- // Title will be set by the Piece page component itself
- return;
- }
- const title = PAGE_TITLES[location] || "The Page Gallery Journal";
- document.title = title;
- }, [location]);
- return null;
+  const [location] = useLocation();
+  useEffect(() => {
+    // Dynamic title for piece pages
+    if (location.startsWith("/piece/")) {
+      // Title will be set by the Piece page component itself
+      return;
+    }
+    const title = PAGE_TITLES[location] || "The Page Gallery Journal";
+    document.title = title;
+  }, [location]);
+  return null;
 }
 function PageLoader() {
- return (
- <div
- className="min-h-screen flex items-center justify-center"
- style={{ backgroundColor: "#060d06" }}
- >
- <div className="flex flex-col items-center gap-4">
- <div className="relative w-10 h-10">
- <div className="absolute inset-0 rounded-full border border-amber-500/20 border-t-amber-500/50 animate-spin" />
- </div>
- <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/30">
- Loading...
- </p>
- </div>
- </div>
- );
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ backgroundColor: "#060d06" }}
+    >
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border border-amber-500/20 border-t-amber-500/50 animate-spin" />
+        </div>
+        <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/30">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
 }
 function Router() {
- return (
- <Suspense fallback={<LoadingScreen />}>
- <Switch>
- <Route path="/sign-in" component={SignIn} />
- <Route path="/garden" component={Garden} />
- <Route path="/grove">{() => <Redirect to="/garden" />}</Route>
- <Route path="/garden/collections" component={Collections} />         <Route path="/garden/collections/:id" component={Collections} />         <Route path="/collections/:slug" component={PublicCollection} />         <Route path="/garden/:username" component={PublicGarden} />
- <Route path="/edit-profile" component={EditProfile} />
- <Route path="/writer/:id" component={WriterProfile} />
- <Route path="/public-garden/:userId" component={PublicGarden} />
- <Route path="/piece/:id" component={Piece} />
- <Route path="/in-bloom" component={InBloom} />
- <Route path="/gallery" component={InBloom} />
- <Route path="/editor-studio" component={EditorStudio} />
- <Route path="/about" component={About} />
- <Route path="/courses" component={Courses} />
- <Route path="/eic-dashboard" component={EICDashboard} />
- <Route path="/editor-onboarding" component={EditorOnboarding} />
- <Route path="/privacy" component={Privacy} />
- <Route path="/terms" component={Terms} />
- <Route path="/commons" component={Commons} />
- <Route path="/how-it-works" component={HowItWorks} />
- <Route path="/garden-info" component={GardenInfo} />
- <Route path="/field-guide" component={FieldGuide} />
- <Route path="/accessibility" component={Accessibility} />
- <Route path="/garden-guide" component={GardenGuide} />
- <Route path="/publications" component={InBloom} />
- <Route path="/contact-editors" component={ContactEditors} />
- <Route path="/v2" component={V2Dashboard} />
- <Route path="/v2/reading-room" component={V2ReadingRoom} />
- <Route path="/v2/community" component={V2Community} />
- <Route path="/editorial-services" component={EditorialServices} />
- <Route path="/dashboard/editorial" component={EditorialDashboard} />
- <Route path="/editorial-payment" component={EditorialPayment} />
- <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
- <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
- <Route path="/journal">{() => <Redirect to="/in-bloom" />}</Route>
- <Route path="/read">{() => <Redirect to="/in-bloom" />}</Route>
-          <Route path="/editorial-room" component={EditorialRoom} />
- <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
- <Route path="/opportunities" component={Opportunities} />
-            <Route path="/submissions" component={Submissions} />
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <Switch>
+        <Route path="/sign-in" component={SignIn} />
+        <Route path="/garden" component={Garden} />
+        <Route path="/grove">{() => <Redirect to="/garden" />}</Route>
+        <Route path="/garden/collections" component={Collections} /> <Route path="/garden/collections/:id" component={Collections} /> <Route path="/collections/:slug" component={PublicCollection} /> <Route path="/garden/:username" component={PublicGarden} />
+        <Route path="/edit-profile" component={EditProfile} />
+        <Route path="/writer/:id" component={WriterProfile} />
+        <Route path="/public-garden/:userId" component={PublicGarden} />
+        <Route path="/piece/:id" component={Piece} />
+        <Route path="/in-bloom" component={InBloom} />
+        <Route path="/gallery" component={InBloom} />
+        <Route path="/editor-studio" component={EditorStudio} />
+        <Route path="/about" component={About} />
+        <Route path="/courses" component={Courses} />
+        <Route path="/eic-dashboard" component={EICDashboard} />
+        <Route path="/editor-onboarding" component={EditorOnboarding} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/commons" component={Commons} />
+        <Route path="/how-it-works" component={HowItWorks} />
+        <Route path="/garden-info" component={GardenInfo} />
+        <Route path="/field-guide" component={FieldGuide} />
+        <Route path="/accessibility" component={Accessibility} />
+        <Route path="/garden-guide" component={GardenGuide} />
+        <Route path="/publications" component={InBloom} />
+        <Route path="/contact-editors" component={ContactEditors} />
+        <Route path="/v2" component={V2Dashboard} />
+        <Route path="/v2/reading-room" component={V2ReadingRoom} />
+        <Route path="/v2/community" component={V2Community} />
+        <Route path="/editorial-services" component={EditorialServices} />
+        <Route path="/dashboard/editorial" component={EditorialDashboard} />
+        <Route path="/editorial-payment" component={EditorialPayment} />
+        <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
+        <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
+        <Route path="/journal">{() => <Redirect to="/in-bloom" />}</Route>
+        <Route path="/read">{() => <Redirect to="/in-bloom" />}</Route>
+        <Route path="/editorial-room" component={EditorialRoom} />
+        <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
+        <Route path="/opportunities" component={Opportunities} />
+        <Route path="/submissions" component={Submissions} />
         <Route path="/" component={Home} />
- <Route component={NotFound} />
- </Switch>
- </Suspense>
- );
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
+  );
 }
 function App() {
- return (
- <QueryClientProvider client={queryClient}>
- <TooltipProvider>
- <SmoothScroll>
- <NoiseOverlay />
- <StarBackground />
- <AccessibilityToolbar />
- <OnboardingModal />
- <PageTitle />
- <Router />
- <Toaster />
- </SmoothScroll>
- </TooltipProvider>
- </QueryClientProvider>
- );
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <SmoothScroll>
+          <NoiseOverlay />
+          <AccessibilityToolbar />
+          <OnboardingModal />
+          <PageTitle />
+          <Router />
+          <Toaster />
+        </SmoothScroll>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
 }
 export default App;
