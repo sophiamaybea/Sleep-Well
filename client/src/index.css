@@ -1555,3 +1555,73 @@ body {
     opacity: 0.4;
   }
 }
+
+/* ============================================================
+ * STARFIELD PAGE: transparent sections + white text
+ * ensures the fixed 3D star canvas shows through all sections
+ * ============================================================ */
+
+/* Body and root: dark deep-space background */
+html, body, #root {
+  background-color: #060b14;
+  color: #ffffff;
+}
+
+/* Home page: all direct section children are transparent */
+.min-h-screen.bg-transparent > *,
+.min-h-screen.bg-transparent main > * {
+  background-color: transparent !important;
+}
+
+/* Override any bg-background/bg-card that would block stars */
+.home-starfield section,
+.home-starfield .section,
+.home-starfield [class*="bg-background"],
+.home-starfield [class*="bg-card"] {
+  background-color: transparent !important;
+}
+
+/* Global white text overrides for the starfield homepage */
+.min-h-screen.bg-transparent h1,
+.min-h-screen.bg-transparent h2,
+.min-h-screen.bg-transparent h3,
+.min-h-screen.bg-transparent p,
+.min-h-screen.bg-transparent span,
+.min-h-screen.bg-transparent a,
+.min-h-screen.bg-transparent li {
+  color: inherit;
+}
+
+/* Ensure StarBackground canvas is truly the back layer */
+[class*="StarBackground"],
+.star-bg {
+  z-index: 0 !important;
+}
+
+/* Cards on homepage: semi-transparent glass so stars show through */
+.bg-card,
+.card {
+  background-color: rgba(6, 11, 20, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Footer: semi-transparent */
+footer {
+  background-color: rgba(6, 11, 20, 0.7) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Navigation: glassy dark */
+nav {
+  background-color: rgba(6, 11, 20, 0.6) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Noise overlay must stay on top of stars but under content */
+.noise-overlay {
+  z-index: 1 !important;
+  pointer-events: none;
+}
