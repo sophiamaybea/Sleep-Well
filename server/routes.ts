@@ -8563,6 +8563,7 @@ const sharedPieces = await db.select({
       console.error("Upsert contributor note error:", error);
       res.status(500).json({ message: "Failed to save note" });
     }
+  });
 
       // ===== EDITOR TASK COMMENTS =====
 
@@ -8650,7 +8651,6 @@ const sharedPieces = await db.select({
       console.error("Delete studio note error:", error);
       res.status(500).json({ message: "Failed to delete studio note" });
     }
-  });
   });
 
   // ========================================
