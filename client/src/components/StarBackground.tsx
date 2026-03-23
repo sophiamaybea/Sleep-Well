@@ -31,24 +31,23 @@ export function useStarsVisible() {
 }
 
 /* ---------- Three.js star field ---------- */
-
 function StarField() {
   const ref = useRef<THREE.Points>(null);
-  const count = 800;
+  const count = 1400;
 
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 60;
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 60;
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 60;
+      arr[i * 3] = (Math.random() - 0.5) * 80;
+      arr[i * 3 + 1] = (Math.random() - 0.5) * 80;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 80;
     }
     return arr;
   }, []);
 
   const sizes = useMemo(() => {
     const arr = new Float32Array(count);
-    for (let i = 0; i < count; i++) arr[i] = Math.random() * 0.08 + 0.02;
+    for (let i = 0; i < count; i++) arr[i] = Math.random() * 0.12 + 0.03;
     return arr;
   }, []);
 
@@ -58,8 +57,8 @@ function StarField() {
     const pos = geo.attributes.position as THREE.BufferAttribute;
     for (let i = 0; i < count; i++) {
       let z = pos.getZ(i);
-      z += delta * 1.2;
-      if (z > 30) z = -30;
+      z += delta * 0.5;
+      if (z > 40) z = -40;
       pos.setZ(i, z);
     }
     pos.needsUpdate = true;
@@ -72,53 +71,44 @@ function StarField() {
         <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
       </bufferGeometry>
       <pointsMaterial
-        color="#ffffff"
-        size={0.06}
+        color="#e8dcc8"
+        size={0.12}
         sizeAttenuation
         transparent
-        opacity={0.3}
+        opacity={0.65}
         depthWrite={false}
       />
     </points>
   );
 }
 
-/* ---------- Main component with GSAP scroll fade ---------- */
-
+/* ---------- Main component with scroll fade ---------- */
 export default function StarBackground() {
   const { starsVisible } = useStarsVisible();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // GSAP scroll-driven fade: stars recede as user scrolls down
   useEffect(() => {
     if (!containerRef.current) return;
-
-    // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
     let rafId: number;
-    let lastScroll = 0;
-
     const handleScroll = () => {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         if (!containerRef.current) return;
         const scrollY = window.scrollY;
         const viewportHeight = window.innerHeight;
-        // Fade from full opacity at top to 0.1 over 3 viewport heights
         const progress = Math.min(scrollY / (viewportHeight * 2.5), 1);
-        const opacity = 1 - progress * 0.85; // goes from 1.0 to 0.15
-        const scale = 1 + progress * 0.15; // slight zoom as stars recede
+        const opacity = 1 - progress * 0.85;
+        const scale = 1 + progress * 0.15;
         containerRef.current.style.opacity = String(opacity);
         containerRef.current.style.transform = `scale(${scale})`;
-        lastScroll = scrollY;
       });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // set initial state
-
+    handleScroll();
     return () => {
       window.removeEventListener('scroll', handleScroll);
       if (rafId) cancelAnimationFrame(rafId);
