@@ -28,6 +28,100 @@ function getReadingTime(content: string): number {
   return Math.max(1, Math.ceil(wordCount / 200));
 }
 
+// Editorial arrangement — organizes pieces by theme and season for a curated reading experience
+const SEASON_THEMES: Record<string, { keywords: string[]; weight: number }> = {
+  spring: { keywords: ["bloom", "blossom", "seed", "sprout", "green", "rain", "april", "may", "march", "renewal", "birth", "thaw", "garden", "petal", "bud", "grow"], weight: 0 },
+  summer: { keywords: ["sun", "heat", "light", "warm", "july", "june", "august", "golden", "long days", "sweat", "swim", "shore", "beach", "fire", "blaze"], weight: 1 },
+  autumn: { keywords: ["fall", "autumn", "leaf", "leaves", "harvest", "october", "september", "november", "amber", "decay", "fade", "rust", "crisp", "cider", "dusk"], weight: 2 },
+  winter: { keywords: ["snow", "ice", "cold", "frost", "december", "january", "february", "dark", "night", "silence", "bare", "still", "hollow", "sleep", "dream"], weight: 3 },
+};
+
+const TOPIC_GROUPS: Record<string, { keywords: string[]; priority: number }> = {
+  love: { keywords: ["love", "heart", "kiss", "embrace", "longing", "desire", "tender", "beloved", "romance", "passion", "ache", "touch"], priority: 0 },
+  loss: { keywords: ["grief", "loss", "death", "mourn", "gone", "absence", "memory", "ghost", "grave", "funeral", "widow", "farewell"], priority: 1 },
+  nature: { keywords: ["tree", "river", "mountain", "ocean", "sky", "bird", "forest", "field", "stone", "wind", "rain", "earth", "water", "moon", "star"], priority: 2 },
+  identity: { keywords: ["mirror", "self", "name", "body", "skin", "voice", "home", "mother", "father", "child", "woman", "man", "who am", "belong"], priority: 3 },
+  time: { keywords: ["time", "clock", "year", "age", "old", "young", "past", "future", "moment", "forever", "fleeting", "eternal", "remember"], priority: 4 },
+  place: { keywords: ["city", "town", "country", "road", "street", "house", "room", "window", "door", "wall", "bridge", "border", "map", "travel", "journey"], priority: 5 },
+};
+
+function detectSeason(text: string): string {
+  const lower = text.toLowerCase();
+  let best = "none";
+  let bestCount = 0;
+  for (const [season, { keywords }] of Object.entries(SEASON_THEMES)) {
+    const count = keywords.filter(k => lower.includes(k)).length;
+    if (count > bestCount) { bestCount = count; best = season; }
+  }
+  return bestCount >= 1 ? best : "none";
+}
+
+function detectTopic(text: string): string {
+  const lower = text.toLowerCase();
+  let best = "other";
+  let bestCount = 0;
+  for (const [topic, { keywords }] of Object.entries(TOPIC_GROUPS)) {
+    const count = keywords.filter(k => lower.includes(k)).length;
+    if (count > bestCount) { bestCount = count; best = topic; }
+  }
+  return bestCount >= 1 ? best : "other";
+}
+
+function getCurrentSeasonWeight(): number {
+  const month = new Date().getMonth();
+  if (month >= 2 && month <= 4) return 0; // spring
+  if (month >= 5 && month <= 7) return 1; // summer
+  if (month >= 8 && month <= 10) return 2; // autumn
+  return 3; // winter
+}
+
+function curatedSort(items: GalleryItem[]): GalleryItem[] {
+  if (items.length <= 1) return items;
+  const currentSeason = getCurrentSeasonWeight();
+  const scored = items.map(item => {
+    const text = `${item.title} ${stripHtml(item.content).slice(0, 500)}`;
+    const season = detectSeason(text);
+    const topic = detectTopic(text);
+    const seasonWeight = season !== "none" ? SEASON_THEMES[season].weight : 99;
+    const topicPriority = topic !== "other" ? TOPIC_GROUPS[topic].priority : 99;
+    // Favor pieces matching the current season, then cluster by topic
+    const seasonDistance = Math.abs(seasonWeight - currentSeason);
+    const score = seasonDistance * 100 + topicPriority;
+    return { item, season, topic, score };
+  });
+  // Sort by topic clusters first, then by season relevance within each cluster
+  scored.sort((a, b) => {
+    if (a.topic !== b.topic) return a.topic < b.topic ? -1 : 1;
+    return a.score - b.score;
+  });
+  // Interleave: pick from each topic group round-robin for variety
+  const groups = new Map<string, GalleryItem[]>();
+  for (const s of scored) {
+    if (!groups.has(s.topic)) groups.set(s.topic, []);
+    groups.get(s.topic)!.push(s.item);
+  }
+  // Order topic groups: current-season-heavy groups first
+  const topicOrder = Array.from(groups.keys()).sort((a, b) => {
+    const aItems = groups.get(a)!;
+    const bItems = groups.get(b)!;
+    const aSeasonMatch = aItems.filter(i => detectSeason(`${i.title} ${stripHtml(i.content).slice(0, 300)}`) !== "none").length;
+    const bSeasonMatch = bItems.filter(i => detectSeason(`${i.title} ${stripHtml(i.content).slice(0, 300)}`) !== "none").length;
+    return bSeasonMatch - aSeasonMatch || a.localeCompare(b);
+  });
+  const result: GalleryItem[] = [];
+  const iterators = topicOrder.map(t => ({ items: groups.get(t)!, idx: 0 }));
+  let remaining = items.length;
+  while (remaining > 0) {
+    for (const it of iterators) {
+      if (it.idx < it.items.length) {
+        result.push(it.items[it.idx++]);
+        remaining--;
+      }
+    }
+  }
+  return result;
+}
+
 type ViewMode = "pieces" | "contributors";
 
 export default function Gallery() {
@@ -104,7 +198,7 @@ export default function Gallery() {
     return true;
   });
 
-  const displayedGallery = wordCountFiltered;
+  const displayedGallery = useMemo(() => curatedSort(wordCountFiltered), [wordCountFiltered]);
 
   const selectedIndex = selectedPiece ? displayedGallery.findIndex(g => g.id === selectedPiece.id) : -1;
   const prevPiece = selectedIndex > 0 ? displayedGallery[selectedIndex - 1] : null;
