@@ -994,7 +994,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
               data-testid={`card-piece-${w.id}`}
             >
               <div
-                className={`relative rounded-2xl border overflow-hidden transition-all duration-300 ${
+                className={`relative group/card rounded-2xl border overflow-hidden transition-all duration-300 ${
                   isExpanded
                     ? `${stageColors[readiness]?.split(" ")[0] || "border-white/25"} bg-emerald-950/20`
                     : `${stageCardBorder[readiness] || "border-emerald-800/15 hover:border-emerald-700/25"} ${stageCardBg[readiness] || "bg-emerald-950/10"}`
@@ -1108,7 +1108,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                             {(w as any).isArchived ? "Restore" : "Archive"}
                           </button>
                         </div>
-                        <div className="flex items-center gap-2 pt-1 flex-wrap">
+                        <div className="flex items-center gap-2 pt-1 flex-wrap opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={(e) => {
@@ -2170,9 +2170,9 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
           <h2 className="font-display text-xl font-light italic text-white/90">Reading Room</h2>
         </div>
         <p className="font-serif text-xs text-white/90 italic">Letters from gardens you tend, and new voices growing nearby</p>
+                    <WhosHereStrip />
       </div>
 
-        <WhosHereStrip />
               <DailyNudge
         onGoToCafe={() => onGoToRoom?.("tables")}
         onGoToWorkshop={() => onGoToRoom?.("workshop")}
@@ -2368,6 +2368,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                       <ResonanceBar writingId={piece.id} compact />
                       <MarginaliaCount writingId={piece.id} /><motion.button onClick={(e) => { e.stopPropagation(); apiRequest("POST", "/api/saved", { writingId: piece.id }).then(() => toast({ title: "Saved to your collection" })).catch(() => toast({ title: "Could not save", variant: "destructive" })); }} whileTap={{ scale: 1.3 }} whileHover={{ scale: 1.1 }} className="p-1.5 rounded-lg text-white/30 hover:text-amber-400/70 hover:bg-amber-500/[0.06] transition-all" title="Save piece" data-testid={`button-save-${piece.id}`}><Bookmark size={12} /></motion.button>
                       <PauseStoneButton writingId={piece.id} />
+                                          <TendButton writingId={piece.id} authorId={piece.authorId} compact />
                       <button
                         onClick={(e) => { e.stopPropagation(); setExpandedId(piece.id); }}
                         className="flex items-center gap-1 font-mono text-[8px] text-white/90 hover:text-white/90 transition-colors"
