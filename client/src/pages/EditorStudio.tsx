@@ -10,7 +10,7 @@ import {
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 
-type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged" | "editorial-inbox" | "threads" | "tasks";
+type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged" | "editorial-inbox" | "threads" | "garden-walk" | "tasks";
 
 function stripHtmlForExcerpt(html: string): string {
   return html.replace(/<[^>]*>/g, "").slice(0, 200);
@@ -79,7 +79,7 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "flagged", label: "Flagged", icon: <Flag size={15} /> },
     { id: "editorial-inbox", label: "Inbox", icon: <Inbox size={15} /> },
   { id: "threads", label: "Threads", icon: <MessageCircle size={15} /> },
-  { id: "tasks", label: "Tasks", icon: <CheckCircle size={15} /> },
+  { id: "garden-walk", label: "Garden Walk", icon: <Leaf size={15} /> },   { id: "tasks", label: "Tasks", icon: <CheckCircle size={15} /> },
 ];
 
 function CuratedOpportunitiesSection() {
@@ -2209,6 +2209,205 @@ function ThreadsTab() {
     </motion.div>
   );
 }
+function GardenWalkTab() {
+  const queryClient = useQueryClient();
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [submitTitle, setSubmitTitle] = useState("");
+  const [submitExcerpt, setSubmitExcerpt] = useState("");
+  const [submitGenre, setSubmitGenre] = useState("poetry");
+  const { data: submissions = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/garden-walk"],
+    queryFn: async () => {
+      const res = await fetch("/api/garden-walk", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+  const { data: messages = [] } = useQuery<any[]>({
+    queryKey: ["/api/garden-walk", selectedSubmission, "messages"],
+    queryFn: async () => {
+      if (!selectedSubmission) return [];
+      const res = await fetch(`/api/garden-walk/${selectedSubmission}/messages`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!selectedSubmission,
+  });
+  const createSubmission = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/garden-walk", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/garden-walk"] });
+      setShowSubmitForm(false);
+      setSubmitTitle(""); setSubmitExcerpt(""); setSubmitGenre("poetry");
+    },
+  });
+  const sendMessage = useMutation({
+    mutationFn: async ({ submissionId, content, messageType }: { submissionId: string; content: string; messageType?: string }) => {
+      const res = await apiRequest("POST", `/api/garden-walk/${submissionId}/messages`, { content, messageType });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/garden-walk", selectedSubmission, "messages"] });
+      setNewMessage("");
+    },
+  });
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/garden-walk/${id}`, { status });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/garden-walk"] });
+    },
+  });
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5 animate-pulse space-y-3">
+            <div className="h-4 w-48 bg-white/10 rounded" />
+            <div className="h-3 w-full bg-white/[0.06] rounded" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-display text-sm text-amber-200/70 italic">Garden Walk</h3>
+          <p className="font-serif text-xs text-white/30 mt-0.5">Writers submit work for the walk. Editors leave feedback and messages.</p>
+        </div>
+        <button
+          onClick={() => setShowSubmitForm(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all"
+        >
+          <Plus size={12} /> Submit Work
+        </button>
+      </div>
+      {showSubmitForm && (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+          <input value={submitTitle} onChange={e => setSubmitTitle(e.target.value)} placeholder="Title of your piece..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" />
+          <textarea value={submitExcerpt} onChange={e => setSubmitExcerpt(e.target.value)} placeholder="Paste an excerpt or describe what you're submitting..." rows={4} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30 resize-none" />
+          <div className="flex items-center gap-3">
+            <select value={submitGenre} onChange={e => setSubmitGenre(e.target.value)} className="px-2 py-1 bg-white/5 border border-white/10 rounded font-mono text-[9px] text-white/50 focus:outline-none">
+              <option value="poetry">Poetry</option>
+              <option value="fiction">Fiction</option>
+              <option value="essay">Essay</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+            <div className="flex gap-2 ml-auto">
+              <button onClick={() => setShowSubmitForm(false)} className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all">Cancel</button>
+              <button onClick={() => { if (submitTitle.trim()) createSubmission.mutate({ title: submitTitle.trim(), excerpt: submitExcerpt || undefined, genre: submitGenre }); }} disabled={!submitTitle.trim() || createSubmission.isPending} className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50">
+                {createSubmission.isPending ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          {submissions.length === 0 ? (
+            <div className="text-center py-12">
+              <Leaf size={24} className="mx-auto mb-3 text-emerald-400/20" />
+              <p className="font-serif text-sm text-white/30">No submissions to the walk yet.</p>
+            </div>
+          ) : (
+            submissions.map((sub: any) => (
+              <button
+                key={sub.id}
+                onClick={() => setSelectedSubmission(sub.id)}
+                className={`w-full text-left p-3 rounded-xl border transition-all ${
+                  selectedSubmission === sub.id
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-200"
+                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/[0.08]"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-display text-sm font-light italic truncate">{sub.title}</h4>
+                  <span className={`px-1.5 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest ${
+                    sub.status === "reviewed" ? "bg-emerald-500/20 text-emerald-300" :
+                    sub.status === "in_review" ? "bg-blue-500/20 text-blue-300" :
+                    "bg-white/10 text-white/40"
+                  }`}>{(sub.status || "pending").replace(/_/g, " ")}</span>
+                </div>
+                <p className="font-mono text-[8px] text-white/25">{sub.sender_name || "Writer"} · {sub.genre} · {timeAgo(sub.created_at)}</p>
+              </button>
+            ))
+          )}
+        </div>
+        <div className="lg:col-span-2">
+          {selectedSubmission ? (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-4">
+              {(() => {
+                const sub = submissions.find((s: any) => s.id === selectedSubmission);
+                if (!sub) return null;
+                return (
+                  <>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-display text-base font-light italic text-amber-200/90">{sub.title}</h3>
+                        <p className="text-xs font-serif text-white/40 mt-0.5">{sub.sender_name || "Writer"} · {sub.genre}</p>
+                      </div>
+                      <select value={sub.status || "pending"} onChange={e => updateStatus.mutate({ id: sub.id, status: e.target.value })} className="bg-transparent border border-white/10 rounded px-1.5 py-1 font-mono text-[8px] text-white/40 focus:outline-none">
+                        <option value="pending">Pending</option>
+                        <option value="in_review">In Review</option>
+                        <option value="reviewed">Reviewed</option>
+                      </select>
+                    </div>
+                    {sub.excerpt && <p className="text-sm font-serif text-amber-100/50 leading-relaxed border-l-2 border-emerald-500/20 pl-3">{sub.excerpt}</p>}
+                  </>
+                );
+              })()}
+              <div className="border-t border-white/5 pt-3">
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/30 flex items-center gap-1 mb-3">
+                  <MessageCircle size={10} /> Messages
+                </span>
+                <div className="space-y-2 max-h-64 overflow-y-auto mb-3">
+                  {messages.length === 0 ? (
+                    <p className="text-xs font-serif text-white/25 italic">No messages yet. Start the conversation.</p>
+                  ) : (
+                    messages.map((msg: any) => (
+                      <div key={msg.id} className={`rounded-lg p-2.5 ${
+                        msg.message_type === "feedback" ? "bg-emerald-500/5 border border-emerald-500/10" : "bg-white/[0.03]"
+                      }`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-mono text-[8px] text-white/40">{msg.sender_name || "Editor"}</span>
+                          <div className="flex items-center gap-2">
+                            {msg.message_type === "feedback" && <span className="font-mono text-[6px] uppercase tracking-widest text-emerald-300/40">Feedback</span>}
+                            <span className="font-mono text-[8px] text-white/25">{timeAgo(msg.created_at)}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs font-serif text-amber-100/60">{msg.content}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Write a message or feedback..." className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-emerald-500/30" onKeyDown={e => { if (e.key === "Enter" && newMessage.trim()) sendMessage.mutate({ submissionId: selectedSubmission, content: newMessage.trim(), messageType: "feedback" }); }} />
+                  <button onClick={() => { if (newMessage.trim()) sendMessage.mutate({ submissionId: selectedSubmission, content: newMessage.trim(), messageType: "feedback" }); }} disabled={!newMessage.trim() || sendMessage.isPending} className="px-3 py-2 rounded-lg border border-emerald-500/20 text-emerald-300/60 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all disabled:opacity-30">
+                    <Send size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <Leaf size={24} className="mx-auto mb-3 text-emerald-400/15" />
+              <p className="font-serif text-sm text-white/30">Select a submission to view details and leave feedback</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 function TasksTab() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("all");
@@ -2558,7 +2757,7 @@ export default function EditorStudio() {
           {activeTab === "flagged" && <FlaggedTab />}
           {activeTab === "editorial-inbox" && <EditorialInboxTab />}
           {activeTab === "threads" && <ThreadsTab />}
-          {activeTab === "tasks" && <TasksTab />}
+          {activeTab === "garden-walk" && <GardenWalkTab />}             {activeTab === "tasks" && <TasksTab />}
         </motion.div>
       </AnimatePresence>
     </div>
