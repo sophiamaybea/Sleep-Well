@@ -791,13 +791,13 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             </span>
           ))}
         </div>
-        <p className="font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
+        <p className="hidden font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
       </div>
-                <button onClick={() => setShowDeskHeader(s => !s)} className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"><ChevronDown size={10} className={showDeskHeader ? "rotate-180 transition-transform" : "transition-transform"} /> Invitations & prompts</button>
+                <button onClick={() => setShowDeskHeader(s => !s)} className="hidden flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"><ChevronDown size={10} className={showDeskHeader ? "rotate-180 transition-transform" : "transition-transform"} /> Invitations & prompts</button>
                 {showDeskHeader && (<>
       <PublishInvitations />
 
-      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} /></>)}<button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
+      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} /></>)}<button           onClick={() => setShowDeskStats(s => !s)}           className="hidden flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
 
       {writings.length > 0 && showDeskStats && (() => {
         const totalWords = writings.reduce((a, w) => a + wordCount(w.content), 0);
@@ -846,7 +846,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             <Feather size={16} className="text-amber-400/50" />
             <h2 className="font-display text-xl font-light italic text-white/90">Your Desk</h2>
           </div>
-          <div className="flex items-center gap-3 ml-6">
+          <div className="flex items-center hidden gap-3 ml-6">
             <p className="text-xs font-serif text-white/90">
               {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
             </p>
@@ -877,7 +877,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         </motion.button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex hidden flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-grow">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/90" />
           <input
@@ -907,7 +907,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
+      <div className="hidden flex items-center gap-2 mb-6 flex-wrap">
         {allTags.length > 0 && (
           <>
             {allTags.map((tag) => (
