@@ -220,12 +220,63 @@ export async function runMigrations() {
       );
     `);
         await pool.query(`
-      // Newsletter subscribers
+            -- Newsletter subscribers
       CREATE TABLE IF NOT EXISTS newsletter_subscribers (
         id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
         email text NOT NULL UNIQUE,
         subscribed_at timestamp with time zone DEFAULT now(),
         source text DEFAULT 'homepage'
+      );
+    `);
+
+        // Editorial tasks table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS editorial_tasks (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        title text NOT NULL,
+        description text,
+        assigned_editor_id varchar REFERENCES users(id),
+        created_by_editor_id varchar NOT NULL REFERENCES users(id),
+        status varchar(32) NOT NULL DEFAULT 'open',
+        due_date timestamp,
+        issue_id varchar,
+        writing_id varchar REFERENCES writings(id),
+        sort_order integer NOT NULL DEFAULT 0,
+        task_type text NOT NULL DEFAULT 'ops',
+        board_column text NOT NULL DEFAULT 'inbox',
+        completed_at timestamp,
+        notify_on_complete boolean NOT NULL DEFAULT true,
+        priority text NOT NULL DEFAULT 'medium',
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
+
+    // Garden Walk submissions - writers submit work for editorial review
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS garden_walk_submissions (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        writer_id varchar NOT NULL REFERENCES users(id),
+        writing_id varchar NOT NULL REFERENCES writings(id),
+        editor_id varchar REFERENCES users(id),
+        status text NOT NULL DEFAULT 'submitted',
+        writer_note text,
+        editor_feedback text,
+        walk_type text NOT NULL DEFAULT 'review',
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
+
+    // Writer-editor messages for Garden Walk feedback threads
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS garden_walk_messages (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        submission_id varchar NOT NULL REFERENCES garden_walk_submissions(id) ON DELETE CASCADE,
+        sender_id varchar NOT NULL REFERENCES users(id),
+        content text NOT NULL,
+        message_type text NOT NULL DEFAULT 'feedback',
+        created_at timestamp DEFAULT now()
       );
     `);
     console.log("Database migrations completed successfully");
