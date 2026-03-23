@@ -699,6 +699,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 }) {
   const queryClient = useQueryClient();
   const [showDeskStats, setShowDeskStats] = useState(false);
+    const [showDeskHeader, setShowDeskHeader] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -792,9 +793,11 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         </div>
         <p className="font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
       </div>
+                <button onClick={() => setShowDeskHeader(s => !s)} className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"><ChevronDown size={10} className={showDeskHeader ? "rotate-180 transition-transform" : "transition-transform"} /> Invitations & prompts</button>
+                {showDeskHeader && (<>
       <PublishInvitations />
 
-      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />          <button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
+      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} /></>)}<button           onClick={() => setShowDeskStats(s => !s)}           className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
 
       {writings.length > 0 && showDeskStats && (() => {
         const totalWords = writings.reduce((a, w) => a + wordCount(w.content), 0);
