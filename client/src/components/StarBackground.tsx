@@ -34,7 +34,7 @@ export function useStarsVisible() {
 
 function StarField() {
   const ref = useRef<THREE.Points>(null);
-  const count = 2000;
+  const count = 800;
 
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
@@ -73,10 +73,10 @@ function StarField() {
       </bufferGeometry>
       <pointsMaterial
         color="#ffffff"
-        size={0.1}
+        size={0.06}
         sizeAttenuation
         transparent
-        opacity={0.8}
+        opacity={0.3}
         depthWrite={false}
       />
     </points>
