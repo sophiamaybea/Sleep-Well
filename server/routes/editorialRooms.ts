@@ -274,14 +274,14 @@ export function registerEditorialRoomRoutes(app: Express) {
     try {
       const userId = req.user?.claims?.sub || req.user?.id;
       const { rows } = await pool.query(
-        `SELECT gws.*, w.title as writing_title, 
-         u.username as writer_username,
-         eu.username as editor_username
-         FROM garden_walk_submissions gws
-         LEFT JOIN writings w ON gws.writing_id = w.id
-         LEFT JOIN users u ON gws.writer_id = u.id
-         LEFT JOIN users eu ON gws.editor_id = eu.id
-         ORDER BY gws.created_at DESC`
+                    `SELECT gws.id, gws.title, gws.excerpt, gws.genre, gws.status, gws.created_at,
+                gws.writer_note, gws.editor_feedback, gws.walk_type,
+                u.first_name || ' ' || u.last_name AS sender_name,
+                eu.username as editor_username
+              FROM garden_walk_submissions gws
+              LEFT JOIN users u ON gws.writer_id = u.id
+              LEFT JOIN users eu ON gws.editor_id = eu.id
+              ORDER BY gws.created_at DESC`
       );
       res.json(rows);
     } catch (err) {
@@ -294,15 +294,15 @@ export function registerEditorialRoomRoutes(app: Express) {
   app.post("/api/garden-walk", isAuthenticated, async (req: any, res) => {
     try {
       const writerId = req.user?.claims?.sub || req.user?.id;
-      const { writingId, writerNote, walkType } = req.body;
-      if (!writingId) {
-        return res.status(400).json({ error: "writingId is required" });
+const { title, excerpt, genre } = req.body;
+      if (!title) {
+        return res.status(400).json({ error: "title is required" });
       }
       const { rows } = await pool.query(
-        `INSERT INTO garden_walk_submissions (id, writer_id, writing_id, writer_note, walk_type, status)
-         VALUES ($1, $2, $3, $4, $5, 'submitted')
-         RETURNING *`,
-        [randomUUID(), writerId, writingId, writerNote || null, walkType || 'review']
+        `INSERT INTO garden_walk_submissions (id, writer_id, title, excerpt, genre, status)
+          VALUES ($1, $2, $3, $4, $5, 'submitted')
+          RETURNING *`,
+        [randomUUID(), writerId, title, excerpt || null, genre || null]
       );
       res.status(201).json(rows[0]);
     } catch (err) {
