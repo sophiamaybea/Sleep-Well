@@ -265,4 +265,112 @@ export function registerEditorialRoomRoutes(app: Express) {
       res.status(500).json({ error: "Failed to update flag" });
     }
   });
+
+    // —— GARDEN WALK ————————————————————————————————————
+  // Writers submit work for editorial review / feedback
+
+  // GET /api/garden-walk - list submissions (writers see their own, editors see all)
+  app.get("/api/garden-walk", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const { rows } = await pool.query(
+        `SELECT gws.*, w.title as writing_title, 
+         u.username as writer_username,
+         eu.username as editor_username
+         FROM garden_walk_submissions gws
+         LEFT JOIN writings w ON gws.writing_id = w.id
+         LEFT JOIN users u ON gws.writer_id = u.id
+         LEFT JOIN users eu ON gws.editor_id = eu.id
+         ORDER BY gws.created_at DESC`
+      );
+      res.json(rows);
+    } catch (err) {
+      console.error("[gardenWalk] GET /garden-walk error:", err);
+      res.status(500).json({ error: "Failed to fetch submissions" });
+    }
+  });
+
+  // POST /api/garden-walk - writer submits a piece for editorial walk
+  app.post("/api/garden-walk", isAuthenticated, async (req: any, res) => {
+    try {
+      const writerId = req.user?.claims?.sub || req.user?.id;
+      const { writingId, writerNote, walkType } = req.body;
+      if (!writingId) {
+        return res.status(400).json({ error: "writingId is required" });
+      }
+      const { rows } = await pool.query(
+        `INSERT INTO garden_walk_submissions (id, writer_id, writing_id, writer_note, walk_type, status)
+         VALUES ($1, $2, $3, $4, $5, 'submitted')
+         RETURNING *`,
+        [randomUUID(), writerId, writingId, writerNote || null, walkType || 'review']
+      );
+      res.status(201).json(rows[0]);
+    } catch (err) {
+      console.error("[gardenWalk] POST /garden-walk error:", err);
+      res.status(500).json({ error: "Failed to submit for walk" });
+    }
+  });
+
+  // PATCH /api/garden-walk/:id - editor updates status/feedback
+  app.patch("/api/garden-walk/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const editorId = req.user?.claims?.sub || req.user?.id;
+      const { status, editorFeedback } = req.body;
+      const { rows } = await pool.query(
+        `UPDATE garden_walk_submissions
+         SET status = COALESCE($1, status),
+             editor_feedback = COALESCE($2, editor_feedback),
+             editor_id = $3,
+             updated_at = NOW()
+         WHERE id = $4
+         RETURNING *`,
+        [status || null, editorFeedback || null, editorId, req.params.id]
+      );
+      if (rows.length === 0) return res.status(404).json({ error: "Submission not found" });
+      res.json(rows[0]);
+    } catch (err) {
+      console.error("[gardenWalk] PATCH /garden-walk/:id error:", err);
+      res.status(500).json({ error: "Failed to update submission" });
+    }
+  });
+
+  // GET /api/garden-walk/:id/messages - feedback thread
+  app.get("/api/garden-walk/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT gwm.*, u.username as sender_username,
+         u.first_name || ' ' || u.last_name AS sender_name
+         FROM garden_walk_messages gwm
+         LEFT JOIN users u ON gwm.sender_id = u.id
+         WHERE gwm.submission_id = $1
+         ORDER BY gwm.created_at ASC`,
+        [req.params.id]
+      );
+      res.json(rows);
+    } catch (err) {
+      console.error("[gardenWalk] GET /garden-walk/:id/messages error:", err);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  // POST /api/garden-walk/:id/messages - add message to thread
+  app.post("/api/garden-walk/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const senderId = req.user?.claims?.sub || req.user?.id;
+      const { content, messageType } = req.body;
+      if (!content?.trim()) {
+        return res.status(400).json({ error: "content is required" });
+      }
+      const { rows } = await pool.query(
+        `INSERT INTO garden_walk_messages (id, submission_id, sender_id, content, message_type)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
+        [randomUUID(), req.params.id, senderId, content.trim(), messageType || 'feedback']
+      );
+      res.status(201).json(rows[0]);
+    } catch (err) {
+      console.error("[gardenWalk] POST /garden-walk/:id/messages error:", err);
+      res.status(500).json({ error: "Failed to post message" });
+    }
+  });
 }
