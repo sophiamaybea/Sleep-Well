@@ -2027,7 +2027,7 @@ function DailyNudge({ onGoToCafe, onGoToWorkshop }: { onGoToCafe: () => void; on
   if (!todayQuestion && !promptOfDay) return null;
 
   return (
-    <div className="mb-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3" data-testid="daily-nudge">
+    <div className="mb-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3 hidden" data-testid="daily-nudge">
       <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90">Daily Nudge</span>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {todayQuestion && (
@@ -2317,7 +2317,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.04, duration: 0.4 }}
-              className="group"
+              className="group group/card"
               data-testid={`letter-${piece.id}`}
             >
               <div className={`rounded-2xl border transition-all duration-300 ${
@@ -2359,7 +2359,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                   )}
 
                   {!isExpanded && (
-                    <div className="flex items-center gap-3 mt-3">
+                    <div className="flex items-center gap-3 mt-3 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
                       <div onClick={(e) => e.stopPropagation()}>
                         <QuietReadButton writingId={piece.id} />
                       </div>
@@ -3874,7 +3874,7 @@ export default function Garden() {
                 {!isEditing && <ZoneNav active={activeZone} onChange={(z) => { setActiveZone(z); setActiveRoom(null); setProfileUserId(null); window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }} />}
                 {isEditing && <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/55">Writing</span>}
                 {!isEditing && gardenPulse && gardenPulse.activeWriters > 0 && (
-                  <div className="flex flex-col items-center gap-0.5 mt-1.5" data-testid="garden-pulse">
+                  <div className="flex flex-col items-center gap-0.5 mt-1.5 hidden" data-testid="garden-pulse">
                     <div className="flex items-center gap-1.5">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400/40" />
@@ -3885,7 +3885,7 @@ export default function Garden() {
                       </span>
                     </div>
                     {(gardenPulse.newSeeds > 0 || gardenPulse.bloomedPieces > 0) && (
-                      <p className="font-serif italic text-[9px] text-white/90">
+                      <p className="font-serif italic text-[9px] text-white/90 hidden">
                         This month: {gardenPulse.newSeeds > 0 && <>{gardenPulse.newSeeds} {gardenPulse.newSeeds === 1 ? "writer" : "writers"} planted new seeds</>}{gardenPulse.newSeeds > 0 && gardenPulse.bloomedPieces > 0 && ". "}{gardenPulse.bloomedPieces > 0 && <>{gardenPulse.bloomedPieces} {gardenPulse.bloomedPieces === 1 ? "piece" : "pieces"} bloomed</>}.
                       </p>
                     )}
@@ -4044,7 +4044,7 @@ export default function Garden() {
 
                 {hasVisited && (
                 <div className="max-w-5xl mx-auto px-6 pt-3 pb-1">
-                              <p className="font-serif text-xs text-amber-400/40 italic" data-testid="returning-user-greeting">Welcome back.</p>
+                              <p className="font-serif text-xs text-amber-400/40 italic hidden" data-testid="returning-user-greeting">Welcome back.</p>
                             </div>
               )}
         <AnimatePresence>
