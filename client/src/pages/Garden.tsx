@@ -699,7 +699,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 }) {
   const queryClient = useQueryClient();
   const [showDeskStats, setShowDeskStats] = useState(false);
-    const [showDeskHeader, setShowDeskHeader] = useState(true);
+    const [showDeskHeader, setShowDeskHeader] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<StageFilter>("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
