@@ -27,6 +27,7 @@ import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, FirstReaderRoom, Readi
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
 import SendToEditors from "@/components/garden/SendToEditors";
+import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 
 type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
@@ -773,7 +774,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
+      <div className="hidden mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
         <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90 block mb-2">Your Creative Layers</span>
         <div className="flex items-center gap-1 text-[9px] font-mono overflow-x-auto scrollbar-hide">
           {[
@@ -2168,7 +2169,8 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
         <p className="font-serif text-xs text-white/90 italic">Letters from gardens you tend, and new voices growing nearby</p>
       </div>
 
-      <DailyNudge
+        <WhosHereStrip />
+              <DailyNudge
         onGoToCafe={() => onGoToRoom?.("tables")}
         onGoToWorkshop={() => onGoToRoom?.("workshop")}
       />
