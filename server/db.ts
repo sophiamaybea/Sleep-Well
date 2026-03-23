@@ -279,6 +279,23 @@ export async function runMigrations() {
         created_at timestamp DEFAULT now()
       );
     `);
+
+        // Garden Walk: add title/excerpt/genre columns, make writing_id nullable
+    await pool.query(`
+      ALTER TABLE garden_walk_submissions ALTER COLUMN writing_id DROP NOT NULL;
+    `);
+    await pool.query(`
+      ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS title text;
+    `);
+    await pool.query(`
+      ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS excerpt text;
+    `);
+    await pool.query(`
+      ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS genre text;
+    `);
+    await pool.query(`
+      ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS sender_name text;
+    `);
     console.log("Database migrations completed successfully");
   } catch (error) {
     console.error("Migration error:", error);
