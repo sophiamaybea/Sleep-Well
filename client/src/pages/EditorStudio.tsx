@@ -2292,7 +2292,7 @@ function GardenWalkTab() {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all"
         >
           <Plus size={12} /> Review Submissions
-      </div>
+                  </button>
       {showSubmitForm && (
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
           <input value={submitTitle} onChange={e => setSubmitTitle(e.target.value)} placeholder="Title of your piece..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" />
