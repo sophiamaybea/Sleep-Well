@@ -227,7 +227,7 @@ export function registerEditorialRoomRoutes(app: Express) {
     try {
       const { rows } = await pool.query(
         `SELECT ef.*, w.title as writing_title, w.content as writing_content,
-         u.username as author_username
+                       u.first_name || ' ' || u.last_name as author_username
          FROM editorial_flags ef
          LEFT JOIN writings w ON ef.writing_id = w.id
          LEFT JOIN users u ON ef.author_id = u.id
@@ -277,7 +277,7 @@ export function registerEditorialRoomRoutes(app: Express) {
                     `SELECT gws.id, gws.title, gws.excerpt, gws.genre, gws.status, gws.created_at,
                 gws.writer_note, gws.editor_feedback, gws.walk_type,
                 u.first_name || ' ' || u.last_name AS sender_name,
-                eu.username as editor_username
+                eu.first_name || ' ' || eu.last_name as editor_username
               FROM garden_walk_submissions gws
               LEFT JOIN users u ON gws.writer_id = u.id
               LEFT JOIN users eu ON gws.editor_id = eu.id
@@ -338,7 +338,7 @@ const { title, excerpt, genre } = req.body;
   app.get("/api/garden-walk/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT gwm.*, u.username as sender_username,
+                    `SELECT gwm.*, u.first_name || ' ' || u.last_name as sender_username,
          u.first_name || ' ' || u.last_name AS sender_name
          FROM garden_walk_messages gwm
          LEFT JOIN users u ON gwm.sender_id = u.id
