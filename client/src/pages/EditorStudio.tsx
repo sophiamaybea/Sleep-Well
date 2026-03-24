@@ -2088,14 +2088,11 @@ function ThreadsTab() {
       setShowNewThread(false);
       setNewSubject("");
     },
-      onError: (err: any) => {
-      alert(err?.message || "Failed to create thread. Please try again.");
-    },
   });
   const sendMessage = useMutation({
     mutationFn: async ({ threadId, content }: { threadId: string; content: string }) => {
       const res = await apiRequest("POST", `/api/editorial/threads/${threadId}/messages`, { content });
-          
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/editorial/threads", selectedThread, "messages"] });
@@ -2288,11 +2285,12 @@ function GardenWalkTab() {
           <p className="font-serif text-xs text-white/30 mt-0.5">Writers submit work for the walk. Editors leave feedback and messages.</p>
         </div>
         <button
-                    onClick={() => setActiveTab("editorial-inbox")}
+          onClick={() => setShowSubmitForm(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all"
         >
-          <Plus size={12} /> Review Submissions
-                  </button>
+          <Plus size={12} /> Submit Work
+        </button>
+      </div>
       {showSubmitForm && (
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
           <input value={submitTitle} onChange={e => setSubmitTitle(e.target.value)} placeholder="Title of your piece..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" />
@@ -2449,9 +2447,6 @@ function TasksTab() {
       setNewTaskTitle("");
       setNewTaskDesc("");
       setNewTaskPriority("medium");
-    },
-          onError: (err: any) => {
-      alert(err?.message || "Failed to create task. Please try again.");
     },
   });
   const updateTask = useMutation({
@@ -2677,7 +2672,7 @@ export default function EditorStudio() {
         <div className="text-center space-y-4">
           <p className="font-serif text-sm text-white/50">Please log in to access the Editor Studio.</p>
           <button
-                          onClick={() => navigate("/sign-in")}
+            onClick={() => navigate("/garden")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
           >
             <ArrowLeft size={14} /> Back to Garden
@@ -2698,7 +2693,7 @@ export default function EditorStudio() {
             The Editor Studio is available to editors. Contact an administrator for access.
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/garden")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
           >
             <ArrowLeft size={14} /> Back to Garden
@@ -2712,7 +2707,7 @@ export default function EditorStudio() {
         <div className="min-h-screen relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/garden")}
           className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
         >
           <ArrowLeft size={16} />
