@@ -123,6 +123,155 @@ function curatedSort(items: GalleryItem[]): GalleryItem[] {
   return result;
 }
 
+const SECTION_LABELS: Record<string, { title: string; subtitle: string }> = {
+  love: { title: "Love & Longing", subtitle: "Pieces that trace the shape of desire" },
+  loss: { title: "Grief & Memory", subtitle: "Writing through absence" },
+  nature: { title: "The Natural World", subtitle: "Earth, sky, and everything between" },
+  identity: { title: "Self & Belonging", subtitle: "Who we are when we look closely" },
+  time: { title: "Time & Passage", subtitle: "On the fleeting and the eternal" },
+  place: { title: "Place & Displacement", subtitle: "Where we find ourselves" },
+  other: { title: "Further Reading", subtitle: "Pieces that resist easy categorisation" },
+};
+function curatedGroup(items: GalleryItem[]): { key: string; title: string; subtitle: string; items: GalleryItem[] }[] {
+  if (items.length === 0) return [];
+  const currentSeason = getCurrentSeasonWeight();
+  const buckets = new Map<string, GalleryItem[]>();
+  for (const item of items) {
+    const text = `${item.title} ${stripHtml(item.content).slice(0, 500)}`;
+    const topic = detectTopic(text);
+    if (!buckets.has(topic)) buckets.set(topic, []);
+    buckets.get(topic)!.push(item);
+  }
+  for (const [, bucket] of buckets) {
+    bucket.sort((a, b) => {
+      const aText = `${a.title} ${stripHtml(a.content).slice(0, 300)}`;
+      const bText = `${b.title} ${stripHtml(b.content).slice(0, 300)}`;
+      const aSeason = detectSeason(aText);
+      const bSeason = detectSeason(bText);
+      const aDist = aSeason !== "none" ? Math.abs(SEASON_THEMES[aSeason].weight - currentSeason) : 99;
+      const bDist = bSeason !== "none" ? Math.abs(SEASON_THEMES[bSeason].weight - currentSeason) : 99;
+      return aDist - bDist;
+    });
+  }
+  const keys = Array.from(buckets.keys()).sort((a, b) => {
+    if (a === "other") return 1;
+    if (b === "other") return -1;
+    return (buckets.get(b)?.length || 0) - (buckets.get(a)?.length || 0);
+  });
+  const result: { key: string; title: string; subtitle: string; items: GalleryItem[] }[] = [];
+  let overflow: GalleryItem[] = [];
+  for (const key of keys) {
+    const bItems = buckets.get(key)!;
+    if (key !== "other" && bItems.length >= 2) {
+      const label = SECTION_LABELS[key] || SECTION_LABELS.other;
+      result.push({ key, title: label.title, subtitle: label.subtitle, items: bItems });
+    } else {
+      overflow.push(...bItems);
+    }
+  }
+  if (overflow.length > 0) {
+    result.push({ key: "other", title: SECTION_LABELS.other.title, subtitle: SECTION_LABELS.other.subtitle, items: overflow });
+  }
+  return result;
+}
+
+
+=======
+// Editorial arrangement — organizes pieces by theme and season for a curated reading experience
+const SEASON_THEMES: Record<string, { keywords: string[]; weight: number }> = {
+  spring: { keywords: ["bloom", "blossom", "seed", "sprout", "green", "rain", "april", "may", "march", "renewal", "birth", "thaw", "garden", "petal", "bud", "grow"], weight: 0 },
+  summer: { keywords: ["sun", "heat", "light", "warm", "july", "june", "august", "golden", "long days", "sweat", "swim", "shore", "beach", "fire", "blaze"], weight: 1 },
+  autumn: { keywords: ["fall", "autumn", "leaf", "leaves", "harvest", "october", "september", "november", "amber", "decay", "fade", "rust", "crisp", "cider", "dusk"], weight: 2 },
+  winter: { keywords: ["snow", "ice", "cold", "frost", "december", "january", "february", "dark", "night", "silence", "bare", "still", "hollow", "sleep", "dream"], weight: 3 },
+};
+
+const TOPIC_GROUPS: Record<string, { keywords: string[]; priority: number }> = {
+  love: { keywords: ["love", "heart", "kiss", "embrace", "longing", "desire", "tender", "beloved", "romance", "passion", "ache", "touch"], priority: 0 },
+  loss: { keywords: ["grief", "loss", "death", "mourn", "gone", "absence", "memory", "ghost", "grave", "funeral", "widow", "farewell"], priority: 1 },
+  nature: { keywords: ["tree", "river", "mountain", "ocean", "sky", "bird", "forest", "field", "stone", "wind", "rain", "earth", "water", "moon", "star"], priority: 2 },
+  identity: { keywords: ["mirror", "self", "name", "body", "skin", "voice", "home", "mother", "father", "child", "woman", "man", "who am", "belong"], priority: 3 },
+  time: { keywords: ["time", "clock", "year", "age", "old", "young", "past", "future", "moment", "forever", "fleeting", "eternal", "remember"], priority: 4 },
+  place: { keywords: ["city", "town", "country", "road", "street", "house", "room", "window", "door", "wall", "bridge", "border", "map", "travel", "journey"], priority: 5 },
+};
+
+function detectSeason(text: string): string {
+  const lower = text.toLowerCase();
+  let best = "none";
+  let bestCount = 0;
+  for (const [season, { keywords }] of Object.entries(SEASON_THEMES)) {
+    const count = keywords.filter(k => lower.includes(k)).length;
+    if (count > bestCount) { bestCount = count; best = season; }
+  }
+  return bestCount >= 1 ? best : "none";
+}
+
+function detectTopic(text: string): string {
+  const lower = text.toLowerCase();
+  let best = "other";
+  let bestCount = 0;
+  for (const [topic, { keywords }] of Object.entries(TOPIC_GROUPS)) {
+    const count = keywords.filter(k => lower.includes(k)).length;
+    if (count > bestCount) { bestCount = count; best = topic; }
+  }
+  return bestCount >= 1 ? best : "other";
+}
+
+function getCurrentSeasonWeight(): number {
+  const month = new Date().getMonth();
+  if (month >= 2 && month <= 4) return 0; // spring
+  if (month >= 5 && month <= 7) return 1; // summer
+  if (month >= 8 && month <= 10) return 2; // autumn
+  return 3; // winter
+}
+
+function curatedSort(items: GalleryItem[]): GalleryItem[] {
+  if (items.length <= 1) return items;
+  const currentSeason = getCurrentSeasonWeight();
+  const scored = items.map(item => {
+    const text = `${item.title} ${stripHtml(item.content).slice(0, 500)}`;
+    const season = detectSeason(text);
+    const topic = detectTopic(text);
+    const seasonWeight = season !== "none" ? SEASON_THEMES[season].weight : 99;
+    const topicPriority = topic !== "other" ? TOPIC_GROUPS[topic].priority : 99;
+    // Favor pieces matching the current season, then cluster by topic
+    const seasonDistance = Math.abs(seasonWeight - currentSeason);
+    const score = seasonDistance * 100 + topicPriority;
+    return { item, season, topic, score };
+  });
+  // Sort by topic clusters first, then by season relevance within each cluster
+  scored.sort((a, b) => {
+    if (a.topic !== b.topic) return a.topic < b.topic ? -1 : 1;
+    return a.score - b.score;
+  });
+  // Interleave: pick from each topic group round-robin for variety
+  const groups = new Map<string, GalleryItem[]>();
+  for (const s of scored) {
+    if (!groups.has(s.topic)) groups.set(s.topic, []);
+    groups.get(s.topic)!.push(s.item);
+  }
+  // Order topic groups: current-season-heavy groups first
+  const topicOrder = Array.from(groups.keys()).sort((a, b) => {
+    const aItems = groups.get(a)!;
+    const bItems = groups.get(b)!;
+    const aSeasonMatch = aItems.filter(i => detectSeason(`${i.title} ${stripHtml(i.content).slice(0, 300)}`) !== "none").length;
+    const bSeasonMatch = bItems.filter(i => detectSeason(`${i.title} ${stripHtml(i.content).slice(0, 300)}`) !== "none").length;
+    return bSeasonMatch - aSeasonMatch || a.localeCompare(b);
+  });
+  const result: GalleryItem[] = [];
+  const iterators = topicOrder.map(t => ({ items: groups.get(t)!, idx: 0 }));
+  let remaining = items.length;
+  while (remaining > 0) {
+    for (const it of iterators) {
+      if (it.idx < it.items.length) {
+        result.push(it.items[it.idx++]);
+        remaining--;
+      }
+    }
+  }
+  return result;
+}
+
+>>>>>>> 0a293a9a4bd28341d90b0c7ffa63105d69c6d768
 type ViewMode = "pieces" | "contributors";
 
 export default function Gallery() {
@@ -435,7 +584,139 @@ export default function Gallery() {
                 </div>
               ))}
             </div>
+<<<<<<< HEAD
+          ) : displayedGallery.length > 0 ? (
+            <div className="max-w-3xl mx-auto">
+              <div className="border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-0">
+                254
+                  const readingTime = getReadingTime(item.content);
+                  const isFeatured = i < 2 && !searchQuery && activeGenre === "all" && !selectedContributor;
+                  const excerpt = isFeatured ? stripHtml(item.content).slice(0, 120).trim() : "";
+
+                  if (isFeatured) {
+                    return (
+                      <motion.button
+                        key={item.id}
+                        initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+                        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        transition={{
+                          delay: i * 0.12,
+                          duration: 0.9,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        viewport={{ once: true, margin: "-30px" }}
+                        onClick={() => setSelectedPiece(item)}
+                        className="w-full text-left border-b border-white/[0.06] group cursor-pointer transition-all duration-500 relative"
+                        data-testid={`button-piece-${item.id}`}
+                      >
+                        <div className="py-12 px-8 -mx-8 rounded-sm hover:bg-white/[0.02] transition-all duration-700 relative overflow-hidden">
+                          <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-400/0 to-transparent group-hover:via-amber-400/20 transition-all duration-700" />
+
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/55 group-hover:text-amber-200/50 transition-colors duration-500">
+                                {item.genre}
+                              </span>
+                              <span className="font-mono text-[9px] text-white/75">
+                                {readingTime} min
+                              </span>
+                            </div>
+
+                            <h3 className="text-3xl md:text-5xl font-display font-light tracking-normal text-white/80 group-hover:text-white transition-colors duration-500 italic leading-[1.15]">
+                              {item.title}
+                            </h3>
+
+                            {excerpt && (
+                              <p className="font-serif text-sm leading-relaxed text-white/55 group-hover:text-white/80 transition-colors duration-500 max-w-xl line-clamp-2 italic">
+                                {excerpt}{excerpt.length >= 120 ? "..." : ""}
+                              </p>
+                            )}
+
+                            <div className="flex items-center justify-between pt-2">
+                              <div className="flex items-center gap-4">
+                                {item.authorName && (
+                                  <span className="font-serif text-[13px] italic text-white/80 group-hover:text-white/75 transition-colors duration-500">
+                                    {item.authorName}
+                                  </span>
+                                )}
+                                {item.publishedAt && (
+                                  <span className="font-mono text-[8px] text-white/75 uppercase tracking-widest hidden sm:inline">
+                                    {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/0 group-hover:text-amber-200/50 transition-all duration-500 translate-x-2 group-hover:translate-x-0" data-testid={`text-reading-time-${item.id}`}>
+                                Read
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.button>
+                    );
+                  }
+
+                  return (
+                    <motion.button
+                      key={item.id}
+                      initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+                      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{
+                        delay: Math.min(i * 0.06, 0.4),
+                        duration: 0.7,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      viewport={{ once: true, margin: "-30px" }}
+                      onClick={() => setSelectedPiece(item)}
+                      className="w-full text-left border-b border-white/[0.06] group cursor-pointer transition-all duration-500 relative"
+                      data-testid={`button-piece-${item.id}`}
+                    >
+                      <div className="py-7 px-6 -mx-6 rounded-sm hover:bg-white/[0.015] transition-all duration-500 relative overflow-hidden">
+                        <div className="absolute bottom-0 left-6 w-0 group-hover:w-24 h-px bg-gradient-to-r from-amber-400/30 to-transparent transition-all duration-700 ease-out" />
+
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="space-y-2 min-w-0">
+                            <h3 className="text-xl md:text-2xl font-display font-light tracking-normal text-white/85 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
+                              {item.title}
+                            </h3>
+                                            {stripHtml(item.content).slice(0, 80).trim() && (
+                  <p className="font-serif text-[11px] leading-relaxed text-white/35 line-clamp-1 italic mt-0.5">
+                    {stripHtml(item.content).slice(0, 80).trim()}...
+                  </p>
+                )}
+                            <div className="flex items-center gap-4">
+                              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/55 group-hover:text-amber-200/40 transition-colors duration-500">
+                                {item.genre}
+                              </span>
+                              {item.authorName && (
+                                <span className="font-serif text-[12px] italic text-white/55 group-hover:text-white/80 transition-colors duration-500">
+                                  {item.authorName}
+                                </span>
+                              )}
+                              <span className="font-mono text-[9px] text-white/75" data-testid={`text-reading-time-${item.id}`}>
+                                {readingTime} min
+                              </span>
+                              {item.publishedAt && (
+                                <span className="font-mono text-[8px] text-white/75 uppercase tracking-widest hidden sm:inline">
+                                  {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/0 group-hover:text-amber-200/40 transition-all duration-500 flex-shrink-0 translate-x-3 group-hover:translate-x-0">
+                            Read
+                          </span>
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-3xl mx-auto text-center py-20 space-y-6">
+=======
           ) : displayedGallery.length > 0 ? (           <SectionedGallery items={displayedGallery} searchQuery={searchQuery} activeGenre={activeGenre} selectedContributor={selectedContributor} onSelectPiece={setSelectedPiece} />         ) : (           <div className="max-w-3xl mx-auto text-center py-20 space-y-6">
+>>>>>>> 0a293a9a4bd28341d90b0c7ffa63105d69c6d768
               <Flower2 size={32} className="mx-auto text-amber-200/20" />
               <span className="inline-block px-4 py-1.5 border border-amber-200/10 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/55">
                 Awaiting First Bloom
