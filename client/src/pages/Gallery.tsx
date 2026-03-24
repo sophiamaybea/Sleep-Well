@@ -6,6 +6,7 @@ import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, U
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
 import NewsletterSignup from "@/components/ui/NewsletterSignup";
+import SectionedGallery from "@/components/SectionedGallery";
 
 const frameImg = "/images/gold-frame.png";
 
@@ -434,135 +435,7 @@ export default function Gallery() {
                 </div>
               ))}
             </div>
-          ) : displayedGallery.length > 0 ? (
-            <div className="max-w-3xl mx-auto">
-              <div className="border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-0">
-                {displayedGallery.map((item, i) => {
-                  const readingTime = getReadingTime(item.content);
-                  const isFeatured = i < 2 && !searchQuery && activeGenre === "all" && !selectedContributor;
-                  const excerpt = isFeatured ? stripHtml(item.content).slice(0, 120).trim() : "";
-
-                  if (isFeatured) {
-                    return (
-                      <motion.button
-                        key={item.id}
-                        initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-                        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        transition={{
-                          delay: i * 0.12,
-                          duration: 0.9,
-                          ease: [0.22, 1, 0.36, 1],
-                        }}
-                        viewport={{ once: true, margin: "-30px" }}
-                        onClick={() => setSelectedPiece(item)}
-                        className="w-full text-left border-b border-white/[0.06] group cursor-pointer transition-all duration-500 relative"
-                        data-testid={`button-piece-${item.id}`}
-                      >
-                        <div className="py-12 px-8 -mx-8 rounded-sm hover:bg-white/[0.02] transition-all duration-700 relative overflow-hidden">
-                          <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-400/0 to-transparent group-hover:via-amber-400/20 transition-all duration-700" />
-
-                          <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/55 group-hover:text-amber-200/50 transition-colors duration-500">
-                                {item.genre}
-                              </span>
-                              <span className="font-mono text-[9px] text-white/75">
-                                {readingTime} min
-                              </span>
-                            </div>
-
-                            <h3 className="text-3xl md:text-5xl font-display font-light tracking-normal text-white/80 group-hover:text-white transition-colors duration-500 italic leading-[1.15]">
-                              {item.title}
-                            </h3>
-
-                            {excerpt && (
-                              <p className="font-serif text-sm leading-relaxed text-white/55 group-hover:text-white/80 transition-colors duration-500 max-w-xl line-clamp-2 italic">
-                                {excerpt}{excerpt.length >= 120 ? "..." : ""}
-                              </p>
-                            )}
-
-                            <div className="flex items-center justify-between pt-2">
-                              <div className="flex items-center gap-4">
-                                {item.authorName && (
-                                  <span className="font-serif text-[13px] italic text-white/80 group-hover:text-white/75 transition-colors duration-500">
-                                    {item.authorName}
-                                  </span>
-                                )}
-                                {item.publishedAt && (
-                                  <span className="font-mono text-[8px] text-white/75 uppercase tracking-widest hidden sm:inline">
-                                    {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/0 group-hover:text-amber-200/50 transition-all duration-500 translate-x-2 group-hover:translate-x-0" data-testid={`text-reading-time-${item.id}`}>
-                                Read
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.button>
-                    );
-                  }
-
-                  return (
-                    <motion.button
-                      key={item.id}
-                      initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
-                      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      transition={{
-                        delay: Math.min(i * 0.06, 0.4),
-                        duration: 0.7,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      viewport={{ once: true, margin: "-30px" }}
-                      onClick={() => setSelectedPiece(item)}
-                      className="w-full text-left border-b border-white/[0.06] group cursor-pointer transition-all duration-500 relative"
-                      data-testid={`button-piece-${item.id}`}
-                    >
-                      <div className="py-7 px-6 -mx-6 rounded-sm hover:bg-white/[0.015] transition-all duration-500 relative overflow-hidden">
-                        <div className="absolute bottom-0 left-6 w-0 group-hover:w-24 h-px bg-gradient-to-r from-amber-400/30 to-transparent transition-all duration-700 ease-out" />
-
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="space-y-2 min-w-0">
-                            <h3 className="text-xl md:text-2xl font-display font-light tracking-normal text-white/85 group-hover:text-white/95 transition-colors duration-500 italic truncate group-hover:translate-x-1 transform transition-transform">
-                              {item.title}
-                            </h3>
-                                            {stripHtml(item.content).slice(0, 80).trim() && (
-                  <p className="font-serif text-[11px] leading-relaxed text-white/35 line-clamp-1 italic mt-0.5">
-                    {stripHtml(item.content).slice(0, 80).trim()}...
-                  </p>
-                )}
-                            <div className="flex items-center gap-4">
-                              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-200/55 group-hover:text-amber-200/40 transition-colors duration-500">
-                                {item.genre}
-                              </span>
-                              {item.authorName && (
-                                <span className="font-serif text-[12px] italic text-white/55 group-hover:text-white/80 transition-colors duration-500">
-                                  {item.authorName}
-                                </span>
-                              )}
-                              <span className="font-mono text-[9px] text-white/75" data-testid={`text-reading-time-${item.id}`}>
-                                {readingTime} min
-                              </span>
-                              {item.publishedAt && (
-                                <span className="font-mono text-[8px] text-white/75 uppercase tracking-widest hidden sm:inline">
-                                  {new Date(item.publishedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/0 group-hover:text-amber-200/40 transition-all duration-500 flex-shrink-0 translate-x-3 group-hover:translate-x-0">
-                            Read
-                          </span>
-                        </div>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="max-w-3xl mx-auto text-center py-20 space-y-6">
+          ) : displayedGallery.length > 0 ? (           <SectionedGallery items={displayedGallery} searchQuery={searchQuery} activeGenre={activeGenre} selectedContributor={selectedContributor} onSelectPiece={setSelectedPiece} />         ) : (           <div className="max-w-3xl mx-auto text-center py-20 space-y-6">
               <Flower2 size={32} className="mx-auto text-amber-200/20" />
               <span className="inline-block px-4 py-1.5 border border-amber-200/10 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-200/55">
                 Awaiting First Bloom
