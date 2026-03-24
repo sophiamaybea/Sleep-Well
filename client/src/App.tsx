@@ -9,6 +9,7 @@ import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import OnboardingModal from "@/components/OnboardingModal";
 import LoadingScreen from "@/components/garden/LoadingScreen";
+import { useAuth } from "@/hooks/use-auth";
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
 const Collections = lazy(() => import("@/pages/Collections"));
@@ -44,24 +45,38 @@ const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
+
+function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>; path: string }) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return <PageLoader />;
+  }
+  if (!user) {
+    return <Redirect to="/sign-in" />;
+  }
+  return <Component {...rest} />;
+}
+
 const PAGE_TITLES: Record<string, string> = {
-  "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
-  "/in-bloom": "The Journal — The Page Gallery",
-  "/publications": "Archive & Contributors — The Page Gallery",
-  "/gallery": "The Journal — The Page Gallery",
-  "/journal": "The Journal — The Page Gallery",
-  "/about": "About — The Page Gallery Journal",
-  "/garden": "My Garden — The Page Gallery",
-  "/commons": "The Commons — The Page Gallery",
-  "/how-it-works": "How It Works — The Page Gallery",
-  "/garden-info": "Garden Seasons — The Page Gallery",
-  "/privacy": "Privacy Policy — The Page Gallery",
-  "/terms": "Terms of Service — The Page Gallery",
-  "/accessibility": "Accessibility — The Page Gallery",
-  "/sign-in": "Sign In — The Page Gallery",
+  "/": "The Page Gallery Journal \u2014 A Literary Journal & Writing Garden",
+  "/in-bloom": "The Journal \u2014 The Page Gallery",
+  "/publications": "Archive & Contributors \u2014 The Page Gallery",
+  "/gallery": "The Journal \u2014 The Page Gallery",
+  "/journal": "The Journal \u2014 The Page Gallery",
+  "/about": "About \u2014 The Page Gallery Journal",
+  "/garden": "My Garden \u2014 The Page Gallery",
+  "/commons": "The Commons \u2014 The Page Gallery",
+  "/how-it-works": "How It Works \u2014 The Page Gallery",
+  "/garden-info": "Garden Seasons \u2014 The Page Gallery",
+  "/privacy": "Privacy Policy \u2014 The Page Gallery",
+  "/terms": "Terms of Service \u2014 The Page Gallery",
+  "/accessibility": "Accessibility \u2014 The Page Gallery",
+  "/sign-in": "Sign In \u2014 The Page Gallery",
 };
+
 function PageTitle() {
   const [location] = useLocation();
+
   useEffect(() => {
     // Dynamic title for piece pages
     if (location.startsWith("/piece/")) {
@@ -71,8 +86,10 @@ function PageTitle() {
     const title = PAGE_TITLES[location] || "The Page Gallery Journal";
     document.title = title;
   }, [location]);
+
   return null;
 }
+
 function PageLoader() {
   return (
     <div
@@ -90,6 +107,7 @@ function PageLoader() {
     </div>
   );
 }
+
 function Router() {
   return (
     <Suspense fallback={<LoadingScreen />}>
@@ -104,11 +122,11 @@ function Router() {
         <Route path="/piece/:id" component={Piece} />
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={InBloom} />
-        <Route path="/editor-studio" component={EditorStudio} />
+        <Route path="/editor-studio">{() => <ProtectedRoute component={EditorStudio} path="/editor-studio" />}</Route>
         <Route path="/about" component={About} />
         <Route path="/courses" component={Courses} />
-        <Route path="/eic-dashboard" component={EICDashboard} />
-        <Route path="/editor-onboarding" component={EditorOnboarding} />
+        <Route path="/eic-dashboard">{() => <ProtectedRoute component={EICDashboard} path="/eic-dashboard" />}</Route>
+        <Route path="/editor-onboarding">{() => <ProtectedRoute component={EditorOnboarding} path="/editor-onboarding" />}</Route>
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/commons" component={Commons} />
@@ -123,13 +141,13 @@ function Router() {
         <Route path="/v2/reading-room" component={V2ReadingRoom} />
         <Route path="/v2/community" component={V2Community} />
         <Route path="/editorial-services" component={EditorialServices} />
-        <Route path="/dashboard/editorial" component={EditorialDashboard} />
+        <Route path="/dashboard/editorial">{() => <ProtectedRoute component={EditorialDashboard} path="/dashboard/editorial" />}</Route>
         <Route path="/editorial-payment" component={EditorialPayment} />
         <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
         <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
         <Route path="/journal">{() => <Redirect to="/in-bloom" />}</Route>
         <Route path="/read">{() => <Redirect to="/in-bloom" />}</Route>
-        <Route path="/editorial-room" component={EditorialRoom} />
+        <Route path="/editorial-room">{() => <ProtectedRoute component={EditorialRoom} path="/editorial-room" />}</Route>
         <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
         <Route path="/opportunities" component={Opportunities} />
         <Route path="/submissions" component={Submissions} />
@@ -139,6 +157,7 @@ function Router() {
     </Suspense>
   );
 }
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -155,4 +174,5 @@ function App() {
     </QueryClientProvider>
   );
 }
+
 export default App;
