@@ -169,6 +169,25 @@ export async function runMigrations() {
       ALTER TABLE editor_notes ADD COLUMN IF NOT EXISTS note_type text NOT NULL DEFAULT 'general_feedback';
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS editorial_waitlist (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        name text NOT NULL,
+        email text NOT NULL UNIQUE,
+        genre text NOT NULL DEFAULT 'poetry',
+        manuscript_type text NOT NULL DEFAULT 'poetry_collection',
+        estimated_word_count integer,
+        brief text,
+        status text NOT NULL DEFAULT 'pending',
+        sophia_note text,
+        quoted_price integer,
+        payment_confirmed boolean NOT NULL DEFAULT false,
+        paypal_order_id text,
+        payment_token text,
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
     // Grove botanical social layer
     await pool.query(`
       ALTER TABLE editorial_waitlist ADD COLUMN IF NOT EXISTS payment_token text;
