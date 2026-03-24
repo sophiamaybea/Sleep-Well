@@ -252,6 +252,40 @@ export async function runMigrations() {
       );
     `);
 
+        // Editorial threads table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS editorial_threads (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        subject text NOT NULL,
+        writing_id varchar REFERENCES writings(id),
+        created_by_editor_id varchar NOT NULL REFERENCES users(id),
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
+
+    // Editorial thread messages table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS editorial_thread_messages (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        thread_id varchar NOT NULL REFERENCES editorial_threads(id) ON DELETE CASCADE,
+        author_id varchar NOT NULL REFERENCES users(id),
+        body text NOT NULL,
+        created_at timestamp DEFAULT now()
+      );
+    `);
+
+    // Editor task comments table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS editor_task_comments (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        task_id varchar NOT NULL REFERENCES editorial_tasks(id) ON DELETE CASCADE,
+        author_id varchar NOT NULL REFERENCES users(id),
+        content text NOT NULL,
+        created_at timestamp DEFAULT now()
+      );
+    `);
+
     // Garden Walk submissions - writers submit work for editorial review
     await pool.query(`
       CREATE TABLE IF NOT EXISTS garden_walk_submissions (
