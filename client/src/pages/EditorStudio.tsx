@@ -2088,11 +2088,14 @@ function ThreadsTab() {
       setShowNewThread(false);
       setNewSubject("");
     },
+      onError: (err: any) => {
+      alert(err?.message || "Failed to create thread. Please try again.");
+    },
   });
   const sendMessage = useMutation({
     mutationFn: async ({ threadId, content }: { threadId: string; content: string }) => {
       const res = await apiRequest("POST", `/api/editorial/threads/${threadId}/messages`, { content });
-      return res.json();
+          
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/editorial/threads", selectedThread, "messages"] });
@@ -2285,11 +2288,10 @@ function GardenWalkTab() {
           <p className="font-serif text-xs text-white/30 mt-0.5">Writers submit work for the walk. Editors leave feedback and messages.</p>
         </div>
         <button
-          onClick={() => setShowSubmitForm(true)}
+                    onClick={() => setActiveTab("editorial-inbox")}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all"
         >
-          <Plus size={12} /> Submit Work
-        </button>
+          <Plus size={12} /> Review Submissions
       </div>
       {showSubmitForm && (
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
@@ -2447,6 +2449,9 @@ function TasksTab() {
       setNewTaskTitle("");
       setNewTaskDesc("");
       setNewTaskPriority("medium");
+    },
+          onError: (err: any) => {
+      alert(err?.message || "Failed to create task. Please try again.");
     },
   });
   const updateTask = useMutation({
