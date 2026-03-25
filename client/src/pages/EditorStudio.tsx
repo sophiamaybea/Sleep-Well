@@ -2211,6 +2211,7 @@ function ThreadsTab() {
 }
 function GardenWalkTab() {
   const queryClient = useQueryClient();
+    const { user } = useAuth();
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
@@ -2284,12 +2285,14 @@ function GardenWalkTab() {
           <h3 className="font-display text-sm text-amber-200/70 italic">Garden Walk</h3>
           <p className="font-serif text-xs text-white/30 mt-0.5">Writers submit work for the walk. Editors leave feedback and messages.</p>
         </div>
+        {user?.role === 'writer' && (
         <button
           onClick={() => setShowSubmitForm(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all"
         >
           <Plus size={12} /> Submit Work
         </button>
+                )}
       </div>
       {showSubmitForm && (
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
