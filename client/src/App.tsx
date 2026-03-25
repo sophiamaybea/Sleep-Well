@@ -110,7 +110,7 @@ function Router() {
       <Switch>
         <Route path="/sign-in" component={SignIn} />
         <Route path="/garden" component={Garden} />
-                  <Route path="/drafts">(() => <ProtectedRoute component={Drafts} path="/drafts" />)</Route>
+            <Route path="/drafts">{() => <ProtectedRoute component={Drafts} path="/drafts" />}</Route>
         <Route path="/grove">{() => <Redirect to="/garden" />}</Route>
         <Route path="/garden/collections" component={Collections} /> <Route path="/garden/collections/:id" component={Collections} /> <Route path="/collections/:slug" component={PublicCollection} /> <Route path="/garden/:username" component={PublicGarden} />
         <Route path="/edit-profile" component={EditProfile} />
