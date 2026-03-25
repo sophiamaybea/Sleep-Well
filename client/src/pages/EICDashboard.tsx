@@ -116,7 +116,7 @@ interface ActivityFeed {
   }>;
 }
 
-type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed";
+type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries";
 
 export default function EICDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -231,7 +231,7 @@ export default function EICDashboard() {
     enabled: roleData?.role === "editor_in_chief" && activeTab === "activity",
   });
 
-  // NEW: Activity Feed query
+  // NEW: Service Enquiries query   const { data: serviceEnquiries = [], isLoading: enquiriesLoading } = useQuery<Array<{id: string; name: string; email: string; serviceType: string; message: string; createdAt: string}>>({   queryKey: ["/api/services/inquiries"],   queryFn: async () => {     const res = await fetch("/api/services/inquiries", { credentials: "include" });     if (!res.ok) throw new Error("Failed to fetch enquiries");     return res.json();   },   enabled: roleData?.role === "editor_in_chief" && activeTab === "enquiries", });   // NEW: Activity Feed query
   const { data: activityFeed, isLoading: feedLoading } = useQuery<ActivityFeed>({
     queryKey: ["/api/eic/activity-feed"],
     queryFn: async () => {
@@ -323,7 +323,7 @@ export default function EICDashboard() {
     { key: "activity", label: "User Activity" },
     { key: "feed", label: "Live Feed" },
     { key: "users", label: "All Users" },
-    { key: "team", label: "Editorial Team" },
+    { key: "team", label: "Editorial Team" },   { key: "enquiries", label: "Enquiries" },
   ];
 
   const timeAgo = (date: string) => {
@@ -612,7 +612,7 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Team Tab */}
+        {/* Enquiries Tab */}       {activeTab === "enquiries" && (         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>           <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Service Enquiries</h2>           <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-6">All service enquiry submissions from the public contact form</p>           {enquiriesLoading ? (             <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-[#f0eeea]/5 rounded animate-pulse" />)}</div>           ) : serviceEnquiries.length === 0 ? (             <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm italic">No enquiries yet.</p>           ) : (             <div className="space-y-3">               {serviceEnquiries.map((enq) => (                 <div key={enq.id} className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">                   <div className="flex items-start justify-between gap-4">                     <div className="flex-1">                       <div className="flex items-center gap-3 mb-1">                         <span className="text-[#f0eeea]/90 font-['Cormorant_Garamond',serif] text-lg">{enq.name}</span>                         <span className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">{enq.email}</span>                         <span className="px-2 py-0.5 bg-[#c4a24d]/10 text-[#c4a24d] text-[10px] font-['Space_Mono',monospace] rounded">{enq.serviceType}</span>                       </div>                       <p className="text-[#f0eeea]/60 font-['Lora',serif] text-sm leading-relaxed">{enq.message}</p>                     </div>                     <span className="text-[#f0eeea]/20 font-['Space_Mono',monospace] text-[10px] whitespace-nowrap">{new Date(enq.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>                   </div>                 </div>               ))}               <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs mt-4">{serviceEnquiries.length} total enquiries</p>             </div>           )}         </motion.div>       )}       {/* Team Tab */}
         {activeTab === "team" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <section className="mb-16">
