@@ -912,6 +912,7 @@ export const insertWritingSchema = createInsertSchema(writings)
     isPublicGarden: z.boolean().optional(),
     galleryOptIn: z.boolean().optional(),
     marginaliaVisibility: z.enum(["public", "private_first"]).optional(),
+        layout: z.enum(["single", "two-column"]).optional(),
   });
 export const updateWritingSchema = insertWritingSchema.partial();
 
