@@ -1769,3 +1769,143 @@ html:not(.light-theme) .prose-content h2,
 html:not(.light-theme) .prose-content h3 {
     color: rgba(255, 255, 255, 0.96);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   TEXT VISIBILITY FIX — 2026-03-25
+   Make all writing white or bright yellow/amber, visible + consistent.
+   Dark mode (default): lift all low-opacity whites and ambers.
+   Additive overrides — nothing above altered.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Lift dim white text opacities to readable levels ── */
+body:not(.light-theme) .text-white\/20,
+body:not(.light-theme) .text-white\/25,
+body:not(.light-theme) .text-white\/30 {
+  color: rgba(255, 255, 255, 0.70) !important;
+}
+body:not(.light-theme) .text-white\/40 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+body:not(.light-theme) .text-white\/50,
+body:not(.light-theme) .text-white\/55,
+body:not(.light-theme) .text-white\/60 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+body:not(.light-theme) .text-white\/70 {
+  color: rgba(255, 255, 255, 0.90) !important;
+}
+body:not(.light-theme) .text-white\/80,
+body:not(.light-theme) .text-white\/85,
+body:not(.light-theme) .text-white\/90 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ── Lift dim amber/gold text to visible, bright levels ── */
+body:not(.light-theme) .text-amber-200\/60,
+body:not(.light-theme) .text-amber-200\/70 {
+  color: rgba(253, 230, 138, 0.95) !important;
+}
+body:not(.light-theme) .text-amber-300\/60,
+body:not(.light-theme) .text-amber-300\/70 {
+  color: rgba(252, 211, 77, 0.95) !important;
+}
+body:not(.light-theme) .text-amber-400\/60,
+body:not(.light-theme) .text-amber-600\/40,
+body:not(.light-theme) .text-amber-600\/60 {
+  color: rgba(251, 191, 36, 0.90) !important;
+}
+body:not(.light-theme) .text-amber-100 {
+  color: #fef3c7 !important;
+}
+body:not(.light-theme) .text-amber-200 {
+  color: #fde68a !important;
+}
+
+/* ── Footer specific: ensure all footer text is white/bright ── */
+body:not(.light-theme) footer,
+body:not(.light-theme) footer p,
+body:not(.light-theme) footer span,
+body:not(.light-theme) footer a,
+body:not(.light-theme) footer li,
+body:not(.light-theme) footer h3,
+body:not(.light-theme) footer label {
+  color: rgba(255, 255, 255, 0.90) !important;
+}
+body:not(.light-theme) footer a:hover {
+  color: #ffffff !important;
+}
+body:not(.light-theme) footer .text-white\/50,
+body:not(.light-theme) footer [class*="text-white/"] {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ── Navigation: ensure nav text is bright ── */
+body:not(.light-theme) nav,
+body:not(.light-theme) nav a,
+body:not(.light-theme) nav span,
+body:not(.light-theme) nav button {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* ── Cards: bump dim body text inside cards ── */
+body:not(.light-theme) .bg-card p,
+body:not(.light-theme) .bg-card span,
+body:not(.light-theme) .bg-card li {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+body:not(.light-theme) .bg-card h1,
+body:not(.light-theme) .bg-card h2,
+body:not(.light-theme) .bg-card h3,
+body:not(.light-theme) .bg-card h4 {
+  color: #ffffff !important;
+}
+
+/* ── Global: any text-foreground in dark mode should be white ── */
+body:not(.light-theme) .text-foreground {
+  color: #ffffff !important;
+}
+body:not(.light-theme) .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* ── Section headers: always fully white in dark mode ── */
+body:not(.light-theme) h1,
+body:not(.light-theme) h2,
+body:not(.light-theme) h3,
+body:not(.light-theme) h4,
+body:not(.light-theme) h5,
+body:not(.light-theme) h6 {
+  color: #ffffff;
+}
+
+/* ── Body paragraphs and list items: bright soft white ── */
+body:not(.light-theme) p,
+body:not(.light-theme) li,
+body:not(.light-theme) label,
+body:not(.light-theme) td,
+body:not(.light-theme) th {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Span elements: ensure not too dim ── */
+body:not(.light-theme) span:not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-teal"]):not([class*="sr-only"]) {
+  color: inherit;
+}
+
+/* ── Input, textarea, select in dark mode: white text ── */
+body:not(.light-theme) input,
+body:not(.light-theme) textarea,
+body:not(.light-theme) select {
+  color: #ffffff;
+}
+body:not(.light-theme) input::placeholder,
+body:not(.light-theme) textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Ensure amber accent text always bright when used as color ── */
+body:not(.light-theme) .text-amber-200,
+body:not(.light-theme) .text-amber-300,
+body:not(.light-theme) .text-amber-400 {
+  opacity: 1 !important;
+}
