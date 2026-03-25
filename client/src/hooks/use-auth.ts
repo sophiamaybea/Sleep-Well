@@ -17,11 +17,6 @@ async function fetchUser(): Promise<User | null> {
   return response.json();
 }
 
-async function logout(): Promise<void> {
-  await fetch("/api/logout", { method: "GET", credentials: "include" });
-  window.location.href = "/"; // navigate after session cleared
-}
-
 async function loginWithEmail(data: { email: string; password: string }): Promise<any> {
   const response = await fetch("/api/login", {
     method: "POST",
@@ -60,10 +55,16 @@ export function useAuth() {
       refetchOnWindowFocus: true, // T20
   });
 
+  // T50: clear cache BEFORE redirect so cache is clean regardless of how
+  // the redirect is triggered (window.location, wouter, or future changes)
   const logoutMutation = useMutation({
-    mutationFn: logout,
+    mutationFn: async () => {
+      await fetch("/api/logout", { method: "GET", credentials: "include" });
+    },
     onSuccess: () => {
       queryClient.setQueryData(["/api/auth/user"], null);
+      queryClient.clear();
+      window.location.href = "/";
     },
   });
 
