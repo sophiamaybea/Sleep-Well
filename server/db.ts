@@ -349,6 +349,18 @@ export async function runMigrations() {
     await pool.query(`
       ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS sender_name text;
     `);
+    
+        // Service inquiries table
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS service_inquiries (
+            id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+            name text NOT NULL,
+            email text NOT NULL,
+            service_type text NOT NULL,
+            message text NOT NULL,
+            created_at timestamp DEFAULT now()
+          );
+        `);
     console.log("Database migrations completed successfully");
   } catch (error) {
     console.error("Migration error:", error);
