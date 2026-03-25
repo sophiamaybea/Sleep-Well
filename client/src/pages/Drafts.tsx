@@ -70,9 +70,7 @@ export default function Drafts() {
                 className="block p-5 border border-white/[0.08] hover:border-white/15 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-all group"
               >
                 <h3 className="font-display text-lg font-light text-white/75 group-hover:text-white/90 italic transition-colors">
-                  {w.title || "Untitled"}
-                }
-                </h3>
+                  {w.title || "Untitled"}</h3>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{w.genre}</span>
                   <span className="w-px h-3 bg-white/10" />
