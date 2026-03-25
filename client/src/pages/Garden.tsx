@@ -29,7 +29,7 @@ import ExportMenu from "@/components/garden/ExportMenu";
 import SendToEditors from "@/components/garden/SendToEditors";
 import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
-import GalleryFeedbackModal from "@/components/GalleryFeedbackModal";
+import { GalleryFeedbackModal } from "@/components/GalleryFeedbackModal";
 type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
