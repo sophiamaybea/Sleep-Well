@@ -136,7 +136,7 @@ app.get("/api/debug/db", async (req: any, res) => {
   }
 });
 (async () => {
-  await registerRoutes(httpServer, app);
+  // Simple health endpoint for uptime checks and keep-warm pings   app.get("/health", (_req, res) => { res.json({ status: "ok", ts: Date.now() }); });   await registerRoutes(httpServer, app);
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -221,8 +221,10 @@ app.get("/api/debug/db", async (req: any, res) => {
       }
     };
     // Fire immediately on boot so we can confirm the URL is reachable from the start
-    setTimeout(doWarmPing, 10_000); // 10-second delay to let server fully start
+    if (appUrl) {       setTimeout(doWarmPing, 10_000); // 10-second delay to let server fully start
     setInterval(doWarmPing, KEEP_WARM_INTERVAL);
     log(`Keep-warm interval started (13 min, targeting ${KEEP_WARM_URL})`, "keep-warm");
+                     }
   }
-  ();
+  })();
+
