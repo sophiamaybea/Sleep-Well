@@ -29,7 +29,7 @@ import ExportMenu from "@/components/garden/ExportMenu";
 import SendToEditors from "@/components/garden/SendToEditors";
 import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
-
+import GalleryFeedbackModal from "@/components/GalleryFeedbackModal";
 type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
@@ -3583,6 +3583,8 @@ export default function Garden() {
   const [showA11yPanel, setShowA11yPanel] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
+    const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);
+  const [feedbackWritingId, setFeedbackWritingId] = useState<string | null>(null);
   const { settings: a11y, toggle: toggleA11y } = useAccessibility();
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
@@ -3783,6 +3785,9 @@ export default function Garden() {
   function openPlanting(w: Writing) { setPlantingTarget(w); setShowPlantingFlow(true); }
   function handlePlantingSave(data: { visibility: string; readiness: string; editorialAvailable: boolean }) {
     if (plantingTarget) updateMutation.mutate({ id: plantingTarget.id, ...data });
+        if (plantingTarget && (data.visibility === 'gallery' || data.visibility === 'gallery_opt_in')) {      setFeedbackWritingId(plantingTarget.id);
+      setShowGalleryFeedback(true);
+    }
   }
 
   if (!authLoading && !isAuthenticated) {
@@ -4199,6 +4204,11 @@ export default function Garden() {
         currentEditorialAvailable={plantingTarget?.editorialAvailable || false}
         onSave={handlePlantingSave}
         title={plantingTarget?.title}
+      />
+            <GalleryFeedbackModal
+        isOpen={showGalleryFeedback}
+        onClose={() => { setShowGalleryFeedback(false); setFeedbackWritingId(null); }}
+        writingId={feedbackWritingId || ""}
       />
     </div>
   );
