@@ -1,4 +1,5 @@
 import { type Express } from "express";
+import { desc } from "drizzle-orm";
 import { db } from "../db";
 import { serviceInquiries } from "@shared/schema";
 import nodemailer from "nodemailer";
@@ -67,6 +68,27 @@ export function registerServiceInquiryRoutes(app: Express) {
     } catch (error) {
       console.error("Service inquiry error:", error);
       return res.status(500).json({ error: "Something went wrong. Please try again." });
+    }
+  });
+  
+  // GET /api/services/inquiries - EIC only, requires auth
+  app.get("/api/services/inquiries", async (req: any, res) => {
+    try {
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorised" });
+      }
+      const user = req.user as any;
+      if (user.role !== "editor_in_chief" && user.role !== "admin") {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      const inquiries = await db
+        .select()
+        .from(serviceInquiries)
+                .orderBy(desc(serviceInquiries.createdAt));
+      return res.json(inquiries);
+    } catch (error) {
+      console.error("Failed to fetch service inquiries:", error);
+      return res.status(500).json({ error: "Failed to fetch inquiries" });
     }
   });
 }
