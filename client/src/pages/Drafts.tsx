@@ -8,7 +8,7 @@ export default function Drafts() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
-  const { data: writings = [], isLoading } = useQuery<Writing[]>({
+  const { data: allWritings = [], isLoading } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
     queryFn: async () => {
       const res = await fetch("/api/writings", { credentials: "include" });
@@ -17,6 +17,9 @@ export default function Drafts() {
     },
     enabled: isAuthenticated,
   });
+
+  // T49: filter to unpublished drafts only — never show published pieces here
+  const writings = allWritings.filter((w) => !w.isPublished);
 
   if (!authLoading && !isAuthenticated) {
     setLocation("/sign-in");
@@ -44,15 +47,15 @@ export default function Drafts() {
             <NotebookPen size={20} className="text-amber-400/60" />
             <h1 className="font-display text-2xl font-light italic text-white/85">Your Drafts</h1>
           </div>
-          <p className="font-serif text-sm text-white/45 ml-8">All your writings in one place</p>
+          <p className="font-serif text-sm text-white/45 ml-8">Unpublished pieces — visible only to you</p>
         </div>
 
         {writings.length === 0 ? (
           <div className="border border-dashed border-white/10 rounded-2xl p-16 text-center space-y-4">
             <NotebookPen size={32} className="mx-auto text-white/20" />
-            <h3 className="text-lg font-display font-light italic text-white/50">No drafts yet</h3>
+            <h3 className="text-lg font-display font-light italic text-white/50">No unpublished drafts</h3>
             <p className="font-serif text-sm text-white/30 max-w-sm mx-auto leading-relaxed">
-              Visit the Garden to start writing your first piece.
+              All your writing has been published, or visit the Garden to start something new.
             </p>
             <a
               href="/garden"
