@@ -389,7 +389,7 @@
 
 /* ─── Mobile Responsive: prevent horizontal overflow ─── */
 @media (max-width: 640px) {
-  .garden-bg .flex.gap-0\\.5 {
+  .garden-bg .flex.gap-0\.5 {
     flex-wrap: wrap;
   }
   .prose-editor.typewriter-editor {
@@ -738,7 +738,19 @@ html.a11y-high-contrast button {
   border: 2px solid #ffffff !important;
 }
 
-/* ── Light Mode ── */
+/* ── Light Mode (Accessibility) ──
+   FIX 9: Added html.a11y-light-mode scoped rules to override the global
+   body { background-color: transparent !important } set by the starfield CSS.
+   Without this, the a11y light mode background never rendered on screen. */
+html.a11y-light-mode,
+html.a11y-light-mode body,
+html.a11y-light-mode #root {
+  background-color: #f5f3ef !important;
+  background-image: none !important;
+}
+html.a11y-light-mode body {
+  color: #1a1a1a !important;
+}
 .a11y-light-mode {
   --color-background: #f5f3ef !important;
   --color-foreground: #1a1a1a !important;
@@ -1105,8 +1117,8 @@ html.a11y-high-contrast button {
   background: transparent !important;
 }
 
-.a11y-plain-mode [class*="bg-white\\/"],
-.a11y-plain-mode [class*="bg-black\\/"],
+.a11y-plain-mode [class*="bg-white\/"],
+.a11y-plain-mode [class*="bg-black\/"],
 .a11y-plain-mode .bg-black,
 .a11y-plain-mode [class*="bg-\\["],
 .a11y-plain-mode [class*="bg-slate"],
@@ -1129,7 +1141,7 @@ html.a11y-high-contrast button {
   filter: none !important;
 }
 
-.a11y-plain-mode [class*="border-white\\/"],
+.a11y-plain-mode [class*="border-white\/"],
 .a11y-plain-mode [class*="border-\\["],
 .a11y-plain-mode [class*="ring-"] {
   border-color: #d1d5db !important;
@@ -1143,12 +1155,12 @@ html.a11y-high-contrast button {
 .a11y-plain-mode [class*="text-yellow"] {
   color: #1a1a1a !important;
 }
-.a11y-plain-mode [class*="text-white\\/3"],
-.a11y-plain-mode [class*="text-white\\/4"],
-.a11y-plain-mode [class*="text-white\\/5"],
-.a11y-plain-mode [class*="text-white\\/6"],
-.a11y-plain-mode [class*="text-white\\/7"],
-.a11y-plain-mode [class*="text-white\\/8"] {
+.a11y-plain-mode [class*="text-white\/3"],
+.a11y-plain-mode [class*="text-white\/4"],
+.a11y-plain-mode [class*="text-white\/5"],
+.a11y-plain-mode [class*="text-white\/6"],
+.a11y-plain-mode [class*="text-white\/7"],
+.a11y-plain-mode [class*="text-white\/8"] {
   color: #555555 !important;
 }
 
