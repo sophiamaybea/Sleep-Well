@@ -2672,10 +2672,10 @@ export default function EditorStudio() {
         <div className="text-center space-y-4">
           <p className="font-serif text-sm text-white/50">Please log in to access the Editor Studio.</p>
           <button
-            onClick={() => navigate("/garden")}
+            onClick={() => navigate("/sign-in")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
           >
-            <ArrowLeft size={14} /> Back to Garden
+                      <ArrowLeft size={14} /> Go to Sign In
           </button>
         </div>
       </div>
