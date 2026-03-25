@@ -335,7 +335,7 @@ export async function runMigrations() {
 
         // Garden Walk: add title/excerpt/genre columns, make writing_id nullable
     await pool.query(`
-      ALTER TABLE garden_walk_submissions ALTER COLUMN writing_id DROP NOT NULL;
+          DO $$ BEGIN ALTER TABLE garden_walk_submissions ALTER COLUMN writing_id DROP NOT NULL; EXCEPTION WHEN others THEN NULL; END $$;
     `);
     await pool.query(`
       ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS title text;
@@ -354,6 +354,3 @@ export async function runMigrations() {
     console.error("Migration error:", error);
   }
 }
-
-// Auto-run migrations on module load
-runMigrations();
