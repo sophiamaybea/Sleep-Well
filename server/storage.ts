@@ -100,6 +100,8 @@ import {
   gardenPresence,
   type EditorialFlag,
   editorialFlags,
+  type EditorialTask,
+  editorialTasks,
   type FirstReaderDrop,
   firstReaderDrops,
   type FirstReaderResponse,
