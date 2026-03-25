@@ -2603,3 +2603,49 @@ export const insertServiceInquirySchema = createInsertSchema(
 
 export type ServiceInquiry = typeof serviceInquiries.$inferSelect;
 export type InsertServiceInquiry = z.infer<typeof insertServiceInquirySchema>;
+
+// === EDITORIAL SERVICE ORDERS (direct-purchase editorial letters) ===
+export const editorialServiceOrders = pgTable("editorial_service_orders", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  genre: text("genre").notNull().default("poetry"),
+  manuscriptType: text("manuscript_type").notNull().default("poetry_collection"),
+  estimatedWordCount: integer("estimated_word_count"),
+  brief: text("brief"),
+  // 'single_piece' | 'collection' | 'portfolio'
+  serviceScope: text("service_scope").notNull().default("collection"),
+  // price in GBP pence: 9500 = £95, 13500 = £135, 17500 = £175
+  quotedPricePence: integer("quoted_price_pence").notNull().default(0),
+  // 'pending_quote' | 'quoted' | 'payment_pending' | 'paid' | 'in_progress' | 'delivered' | 'cancelled'
+  status: text("status").notNull().default("payment_pending"),
+  paypalOrderId: text("paypal_order_id"),
+  paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
+  paidAt: timestamp("paid_at"),
+  editorLetterDraft: text("editor_letter_draft"),
+  deliveredAt: timestamp("delivered_at"),
+  sophiaNote: text("sophia_note"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEditorialServiceOrderSchema = createInsertSchema(
+  editorialServiceOrders,
+).omit({
+  id: true,
+  status: true,
+  quotedPricePence: true,
+  paypalOrderId: true,
+  paymentConfirmed: true,
+  paidAt: true,
+  editorLetterDraft: true,
+  deliveredAt: true,
+  sophiaNote: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EditorialServiceOrder = typeof editorialServiceOrders.$inferSelect;
+export type InsertEditorialServiceOrder = z.infer<typeof insertEditorialServiceOrderSchema>;
