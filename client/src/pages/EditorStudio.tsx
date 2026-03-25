@@ -2509,3 +2509,223 @@ function TasksTab() {
         </div>
       )}
       {tasks.length === 0 ? (
+            <div className="text-center py-16">
+              <Leaf size={24} className="mx-auto mb-3 text-white/15" />
+              <p className="font-serif text-sm text-white/40">No tasks found.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {tasks.map((task: any) => (
+                <div key={task.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                    className="w-full text-left p-4"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-grow">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="font-display text-sm font-light italic text-amber-200/90">{task.title}</span>
+                          <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest border ${priorityColors[task.priority] || priorityColors.medium}`}>
+                            {task.priority}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest ${
+                            task.status === "done" ? "bg-emerald-500/20 text-emerald-300" :
+                            task.status === "in_progress" ? "bg-blue-500/20 text-blue-300" :
+                            "bg-white/10 text-white/50"
+                          }`}>
+                            {(task.status || "open").replace(/_/g, " ")}
+                          </span>
+                        </div>
+                        {task.description && <p className="text-xs font-serif text-white/35">{task.description}</p>}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <select
+                          value={task.status || "open"}
+                          onChange={e => { e.stopPropagation(); updateTask.mutate({ id: task.id, data: { status: e.target.value } }); }}
+                          onClick={e => e.stopPropagation()}
+                          className="bg-transparent border border-white/10 rounded px-1.5 py-1 font-mono text-[8px] text-white/40 focus:outline-none"
+                        >
+                          <option value="open">Open</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="done">Done</option>
+                        </select>
+                        <ChevronDown size={14} className={`text-white/30 transition-transform ${expandedTask === task.id ? "rotate-180" : ""}`} />
+                      </div>
+                    </div>
+                  </button>
+                  {expandedTask === task.id && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-3">
+                        <div className="font-mono text-[8px] uppercase tracking-widest text-white/30 flex items-center gap-1">
+                          <MessageCircle size={10} /> Comments
+                        </div>
+                        {comments.length === 0 ? (
+                          <p className="text-xs font-serif text-white/25 italic">No comments yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {comments.map((c: any) => (
+                              <div key={c.id} className="bg-white/[0.03] rounded-lg p-2.5">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-mono text-[8px] text-white/40">{c.authorName || "Editor"}</span>
+                                  <span className="font-mono text-[8px] text-white/25">{timeAgo(c.createdAt)}</span>
+                                </div>
+                                <p className="text-xs font-serif text-amber-100/60">{c.content}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <input
+                            value={newComment}
+                            onChange={e => setNewComment(e.target.value)}
+                            placeholder="Add a comment..."
+                            className="flex-grow px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500/30"
+                            onKeyDown={e => { if (e.key === "Enter" && newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
+                          />
+                          <button
+                            onClick={() => { if (newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
+                            disabled={!newComment.trim() || addComment.isPending}
+                            className="px-2.5 py-1.5 rounded-lg border border-amber-500/20 text-amber-300/60 hover:text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-30"
+                          >
+                            <Send size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      );
+}
+
+export default function EditorStudio() {
+  const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
+
+  const { data: user, isLoading: userLoading } = useQuery<any>({
+    queryKey: ["/api/auth/user"],
+  });
+
+  const { data: editorCheck, isLoading: editorLoading } = useQuery<{ isEditor: boolean }>({
+    queryKey: ["/api/editor/check"],
+    enabled: !!user,
+  });
+
+  if (userLoading || editorLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse space-y-4 text-center">
+          <div className="h-6 w-40 bg-white/10 rounded mx-auto" />
+          <div className="h-4 w-24 bg-white/[0.06] rounded mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="text-center space-y-4">
+          <p className="font-serif text-sm text-white/50">Please log in to access the Editor Studio.</p>
+          <button
+            onClick={() => navigate("/")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!editorCheck?.isEditor) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="w-12 h-12 mx-auto rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
+            <Eye size={20} className="text-white/30" />
+          </div>
+          <p className="font-serif text-sm text-amber-100/60 leading-relaxed">
+            The Editor Studio is available to editors. Contact an administrator for access.
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
+      <div className="flex items-center gap-3 mb-8">
+        <button
+          onClick={() => navigate("/")}
+          className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
+        >
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="font-display text-2xl font-light italic text-amber-200">Editor Studio</h1>
+        {user?.role === "editor_in_chief" && (
+          <button
+            onClick={() => navigate("/eic-dashboard")}
+            className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all"
+          >
+            <Crown size={14} /> EIC Dashboard
+          </button>
+        )}
+      </div>
+
+      <div className="flex gap-1 mb-8 overflow-x-auto scrollbar-hide border-b border-white/5 pb-px">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            data-testid={`tab-${tab.id}`}
+            className={`flex items-center gap-1.5 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all border-b-2 -mb-px ${
+              activeTab === tab.id
+                ? "border-amber-400 text-amber-300"
+                : "border-transparent text-white/40 hover:text-white/60"
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.15 }}
+        >
+          {activeTab === "overview" && <OverviewTab onNavigate={setActiveTab} />}
+          {activeTab === "garden-stream" && <GardenStreamTab />}
+          {activeTab === "greenhouse" && <GreenhouseTab />}
+          {activeTab === "requests" && <RequestsTab />}
+          {activeTab === "issues" && <IssuesTab />}
+          {activeTab === "flagged" && <FlaggedTab />}
+          {activeTab === "editorial-inbox" && <EditorialInboxTab />}
+          {activeTab === "threads" && <ThreadsTab />}
+          {activeTab === "garden-walk" && <GardenWalkTab />}
+          {activeTab === "tasks" && <TasksTab />}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
