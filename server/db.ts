@@ -537,6 +537,24 @@ export async function runMigrations() {
         );
       `);
     } catch (e) { console.error("[migration] CREATE exercise_submissions failed:", e); }
+      // Journal applications table
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS journal_applications (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        journal_name text NOT NULL,
+        email text NOT NULL,
+        website text,
+        editor_name text,
+        message text,
+        status text NOT NULL DEFAULT 'pending',
+        editor_note text,
+        reviewed_at timestamp,
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
+  } catch (e) { console.error("[migration] CREATE journal_applications failed:", e); }
 
     console.log("Database migrations completed successfully");
   } catch (error) {
