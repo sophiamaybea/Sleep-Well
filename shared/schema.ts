@@ -2649,4 +2649,67 @@ export const insertEditorialServiceOrderSchema = createInsertSchema(
 });
 
 export type EditorialServiceOrder = typeof editorialServiceOrders.$inferSelect;
+
+// === WRITING EXERCISES (editor-posted, writer-submitted) ===
+export const writingExercises = pgTable("writing_exercises", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdById: varchar("created_by_id")
+    .notNull()
+    .references(() => users.id),
+  title: text("title").notNull(),
+  prompt: text("prompt").notNull(),
+  guidanceNote: text("guidance_note"),
+  genre: text("genre").notNull().default("any"),
+  wordLimit: integer("word_limit"),
+  isActive: boolean("is_active").notNull().default(true),
+  closesAt: timestamp("closes_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const exerciseSubmissions = pgTable("exercise_submissions", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  exerciseId: varchar("exercise_id")
+    .notNull()
+    .references(() => writingExercises.id),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  content: text("content").notNull().default(""),
+  editorNote: text("editor_note"),
+  status: text("status").notNull().default("draft"),
+  gardenWritingId: varchar("garden_writing_id").references(() => writings.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertWritingExerciseSchema = createInsertSchema(
+  writingExercises
+).omit({
+  id: true,
+  createdById: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertExerciseSubmissionSchema = createInsertSchema(
+  exerciseSubmissions
+).omit({
+  id: true,
+  authorId: true,
+  editorNote: true,
+  status: true,
+  gardenWritingId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type WritingExercise = typeof writingExercises.$inferSelect;
+export type InsertWritingExercise = z.infer<typeof insertWritingExerciseSchema>;
+export type ExerciseSubmission = typeof exerciseSubmissions.$inferSelect;
+export type InsertExerciseSubmission = z.infer<typeof insertExerciseSubmissionSchema>;
 export type InsertEditorialServiceOrder = z.infer<typeof insertEditorialServiceOrderSchema>;
