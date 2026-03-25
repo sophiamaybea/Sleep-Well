@@ -24,6 +24,7 @@ const Courses = lazy(() => import("@/pages/Courses"));
 const Drafts = lazy(() => import("@/pages/Drafts"));
 const EICDashboard = lazy(() => import("@/pages/EICDashboard"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
+const ExerciseAdmin = lazy(() => import("@/pages/ExerciseAdmin"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
@@ -151,6 +152,7 @@ function Router() {
         <Route path="/opportunities" component={Opportunities} />
         <Route path="/submissions" component={Submissions} />
         <Route path="/for-journals" component={ForJournals} />
+        <Route path="/exercise-admin">{() => <ProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
         <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
