@@ -2693,10 +2693,10 @@ export default function EditorStudio() {
             The Editor Studio is available to editors. Contact an administrator for access.
           </p>
           <button
-            onClick={() => navigate("/garden")}
+                      onClick={() => navigate("/")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
           >
-            <ArrowLeft size={14} /> Back to Garden
+                      <ArrowLeft size={14} /> Back to Home
           </button>
         </div>
       </div>
@@ -2707,7 +2707,7 @@ export default function EditorStudio() {
         <div className="min-h-screen relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <button
-          onClick={() => navigate("/garden")}
+                    onClick={() => navigate("/")}
           className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
         >
           <ArrowLeft size={16} />
