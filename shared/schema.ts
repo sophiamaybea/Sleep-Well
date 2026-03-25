@@ -2712,4 +2712,45 @@ export type WritingExercise = typeof writingExercises.$inferSelect;
 export type InsertWritingExercise = z.infer<typeof insertWritingExerciseSchema>;
 export type ExerciseSubmission = typeof exerciseSubmissions.$inferSelect;
 export type InsertExerciseSubmission = z.infer<typeof insertExerciseSubmissionSchema>;
+
+// === JOURNAL APPLICATIONS ===
+export const journalApplications = pgTable("journal_applications", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  journalName: text("journal_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  email: text("email").notNull(),
+  website: text("website"),
+  instagramHandle: text("instagram_handle"),
+  foundedYear: text("founded_year"),
+  genresFocus: text("genres_focus").notNull(),
+  currentSubmissionPlatform: text("current_submission_platform"),
+  submissionsPerYear: text("submissions_per_year"),
+  staffSize: text("staff_size"),
+  editorialStatement: text("editorial_statement").notNull(),
+  whyTheGarden: text("why_the_garden").notNull(),
+  paysContributors: boolean("pays_contributors").notNull().default(false),
+  paymentNote: text("payment_note"),
+  tier: text("tier").notNull().default("reading_room"),
+  status: text("status").notNull().default("pending"),
+  editorNote: text("editor_note"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertJournalApplicationSchema = createInsertSchema(
+  journalApplications,
+).omit({
+  id: true,
+  status: true,
+  editorNote: true,
+  reviewedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type JournalApplication = typeof journalApplications.$inferSelect;
+export type InsertJournalApplication = z.infer<typeof insertJournalApplicationSchema>;
 export type InsertEditorialServiceOrder = z.infer<typeof insertEditorialServiceOrderSchema>;
