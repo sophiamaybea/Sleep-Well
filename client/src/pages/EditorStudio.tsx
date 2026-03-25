@@ -2729,7 +2729,7 @@ export default function EditorStudio() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             data-testid={`tab-${tab.id}`}
-            className={`flex items-center gap-1.5 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all border-b-2 -mb-px ${
+            className={`flex flex-shrink-0 whitespace-nowrap items-center gap-1.5 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest whitespace-nowrap transition-all border-b-2 -mb-px ${
               activeTab === tab.id
                 ? "border-amber-400 text-amber-300"
                 : "border-transparent text-white/40 hover:text-white/60"
