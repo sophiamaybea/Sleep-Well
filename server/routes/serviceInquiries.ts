@@ -26,6 +26,8 @@ export function registerServiceInquiryRoutes(app: Express) {
         .values({ name, email, serviceType, message })
         .returning();
 
+      console.log(`[serviceInquiries] Inquiry saved to DB — id: ${inquiry.id}, from: ${email}, type: ${serviceType}`);
+
       // Send email notification if SMTP credentials are configured
       if (process.env.SMTP_USER && process.env.SMTP_PASS) {
         try {
@@ -37,9 +39,9 @@ export function registerServiceInquiryRoutes(app: Express) {
             },
           });
 
-          await transporter.sendMail({
+          const info = await transporter.sendMail({
             from: `"The Page Gallery" <${process.env.SMTP_USER}>`,
-                        to: "sophia@pagegalleryjournal.com",
+            to: "sophia@pagegalleryjournal.com",
             subject: `🌱 New Service Inquiry: ${serviceType} — ${name}`,
             html: `
               <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto;">
@@ -55,9 +57,13 @@ export function registerServiceInquiryRoutes(app: Express) {
               </div>
             `,
           });
+
+          console.log(`[serviceInquiries] Email sent OK — messageId: ${info.messageId}, to: sophia@pagegalleryjournal.com`);
         } catch (emailErr) {
-          console.error("Email send failed (non-fatal):", emailErr);
+          console.error("[serviceInquiries] Email send FAILED (non-fatal, inquiry is saved in DB):", emailErr);
         }
+      } else {
+        console.warn("[serviceInquiries] SMTP_USER or SMTP_PASS not set — email notification skipped. Inquiry is stored in DB.");
       }
 
       return res.status(201).json({
@@ -66,7 +72,7 @@ export function registerServiceInquiryRoutes(app: Express) {
         id: inquiry.id,
       });
     } catch (error) {
-      console.error("Service inquiry error:", error);
+      console.error("[serviceInquiries] Inquiry submission error:", error);
       return res.status(500).json({ error: "Something went wrong. Please try again." });
     }
   });
@@ -84,10 +90,10 @@ export function registerServiceInquiryRoutes(app: Express) {
       const inquiries = await db
         .select()
         .from(serviceInquiries)
-                .orderBy(desc(serviceInquiries.createdAt));
+        .orderBy(desc(serviceInquiries.createdAt));
       return res.json(inquiries);
     } catch (error) {
-      console.error("Failed to fetch service inquiries:", error);
+      console.error("[serviceInquiries] Failed to fetch service inquiries:", error);
       return res.status(500).json({ error: "Failed to fetch inquiries" });
     }
   });
