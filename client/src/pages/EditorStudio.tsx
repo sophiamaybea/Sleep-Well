@@ -77,10 +77,9 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "requests", label: "Requests", icon: <Inbox size={15} /> },
   { id: "issues", label: "Issues", icon: <FileText size={15} /> },
   { id: "flagged", label: "Flagged", icon: <Flag size={15} /> },
-  { id: "editorial-inbox", label: "Inbox", icon: <Inbox size={15} /> },
+    { id: "editorial-inbox", label: "Inbox", icon: <Inbox size={15} /> },
   { id: "threads", label: "Threads", icon: <MessageCircle size={15} /> },
-  { id: "garden-walk", label: "Garden Walk", icon: <Leaf size={15} /> },
-  { id: "tasks", label: "Tasks", icon: <CheckCircle size={15} /> },
+  { id: "garden-walk", label: "Garden Walk", icon: <Leaf size={15} /> },   { id: "tasks", label: "Tasks", icon: <CheckCircle size={15} /> },
 ];
 
 function CuratedOpportunitiesSection() {
@@ -458,10 +457,11 @@ function OverviewTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className="mb-6">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.3em] text-amber-400/70 mb-1">Today in the Garden</h2>
-        <p className="font-serif text-sm text-white/30 italic">A glance at what needs your attention</p>
-      </div>
+                {/* Today in the Garden */}
+          <div className="mb-6">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.3em] text-amber-400/70 mb-1">Today in the Garden</h2>
+            <p className="font-serif text-sm text-white/30 italic">A glance at what needs your attention</p>
+          </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
@@ -479,41 +479,42 @@ function OverviewTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
         ))}
       </div>
 
-      <div className="mt-8 pt-6 border-t border-white/[0.06]">
-        <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400/60 flex items-center gap-2 mb-4">
-          <Clock size={14} className="text-amber-400/50" />
-          Recent Activity
-        </h3>
-        <div className="space-y-2">
-          {overview?.newPieces > 0 && (
-            <p className="text-xs font-serif text-white/40">
-              <span className="text-emerald-300/60">{overview.newPieces} new piece{overview.newPieces !== 1 ? 's' : ''}</span>{' '}
-              arrived in the garden this week
-            </p>
-          )}
-          {overview?.editorialAvailable > 0 && (
-            <p className="text-xs font-serif text-white/40">
-              <span className="text-amber-300/60">{overview.editorialAvailable} piece{overview.editorialAvailable !== 1 ? 's' : ''}</span>{' '}
-              ready for editorial attention
-            </p>
-          )}
-          {overview?.pendingRequests > 0 && (
-            <p className="text-xs font-serif text-white/40">
-              <span className="text-blue-300/60">{overview.pendingRequests} request{overview.pendingRequests !== 1 ? 's' : ''}</span>{' '}
-              awaiting writer response
-            </p>
-          )}
-          {overview?.draftIssues > 0 && (
-            <p className="text-xs font-serif text-white/40">
-              <span className="text-violet-300/60">{overview.draftIssues} issue{overview.draftIssues !== 1 ? 's' : ''}</span>{' '}
-              in draft
-            </p>
-          )}
-          {(!overview?.newPieces && !overview?.editorialAvailable && !overview?.pendingRequests && !overview?.draftIssues) && (
-            <p className="font-serif text-sm text-white/30 italic">The garden is quiet. No recent changes.</p>
-          )}
-        </div>
-      </div>
+                {/* Recent Activity */}
+          <div className="mt-8 pt-6 border-t border-white/[0.06]">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400/60 flex items-center gap-2 mb-4">
+              <Clock size={14} className="text-amber-400/50" />
+              Recent Activity
+            </h3>
+            <div className="space-y-2">
+              {overview?.newPieces > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-emerald-300/60">{overview.newPieces} new piece{overview.newPieces !== 1 ? 's' : ''}</span>{' '}
+                  arrived in the garden this week
+                </p>
+              )}
+              {overview?.editorialAvailable > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-amber-300/60">{overview.editorialAvailable} piece{overview.editorialAvailable !== 1 ? 's' : ''}</span>{' '}
+                  ready for editorial attention
+                </p>
+              )}
+              {overview?.pendingRequests > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-blue-300/60">{overview.pendingRequests} request{overview.pendingRequests !== 1 ? 's' : ''}</span>{' '}
+                  awaiting writer response
+                </p>
+              )}
+              {overview?.draftIssues > 0 && (
+                <p className="text-xs font-serif text-white/40">
+                  <span className="text-violet-300/60">{overview.draftIssues} issue{overview.draftIssues !== 1 ? 's' : ''}</span>{' '}
+                  in draft
+                </p>
+              )}
+              {(!overview?.newPieces && !overview?.editorialAvailable && !overview?.pendingRequests && !overview?.draftIssues) && (
+                <p className="font-serif text-sm text-white/30 italic">The garden is quiet. No recent changes.</p>
+              )}
+            </div>
+          </div>
       <CuratedOpportunitiesSection />
       <div className="mt-8 pt-6 border-t border-white/[0.06]">
         <div className="flex items-center justify-between mb-4">
@@ -867,17 +868,17 @@ function GardenStreamTab() {
     },
   });
 
-  const publishToGallery = useMutation({
-    mutationFn: async (writingId: string) => {
-      const res = await apiRequest("POST", `/api/editorial/publish/${writingId}`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/gallery"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/editor/overview"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/editorial/pieces"] });
-    },
-  });
+    const publishToGallery = useMutation({
+      mutationFn: async (writingId: string) => {
+        const res = await apiRequest("POST", `/api/editorial/publish/${writingId}`);
+        return res.json();
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/gallery"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/editor/overview"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/editorial/pieces"] });
+      },
+    });
 
   const genres = ["any", "poetry", "fiction", "essay", "hybrid"];
   const readinesses = ["all", "raw_seed", "growing", "ready_to_show", "dormant"];
@@ -1023,14 +1024,14 @@ function GardenStreamTab() {
                         >
                           <Sparkles size={12} /> Whisper
                         </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); publishToGallery.mutate(piece.id); }}
-                          disabled={publishToGallery.isPending || piece.isPublished}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200 transition-all disabled:opacity-50"
-                          data-testid={`btn-publish-gallery-${piece.id}`}
-                        >
-                          <BookOpen size={12} /> {publishToGallery.isPending ? "Publishing..." : piece.isPublished ? "Published" : "Publish to Gallery"}
-                        </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); publishToGallery.mutate(piece.id); }}
+                      disabled={publishToGallery.isPending || piece.isPublished}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200 transition-all disabled:opacity-50"
+                      data-testid={`btn-publish-gallery-${piece.id}`}
+                    >
+                      <BookOpen size={12} /> {publishToGallery.isPending ? "Publishing..." : piece.isPublished ? "Published" : "Publish to Gallery"}
+                    </button>
                       </div>
                       {showNotes === piece.id && (
                         <NotesPanel writingId={piece.id} />
@@ -2053,7 +2054,6 @@ function EditorialInboxTab() {
     </motion.div>
   );
 }
-
 function ThreadsTab() {
   const queryClient = useQueryClient();
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
@@ -2209,12 +2209,14 @@ function ThreadsTab() {
     </motion.div>
   );
 }
-
 function GardenWalkTab() {
   const queryClient = useQueryClient();
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
-
+  const [submitTitle, setSubmitTitle] = useState("");
+  const [submitExcerpt, setSubmitExcerpt] = useState("");
+  const [submitGenre, setSubmitGenre] = useState("poetry");
   const { data: submissions = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/garden-walk"],
     queryFn: async () => {
@@ -2223,7 +2225,6 @@ function GardenWalkTab() {
       return res.json();
     },
   });
-
   const { data: messages = [] } = useQuery<any[]>({
     queryKey: ["/api/garden-walk", selectedSubmission, "messages"],
     queryFn: async () => {
@@ -2234,7 +2235,17 @@ function GardenWalkTab() {
     },
     enabled: !!selectedSubmission,
   });
-
+  const createSubmission = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/garden-walk", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/garden-walk"] });
+      setShowSubmitForm(false);
+      setSubmitTitle(""); setSubmitExcerpt(""); setSubmitGenre("poetry");
+    },
+  });
   const sendMessage = useMutation({
     mutationFn: async ({ submissionId, content, messageType }: { submissionId: string; content: string; messageType?: string }) => {
       const res = await apiRequest("POST", `/api/garden-walk/${submissionId}/messages`, { content, messageType });
@@ -2245,7 +2256,6 @@ function GardenWalkTab() {
       setNewMessage("");
     },
   });
-
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const res = await apiRequest("PATCH", `/api/garden-walk/${id}`, { status });
@@ -2255,7 +2265,6 @@ function GardenWalkTab() {
       queryClient.invalidateQueries({ queryKey: ["/api/garden-walk"] });
     },
   });
-
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -2268,20 +2277,46 @@ function GardenWalkTab() {
       </div>
     );
   }
-
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <div className="mb-2">
-        <h3 className="font-display text-sm text-amber-200/70 italic">Garden Walk — Incoming Work</h3>
-        <p className="font-serif text-xs text-white/30 mt-0.5">Work submitted by writers during open walk periods. Leave feedback and notes below.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-display text-sm text-amber-200/70 italic">Garden Walk</h3>
+          <p className="font-serif text-xs text-white/30 mt-0.5">Writers submit work for the walk. Editors leave feedback and messages.</p>
+        </div>
+        <button
+          onClick={() => setShowSubmitForm(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all"
+        >
+          <Plus size={12} /> Submit Work
+        </button>
       </div>
-
+      {showSubmitForm && (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+          <input value={submitTitle} onChange={e => setSubmitTitle(e.target.value)} placeholder="Title of your piece..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30" />
+          <textarea value={submitExcerpt} onChange={e => setSubmitExcerpt(e.target.value)} placeholder="Paste an excerpt or describe what you're submitting..." rows={4} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30 resize-none" />
+          <div className="flex items-center gap-3">
+            <select value={submitGenre} onChange={e => setSubmitGenre(e.target.value)} className="px-2 py-1 bg-white/5 border border-white/10 rounded font-mono text-[9px] text-white/50 focus:outline-none">
+              <option value="poetry">Poetry</option>
+              <option value="fiction">Fiction</option>
+              <option value="essay">Essay</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+            <div className="flex gap-2 ml-auto">
+              <button onClick={() => setShowSubmitForm(false)} className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all">Cancel</button>
+              <button onClick={() => { if (submitTitle.trim()) createSubmission.mutate({ title: submitTitle.trim(), excerpt: submitExcerpt || undefined, genre: submitGenre }); }} disabled={!submitTitle.trim() || createSubmission.isPending} className="px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50">
+                {createSubmission.isPending ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
           {submissions.length === 0 ? (
             <div className="text-center py-12">
               <Leaf size={24} className="mx-auto mb-3 text-emerald-400/20" />
-              <p className="font-serif text-sm text-white/30">No submissions yet during this walk period.</p>
+              <p className="font-serif text-sm text-white/30">No submissions to the walk yet.</p>
             </div>
           ) : (
             submissions.map((sub: any) => (
@@ -2332,11 +2367,11 @@ function GardenWalkTab() {
               })()}
               <div className="border-t border-white/5 pt-3">
                 <span className="font-mono text-[8px] uppercase tracking-widest text-white/30 flex items-center gap-1 mb-3">
-                  <MessageCircle size={10} /> Feedback
+                  <MessageCircle size={10} /> Messages
                 </span>
                 <div className="space-y-2 max-h-64 overflow-y-auto mb-3">
                   {messages.length === 0 ? (
-                    <p className="text-xs font-serif text-white/25 italic">No feedback yet.</p>
+                    <p className="text-xs font-serif text-white/25 italic">No messages yet. Start the conversation.</p>
                   ) : (
                     messages.map((msg: any) => (
                       <div key={msg.id} className={`rounded-lg p-2.5 ${
@@ -2355,7 +2390,7 @@ function GardenWalkTab() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <input value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Leave feedback for this writer..." className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-emerald-500/30" onKeyDown={e => { if (e.key === "Enter" && newMessage.trim()) sendMessage.mutate({ submissionId: selectedSubmission, content: newMessage.trim(), messageType: "feedback" }); }} />
+                  <input value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Write a message or feedback..." className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/25 focus:outline-none focus:border-emerald-500/30" onKeyDown={e => { if (e.key === "Enter" && newMessage.trim()) sendMessage.mutate({ submissionId: selectedSubmission, content: newMessage.trim(), messageType: "feedback" }); }} />
                   <button onClick={() => { if (newMessage.trim()) sendMessage.mutate({ submissionId: selectedSubmission, content: newMessage.trim(), messageType: "feedback" }); }} disabled={!newMessage.trim() || sendMessage.isPending} className="px-3 py-2 rounded-lg border border-emerald-500/20 text-emerald-300/60 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all disabled:opacity-30">
                     <Send size={12} />
                   </button>
@@ -2365,7 +2400,7 @@ function GardenWalkTab() {
           ) : (
             <div className="text-center py-16">
               <Leaf size={24} className="mx-auto mb-3 text-emerald-400/15" />
-              <p className="font-serif text-sm text-white/30">Select a submission to review and leave feedback</p>
+              <p className="font-serif text-sm text-white/30">Select a submission to view details and leave feedback</p>
             </div>
           )}
         </div>
@@ -2373,7 +2408,6 @@ function GardenWalkTab() {
     </motion.div>
   );
 }
-
 function TasksTab() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("all");
@@ -2509,104 +2543,105 @@ function TasksTab() {
         </div>
       )}
       {tasks.length === 0 ? (
-            <div className="text-center py-16">
-              <Leaf size={24} className="mx-auto mb-3 text-white/15" />
-              <p className="font-serif text-sm text-white/40">No tasks found.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {tasks.map((task: any) => (
-                <div key={task.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
-                    className="w-full text-left p-4"
+        <div className="text-center py-16">
+          <CheckCircle size={24} className="mx-auto mb-3 text-white/15" />
+          <p className="font-serif text-sm text-white/40">No tasks found.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {tasks.map((task: any) => (
+            <div key={task.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                className="w-full text-left p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-grow">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h4 className="font-display text-sm font-light italic text-amber-200/90">{task.title}</h4>
+                      <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest border ${priorityColors[task.priority] || priorityColors.medium}`}>
+                        {task.priority}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest ${
+                        task.status === "done" ? "bg-emerald-500/20 text-emerald-300" :
+                        task.status === "in_progress" ? "bg-blue-500/20 text-blue-300" :
+                        "bg-white/10 text-white/50"
+                      }`}>
+                        {(task.status || "open").replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    {task.description && <p className="text-xs font-serif text-white/35">{task.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <select
+                      value={task.status || "open"}
+                      onChange={e => { e.stopPropagation(); updateTask.mutate({ id: task.id, data: { status: e.target.value } }); }}
+                      onClick={e => e.stopPropagation()}
+                      className="bg-transparent border border-white/10 rounded px-1.5 py-1 font-mono text-[8px] text-white/40 focus:outline-none"
+                    >
+                      <option value="open">Open</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="done">Done</option>
+                    </select>
+                    <ChevronDown size={14} className={`text-white/30 transition-transform ${expandedTask === task.id ? "rotate-180" : ""}`} />
+                  </div>
+                </div>
+              </button>
+              <AnimatePresence>
+                {expandedTask === task.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0 flex-grow">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="font-display text-sm font-light italic text-amber-200/90">{task.title}</span>
-                          <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest border ${priorityColors[task.priority] || priorityColors.medium}`}>
-                            {task.priority}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-full font-mono text-[7px] uppercase tracking-widest ${
-                            task.status === "done" ? "bg-emerald-500/20 text-emerald-300" :
-                            task.status === "in_progress" ? "bg-blue-500/20 text-blue-300" :
-                            "bg-white/10 text-white/50"
-                          }`}>
-                            {(task.status || "open").replace(/_/g, " ")}
-                          </span>
+                    <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-3">
+                      <span className="font-mono text-[8px] uppercase tracking-widest text-white/30 flex items-center gap-1">
+                        <MessageCircle size={10} /> Comments
+                      </span>
+                      {comments.length === 0 ? (
+                        <p className="text-xs font-serif text-white/25 italic">No comments yet.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {comments.map((c: any) => (
+                            <div key={c.id} className="bg-white/[0.03] rounded-lg p-2.5">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-mono text-[8px] text-white/40">{c.authorName || "Editor"}</span>
+                                <span className="font-mono text-[8px] text-white/25">{timeAgo(c.createdAt)}</span>
+                              </div>
+                              <p className="text-xs font-serif text-amber-100/60">{c.content}</p>
+                            </div>
+                          ))}
                         </div>
-                        {task.description && <p className="text-xs font-serif text-white/35">{task.description}</p>}
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <select
-                          value={task.status || "open"}
-                          onChange={e => { e.stopPropagation(); updateTask.mutate({ id: task.id, data: { status: e.target.value } }); }}
-                          onClick={e => e.stopPropagation()}
-                          className="bg-transparent border border-white/10 rounded px-1.5 py-1 font-mono text-[8px] text-white/40 focus:outline-none"
+                      )}
+                      <div className="flex gap-2">
+                        <input
+                          value={newComment}
+                          onChange={e => setNewComment(e.target.value)}
+                          placeholder="Add a comment..."
+                          className="flex-grow px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500/30"
+                          onKeyDown={e => { if (e.key === "Enter" && newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
+                        />
+                        <button
+                          onClick={() => { if (newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
+                          disabled={!newComment.trim() || addComment.isPending}
+                          className="px-2.5 py-1.5 rounded-lg border border-amber-500/20 text-amber-300/60 hover:text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-30"
                         >
-                          <option value="open">Open</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="done">Done</option>
-                        </select>
-                        <ChevronDown size={14} className={`text-white/30 transition-transform ${expandedTask === task.id ? "rotate-180" : ""}`} />
+                          <Plus size={12} />
+                        </button>
                       </div>
                     </div>
-                  </button>
-                  {expandedTask === task.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-3">
-                        <div className="font-mono text-[8px] uppercase tracking-widest text-white/30 flex items-center gap-1">
-                          <MessageCircle size={10} /> Comments
-                        </div>
-                        {comments.length === 0 ? (
-                          <p className="text-xs font-serif text-white/25 italic">No comments yet.</p>
-                        ) : (
-                          <div className="space-y-2">
-                            {comments.map((c: any) => (
-                              <div key={c.id} className="bg-white/[0.03] rounded-lg p-2.5">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="font-mono text-[8px] text-white/40">{c.authorName || "Editor"}</span>
-                                  <span className="font-mono text-[8px] text-white/25">{timeAgo(c.createdAt)}</span>
-                                </div>
-                                <p className="text-xs font-serif text-amber-100/60">{c.content}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <div className="flex gap-2">
-                          <input
-                            value={newComment}
-                            onChange={e => setNewComment(e.target.value)}
-                            placeholder="Add a comment..."
-                            className="flex-grow px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-serif text-amber-100/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500/30"
-                            onKeyDown={e => { if (e.key === "Enter" && newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
-                          />
-                          <button
-                            onClick={() => { if (newComment.trim()) addComment.mutate({ taskId: task.id, content: newComment.trim() }); }}
-                            disabled={!newComment.trim() || addComment.isPending}
-                            className="px-2.5 py-1.5 rounded-lg border border-amber-500/20 text-amber-300/60 hover:text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-30"
-                          >
-                            <Send size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          )}
-        </motion.div>
-      );
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
 }
-
 export default function EditorStudio() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
@@ -2637,10 +2672,10 @@ export default function EditorStudio() {
         <div className="text-center space-y-4">
           <p className="font-serif text-sm text-white/50">Please log in to access the Editor Studio.</p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/garden")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> Back to Garden
           </button>
         </div>
       </div>
@@ -2652,16 +2687,16 @@ export default function EditorStudio() {
       <div className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center space-y-4 max-w-md">
           <div className="w-12 h-12 mx-auto rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
-            <Eye size={20} className="text-white/30" />
+            <XCircle size={20} className="text-white/30" />
           </div>
           <p className="font-serif text-sm text-amber-100/60 leading-relaxed">
             The Editor Studio is available to editors. Contact an administrator for access.
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/garden")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-white/10 text-white/40 hover:text-white/60 transition-all"
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> Back to Garden
           </button>
         </div>
       </div>
@@ -2669,16 +2704,16 @@ export default function EditorStudio() {
   }
 
   return (
-    <div className="min-h-screen relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
+        <div className="min-h-screen relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/garden")}
           className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-all"
         >
           <ArrowLeft size={16} />
         </button>
         <h1 className="font-display text-2xl font-light italic text-amber-200">Editor Studio</h1>
-        {user?.role === "editor_in_chief" && (
+                {user?.role === "editor_in_chief" && (
           <button
             onClick={() => navigate("/eic-dashboard")}
             className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all"
@@ -2722,10 +2757,10 @@ export default function EditorStudio() {
           {activeTab === "flagged" && <FlaggedTab />}
           {activeTab === "editorial-inbox" && <EditorialInboxTab />}
           {activeTab === "threads" && <ThreadsTab />}
-          {activeTab === "garden-walk" && <GardenWalkTab />}
-          {activeTab === "tasks" && <TasksTab />}
+          {activeTab === "garden-walk" && <GardenWalkTab />}             {activeTab === "tasks" && <TasksTab />}
         </motion.div>
       </AnimatePresence>
     </div>
   );
 }
+    
