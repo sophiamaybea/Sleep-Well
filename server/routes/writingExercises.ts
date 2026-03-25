@@ -3,7 +3,7 @@ import { isAuthenticated } from "../replit_integrations/auth";
 import { pool } from "../db";
 
 function editorOnly(req: any, res: any, next: () => void) {
-  if (req.user?.role !== "editor") {
+    if (req.user?.role !== "editor" && req.user?.role !== "editor_in_chief") {
     return res.status(403).json({ error: "Editor access required" });
   }
   next();
@@ -13,7 +13,7 @@ export function registerWritingExerciseRoutes(app: Express) {
   // GET all exercises
   app.get("/api/exercises", isAuthenticated, async (req: any, res) => {
     try {
-      const isEditor = req.user?.role === "editor";
+            const isEditor = req.user?.role === "editor" || req.user?.role === "editor_in_chief";
       const result = await pool.query(
         isEditor
           ? `SELECT we.*, u.first_name || ' ' || u.last_name AS creator_name
