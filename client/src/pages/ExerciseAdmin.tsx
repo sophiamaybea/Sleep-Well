@@ -12,7 +12,7 @@ import {
 
 export default function ExerciseAdmin() {
   const { user } = useAuth();
-  if (!user || (user as any).role !== "editor") return <Redirect to="/" />;
+    if (!user || ((user as any).role !== "editor" && (user as any).role !== "editor_in_chief")) return <Redirect to="/" />;
   return <ExerciseAdminInner />;
 }
 
