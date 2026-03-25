@@ -2584,3 +2584,22 @@ export const insertEditorDirectMessageSchema = createInsertSchema(
 export type EditorDirectMessage = typeof editorDirectMessages.$inferSelect;
 export type InsertEditorDirectMessage = z.infer<typeof insertEditorDirectMessageSchema>;
 export type InsertStudioNote = z.infer<typeof insertStudioNoteSchema>;
+
+// === SERVICE INQUIRIES (public-facing services form submissions) ===
+export const serviceInquiries = pgTable("service_inquiries", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  serviceType: text("service_type").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertServiceInquirySchema = createInsertSchema(
+  serviceInquiries
+).omit({ id: true, createdAt: true });
+
+export type ServiceInquiry = typeof serviceInquiries.$inferSelect;
+export type InsertServiceInquiry = z.infer<typeof insertServiceInquirySchema>;
