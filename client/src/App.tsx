@@ -47,7 +47,9 @@ const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
-function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>; path: string }) {
+
+// T48: destructure path out so it is never spread into the Component
+function ProtectedRoute({ component: Component, path }: { component: React.ComponentType<any>; path: string }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
     return <PageLoader />;
@@ -55,7 +57,7 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
   if (!user) {
     return <Redirect to="/sign-in" />;
   }
-  return <Component {...rest} />;
+  return <Component />;
 }
 const PAGE_TITLES: Record<string, string> = {
   "/": "The Page Gallery Journal \u2014 A Literary Journal & Writing Garden",
