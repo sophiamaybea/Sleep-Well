@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Footer } from '../components/Footer';
-import { Navigation } from '../components/Navigation';
+import Footer from '../components/Footer';
+import Navigation from '../components/Navigation';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -58,7 +58,7 @@ export default function ForJournals() {
           
           <div className="max-w-2xl hero-text">
             <p className="text-xl md:text-2xl text-[#c9a96e] leading-relaxed italic font-display mb-12">
-              "Zadie Smith’s complexity is not a performance. It is a surgical procedure. A removal of the redundant skin to expose the bone. We want to be the knife."
+              "Zadie Smith's complexity is not a performance. It is a surgical procedure. A removal of the redundant skin to expose the bone. We want to be the knife."
             </p>
             <p className="text-sm md:text-base leading-relaxed mb-8 opacity-80">
               The literary world is sick with a tumour. It has become a graveyard of interfaces that mask the terrifying void of the blank page. The Garden is a complete change to the landscape—not a submission manager, but a laboratory for the clinical observer.
