@@ -1,7 +1,7 @@
 import { type Express } from "express";
 import { db } from "../db";
 import { journalApplications, insertJournalApplicationSchema } from "@shared/schema";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export function registerJournalApplicationRoutes(app: Express) {
   // POST /api/journal-applications — public, no auth required
@@ -17,7 +17,9 @@ export function registerJournalApplicationRoutes(app: Express) {
         .values(parsed.data)
         .returning();
 
-      console.log(`[JournalApplications] New application from: ${application.journalName} <${application.email}>`);
+      console.log(
+        `[JournalApplications] New application from: ${application.journalName} — ${application.contactName} <${application.email}>`
+      );
       return res.status(201).json({ success: true, id: application.id });
     } catch (err: any) {
       console.error("[JournalApplications] Error:", err);
@@ -50,12 +52,19 @@ export function registerJournalApplicationRoutes(app: Express) {
       }
       const { id } = req.params;
       const { status, editorNote } = req.body;
-      const { eq } = await import("drizzle-orm");
       const [updated] = await db
         .update(journalApplications)
-        .set({ status, editorNote, reviewedAt: new Date(), updatedAt: new Date() })
+        .set({
+          ...(status !== undefined && { status }),
+          ...(editorNote !== undefined && { editorNote }),
+          reviewedAt: new Date(),
+          updatedAt: new Date(),
+        })
         .where(eq(journalApplications.id, id))
         .returning();
+      if (!updated) {
+        return res.status(404).json({ error: "Application not found" });
+      }
       return res.json(updated);
     } catch (err: any) {
       console.error("[JournalApplications] PATCH error:", err);
