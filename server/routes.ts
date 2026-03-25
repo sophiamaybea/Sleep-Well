@@ -1,3 +1,4 @@
+import { registerGalleryFeedbackRoutes } from "./routes/galleryFeedback";
 import { registerEditorialRoomRoutes } from "./routes/editorialRooms";
 import { registerServiceInquiryRoutes } from "./routes/serviceInquiries";
 import type { Express } from "express";
@@ -8760,6 +8761,6 @@ const sharedPieces = await db.select({
   });
 
   registerEditorialRoomRoutes(app);
-    registerServiceInquiryRoutes(app);
+    registerServiceInquiryRoutes(app);   registerGalleryFeedbackRoutes(app);   registerGalleryFeedbackRoutes(app);
   return httpServer;
 }
