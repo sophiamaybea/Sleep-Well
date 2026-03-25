@@ -123,10 +123,11 @@ async function isEditor(req: any, res: any, next: any) {
       (req as any).user = sessionUser;
     }
   }
-  if (!req.user?.claims?.sub) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  const editor = await storage.isEditor(req.user.claims.sub);
+  const userId = req.user?.claims?.sub || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const editor = await storage.isEditor(userId);
   if (!editor) {
     return res.status(403).json({ message: "Editor access required" });
   }
@@ -141,10 +142,11 @@ async function isEditorInChief(req: any, res: any, next: any) {
       (req as any).user = sessionUser;
     }
   }
-  if (!req.user?.claims?.sub) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  const eic = await storage.isEditorInChief(req.user.claims.sub);
+  const eicUserId = req.user?.claims?.sub || req.user?.id;
+    if (!eicUserId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const eic = await storage.isEditorInChief(eicUserId);
   if (!eic) {
     return res.status(403).json({ message: "Editor-in-Chief access required" });
   }
