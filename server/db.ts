@@ -505,6 +505,38 @@ export async function runMigrations() {
         );
       `);
     } catch (e) { console.error("[migration] CREATE rejection_feedback_requests failed:", e); }
+        // Writing exercises feature (editor-posted exercises + writer submissions)
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS writing_exercises (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          created_by_id varchar NOT NULL REFERENCES users(id),
+          title text NOT NULL,
+          prompt text NOT NULL,
+          guidance_note text,
+          genre text NOT NULL DEFAULT 'any',
+          word_limit integer,
+          closes_at timestamp,
+          is_active boolean NOT NULL DEFAULT true,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) { console.error("[migration] CREATE writing_exercises failed:", e); }
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS exercise_submissions (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          exercise_id varchar NOT NULL REFERENCES writing_exercises(id) ON DELETE CASCADE,
+          author_id varchar NOT NULL REFERENCES users(id),
+          content text NOT NULL,
+          status text NOT NULL DEFAULT 'submitted',
+          editor_note text,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) { console.error("[migration] CREATE exercise_submissions failed:", e); }
 
     console.log("Database migrations completed successfully");
   } catch (error) {
