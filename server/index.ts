@@ -194,19 +194,35 @@ app.get("/api/debug/db", async (req: any, res) => {
       log(`serving on port ${port}`);
     },
   );
-  
-  // Keep-warm: ping the health endpoint every 14 minutes to prevent Render cold starts
+  // Keep-warm: prevent Render free-tier cold starts by pinging the public URL
+  // IMPORTANT: Set APP_URL env var in Render to your service's public URL,
+  // e.g. https://your-app-name.onrender.com — without it, pings go to localhost
+  // and Render will still spin down the service after 15 minutes of inactivity.
   if (process.env.NODE_ENV === "production") {
-    const KEEP_WARM_INTERVAL = 14 * 60 * 1000; // 14 minutes
-    setInterval(async () => {
+    const appUrl = process.env.APP_URL;
+    if (!appUrl) {
+      log(
+        "WARNING: APP_URL env var is not set. Keep-warm pings will target localhost " +
+        "and will NOT prevent Render from sleeping the service. " +
+        "Set APP_URL=https://your-service-name.onrender.com in Render's environment variables.",
+        "keep-warm"
+      );
+    } else {
+      log(`Keep-warm targeting: ${appUrl}/health`, "keep-warm");
+    }
+    const KEEP_WARM_URL = appUrl ? `${appUrl}/health` : `http://localhost:${port}/health`;
+    const KEEP_WARM_INTERVAL = 13 * 60 * 1000; // 13 minutes — safely under Render's 15-min sleep threshold
+    const doWarmPing = async () => {
       try {
-        const appUrl = process.env.APP_URL || `http://localhost:${port}`;
-        await fetch(`${appUrl}/health`);
-        log("Keep-warm ping sent", "keep-warm");
+        const res = await fetch(KEEP_WARM_URL);
+        log(`Keep-warm ping OK (${res.status}) → ${KEEP_WARM_URL}`, "keep-warm");
       } catch (err) {
-        log(`Keep-warm ping failed: ${err}`, "keep-warm");
+        log(`Keep-warm ping FAILED → ${KEEP_WARM_URL} — ${err}`, "keep-warm");
       }
-    }, KEEP_WARM_INTERVAL);
-    log("Keep-warm interval started (14 min)", "keep-warm");
+    };
+    // Fire immediately on boot so we can confirm the URL is reachable from the start
+    setTimeout(doWarmPing, 10_000); // 10-second delay to let server fully start
+    setInterval(doWarmPing, KEEP_WARM_INTERVAL);
+    log(`Keep-warm interval started (13 min, targeting ${KEEP_WARM_URL})`, "keep-warm");
   }
-})();
+  ();
