@@ -63,7 +63,7 @@ export function serveStatic(app: Express) {
   }
 
   // Serve static assets (but not the catch-all — that comes later)
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, { index: false }));
 
   // ── SSR meta injection: individual piece pages ──────────────────────────
   app.get("/piece/:id", async (req, res) => {
