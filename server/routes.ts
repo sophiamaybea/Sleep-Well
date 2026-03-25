@@ -2387,7 +2387,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post(
     "/api/editorial/publish/:writingId",
-    isAuthenticated,
+    isEditor,
     async (req: any, res) => {
       try {
         const result = await storage.publishWritingByEditor(
