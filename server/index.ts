@@ -23,7 +23,7 @@ app.use(
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "blob:", "https:"],
-        connectSrc: ["'self'", "https://*.supabase.co"],
+        connectSrc: ["'self'", "https://*.supabase.co", "https://api-m.paypal.com", "https://api-m.sandbox.paypal.com"],
       },
     },
     crossOriginEmbedderPolicy: false,
