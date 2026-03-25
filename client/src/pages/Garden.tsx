@@ -3985,6 +3985,16 @@ export default function Garden() {
                               Editor Studio
                             </a>
                           )}
+                          {user?.role === "writer" && (
+              <a
+                href="/drafts"
+                className="flex items-center gap-2 px-2 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                data-testid="nav-drafts"
+              >
+                <NotebookPen size={14} />
+                Drafts
+              </a>
+            )}
                           <a
                             href="/courses"
                             className="flex items-center gap-2 px-2 py-2 rounded-lg text-emerald-400/60 hover:text-emerald-400/90 hover:bg-emerald-400/[0.05] transition-all font-serif text-sm"
