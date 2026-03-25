@@ -37,6 +37,7 @@ const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Opportunities = lazy(() => import("@/pages/Opportunities"));
 const Submissions = lazy(() => import("@/pages/Submissions"));
+const ForJournals = lazy(() => import("@/pages/ForJournals"));
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
@@ -45,7 +46,6 @@ const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
-
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>; path: string }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
@@ -56,7 +56,6 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
   }
   return <Component {...rest} />;
 }
-
 const PAGE_TITLES: Record<string, string> = {
   "/": "The Page Gallery Journal \u2014 A Literary Journal & Writing Garden",
   "/in-bloom": "The Journal \u2014 The Page Gallery",
@@ -72,11 +71,10 @@ const PAGE_TITLES: Record<string, string> = {
   "/terms": "Terms of Service \u2014 The Page Gallery",
   "/accessibility": "Accessibility \u2014 The Page Gallery",
   "/sign-in": "Sign In \u2014 The Page Gallery",
+  "/for-journals": "For Journals \u2014 The Page Gallery",
 };
-
 function PageTitle() {
   const [location] = useLocation();
-
   useEffect(() => {
     // Dynamic title for piece pages
     if (location.startsWith("/piece/")) {
@@ -86,10 +84,8 @@ function PageTitle() {
     const title = PAGE_TITLES[location] || "The Page Gallery Journal";
     document.title = title;
   }, [location]);
-
   return null;
 }
-
 function PageLoader() {
   return (
     <div
@@ -107,7 +103,6 @@ function PageLoader() {
     </div>
   );
 }
-
 function Router() {
   return (
     <Suspense fallback={<LoadingScreen />}>
@@ -151,13 +146,13 @@ function Router() {
         <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
         <Route path="/opportunities" component={Opportunities} />
         <Route path="/submissions" component={Submissions} />
+        <Route path="/for-journals" component={ForJournals} />
         <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
   );
 }
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -174,5 +169,4 @@ function App() {
     </QueryClientProvider>
   );
 }
-
 export default App;
