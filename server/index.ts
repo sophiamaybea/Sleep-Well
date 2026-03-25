@@ -12,7 +12,6 @@ import {
   reseedSiteContent,
   seedWelcomeNotifications,
 } from "./seedContent";
-
 const app = express();
 const httpServer = createServer(app);
 app.use(
@@ -62,13 +61,11 @@ app.use("/api", apiLimiter);
 app.use("/api/login", authLimiter);
 app.use("/api/register", authLimiter);
 app.use("/api/editor-onboarding", authLimiter);
-
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
   }
 }
-
 app.use(
   express.json({
     verify: (req, _res, buf) => {
@@ -77,7 +74,6 @@ app.use(
   }),
 );
 app.use(express.urlencoded({ extended: false }));
-
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -87,7 +83,6 @@ export function log(message: string, source = "express") {
   });
   console.log(`${formattedTime} [${source}] ${message}`);
 }
-
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -110,13 +105,12 @@ app.use((req, res, next) => {
   });
   next();
 });
-
 process.on("uncaughtException", (err) => {
   console.error("Uncaught exception:", err);
 });
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection:", reason);
-  });
+});
 process.on("SIGTERM", () => {
   console.error("SIGTERM received");
 });
@@ -126,11 +120,12 @@ process.on("SIGINT", () => {
 process.on("SIGHUP", () => {
   console.error("SIGHUP received");
 });
-
-
-// Diagnostic endpoint to debug DB issues
+// Diagnostic endpoint — GUARDED: editor_in_chief only
 import { pool } from "./db";
-app.get("/api/debug/db", async (_req, res) => {
+app.get("/api/debug/db", async (req: any, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated() || !req.user || req.user.role !== "editor_in_chief") {
+    return res.status(401).json({ error: "Unauthorised" });
+  }
   try {
     const tables = await pool.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename`);
     const writings = await pool.query(`SELECT count(*) as total, count(*) FILTER (WHERE is_published = true) as published FROM writings`);
@@ -186,11 +181,8 @@ app.get("/api/debug/db", async (_req, res) => {
   await seedWelcomeNotifications().catch((err) =>
     console.error("Seed notifications failed:", err),
   );
-
-    // Demote Giove from editor_in_chief to editor
-  await db.update(users).set({ role: "editor" }).where(eq(users.id, "ddaa141d-6f7f-4fbb-a966-4b94fcae0ebe")).catch((err) =>
-    console.error("Demote Giove failed:", err),
-  );
+  // NOTE: Hardcoded role demotion removed — do not re-add.
+  // Manage roles via the EIC dashboard or direct DB update.
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {
