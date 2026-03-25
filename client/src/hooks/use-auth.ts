@@ -18,7 +18,8 @@ async function fetchUser(): Promise<User | null> {
 }
 
 async function logout(): Promise<void> {
-  window.location.href = "/api/logout";
+  await fetch("/api/logout", { method: "GET", credentials: "include" });
+  window.location.href = "/"; // navigate after session cleared
 }
 
 async function loginWithEmail(data: { email: string; password: string }): Promise<any> {
@@ -55,7 +56,8 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
-    staleTime: 1000 * 60 * 5,
+      staleTime: 1000 * 60, // 60s — reduced from 5min (T20)
+      refetchOnWindowFocus: true, // T20
   });
 
   const logoutMutation = useMutation({
