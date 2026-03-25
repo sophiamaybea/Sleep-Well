@@ -537,24 +537,73 @@ export async function runMigrations() {
         );
       `);
     } catch (e) { console.error("[migration] CREATE exercise_submissions failed:", e); }
-      // Journal applications table
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS journal_applications (
-        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-        journal_name text NOT NULL,
-        email text NOT NULL,
-        website text,
-        editor_name text,
-        message text,
-        status text NOT NULL DEFAULT 'pending',
-        editor_note text,
-        reviewed_at timestamp,
-        created_at timestamp DEFAULT now(),
-        updated_at timestamp DEFAULT now()
-      );
-    `);
-  } catch (e) { console.error("[migration] CREATE journal_applications failed:", e); }
+
+    // Journal applications table — full schema
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS journal_applications (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          journal_name text NOT NULL,
+          contact_name text NOT NULL,
+          email text NOT NULL,
+          website text,
+          instagram_handle text,
+          founded_year text,
+          genres_focus text NOT NULL,
+          current_submission_platform text,
+          submissions_per_year text,
+          staff_size text,
+          editorial_statement text NOT NULL,
+          why_the_garden text NOT NULL,
+          pays_contributors boolean NOT NULL DEFAULT false,
+          payment_note text,
+          tier text NOT NULL DEFAULT 'reading_room',
+          status text NOT NULL DEFAULT 'pending',
+          editor_note text,
+          reviewed_at timestamp,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) { console.error("[migration] CREATE journal_applications failed:", e); }
+
+    // Backfill any missing columns on journal_applications for existing DBs
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS contact_name text NOT NULL DEFAULT '';`);
+    } catch (e) { console.error("[migration] ALTER journal_applications contact_name failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS instagram_handle text;`);
+    } catch (e) { console.error("[migration] ALTER journal_applications instagram_handle failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS founded_year text;`);
+    } catch (e) { console.error("[migration] ALTER journal_applications founded_year failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS genres_focus text NOT NULL DEFAULT '';`);
+    } catch (e) { console.error("[migration] ALTER journal_applications genres_focus failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS current_submission_platform text;`);
+    } catch (e) { console.error("[migration] ALTER journal_applications current_submission_platform failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS submissions_per_year text;`);
+    } catch (e) { console.error("[migration] ALTER journal_applications submissions_per_year failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS staff_size text;`);
+    } catch (e) { console.error("[migration] ALTER journal_applications staff_size failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS editorial_statement text NOT NULL DEFAULT '';`);
+    } catch (e) { console.error("[migration] ALTER journal_applications editorial_statement failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS why_the_garden text NOT NULL DEFAULT '';`);
+    } catch (e) { console.error("[migration] ALTER journal_applications why_the_garden failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS pays_contributors boolean NOT NULL DEFAULT false;`);
+    } catch (e) { console.error("[migration] ALTER journal_applications pays_contributors failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS payment_note text;`);
+    } catch (e) { console.error("[migration] ALTER journal_applications payment_note failed:", e); }
+    try {
+      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS tier text NOT NULL DEFAULT 'reading_room';`);
+    } catch (e) { console.error("[migration] ALTER journal_applications tier failed:", e); }
 
     console.log("Database migrations completed successfully");
   } catch (error) {
