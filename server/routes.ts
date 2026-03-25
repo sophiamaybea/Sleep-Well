@@ -3,6 +3,7 @@ import { registerEditorialRoomRoutes } from "./routes/editorialRooms";
 import { registerServiceInquiryRoutes } from "./routes/serviceInquiries";
 import { registerEditorialOrderRoutes } from "./routes/editorialOrders";
 import { registerWritingLayoutRoutes } from "./routes/writingLayout";
+import { registerWritingExerciseRoutes } from "./routes/writingExercises";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import {
@@ -8520,5 +8521,6 @@ const sharedPieces = await db.select({
     registerServiceInquiryRoutes(app);   registerGalleryFeedbackRoutes(app);   registerGalleryFeedbackRoutes(app);
     registerEditorialOrderRoutes(app);
     registerWritingLayoutRoutes(app);
+    registerWritingExerciseRoutes(app);
   return httpServer;
 }
