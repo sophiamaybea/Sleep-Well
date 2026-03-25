@@ -28,7 +28,7 @@ export function registerJournalApplicationRoutes(app: Express) {
   // GET /api/journal-applications — editors only
   app.get("/api/journal-applications", async (req: any, res) => {
     try {
-      if (!req.user || (req.user.role !== "editor" && req.user.role !== "admin")) {
+      if (!req.user || (req.user.role !== "editor" && req.user.role !== "editor_in_chief")) {
         return res.status(403).json({ error: "Forbidden" });
       }
       const applications = await db
@@ -45,7 +45,7 @@ export function registerJournalApplicationRoutes(app: Express) {
   // PATCH /api/journal-applications/:id — editors only
   app.patch("/api/journal-applications/:id", async (req: any, res) => {
     try {
-      if (!req.user || (req.user.role !== "editor" && req.user.role !== "admin")) {
+      if (!req.user || (req.user.role !== "editor" && req.user.role !== "editor_in_chief")) {
         return res.status(403).json({ error: "Forbidden" });
       }
       const { id } = req.params;
