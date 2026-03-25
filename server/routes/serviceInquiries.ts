@@ -39,7 +39,7 @@ export function registerServiceInquiryRoutes(app: Express) {
 
           await transporter.sendMail({
             from: `"The Page Gallery" <${process.env.SMTP_USER}>`,
-            to: "sophiamaybea@gmail.com",
+                        to: "sophia@pagegalleryjournal.com",
             subject: `🌱 New Service Inquiry: ${serviceType} — ${name}`,
             html: `
               <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto;">
