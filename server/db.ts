@@ -15,7 +15,7 @@ if (!databaseUrl) {
 
 export const pool = new Pool({
   connectionString: databaseUrl,
-  max: 3,
+    max: 10, // increased from 3 — T18
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
 });
