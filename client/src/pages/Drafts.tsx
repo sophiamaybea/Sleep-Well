@@ -8,18 +8,15 @@ export default function Drafts() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
-  const { data: allWritings = [], isLoading } = useQuery<Writing[]>({
-    queryKey: ["/api/writings"],
+  const { data: writings = [], isLoading } = useQuery<Writing[]>({
+    queryKey: ["writings", "drafts"],
     queryFn: async () => {
-      const res = await fetch("/api/writings", { credentials: "include" });
+      const res = await fetch("/api/writings/drafts", { credentials: "include" });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
     enabled: isAuthenticated,
   });
-
-  // T49: filter to unpublished drafts only — never show published pieces here
-  const writings = allWritings.filter((w) => !w.isPublished);
 
   if (!authLoading && !isAuthenticated) {
     setLocation("/sign-in");
