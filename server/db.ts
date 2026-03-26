@@ -505,6 +505,16 @@ export async function runMigrations() {
         );
       `);
     } catch (e) { console.error("[migration] CREATE rejection_feedback_requests failed:", e); }
+
+    // Backfill flag_id column — schema.ts requires this FK to editorial_flags(id)
+    // but the original CREATE TABLE block above omitted it. Safe on fresh and existing DBs.
+    try {
+      await pool.query(`
+        ALTER TABLE rejection_feedback_requests
+          ADD COLUMN IF NOT EXISTS flag_id varchar REFERENCES editorial_flags(id);
+      `);
+    } catch (e) { console.error("[migration] ALTER rejection_feedback_requests flag_id failed:", e); }
+
         // Writing exercises feature (editor-posted exercises + writer submissions)
     try {
       await pool.query(`
