@@ -482,7 +482,7 @@ export default function Gallery() {
 function ShareButton({ piece }: { piece: any }) {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `${window.location.origin}/in-bloom?piece=${piece.id}`;
+  const shareUrl = `${window.location.origin}/piece/${piece.id}`;
 
   async function handleShare() {
     if (navigator.share) {
