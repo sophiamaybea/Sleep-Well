@@ -15,7 +15,7 @@ if (!databaseUrl) {
 
 export const pool = new Pool({
   connectionString: databaseUrl,
-    max: 10, // increased from 3 — T18
+  max: 10, // increased from 3 — T18
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
 });
@@ -25,20 +25,45 @@ pool.on("error", (err) => {
 });
 export const db = drizzle(pool, { schema });
 
+// Helper: returns true if the error is a benign "already exists" type
+// that is expected during idempotent migrations.
+function isBenignMigrationError(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message.toLowerCase() : String(e).toLowerCase();
+  return (
+    msg.includes("already exists") ||
+    msg.includes("duplicate column") ||
+    msg.includes("duplicate table") ||
+    msg.includes("does not exist") // column already dropped
+  );
+}
+
 // Run database migrations on startup
 export async function runMigrations() {
+  // T19: track non-trivial migration errors
+  let migrationErrors = 0;
+
   try {
     try {
       await pool.query(`
         ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash varchar;
       `);
-    } catch (e) { console.error("[migration] ALTER users password_hash failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER users password_hash failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name varchar;
       `);
-    } catch (e) { console.error("[migration] ALTER users display_name failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER users display_name failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -55,7 +80,12 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE submission_calls failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE submission_calls failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -69,91 +99,166 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE submission_call_responses failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE submission_call_responses failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE users ADD COLUMN IF NOT EXISTS is_anonymous boolean NOT NULL DEFAULT false;
       `);
-    } catch (e) { console.error("[migration] ALTER users is_anonymous failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER users is_anonymous failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_onboarding boolean NOT NULL DEFAULT false;
       `);
-    } catch (e) { console.error("[migration] ALTER users has_completed_onboarding failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER users has_completed_onboarding failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE writings ADD COLUMN IF NOT EXISTS marginalia_visibility text NOT NULL DEFAULT 'public';
       `);
-    } catch (e) { console.error("[migration] ALTER writings marginalia_visibility failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER writings marginalia_visibility failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE writings ADD COLUMN IF NOT EXISTS gallery_opt_in boolean NOT NULL DEFAULT false;
       `);
-    } catch (e) { console.error("[migration] ALTER writings gallery_opt_in failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER writings gallery_opt_in failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE writings ADD COLUMN IF NOT EXISTS gallery_opt_in_at timestamp;
       `);
-    } catch (e) { console.error("[migration] ALTER writings gallery_opt_in_at failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER writings gallery_opt_in_at failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ADD COLUMN IF NOT EXISTS theme text;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls theme failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls theme failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ADD COLUMN IF NOT EXISTS prompt text;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls prompt failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls prompt failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ADD COLUMN IF NOT EXISTS issue_id varchar;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls issue_id failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls issue_id failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ADD COLUMN IF NOT EXISTS starts_at timestamp;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls starts_at failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls starts_at failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ADD COLUMN IF NOT EXISTS ends_at timestamp;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls ends_at failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls ends_at failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ADD COLUMN IF NOT EXISTS flag_limit integer NOT NULL DEFAULT 3;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls flag_limit failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls flag_limit failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ADD COLUMN IF NOT EXISTS created_by_id varchar;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls created_by_id failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls created_by_id failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ALTER COLUMN editor_id DROP NOT NULL;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls editor_id DROP NOT NULL failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls editor_id DROP NOT NULL failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE submission_calls ALTER COLUMN description DROP NOT NULL;
       `);
-    } catch (e) { console.error("[migration] ALTER submission_calls description DROP NOT NULL failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER submission_calls description DROP NOT NULL failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Circles feature
     try {
@@ -166,7 +271,12 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE circles failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE circles failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -178,25 +288,45 @@ export async function runMigrations() {
           joined_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE circle_members failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE circle_members failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE writings ADD COLUMN IF NOT EXISTS circle_id varchar REFERENCES circles(id);
       `);
-    } catch (e) { console.error("[migration] ALTER writings circle_id failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER writings circle_id failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE circles ADD COLUMN IF NOT EXISTS theme text;
       `);
-    } catch (e) { console.error("[migration] ALTER circles theme failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER circles theme failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE circles ADD COLUMN IF NOT EXISTS max_members integer NOT NULL DEFAULT 5;
       `);
-    } catch (e) { console.error("[migration] ALTER circles max_members failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER circles max_members failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -215,7 +345,12 @@ export async function runMigrations() {
           UNIQUE(page_key, section_key)
         );
       `);
-    } catch (e) { console.error("[migration] CREATE site_content failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE site_content failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -227,7 +362,12 @@ export async function runMigrations() {
           UNIQUE(user_id, writing_id)
         );
       `);
-    } catch (e) { console.error("[migration] CREATE appreciations failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE appreciations failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -239,13 +379,23 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE letters failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE letters failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE editor_notes ADD COLUMN IF NOT EXISTS note_type text NOT NULL DEFAULT 'general_feedback';
       `);
-    } catch (e) { console.error("[migration] ALTER editor_notes note_type failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER editor_notes note_type failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -267,13 +417,23 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE editorial_waitlist failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE editorial_waitlist failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE editorial_waitlist ADD COLUMN IF NOT EXISTS payment_token text;
       `);
-    } catch (e) { console.error("[migration] ALTER editorial_waitlist payment_token failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER editorial_waitlist payment_token failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Grove botanical social layer
     try {
@@ -294,7 +454,12 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE grove_plants failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE grove_plants failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -306,7 +471,12 @@ export async function runMigrations() {
           notes text
         );
       `);
-    } catch (e) { console.error("[migration] CREATE grove_watering_sessions failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE grove_watering_sessions failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -317,7 +487,12 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE grove_connections failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE grove_connections failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -332,7 +507,12 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE grove_seed_packets failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE grove_seed_packets failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
@@ -343,7 +523,12 @@ export async function runMigrations() {
           source text DEFAULT 'homepage'
         );
       `);
-    } catch (e) { console.error("[migration] CREATE newsletter_subscribers failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE newsletter_subscribers failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Editorial tasks table
     try {
@@ -368,7 +553,12 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE editorial_tasks failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE editorial_tasks failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Editorial threads table
     try {
@@ -382,7 +572,12 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE editorial_threads failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE editorial_threads failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Editorial thread messages table
     try {
@@ -395,7 +590,12 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE editorial_thread_messages failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE editorial_thread_messages failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Editor task comments table
     try {
@@ -408,7 +608,12 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE editor_task_comments failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE editor_task_comments failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Garden Walk submissions
     try {
@@ -426,7 +631,12 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE garden_walk_submissions failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE garden_walk_submissions failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Writer-editor messages for Garden Walk feedback threads
     try {
@@ -440,37 +650,67 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE garden_walk_messages failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE garden_walk_messages failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         DO $$ BEGIN ALTER TABLE garden_walk_submissions ALTER COLUMN writing_id DROP NOT NULL; EXCEPTION WHEN others THEN NULL; END $$;
       `);
-    } catch (e) { console.error("[migration] ALTER garden_walk_submissions writing_id nullable failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER garden_walk_submissions writing_id nullable failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS title text;
       `);
-    } catch (e) { console.error("[migration] ALTER garden_walk_submissions title failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER garden_walk_submissions title failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS excerpt text;
       `);
-    } catch (e) { console.error("[migration] ALTER garden_walk_submissions excerpt failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER garden_walk_submissions excerpt failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS genre text;
       `);
-    } catch (e) { console.error("[migration] ALTER garden_walk_submissions genre failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER garden_walk_submissions genre failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     try {
       await pool.query(`
         ALTER TABLE garden_walk_submissions ADD COLUMN IF NOT EXISTS sender_name text;
       `);
-    } catch (e) { console.error("[migration] ALTER garden_walk_submissions sender_name failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER garden_walk_submissions sender_name failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Service inquiries table
     try {
@@ -484,7 +724,12 @@ export async function runMigrations() {
           created_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE service_inquiries failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE service_inquiries failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Rejection feedback requests table (T47)
     try {
@@ -504,18 +749,27 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE rejection_feedback_requests failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE rejection_feedback_requests failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Backfill flag_id column — schema.ts requires this FK to editorial_flags(id)
-    // but the original CREATE TABLE block above omitted it. Safe on fresh and existing DBs.
     try {
       await pool.query(`
         ALTER TABLE rejection_feedback_requests
           ADD COLUMN IF NOT EXISTS flag_id varchar REFERENCES editorial_flags(id);
       `);
-    } catch (e) { console.error("[migration] ALTER rejection_feedback_requests flag_id failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER rejection_feedback_requests flag_id failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
-        // Writing exercises feature (editor-posted exercises + writer submissions)
+    // Writing exercises feature
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS writing_exercises (
@@ -532,7 +786,13 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE writing_exercises failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE writing_exercises failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS exercise_submissions (
@@ -546,7 +806,12 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE exercise_submissions failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE exercise_submissions failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Journal applications table — full schema
     try {
@@ -575,49 +840,50 @@ export async function runMigrations() {
           updated_at timestamp DEFAULT now()
         );
       `);
-    } catch (e) { console.error("[migration] CREATE journal_applications failed:", e); }
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE journal_applications failed:", (e as Error).message);
+        migrationErrors++;
+      }
+    }
 
     // Backfill any missing columns on journal_applications for existing DBs
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS contact_name text NOT NULL DEFAULT '';`);
-    } catch (e) { console.error("[migration] ALTER journal_applications contact_name failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS instagram_handle text;`);
-    } catch (e) { console.error("[migration] ALTER journal_applications instagram_handle failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS founded_year text;`);
-    } catch (e) { console.error("[migration] ALTER journal_applications founded_year failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS genres_focus text NOT NULL DEFAULT '';`);
-    } catch (e) { console.error("[migration] ALTER journal_applications genres_focus failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS current_submission_platform text;`);
-    } catch (e) { console.error("[migration] ALTER journal_applications current_submission_platform failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS submissions_per_year text;`);
-    } catch (e) { console.error("[migration] ALTER journal_applications submissions_per_year failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS staff_size text;`);
-    } catch (e) { console.error("[migration] ALTER journal_applications staff_size failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS editorial_statement text NOT NULL DEFAULT '';`);
-    } catch (e) { console.error("[migration] ALTER journal_applications editorial_statement failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS why_the_garden text NOT NULL DEFAULT '';`);
-    } catch (e) { console.error("[migration] ALTER journal_applications why_the_garden failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS pays_contributors boolean NOT NULL DEFAULT false;`);
-    } catch (e) { console.error("[migration] ALTER journal_applications pays_contributors failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS payment_note text;`);
-    } catch (e) { console.error("[migration] ALTER journal_applications payment_note failed:", e); }
-    try {
-      await pool.query(`ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS tier text NOT NULL DEFAULT 'reading_room';`);
-    } catch (e) { console.error("[migration] ALTER journal_applications tier failed:", e); }
+    const jaBackfills: Array<[string, string]> = [
+      ["contact_name", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS contact_name text NOT NULL DEFAULT '';`],
+      ["instagram_handle", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS instagram_handle text;`],
+      ["founded_year", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS founded_year text;`],
+      ["genres_focus", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS genres_focus text NOT NULL DEFAULT '';`],
+      ["current_submission_platform", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS current_submission_platform text;`],
+      ["submissions_per_year", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS submissions_per_year text;`],
+      ["staff_size", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS staff_size text;`],
+      ["editorial_statement", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS editorial_statement text NOT NULL DEFAULT '';`],
+      ["why_the_garden", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS why_the_garden text NOT NULL DEFAULT '';`],
+      ["pays_contributors", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS pays_contributors boolean NOT NULL DEFAULT false;`],
+      ["payment_note", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS payment_note text;`],
+      ["tier", `ALTER TABLE journal_applications ADD COLUMN IF NOT EXISTS tier text NOT NULL DEFAULT 'reading_room';`],
+    ];
+    for (const [col, sql] of jaBackfills) {
+      try {
+        await pool.query(sql);
+      } catch (e) {
+        if (!isBenignMigrationError(e)) {
+          console.error(`[MIGRATION CRITICAL]: ALTER journal_applications ${col} failed:`, (e as Error).message);
+          migrationErrors++;
+        }
+      }
+    }
 
-    console.log("Database migrations completed successfully");
+    // T19: Final migration summary
+    if (migrationErrors > 0) {
+      console.error(
+        `[MIGRATION] ${migrationErrors} critical error(s) occurred during migrations — check logs above. ` +
+        `Server continuing but some features may be broken.`
+      );
+    } else {
+      console.log("[MIGRATION] All migrations completed successfully — 0 errors.");
+    }
   } catch (error) {
-    console.error("Migration error:", error);
-        throw error;
+    console.error("[MIGRATION] Unexpected top-level error:", error);
+    throw error;
   }
 }
