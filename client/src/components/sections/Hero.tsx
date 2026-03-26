@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import StarTitle from "@/components/StarTitle";
 import { Link } from "wouter";
-import { gsap } from "@/lib/gsap-init";
+import { gsap, prefersReducedMotion } from "@/lib/gsap-init";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function Hero() {
@@ -15,6 +15,8 @@ export default function Hero() {
   const mouseY = useMotionValue(0);
 
   function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
+    // T36: skip mouse tilt when reduced motion is preferred
+    if (prefersReducedMotion) return;
     const { left, top, width, height } = currentTarget.getBoundingClientRect();
     const x = (clientX - left) / width - 0.5;
     const y = (clientY - top) / height - 0.5;
@@ -28,6 +30,9 @@ export default function Hero() {
   // GSAP: stagger entrance of hero text elements when section scrolls into view
   useEffect(() => {
     if (!textRef.current) return;
+    // T36: skip GSAP entrance animation when reduced motion is preferred
+    if (prefersReducedMotion) return;
+
     const children = Array.from(textRef.current.children);
     gsap.fromTo(
       children,
@@ -48,7 +53,7 @@ export default function Hero() {
     );
   }, []);
 
-  // Resolve CTA destination: authenticated → /garden, else → /sign-in
+  // Resolve CTA destination: authenticated -> /garden, else -> /sign-in
   const writingHref = !authLoading && user ? "/garden" : "/sign-in";
 
   return (
@@ -73,14 +78,14 @@ export default function Hero() {
                   style={{ x: textX, y: textY }}
                   className="font-sans text-[length:var(--text-label)] uppercase tracking-[0.06em] text-amber-200/60 uppercase mb-6 block"
                 >
-                  A Literary Journal &amp; Digital Writing Garden
+                  A Literary Journal & Digital Writing Garden
                 </motion.p>
                 <h1 className="font-display text-[clamp(2.5rem,8vw,6rem)] font-light leading-[0.95] tracking-tight text-white">
                   Writing that lingers.
                 </h1>
               </div>
 
-              {/* Mission statement — clear editorial identity */}
+              {/* Mission statement */}
               <div className="space-y-3">
                 <p
                   className="max-w-lg text-sm md:text-base leading-relaxed font-sans text-white/60"
@@ -115,7 +120,7 @@ export default function Hero() {
                   </span>
                 </Link>
 
-                {/* Secondary: start writing — auth-aware */}
+                {/* Secondary: start writing */}
                 <Link
                   href={writingHref}
                   className="group flex items-center gap-3"
@@ -123,12 +128,12 @@ export default function Hero() {
                 >
                   <span
                     className="
-                      font-sans text-[length:var(--text-label)] uppercase tracking-[0.08em]
-                      px-5 py-2.5 rounded-full
-                      border border-amber-500/30 text-amber-200/80
-                      bg-amber-900/10 hover:bg-amber-900/20
-                      hover:border-amber-500/60 hover:text-amber-100
-                      transition-all duration-300
+                    font-sans text-[length:var(--text-label)] uppercase tracking-[0.08em]
+                    px-5 py-2.5 rounded-full
+                    border border-amber-500/30 text-amber-200/80
+                    bg-amber-900/10 hover:bg-amber-900/20
+                    hover:border-amber-500/60 hover:text-amber-100
+                    transition-all duration-300
                     "
                   >
                     {!authLoading && user ? "Open Your Garden" : "Start Writing — it's free"}
