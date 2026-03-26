@@ -10,6 +10,9 @@ const PAYPAL_API =
     : "https://api-m.sandbox.paypal.com";
 
 async function getPayPalAccessToken(): Promise<string> {
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+          throw new Error('[PayPal] PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set in environment variables.');
+        }
   const clientId = process.env.PAYPAL_CLIENT_ID!;
   const secret = process.env.PAYPAL_CLIENT_SECRET!;
   const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
