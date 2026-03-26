@@ -608,5 +608,6 @@ export async function runMigrations() {
     console.log("Database migrations completed successfully");
   } catch (error) {
     console.error("Migration error:", error);
+        throw error;
   }
 }
