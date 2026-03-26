@@ -49,11 +49,13 @@ const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 
+// T35: ProtectedRoute uses branded LoadingScreen instead of generic PageLoader
 // T48: destructure path out so it is never spread into the Component
 function ProtectedRoute({ component: Component, path }: { component: React.ComponentType<any>; path: string }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
-    return <PageLoader />;
+    // T35: branded garden loading screen — replaces the plain PageLoader spinner
+    return <LoadingScreen />;
   }
   if (!user) {
     return <Redirect to="/sign-in" />;
@@ -89,23 +91,6 @@ function PageTitle() {
     document.title = title;
   }, [location]);
   return null;
-}
-function PageLoader() {
-  return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{ backgroundColor: "#060d06" }}
-    >
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-amber-500/20 border-t-amber-500/50 animate-spin" />
-        </div>
-        <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/30">
-          Loading...
-        </p>
-      </div>
-    </div>
-  );
 }
 function Router() {
   return (
