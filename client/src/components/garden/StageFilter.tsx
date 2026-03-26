@@ -18,21 +18,22 @@ export interface StageFilterProps {
   activeStage: StageFilterValue;
   /** Called when user selects a different stage */
   onStageChange: (stage: StageFilterValue) => void;
-  /** Piece counts per stage (used for badges) */
+  /** Piece counts per stage — drives the count badges */
   stageCounts: StageCounts;
-  /** Optional: controlled search query */
+  /** Controlled search query value */
   searchQuery?: string;
-  /** Optional: called when search input changes */
+  /** Called when search input changes */
   onSearchChange?: (q: string) => void;
-  /** Optional: show the search bar (default true) */
+  /** Whether to render the search bar (default: true) */
   showSearch?: boolean;
 }
 
-// ─── Inline SVG stage icons (matching Garden.tsx originals) ──────────────────
+// ─── Inline SVG stage icons (identical to Garden.tsx originals) ──────────────
 
 function SeedIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round">
       <path d="M12 22 Q12 20 12 14" />
       <path d="M12 15 Q8 9 9 5 Q10 2 12 3 Q14 2 15 5 Q16 9 12 15Z" />
     </svg>
@@ -41,7 +42,8 @@ function SeedIcon({ className }: { className?: string }) {
 
 function BloomIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round">
       <path d="M12 22 Q12 20 12 14" />
       <path d="M12 12 Q8 6 5 5 Q3 4.5 4 7 Q5 9 10 12Z" />
       <path d="M12 12 Q16 6 19 5 Q21 4.5 20 7 Q19 9 14 12Z" />
@@ -56,9 +58,10 @@ function BloomIcon({ className }: { className?: string }) {
 interface StageOption {
   id: StageFilterValue;
   label: string;
+  tip: string;
   icon: React.ReactNode;
+  /** Tailwind classes applied to the pill when active */
   activeColor: string;
-  badgeColor: string;
   emptyHeading: string;
   emptyCopy: string;
 }
@@ -67,53 +70,53 @@ const STAGE_OPTIONS: StageOption[] = [
   {
     id: "all",
     label: "All",
+    tip: "Every piece in your garden",
     icon: null,
     activeColor: "border-white/20 bg-white/[0.07] text-white/90",
-    badgeColor: "text-white/40",
     emptyHeading: "Your garden awaits its first seed",
     emptyCopy: "A line, a fragment, a whole draft — whatever wants to come out.",
   },
   {
     id: "raw_seed",
     label: "Seeds",
+    tip: "Early ideas and fragments — just planted",
     icon: <SeedIcon className="w-[14px] h-[14px]" />,
     activeColor: "border-amber-500/30 bg-amber-500/10 text-amber-300/90",
-    badgeColor: "text-amber-400/60",
     emptyHeading: "No seeds yet",
     emptyCopy: "Seeds are where everything begins — a word, a line, a feeling you can't quite name yet. Plant one.",
   },
   {
     id: "growing",
     label: "Growing",
+    tip: "Works in progress — actively developing",
     icon: <Sprout className="w-[14px] h-[14px]" />,
     activeColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300/90",
-    badgeColor: "text-emerald-400/60",
     emptyHeading: "Nothing growing just yet",
-    emptyCopy: "When a seed starts to find its shape, move it here. Growth is slow. That's the point.",
+    emptyCopy: "When a seed starts to find its shape, move it here. Growth is slow. That’s the point.",
   },
   {
     id: "ready_to_show",
     label: "Ready",
+    tip: "Polished and ready to share — editors browse here",
     icon: <BloomIcon className="w-[14px] h-[14px]" />,
     activeColor: "border-pink-500/30 bg-pink-500/10 text-pink-300/90",
-    badgeColor: "text-pink-400/60",
     emptyHeading: "Nothing in bloom yet",
     emptyCopy: "When a piece feels finished — or finished enough — bring it here. Editors browse this stage.",
   },
   {
     id: "dormant",
     label: "Dormant",
+    tip: "Not abandoned — just resting",
     icon: <Moon className="w-[14px] h-[14px]" />,
     activeColor: "border-violet-500/30 bg-violet-500/10 text-violet-300/90",
-    badgeColor: "text-violet-400/60",
     emptyHeading: "No dormant pieces",
-    emptyCopy: "Some writing needs to rest, not be discarded. Dormant pieces sleep here — not abandoned, just waiting.",
+    emptyCopy: "Some writing needs to rest. Dormant pieces sleep here — not abandoned, just waiting.",
   },
 ];
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// ─── Stage empty state (exported — drop-in wherever the list is empty) ────────
 
-function StageEmptyState({ stage }: { stage: StageFilterValue }) {
+export function StageEmptyState({ stage }: { stage: StageFilterValue }) {
   const meta = STAGE_OPTIONS.find((s) => s.id === stage) ?? STAGE_OPTIONS[0];
   return (
     <motion.div
@@ -126,7 +129,7 @@ function StageEmptyState({ stage }: { stage: StageFilterValue }) {
       data-testid={`empty-state-${stage}`}
     >
       {meta.icon && (
-        <div className={`flex justify-center mb-2 opacity-30 ${meta.badgeColor}`}>
+        <div className="flex justify-center mb-2 opacity-25">
           <span className="w-8 h-8">{meta.icon}</span>
         </div>
       )}
@@ -145,21 +148,29 @@ function StageEmptyState({ stage }: { stage: StageFilterValue }) {
 /**
  * StageFilter — drop-in filter bar for the Garden Desk zone.
  *
- * Usage in DeskZone (Garden.tsx):
+ * Wiring in Garden.tsx DeskZone:
  *
  *   import StageFilter, { StageEmptyState } from "@/components/garden/StageFilter";
  *
- *   // Before the piece list:
+ *   // 1. Before the piece list (replace the hidden filter div):
  *   <StageFilter
  *     activeStage={activeFilter}
  *     onStageChange={setActiveFilter}
- *     stageCounts={{ all: writings.length, raw_seed: seedCount, growing: growingCount, ready_to_show: readyCount, dormant: dormantCount }}
+ *     stageCounts={{
+ *       all: searchAndTagFiltered.length,
+ *       raw_seed: seedCount,
+ *       growing: growingCount,
+ *       ready_to_show: readyCount,
+ *       dormant: dormantCount,
+ *     }}
  *     searchQuery={searchQuery}
  *     onSearchChange={setSearchQuery}
  *   />
  *
- *   // After the filtered list, when filteredWritings.length === 0:
- *   <StageEmptyState stage={activeFilter} />
+ *   // 2. Replace the "No pieces match" fallback:
+ *   {filteredWritings.length === 0 && writings.length > 0 && (
+ *     <StageEmptyState stage={activeFilter} />
+ *   )}
  */
 export default function StageFilter({
   activeStage,
@@ -171,14 +182,22 @@ export default function StageFilter({
 }: StageFilterProps) {
   return (
     <div className="space-y-3 mb-6" data-testid="stage-filter-bar">
+
       {/* ── Stage pill buttons ── */}
-      <div className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl border border-emerald-800/15 bg-emerald-950/10">
+      <div
+        className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl border border-emerald-800/15 bg-emerald-950/10"
+        role="tablist"
+        aria-label="Filter by stage"
+      >
         {STAGE_OPTIONS.map((opt) => {
           const count = stageCounts[opt.id];
           const isActive = activeStage === opt.id;
           return (
             <button
               key={opt.id}
+              role="tab"
+              aria-selected={isActive}
+              title={opt.tip}
               onClick={() => onStageChange(opt.id)}
               data-testid={`stage-filter-${opt.id}`}
               className={`
@@ -187,11 +206,10 @@ export default function StageFilter({
                 border transition-all duration-200
                 ${isActive
                   ? opt.activeColor
-                  : "border-transparent text-white/40 hover:text-white/65 hover:bg-white/[0.03]"
-                }
+                  : "border-transparent text-white/40 hover:text-white/65 hover:bg-white/[0.03]"}
               `}
             >
-              {/* Animated active background */}
+              {/* Shared layout animation for the active fill */}
               {isActive && (
                 <motion.span
                   layoutId="stageFilterActive"
@@ -202,23 +220,16 @@ export default function StageFilter({
 
               <span className="relative z-10 flex items-center gap-1.5">
                 {opt.icon && (
-                  <span className={isActive ? "" : "opacity-50"}>
+                  <span className={isActive ? "" : "opacity-40"}>
                     {opt.icon}
                   </span>
                 )}
                 {opt.label}
-
-                {/* Count badge — always visible, dims when not active */}
+                {/* Count badge */}
                 <span
                   className={`
-                    font-mono text-[8px] tabular-nums min-w-[14px] text-center
-                    px-1 py-0.5 rounded-full transition-colors
-                    ${isActive
-                      ? "bg-white/10 text-white/70"
-                      : count === 0
-                        ? "text-white/20"
-                        : "text-white/35"
-                    }
+                    font-mono text-[8px] tabular-nums px-1 py-0.5 rounded-full transition-colors
+                    ${isActive ? "bg-white/10 text-white/70" : count === 0 ? "text-white/20" : "text-white/35"}
                   `}
                   data-testid={`stage-count-${opt.id}`}
                 >
@@ -229,6 +240,21 @@ export default function StageFilter({
           );
         })}
       </div>
+
+      {/* ── Contextual description (mirrors ZoneNav behaviour) ── */}
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={activeStage}
+          initial={{ opacity: 0, y: -3 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 3 }}
+          transition={{ duration: 0.15 }}
+          className="font-serif text-[11px] italic text-white/25 text-center"
+          data-testid="stage-filter-tip"
+        >
+          {STAGE_OPTIONS.find((s) => s.id === activeStage)?.tip}
+        </motion.p>
+      </AnimatePresence>
 
       {/* ── Optional search bar ── */}
       <AnimatePresence>
@@ -253,8 +279,7 @@ export default function StageFilter({
                 w-full pl-10 pr-9 py-2.5
                 bg-emerald-950/15 border border-emerald-800/15 rounded-2xl
                 font-serif text-sm text-white/70 placeholder:text-white/25
-                focus:outline-none focus:border-emerald-700/30
-                transition-colors
+                focus:outline-none focus:border-emerald-700/30 transition-colors
               "
               data-testid="stage-filter-search"
             />
@@ -274,6 +299,4 @@ export default function StageFilter({
   );
 }
 
-// Re-export empty state so Garden.tsx can import it from the same module
-export { StageEmptyState };
 export type { StageOption };
