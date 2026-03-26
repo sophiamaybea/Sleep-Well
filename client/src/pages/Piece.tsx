@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Share2, BookOpen, Bookmark, BookmarkCheck } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
+import LoadingScreen from "@/components/garden/LoadingScreen";
 
 interface PieceData {
   id: string;
@@ -93,10 +94,10 @@ function toggleSavedPiece(pieceId: string): boolean {
   const idx = saved.indexOf(pieceId);
   if (idx === -1) {
     localStorage.setItem(LS_KEY, JSON.stringify([...saved, pieceId]));
-    return true; // now saved
+    return true;
   } else {
     localStorage.setItem(LS_KEY, JSON.stringify(saved.filter((id) => id !== pieceId)));
-    return false; // now unsaved
+    return false;
   }
 }
 
@@ -106,7 +107,6 @@ function BookmarkButton({ pieceId, size = "default" }: { pieceId: string; size?:
   const [isSaved, setIsSaved] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
-  // Read initial state from localStorage on mount
   useEffect(() => {
     setIsSaved(getSavedPieces().includes(pieceId));
   }, [pieceId]);
@@ -123,7 +123,6 @@ function BookmarkButton({ pieceId, size = "default" }: { pieceId: string; size?:
   const isLarge = size === "large";
 
   if (isLarge) {
-    // Inline CTA variant — shown below the article body
     return (
       <button
         onClick={handleToggle}
@@ -151,7 +150,6 @@ function BookmarkButton({ pieceId, size = "default" }: { pieceId: string; size?:
     );
   }
 
-  // Compact nav variant — shown in sticky top bar
   return (
     <button
       onClick={handleToggle}
@@ -212,7 +210,6 @@ export default function Piece() {
 
     const rawText = stripHtml(piece.content || "");
     const ogDescription = (piece.description || rawText).slice(0, 160).trim();
-    // Always use the canonical /piece/:id form — never rely on window.location.pathname
     const canonicalUrl = `${window.location.origin}/piece/${piece.id}`;
 
     const cleanups = [
@@ -220,7 +217,6 @@ export default function Piece() {
       upsertOgMeta("og:description", ogDescription),
       upsertOgMeta("og:url", canonicalUrl),
       upsertOgMeta("og:type", "article"),
-      // JSON-LD Article schema
       upsertJsonLd({
         "@context": "https://schema.org",
         "@type": "Article",
@@ -262,16 +258,8 @@ export default function Piece() {
     enabled: !!id,
   });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center relative z-10">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[#8B7355] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#8B7355] font-serif italic">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // T35: branded garden loading screen (light variant — paper palette)
+  if (isLoading) return <LoadingScreen variant="light" />;
 
   if (isError || !piece) {
     return (
@@ -297,7 +285,7 @@ export default function Piece() {
   const authorBio = piece.author?.bio || piece.authorBio;
   const readingTime = getReadingTime(piece.content || "");
 
-  // ── Canonical URL — always /piece/:id regardless of current browser path ──
+  // Canonical URL — always /piece/:id regardless of current browser path
   const canonicalUrl = `${window.location.origin}/piece/${piece.id}`;
 
   const handleShare = async () => {
@@ -321,7 +309,6 @@ export default function Piece() {
             </button>
           </Link>
 
-          {/* Right-side actions: Bookmark + Share */}
           <div className="flex items-center gap-5">
             <BookmarkButton pieceId={id!} />
             <button
@@ -338,7 +325,6 @@ export default function Piece() {
 
       {/* Main content */}
       <main className="max-w-3xl mx-auto px-6 py-12">
-        {/* Genre badge */}
         {piece.genre && (
           <div className="mb-6">
             <span className="inline-block text-xs font-medium text-[#8B7355] uppercase tracking-widest border border-[#d4c4a8] rounded-full px-3 py-1">
@@ -347,12 +333,10 @@ export default function Piece() {
           </div>
         )}
 
-        {/* Title */}
         <h1 className="text-3xl md:text-4xl font-serif text-[#4a3728] leading-tight mb-4">
           {piece.title}
         </h1>
 
-        {/* Author + reading time */}
         <div className="flex items-center gap-3 text-sm text-[#8B7355] mb-10 font-serif">
           <span>by {authorDisplayName}</span>
           <span className="text-[#d4c4a8]">·</span>
@@ -362,17 +346,14 @@ export default function Piece() {
           </span>
         </div>
 
-        {/* Body */}
         <article className="prose prose-stone max-w-none font-serif text-[#4a3728] leading-relaxed text-lg">
           <ContentRenderer content={piece.content} />
         </article>
 
-        {/* Post-read bookmark CTA */}
         <div className="mt-10 flex justify-center" data-testid="bookmark-cta-section">
           <BookmarkButton pieceId={id!} size="large" />
         </div>
 
-        {/* Tags */}
         {piece.tags && piece.tags.length > 0 && (
           <div className="mt-8 flex flex-wrap gap-2">
             {piece.tags.map((tag) => (
@@ -386,7 +367,6 @@ export default function Piece() {
           </div>
         )}
 
-        {/* Author bio */}
         {authorBio && (
           <div className="mt-12 pt-8 border-t border-[#e8e0d5]">
             <div className="flex items-start gap-4">
@@ -405,7 +385,6 @@ export default function Piece() {
           </div>
         )}
 
-        {/* Comments */}
         {comments.length > 0 && (
           <div className="mt-12 pt-8 border-t border-[#e8e0d5]">
             <h2 className="font-serif text-[#4a3728] text-xl mb-6">Responses</h2>
@@ -429,7 +408,6 @@ export default function Piece() {
           </div>
         )}
 
-        {/* Footer nav */}
         <div className="mt-16 pt-8 border-t border-[#e8e0d5] text-center">
           <Link href="/in-bloom">
             <button className="font-serif text-sm text-[#8B7355] hover:text-[#4a3728] transition-colors underline underline-offset-2">

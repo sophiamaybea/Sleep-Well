@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
+import LoadingScreen from "@/components/garden/LoadingScreen";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -142,8 +143,8 @@ export default function EICDashboard() {
     queryFn: async () => {
       const res = await fetch("/api/eic/dashboard-stats", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch stats");
-            const data = await res.json();
-            return {
+      const data = await res.json();
+      return {
         totalUsers: data.users?.total ?? 0,
         totalWritings: data.writings?.total ?? 0,
         publishedWritings: data.writings?.published ?? 0,
@@ -198,7 +199,6 @@ export default function EICDashboard() {
     enabled: roleData?.role === "editor_in_chief" && activeTab === "team",
   });
 
-  // NEW: Raw Seeds query
   const { data: rawSeeds = [], isLoading: rawSeedsLoading } = useQuery<EICWriting[]>({
     queryKey: ["/api/eic/raw-seeds"],
     queryFn: async () => {
@@ -209,7 +209,6 @@ export default function EICDashboard() {
     enabled: roleData?.role === "editor_in_chief" && activeTab === "raw-seeds",
   });
 
-  // NEW: Unsaved Drafts query
   const { data: unsavedDrafts = [], isLoading: unsavedLoading } = useQuery<EICWriting[]>({
     queryKey: ["/api/eic/unsaved-drafts"],
     queryFn: async () => {
@@ -220,7 +219,6 @@ export default function EICDashboard() {
     enabled: roleData?.role === "editor_in_chief" && activeTab === "unsaved",
   });
 
-  // NEW: User Activity query
   const { data: userActivity = [], isLoading: activityLoading } = useQuery<UserActivity[]>({
     queryKey: ["/api/eic/user-activity"],
     queryFn: async () => {
@@ -231,7 +229,16 @@ export default function EICDashboard() {
     enabled: roleData?.role === "editor_in_chief" && activeTab === "activity",
   });
 
-  // NEW: Service Enquiries query   const { data: serviceEnquiries = [], isLoading: enquiriesLoading } = useQuery<Array<{id: string; name: string; email: string; serviceType: string; message: string; createdAt: string}>>({   queryKey: ["/api/services/inquiries"],   queryFn: async () => {     const res = await fetch("/api/services/inquiries", { credentials: "include" });     if (!res.ok) throw new Error("Failed to fetch enquiries");     return res.json();   },   enabled: roleData?.role === "editor_in_chief" && activeTab === "enquiries", });   // NEW: Activity Feed query
+  const { data: serviceEnquiries = [], isLoading: enquiriesLoading } = useQuery<Array<{id: string; name: string; email: string; serviceType: string; message: string; createdAt: string}>>({
+    queryKey: ["/api/services/inquiries"],
+    queryFn: async () => {
+      const res = await fetch("/api/services/inquiries", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch enquiries");
+      return res.json();
+    },
+    enabled: roleData?.role === "editor_in_chief" && activeTab === "enquiries",
+  });
+
   const { data: activityFeed, isLoading: feedLoading } = useQuery<ActivityFeed>({
     queryKey: ["/api/eic/activity-feed"],
     queryFn: async () => {
@@ -242,7 +249,6 @@ export default function EICDashboard() {
     enabled: roleData?.role === "editor_in_chief" && activeTab === "feed",
   });
 
-  // NEW: Single Writing Preview query
   const { data: previewWriting } = useQuery<EICWriting>({
     queryKey: ["/api/eic/writing", selectedWriting],
     queryFn: async () => {
@@ -270,13 +276,8 @@ export default function EICDashboard() {
     },
   });
 
-  if (authLoading || roleLoading) {
-    return (
-      <div className="min-h-screen bg-[#0d1e2d] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#c4a24d]/40 border-t-[#c4a24d] rounded-full animate-spin" />
-      </div>
-    );
-  }
+  // T35: branded garden loading screen replaces raw animate-spin
+  if (authLoading || roleLoading) return <LoadingScreen />;
 
   if (!user) {
     return (
@@ -323,7 +324,8 @@ export default function EICDashboard() {
     { key: "activity", label: "User Activity" },
     { key: "feed", label: "Live Feed" },
     { key: "users", label: "All Users" },
-    { key: "team", label: "Editorial Team" },   { key: "enquiries", label: "Enquiries" },
+    { key: "team", label: "Editorial Team" },
+    { key: "enquiries", label: "Enquiries" },
   ];
 
   const timeAgo = (date: string) => {
@@ -353,7 +355,6 @@ export default function EICDashboard() {
             Complete oversight of The Page Gallery Journal — every seed, every draft, every heartbeat
           </p>
 
-          {/* Tab Navigation */}
           <div className="flex flex-wrap gap-1 mb-12 border-b border-[#f0eeea]/10 pb-px">
             {tabs.map((tab) => (
               <button
@@ -371,7 +372,6 @@ export default function EICDashboard() {
           </div>
         </motion.div>
 
-        {/* Writing Preview Modal */}
         {selectedWriting && previewWriting && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6" onClick={() => setSelectedWriting(null)}>
             <div className="bg-[#0d1e2d] border border-[#f0eeea]/10 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8" onClick={(e) => e.stopPropagation()}>
@@ -401,7 +401,6 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Overview Tab */}
         {activeTab === "overview" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             {statsLoading ? (
@@ -454,7 +453,6 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Writings Tab */}
         {activeTab === "writings" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-6">All Writings</h2>
@@ -462,7 +460,6 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Raw Seeds Tab */}
         {activeTab === "raw-seeds" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Raw Seeds</h2>
@@ -471,7 +468,6 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Unsaved/Private Drafts Tab */}
         {activeTab === "unsaved" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Private Drafts</h2>
@@ -480,7 +476,6 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* User Activity Tab */}
         {activeTab === "activity" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">User Activity & Engagement</h2>
@@ -528,7 +523,6 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Live Feed Tab */}
         {activeTab === "feed" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Live Activity Feed</h2>
@@ -585,7 +579,6 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Users Tab */}
         {activeTab === "users" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-6">All Users</h2>
@@ -612,7 +605,37 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-        {/* Enquiries Tab */}       {activeTab === "enquiries" && (         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>           <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Service Enquiries</h2>           <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-6">All service enquiry submissions from the public contact form</p>           {enquiriesLoading ? (             <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-[#f0eeea]/5 rounded animate-pulse" />)}</div>           ) : serviceEnquiries.length === 0 ? (             <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm italic">No enquiries yet.</p>           ) : (             <div className="space-y-3">               {serviceEnquiries.map((enq) => (                 <div key={enq.id} className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">                   <div className="flex items-start justify-between gap-4">                     <div className="flex-1">                       <div className="flex items-center gap-3 mb-1">                         <span className="text-[#f0eeea]/90 font-['Cormorant_Garamond',serif] text-lg">{enq.name}</span>                         <span className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">{enq.email}</span>                         <span className="px-2 py-0.5 bg-[#c4a24d]/10 text-[#c4a24d] text-[10px] font-['Space_Mono',monospace] rounded">{enq.serviceType}</span>                       </div>                       <p className="text-[#f0eeea]/60 font-['Lora',serif] text-sm leading-relaxed">{enq.message}</p>                     </div>                     <span className="text-[#f0eeea]/20 font-['Space_Mono',monospace] text-[10px] whitespace-nowrap">{new Date(enq.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>                   </div>                 </div>               ))}               <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs mt-4">{serviceEnquiries.length} total enquiries</p>             </div>           )}         </motion.div>       )}       {/* Team Tab */}
+        {activeTab === "enquiries" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+            <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Service Enquiries</h2>
+            <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-6">All service enquiry submissions from the public contact form</p>
+            {enquiriesLoading ? (
+              <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-[#f0eeea]/5 rounded animate-pulse" />)}</div>
+            ) : serviceEnquiries.length === 0 ? (
+              <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm italic">No enquiries yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {serviceEnquiries.map((enq) => (
+                  <div key={enq.id} className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-[#f0eeea]/90 font-['Cormorant_Garamond',serif] text-lg">{enq.name}</span>
+                          <span className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">{enq.email}</span>
+                          <span className="px-2 py-0.5 bg-[#c4a24d]/10 text-[#c4a24d] text-[10px] font-['Space_Mono',monospace] rounded">{enq.serviceType}</span>
+                        </div>
+                        <p className="text-[#f0eeea]/60 font-['Lora',serif] text-sm leading-relaxed">{enq.message}</p>
+                      </div>
+                      <span className="text-[#f0eeea]/20 font-['Space_Mono',monospace] text-[10px] whitespace-nowrap">{new Date(enq.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs mt-4">{serviceEnquiries.length} total enquiries</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {activeTab === "team" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
             <section className="mb-16">
