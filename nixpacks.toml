@@ -1,12 +1,22 @@
+# DEPLOYMENT: This repo deploys to Render.com (NOT Replit, NOT Railway)
+# Render service: dashboard.render.com/web/srv-d6u05c450q8c73fo69q0
+# Build: npm run build | Start: npm start
+# Any changes pushed to main branch auto-deploy to Render.
+# nixpacks.toml is kept for build config only (node version + env vars).
+
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x"]
+
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
-CACHE_BUST = "v3-fixes-2026-03-25"
 
 [phases.install]
 cmds = ['npm install --include=dev']
 
 [phases.build]
-cmds = ['rm -rf dist node_modules/.vite && npm run build']
+cmds = ['npm run build']
 
 [start]
 cmd = 'npm start'
