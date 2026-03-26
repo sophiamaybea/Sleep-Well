@@ -1921,3 +1921,42 @@ body:not(.light-theme) .text-amber-300,
 body:not(.light-theme) .text-amber-400 {
   opacity: 1 !important;
 }
+
+/* ============================================================
+   A11Y LIGHT MODE — scoped overrides that beat starfield transparency
+   Applied when AccessibilityToolbar adds .a11y-light-mode to <html>
+   ============================================================ */
+html.a11y-light-mode,
+html.a11y-light-mode body,
+html.a11y-light-mode #root {
+  background-color: #f5f3ef !important;
+  background-image: none !important;
+  color: #1a1a1a !important;
+}
+
+html.a11y-light-mode .garden-bg,
+html.a11y-light-mode .night-garden-atmosphere,
+html.a11y-light-mode .starfield-bg {
+  background-color: #f5f3ef !important;
+  background-image: none !important;
+}
+
+/* Ensure min-h-screen sections don't stay forced-transparent */
+html.a11y-light-mode [class*="min-h-screen"] {
+  background-color: #f5f3ef !important;
+}
+
+/* Ensure bg-transparent and bg-[#...] classes don't override */
+html.a11y-light-mode [class*="bg-["] {
+  background-color: #f5f3ef !important;
+}
+
+/* Readable text in light mode */
+html.a11y-light-mode p,
+html.a11y-light-mode h1,
+html.a11y-light-mode h2,
+html.a11y-light-mode h3,
+html.a11y-light-mode span,
+html.a11y-light-mode div {
+  color: #1a1a1a !important;
+}
