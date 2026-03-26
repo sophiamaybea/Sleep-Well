@@ -5,7 +5,7 @@ import { db } from "./db";
 import { writings, users } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
-const BASE_URL = process.env.BASE_URL || "https://thepagegalleryjournal.com";
+const BASE_URL = process.env.BASE_URL || "https://www.thepagegalleryjournal.com";
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
 
 function injectMetaTags(
