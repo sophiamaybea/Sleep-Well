@@ -43,50 +43,50 @@ export function useStarsVisible() {
 }
 
 /* ─────────────────────────────────────────────
-   Custom shader material – round, glowing,
+   Custom shader material – round, glowing, 
    per-star twinkle (no square sprites!)
    ───────────────────────────────────────────── */
 const StarMaterial = shaderMaterial(
-  { uTime: 0, uOpacity: 0.85 },
+  { uTime: 0, uOpacity: 0.7 },
   /* vertex */
   `
-  attribute float aSize;
-  attribute float aPhase;
-  uniform float uTime;
-  varying float vAlpha;
-  varying float vPhase;
+    attribute float aSize;
+    attribute float aPhase;
+    uniform float uTime;
+    varying float vAlpha;
+    varying float vPhase;
 
-  void main() {
-    vPhase = aPhase;
-    // Gentle per-star twinkle: ±25% brightness oscillation
-    vAlpha = 0.55 + 0.25 * sin(uTime * 1.4 + aPhase * 6.2831);
-
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    // Size stays small – sizeAttenuation for perspective feel
-    gl_PointSize = aSize * (300.0 / -mvPosition.z);
-    gl_Position = projectionMatrix * mvPosition;
-  }
+    void main() {
+      vPhase = aPhase;
+      // Gentle per-star twinkle: ±25% brightness oscillation
+      vAlpha = 0.55 + 0.25 * sin(uTime * 1.4 + aPhase * 6.2831);
+      
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      // Size stays small – sizeAttenuation for perspective feel
+      gl_PointSize = aSize * (300.0 / -mvPosition.z);
+      gl_Position = projectionMatrix * mvPosition;
+    }
   `,
   /* fragment */
   `
-  uniform float uOpacity;
-  varying float vAlpha;
+    uniform float uOpacity;
+    varying float vAlpha;
 
-  void main() {
-    // Circular disc with soft radial falloff – no more squares
-    vec2 uv = gl_PointCoord - 0.5;
-    float r = length(uv);
-    if (r > 0.5) discard;
+    void main() {
+      // Circular disc with soft radial falloff – no more squares
+      vec2 uv = gl_PointCoord - 0.5;
+      float r = length(uv);
+      if (r > 0.5) discard;
 
-    // Smooth soft glow edge
-    float intensity = 1.0 - smoothstep(0.0, 0.5, r);
-    intensity = pow(intensity, 1.6); // sharpen centre without hard edge
+      // Smooth soft glow edge
+      float intensity = 1.0 - smoothstep(0.0, 0.5, r);
+      intensity = pow(intensity, 1.6); // sharpen centre without hard edge
 
-    gl_FragColor = vec4(
-      mix(vec3(0.78, 0.75, 0.88), vec3(1.0, 0.97, 0.92), intensity),
-      intensity * vAlpha * uOpacity
-    );
-  }
+      gl_FragColor = vec4(
+        mix(vec3(0.78, 0.75, 0.88), vec3(1.0, 0.97, 0.92), intensity),
+        intensity * vAlpha * uOpacity
+      );
+    }
   `,
 );
 
@@ -116,12 +116,13 @@ function StarField() {
     const positions = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
     const phases = new Float32Array(count);
+
     for (let i = 0; i < count; i++) {
-      positions[i * 3]     = (Math.random() - 0.5) * 90;
+      positions[i * 3] = (Math.random() - 0.5) * 90;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 70;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 70;
-      // Vary star sizes – small range so nothing grows "huge"
-      sizes[i]  = Math.random() * 2.8 + 1.2;
+      // Vary star sizes – slightly smaller for delicacy
+      sizes[i] = Math.random() * 2.0 + 0.8;
       phases[i] = Math.random();
     }
     return { positions, sizes, phases };
@@ -136,15 +137,15 @@ function StarField() {
     <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-aSize"    args={[sizes, 1]} />
-        <bufferAttribute attach="attributes-aPhase"   args={[phases, 1]} />
+        <bufferAttribute attach="attributes-aSize" args={[sizes, 1]} />
+        <bufferAttribute attach="attributes-aPhase" args={[phases, 1]} />
       </bufferGeometry>
       {/* @ts-ignore – extended material */}
       <starMaterial
         ref={matRef}
         attach="material"
         uTime={0}
-        uOpacity={0.85}
+        uOpacity={0.7}
         transparent
         depthWrite={false}
       />
@@ -153,14 +154,7 @@ function StarField() {
 }
 
 /* ─────────────────────────────────────────────
-   Weather layer – scroll-driven, CSS-only
-   Cycles:  night/stars (0-0.15)
-            → rain      (0.15-0.35)
-            → clear     (0.35-0.45)
-            → sunbeams  (0.45-0.65)
-            → mist/fog  (0.65-0.85)
-            → rain      (0.85-1.0)
-   Each zone blends in/out with a short crossfade.
+   Weather layer – scroll-driven + random mood
    ───────────────────────────────────────────── */
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * Math.max(0, Math.min(1, t));
@@ -168,27 +162,26 @@ function lerp(a: number, b: number, t: number) {
 
 function weatherOpacity(progress: number, start: number, peak: number, end: number) {
   if (progress < start) return 0;
-  if (progress < peak)  return lerp(0, 1, (progress - start) / (peak - start));
-  if (progress < end)   return lerp(1, 0, (progress - peak)  / (end  - peak));
+  if (progress < peak) return lerp(0, 1, (progress - start) / (peak - start));
+  if (progress < end) return lerp(1, 0, (progress - peak) / (end - peak));
   return 0;
 }
 
 interface WeatherLayerProps { progress: number }
 
 function WeatherLayer({ progress }: WeatherLayerProps) {
-  // Rain: 0.15 → fade in 0.15-0.22, fade out 0.28-0.35  AND 0.85-1.0
-  const rainOp   = Math.max(
+  // Rain: zones with softer alphas
+  const rainOp = Math.max(
     weatherOpacity(progress, 0.15, 0.22, 0.35),
     weatherOpacity(progress, 0.85, 0.90, 1.0),
   );
-  // Sunbeams: 0.45 → fade in 0.45-0.52, fade out 0.58-0.65
-  const sunOp    = weatherOpacity(progress, 0.45, 0.52, 0.65);
-  // Mist: 0.65 → fade in 0.65-0.72, fade out 0.78-0.85
-  const mistOp   = weatherOpacity(progress, 0.65, 0.72, 0.85);
+
+  const sunOp = weatherOpacity(progress, 0.45, 0.52, 0.65);
+  const mistOp = weatherOpacity(progress, 0.65, 0.72, 0.85);
 
   return (
-    <div
-      className="fixed inset-0 pointer-events-none overflow-hidden"
+    <div 
+      className="fixed inset-0 pointer-events-none overflow-hidden" 
       style={{ zIndex: 2 }}
       aria-hidden="true"
     >
@@ -201,7 +194,6 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
           pointerEvents: 'none',
         }}
       >
-        {/* 3 rain layers at different speeds / angles for depth */}
         {[0, 1, 2].map((i) => (
           <div
             key={i}
@@ -211,8 +203,8 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
                 ${175 + i * 3}deg,
                 transparent 0px,
                 transparent ${18 + i * 4}px,
-                rgba(174,209,230,${0.18 - i * 0.04}) ${18 + i * 4}px,
-                rgba(174,209,230,${0.18 - i * 0.04}) ${18 + i * 4 + 1}px
+                rgba(174,209,230,${0.14 - i * 0.04}) ${18 + i * 4}px,
+                rgba(174,209,230,${0.14 - i * 0.04}) ${18 + i * 4 + 1}px
               )`,
               backgroundSize: `${6 + i * 3}px 100%`,
               animation: `pgj-rain-${i} ${0.55 + i * 0.15}s linear infinite`,
@@ -245,13 +237,14 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
           mixBlendMode: 'screen',
         }}
       />
+      
       {/* warm glow at top for sun */}
       <div
         style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: '45vh',
           opacity: sunOp * 0.7,
           transition: 'opacity 1.2s ease',
-          background: 'radial-gradient(ellipse at 50% -10%, rgba(255,210,80,0.22) 0%, transparent 65%)',
+          background: 'radial-gradient(ellipse at 50% -10%, rgba(255,210,80,0.16) 0%, transparent 65%)',
           pointerEvents: 'none',
         }}
       />
@@ -263,9 +256,9 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
           opacity: mistOp,
           transition: 'opacity 1.4s ease',
           background: `
-            radial-gradient(ellipse at 20% 80%, rgba(200,220,240,0.15) 0%, transparent 55%),
-            radial-gradient(ellipse at 80% 60%, rgba(210,225,245,0.12) 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 100%, rgba(220,230,250,0.18) 0%, transparent 60%)
+            radial-gradient(ellipse at 20% 80%, rgba(200,220,240,0.12) 0%, transparent 55%),
+            radial-gradient(ellipse at 80% 60%, rgba(210,225,245,0.09) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 100%, rgba(220,230,250,0.14) 0%, transparent 60%)
           `,
           backdropFilter: `blur(${mistOp * 2}px)`,
         }}
@@ -280,35 +273,51 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
 export default function StarBackground() {
   const { starsVisible } = useStarsVisible();
   const containerRef = useRef<HTMLDivElement>(null);
+  const moodRef = useRef(Math.random());
   const [weatherProgress, setWeatherProgress] = useState(0);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     let rafId: number;
+    let moodRafId: number;
+
     const handleScroll = () => {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        const scrollY   = window.scrollY;
+        const scrollY = window.scrollY;
         const maxScroll = document.body.scrollHeight - window.innerHeight;
-        const progress  = maxScroll > 0 ? Math.min(scrollY / maxScroll, 1) : 0;
-        scrollProgress.value = progress;
+        const scrollProg = maxScroll > 0 ? Math.min(scrollY / maxScroll, 1) : 0;
+        scrollProgress.value = scrollProg;
 
-        // Stars fade gently as you descend – no more jarring scale
         if (containerRef.current && !prefersReducedMotion) {
-          const opacity = Math.max(0.15, 1 - progress * 0.80);
+          const opacity = Math.max(0.15, 1 - scrollProg * 0.80);
           containerRef.current.style.opacity = String(opacity);
         }
 
-        setWeatherProgress(progress);
+        // Combine scroll (page context) with random mood (ecosystem)
+        const combined = 0.75 * scrollProg + 0.25 * moodRef.current;
+        setWeatherProgress(combined);
       });
+    };
+
+    const animateMood = () => {
+      moodRafId = requestAnimationFrame(animateMood);
+      const t = performance.now() / 1000;
+      const slowNoise = 0.5 + 0.5 * Math.sin(t * 0.03 + moodRef.current * 10);
+      moodRef.current += (slowNoise - moodRef.current) * 0.002;
+      
+      // Update weather slightly even if no scroll
+      if (!rafId) handleScroll(); 
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
+    if (!prefersReducedMotion) animateMood();
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       if (rafId) cancelAnimationFrame(rafId);
+      if (moodRafId) cancelAnimationFrame(moodRafId);
     };
   }, []);
 
@@ -316,18 +325,18 @@ export default function StarBackground() {
 
   return (
     <>
-      {/* Dark sky base — always present, full viewport, behind everything */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{ zIndex: -1, background: '#0b0c14' }}
-        aria-hidden="true"
+      {/* Dark sky base — pure black night for delicate stars */}
+      <div 
+        className="fixed inset-0 pointer-events-none" 
+        style={{ zIndex: -1, background: '#020309' }} 
+        aria-hidden="true" 
       />
 
       {/* Three.js star canvas */}
-      <div
+      <div 
         ref={containerRef}
         className="fixed inset-0 pointer-events-none"
-        style={{
+        style={{ 
           zIndex: 0,
           willChange: 'opacity',
           transition: 'opacity 0.15s ease-out',
@@ -336,30 +345,20 @@ export default function StarBackground() {
         <Canvas
           camera={{ position: [0, 0, 22], fov: 62 }}
           style={{ background: 'transparent' }}
-          gl={{ alpha: true, antialias: true }}
+          gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
           dpr={[1, 1.5]}
         >
           <StarField />
         </Canvas>
       </div>
 
-      {/* Scroll-driven weather overlays */}
+      {/* Scroll + Mood weather overlays */}
       <WeatherLayer progress={weatherProgress} />
 
-      {/* CSS keyframes injected once */}
       <style>{`
-        @keyframes pgj-rain-0 {
-          from { background-position: 0 0; }
-          to   { background-position: 0 100vh; }
-        }
-        @keyframes pgj-rain-1 {
-          from { background-position: 0 0; }
-          to   { background-position: 0 100vh; }
-        }
-        @keyframes pgj-rain-2 {
-          from { background-position: 0 0; }
-          to   { background-position: 0 100vh; }
-        }
+        @keyframes pgj-rain-0 { from { background-position: 0 0; } to { background-position: 0 100vh; } }
+        @keyframes pgj-rain-1 { from { background-position: 0 0; } to { background-position: 0 100vh; } }
+        @keyframes pgj-rain-2 { from { background-position: 0 0; } to { background-position: 0 100vh; } }
         @media (prefers-reduced-motion: reduce) {
           [style*="pgj-rain"] { animation: none !important; }
         }
