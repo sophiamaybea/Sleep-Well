@@ -258,8 +258,10 @@ export default function Piece() {
     enabled: !!id,
   });
 
-  // T35: branded garden loading screen (light variant — paper palette)
-  if (isLoading) return <LoadingScreen variant="light" />;
+  // T35: replace raw border-t-transparent spinner with branded LoadingScreen (light variant)
+  if (isLoading) {
+    return <LoadingScreen variant="light" />;
+  }
 
   if (isError || !piece) {
     return (
@@ -285,7 +287,6 @@ export default function Piece() {
   const authorBio = piece.author?.bio || piece.authorBio;
   const readingTime = getReadingTime(piece.content || "");
 
-  // Canonical URL — always /piece/:id regardless of current browser path
   const canonicalUrl = `${window.location.origin}/piece/${piece.id}`;
 
   const handleShare = async () => {

@@ -65,8 +65,10 @@ export default function EditorOnboarding() {
     );
   }
 
-  // T35: branded garden loading screen replaces raw animate-spin
-  if (validating || authLoading) return <LoadingScreen />;
+  // T35: replace raw border-t-[#c4a24d] animate-spin div with branded LoadingScreen (dark variant)
+  if (validating || authLoading) {
+    return <LoadingScreen />;
+  }
 
   if (validation && !validation.valid) {
     return (
@@ -125,22 +127,46 @@ export default function EditorOnboarding() {
           <div className="w-16 h-[1px] bg-[#c4a24d]/20 mx-auto mb-14" />
 
           <div className="space-y-12 mb-16">
-            <OnboardingSection number="01" title="The Editorial Studio" description="Your private workspace for literary curation. The Studio gives you a panoramic view of the journal's living ecosystem — the Garden Stream of new writing, the Greenhouse where pieces are nurtured toward publication, and the Issue Builder where you shape each edition." detail="Think of it as the editor's desk at the heart of a botanical library." delay={0.2} />
-            <OnboardingSection number="02" title="Walking Through Gardens" description="Writers cultivate their work in private Gardens, tending pieces through four organic stages: raw seed, growing, ready to show, and dormant. When they open their Garden gate or raise a quiet flag — 'Ready for eyes' — their work appears in your Stream." detail="You'll also get your own Garden. Editors are writers too." delay={0.3} />
-            <OnboardingSection number="03" title="The Growth Cycle" description="A piece moves from seed to sprout to bloom — and sometimes back again. This isn't a pipeline; it's a living process. You might find a poem that's been quietly growing for months, or a flash piece that bloomed overnight." delay={0.4} />
-            <OnboardingSection number="04" title="Replant Requests" description="We don't reject work here. Instead, you send a Replant Request — a thoughtful invitation for the writer to revisit, reshape, or let a piece rest. It's how we honor the creative process while guiding the journal's voice." delay={0.5} />
-            <OnboardingSection number="05" title="The Gallery" description="When a piece is ready, you move it from the Greenhouse to the Gallery — our public exhibition space. Each published work is displayed in a museum-style frame, given the ceremony it deserves. This is the culmination of the editorial journey." delay={0.6} />
+            <OnboardingSection
+              number="01"
+              title="The Editorial Studio"
+              description="Your private workspace for literary curation. The Studio gives you a panoramic view of the journal's living ecosystem — the Garden Stream of new writing, the Greenhouse where pieces are nurtured toward publication, and the Issue Builder where you shape each edition."
+              detail="Think of it as the editor's desk at the heart of a botanical library."
+              delay={0.2}
+            />
+            <OnboardingSection
+              number="02"
+              title="Walking Through Gardens"
+              description="Writers cultivate their work in private Gardens, tending pieces through four organic stages: raw seed, growing, ready to show, and dormant. When they open their Garden gate or raise a quiet flag — 'Ready for eyes' — their work appears in your Stream."
+              detail="You'll also get your own Garden. Editors are writers too."
+              delay={0.3}
+            />
+            <OnboardingSection
+              number="03"
+              title="The Growth Cycle"
+              description="A piece moves from seed to sprout to bloom — and sometimes back again. This isn't a pipeline; it's a living process. You might find a poem that's been quietly growing for months, or a flash piece that bloomed overnight."
+              delay={0.4}
+            />
+            <OnboardingSection
+              number="04"
+              title="Replant Requests"
+              description="We don't reject work here. Instead, you send a Replant Request — a thoughtful invitation for the writer to revisit, reshape, or let a piece rest. It's how we honor the creative process while guiding the journal's voice."
+              delay={0.5}
+            />
+            <OnboardingSection
+              number="05"
+              title="The Gallery"
+              description="When a piece is ready, you move it from the Greenhouse to the Gallery — our public exhibition space. Each published work is displayed in a museum-style frame, given the ceremony it deserves. This is the culmination of the editorial journey."
+              delay={0.6}
+            />
           </div>
 
           <div className="w-16 h-[1px] bg-[#c4a24d]/20 mx-auto mb-14" />
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease, delay: 0.7 }} className="text-center">
             {user ? (
-              <div className="space-y-4">
-                <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm">Accepting your invitation...</p>
-                {/* Small inline spinner — intentionally kept, not a page loader */}
-                <div className="w-6 h-6 mx-auto border-2 border-[#c4a24d]/40 border-t-[#c4a24d] rounded-full animate-spin" />
-              </div>
+              // T35: replace inline animate-spin div with branded LoadingScreen (dark)
+              <LoadingScreen />
             ) : (
               <div className="space-y-4">
                 <button
