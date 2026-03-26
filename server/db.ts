@@ -731,13 +731,15 @@ export async function runMigrations() {
       }
     }
 
-    // Rejection feedback requests table (T47)
+    // T46: Rejection feedback requests table — flag_id included inline so fresh
+    // installs get the NOT NULL FK constraint without needing the ALTER below.
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS rejection_feedback_requests (
           id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
           writing_id varchar NOT NULL REFERENCES writings(id),
           author_id varchar NOT NULL REFERENCES users(id),
+          flag_id varchar NOT NULL REFERENCES editorial_flags(id),
           tier text NOT NULL DEFAULT 'free',
           status text NOT NULL DEFAULT 'requested',
           paid_amount_pence integer NOT NULL DEFAULT 0,
@@ -756,7 +758,8 @@ export async function runMigrations() {
       }
     }
 
-    // Backfill flag_id column — schema.ts requires this FK to editorial_flags(id)
+    // Safety-net ALTER for existing DBs that have the table without flag_id.
+    // nullable here intentionally — existing rows cannot supply a NOT NULL value retroactively.
     try {
       await pool.query(`
         ALTER TABLE rejection_feedback_requests
