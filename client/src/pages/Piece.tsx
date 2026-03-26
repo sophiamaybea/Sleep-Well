@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Share2, BookOpen } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Share2, BookOpen, Bookmark, BookmarkCheck } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 
 interface PieceData {
@@ -36,37 +36,132 @@ function getReadingTime(content: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-// T32: Upsert a <meta> tag in document.head by property attribute.
-// Returns a cleanup function that restores the previous value (or removes
-// the tag if it didn't exist before).
 function upsertOgMeta(property: string, content: string): () => void {
   let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
   const existed = !!tag;
   const previous = tag?.getAttribute("content") ?? null;
-
   if (!tag) {
     tag = document.createElement("meta");
     tag.setAttribute("property", property);
     document.head.appendChild(tag);
   }
   tag.setAttribute("content", content);
-
   return () => {
     const el = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
     if (!el) return;
-    if (!existed) {
-      el.remove();
-    } else if (previous !== null) {
-      el.setAttribute("content", previous);
-    }
+    if (!existed) el.remove();
+    else if (previous !== null) el.setAttribute("content", previous);
   };
 }
 
+// ─── localStorage bookmark helpers ────────────────────────────────────────────
+
+const LS_KEY = "tpg_saved_pieces";
+
+function getSavedPieces(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function toggleSavedPiece(pieceId: string): boolean {
+  const saved = getSavedPieces();
+  const idx = saved.indexOf(pieceId);
+  if (idx === -1) {
+    localStorage.setItem(LS_KEY, JSON.stringify([...saved, pieceId]));
+    return true; // now saved
+  } else {
+    localStorage.setItem(LS_KEY, JSON.stringify(saved.filter((id) => id !== pieceId)));
+    return false; // now unsaved
+  }
+}
+
+// ─── BookmarkButton component ─────────────────────────────────────────────────
+
+function BookmarkButton({ pieceId, size = "default" }: { pieceId: string; size?: "default" | "large" }) {
+  const [isSaved, setIsSaved] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Read initial state from localStorage on mount
+  useEffect(() => {
+    setIsSaved(getSavedPieces().includes(pieceId));
+  }, [pieceId]);
+
+  const handleToggle = useCallback(() => {
+    const nowSaved = toggleSavedPiece(pieceId);
+    setIsSaved(nowSaved);
+    if (nowSaved) {
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1800);
+    }
+  }, [pieceId]);
+
+  const isLarge = size === "large";
+
+  if (isLarge) {
+    // Inline CTA variant — shown below the article body
+    return (
+      <button
+        onClick={handleToggle}
+        data-testid="bookmark-button-large"
+        aria-label={isSaved ? "Remove from saved pieces" : "Save this piece"}
+        className={`
+          inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full
+          border font-serif text-sm transition-all duration-300
+          ${
+            isSaved
+              ? "border-[#b09070] bg-[#f0e8dc] text-[#4a3728]"
+              : "border-[#d4c4a8] bg-transparent text-[#8B7355] hover:border-[#b09070] hover:text-[#4a3728]"
+          }
+        `}
+      >
+        {isSaved ? (
+          <BookmarkCheck className="w-4 h-4 flex-shrink-0" />
+        ) : (
+          <Bookmark className="w-4 h-4 flex-shrink-0" />
+        )}
+        <span>
+          {justSaved ? "Saved" : isSaved ? "Saved to your list" : "Save this piece"}
+        </span>
+      </button>
+    );
+  }
+
+  // Compact nav variant — shown in sticky top bar
+  return (
+    <button
+      onClick={handleToggle}
+      data-testid="bookmark-button"
+      aria-label={isSaved ? "Remove from saved pieces" : "Save this piece"}
+      className={`
+        inline-flex items-center gap-1.5 font-serif text-sm transition-colors
+        ${
+          isSaved
+            ? "text-[#4a3728]"
+            : "text-[#8B7355] hover:text-[#4a3728]"
+        }
+      `}
+    >
+      {isSaved ? (
+        <BookmarkCheck className="w-4 h-4 flex-shrink-0" />
+      ) : (
+        <Bookmark className="w-4 h-4 flex-shrink-0" />
+      )}
+      <span className="hidden sm:inline">
+        {justSaved ? "Saved" : isSaved ? "Saved" : "Save"}
+      </span>
+    </button>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function Piece() {
   const { id } = useParams<{ id: string }>();
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient_UNUSED_REMOVED();
 
-  // Update URL and document title when piece loads
   useEffect(() => {
     if (id) {
       const url = `/piece/${id}`;
@@ -87,27 +182,20 @@ export default function Piece() {
     retry: false,
   });
 
-  // T32: Set document.title + Open Graph meta tags whenever piece data loads.
-  // All tags are cleaned up / restored on unmount.
   useEffect(() => {
     if (!piece?.title) return;
-
     const pageTitle = `${piece.title} | The Page Gallery`;
     const previousTitle = document.title;
     document.title = pageTitle;
-
     const rawText = stripHtml(piece.content || "");
     const ogDescription = (piece.description || rawText).slice(0, 160).trim();
     const ogUrl = `${window.location.origin}/piece/${piece.id}`;
-    const ogTitle = piece.title;
-
     const cleanups = [
-      upsertOgMeta("og:title", ogTitle),
+      upsertOgMeta("og:title", piece.title),
       upsertOgMeta("og:description", ogDescription),
       upsertOgMeta("og:url", ogUrl),
       upsertOgMeta("og:type", "article"),
     ];
-
     return () => {
       document.title = previousTitle;
       cleanups.forEach((fn) => fn());
@@ -162,9 +250,7 @@ export default function Piece() {
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      try {
-        await navigator.share({ title: piece.title, url });
-      } catch {}
+      try { await navigator.share({ title: piece.title, url }); } catch {}
     } else {
       await navigator.clipboard.writeText(url);
       alert("Link copied to clipboard!");
@@ -173,7 +259,7 @@ export default function Piece() {
 
   return (
     <div className="min-h-screen bg-[#faf8f5] relative z-10">
-      {/* Top nav */}
+      {/* Sticky top nav */}
       <div className="border-b border-[#e8e0d5] bg-[#faf8f5]/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/in-bloom">
@@ -182,17 +268,23 @@ export default function Piece() {
               In Bloom
             </button>
           </Link>
-          <button
-            onClick={handleShare}
-            className="inline-flex items-center gap-2 text-[#8B7355] hover:text-[#4a3728] transition-colors font-serif text-sm"
-          >
-            <Share2 className="w-4 h-4" />
-            Share
-          </button>
+
+          {/* Right-side actions: Bookmark + Share */}
+          <div className="flex items-center gap-5">
+            <BookmarkButton pieceId={id!} />
+            <button
+              onClick={handleShare}
+              className="inline-flex items-center gap-1.5 text-[#8B7355] hover:text-[#4a3728] transition-colors font-serif text-sm"
+              data-testid="button-share"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Content */}
+      {/* Main content */}
       <main className="max-w-3xl mx-auto px-6 py-12">
         {/* Genre badge */}
         {piece.genre && (
@@ -223,9 +315,14 @@ export default function Piece() {
           <ContentRenderer content={piece.content} />
         </article>
 
+        {/* Post-read bookmark CTA */}
+        <div className="mt-10 flex justify-center" data-testid="bookmark-cta-section">
+          <BookmarkButton pieceId={id!} size="large" />
+        </div>
+
         {/* Tags */}
         {piece.tags && piece.tags.length > 0 && (
-          <div className="mt-10 flex flex-wrap gap-2">
+          <div className="mt-8 flex flex-wrap gap-2">
             {piece.tags.map((tag) => (
               <span
                 key={tag}
@@ -262,7 +359,7 @@ export default function Piece() {
             <h2 className="font-serif text-[#4a3728] text-xl mb-6">Responses</h2>
             <div className="space-y-6">
               {comments.map((comment) => (
-                <div key={comment.id} className="">
+                <div key={comment.id}>
                   <p className="text-sm font-medium text-[#4a3728] mb-1 font-serif">
                     {comment.authorName || "Anonymous"}
                   </p>
@@ -270,7 +367,7 @@ export default function Piece() {
                   {comment.createdAt && (
                     <p className="text-xs text-[#b0a090] mt-1">
                       {new Date(comment.createdAt).toLocaleDateString("en-GB", {
-                        day: "numeric", month: "long", year: "numeric"
+                        day: "numeric", month: "long", year: "numeric",
                       })}
                     </p>
                   )}
@@ -292,3 +389,6 @@ export default function Piece() {
     </div>
   );
 }
+
+// Stub to prevent unused import error — queryClient is not needed in this page
+function useQueryClient_UNUSED_REMOVED() { return null; }
