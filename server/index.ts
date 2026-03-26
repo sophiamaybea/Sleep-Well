@@ -136,7 +136,9 @@ app.get("/api/debug/db", async (req: any, res) => {
   }
 });
 (async () => {
-  // Simple health endpoint for uptime checks and keep-warm pings   app.get("/health", (_req, res) => { res.json({ status: "ok", ts: Date.now() }); });   await registerRoutes(httpServer, app);
+  // Simple health endpoint for uptime checks and keep-warm pings
+  app.get("/health", (_req, res) => { res.json({ status: "ok", ts: Date.now() }); });
+  await registerRoutes(httpServer, app);
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -194,37 +196,38 @@ app.get("/api/debug/db", async (req: any, res) => {
       log(`serving on port ${port}`);
     },
   );
-  // Keep-warm: prevent Render free-tier cold starts by pinging the public URL
-  // IMPORTANT: Set APP_URL env var in Render to your service's public URL,
-  // e.g. https://your-app-name.onrender.com — without it, pings go to localhost
-  // and Render will still spin down the service after 15 minutes of inactivity.
+  // Keep-warm: prevent Render free-tier cold starts by pinging the public URL every 13 minutes.
+  // IMPORTANT: APP_URL *must* be set in Render environment variables for this to work.
+  // Without it, no interval is scheduled and Render will sleep the service after 15 min inactivity.
   if (process.env.NODE_ENV === "production") {
     const appUrl = process.env.APP_URL;
-    if (!appUrl) {
-      log(
-        "WARNING: APP_URL env var is not set. Keep-warm pings will target localhost " +
-        "and will NOT prevent Render from sleeping the service. " +
-        "Set APP_URL=https://your-service-name.onrender.com in Render's environment variables.",
-        "keep-warm"
-      );
-    } else {
-      log(`Keep-warm targeting: ${appUrl}/health`, "keep-warm");
-    }
-    const KEEP_WARM_URL = appUrl ? `${appUrl}/health` : `http://localhost:${port}/health`;
-    const KEEP_WARM_INTERVAL = 13 * 60 * 1000; // 13 minutes — safely under Render's 15-min sleep threshold
-    const doWarmPing = async () => {
-      try {
-        const res = await fetch(KEEP_WARM_URL);
-        log(`Keep-warm ping OK (${res.status}) → ${KEEP_WARM_URL}`, "keep-warm");
-      } catch (err) {
-        log(`Keep-warm ping FAILED → ${KEEP_WARM_URL} — ${err}`, "keep-warm");
-      }
-    };
-    // Fire immediately on boot so we can confirm the URL is reachable from the start
-    if (appUrl) {       setTimeout(doWarmPing, 10_000); // 10-second delay to let server fully start
-    setInterval(doWarmPing, KEEP_WARM_INTERVAL);
-    log(`Keep-warm interval started (13 min, targeting ${KEEP_WARM_URL})`, "keep-warm");
-                     }
-  }
-  })();
 
+    if (!appUrl) {
+      // T41: Emit a loud startup warning — do NOT fall back to localhost
+      console.warn(
+        "[keep-warm] WARNING: APP_URL env var not set — keep-warm ping will not work. " +
+        "Set APP_URL=https://your-render-url.onrender.com in Render environment variables. " +
+        "Without this, Render will sleep the service after 15 minutes of inactivity."
+      );
+      // No setInterval scheduled — a localhost ping would be meaningless on Render
+    } else {
+      // T41: Only schedule the keep-warm interval when APP_URL is actually set
+      const KEEP_WARM_URL = `${appUrl}/health`;
+      const KEEP_WARM_INTERVAL = 13 * 60 * 1000; // 13 minutes — under Render's 15-min sleep threshold
+
+      const doWarmPing = async () => {
+        try {
+          const res = await fetch(KEEP_WARM_URL);
+          log(`Keep-warm ping OK (${res.status}) → ${KEEP_WARM_URL}`, "keep-warm");
+        } catch (err) {
+          log(`Keep-warm ping FAILED → ${KEEP_WARM_URL} — ${err}`, "keep-warm");
+        }
+      };
+
+      // Fire once on boot (after 10s delay) to confirm URL is reachable
+      setTimeout(doWarmPing, 10_000);
+      setInterval(doWarmPing, KEEP_WARM_INTERVAL);
+      log(`Keep-warm interval started (13 min, targeting ${KEEP_WARM_URL})`, "keep-warm");
+    }
+  }
+})();
