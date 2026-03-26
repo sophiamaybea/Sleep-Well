@@ -36,6 +36,32 @@ function getReadingTime(content: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
+// T32: Upsert a <meta> tag in document.head by property attribute.
+// Returns a cleanup function that restores the previous value (or removes
+// the tag if it didn't exist before).
+function upsertOgMeta(property: string, content: string): () => void {
+  let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+  const existed = !!tag;
+  const previous = tag?.getAttribute("content") ?? null;
+
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute("property", property);
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute("content", content);
+
+  return () => {
+    const el = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+    if (!el) return;
+    if (!existed) {
+      el.remove();
+    } else if (previous !== null) {
+      el.setAttribute("content", previous);
+    }
+  };
+}
+
 export default function Piece() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
@@ -61,14 +87,32 @@ export default function Piece() {
     retry: false,
   });
 
+  // T32: Set document.title + Open Graph meta tags whenever piece data loads.
+  // All tags are cleaned up / restored on unmount.
   useEffect(() => {
-    if (piece?.title) {
-      document.title = `${piece.title} | The Page Gallery`;
-    }
+    if (!piece?.title) return;
+
+    const pageTitle = `${piece.title} | The Page Gallery`;
+    const previousTitle = document.title;
+    document.title = pageTitle;
+
+    const rawText = stripHtml(piece.content || "");
+    const ogDescription = (piece.description || rawText).slice(0, 160).trim();
+    const ogUrl = `${window.location.origin}/piece/${piece.id}`;
+    const ogTitle = piece.title;
+
+    const cleanups = [
+      upsertOgMeta("og:title", ogTitle),
+      upsertOgMeta("og:description", ogDescription),
+      upsertOgMeta("og:url", ogUrl),
+      upsertOgMeta("og:type", "article"),
+    ];
+
     return () => {
-      document.title = "The Page Gallery";
+      document.title = previousTitle;
+      cleanups.forEach((fn) => fn());
     };
-  }, [piece?.title]);
+  }, [piece?.title, piece?.content, piece?.id, piece?.description]);
 
   const { data: comments = [] } = useQuery<Comment[]>({
     queryKey: ["/api/gallery-comments", id],
