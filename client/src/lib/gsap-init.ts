@@ -4,18 +4,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/**
- * Wire GSAP ScrollTrigger to Lenis smooth scroll.
- * Call this once, after Lenis is initialised in your app root.
- */
-export function initGSAPWithLenis(lenis: {
-  on: (event: string, cb: (e: { scroll: number }) => void) => void;
-}) {
-  lenis.on("scroll", () => {
-    ScrollTrigger.update();
-  });
+// T36: detect prefers-reduced-motion at module level
+export const prefersReducedMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  gsap.ticker.lagSmoothing(0);
+// T36: global GSAP matchMedia — disables all scrub/tween animations
+// when the user prefers reduced motion
+if (typeof window !== "undefined") {
+  gsap.matchMedia().add("(prefers-reduced-motion: reduce)", () => {
+    gsap.globalTimeline.timeScale(0);
+    ScrollTrigger.getAll().forEach((st) => st.kill());
+  });
 }
 
 export { gsap, ScrollTrigger };
