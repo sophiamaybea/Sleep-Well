@@ -40,6 +40,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const Opportunities = lazy(() => import("@/pages/Opportunities"));
 const Submissions = lazy(() => import("@/pages/Submissions"));
 const ForJournals = lazy(() => import("@/pages/ForJournals"));
+const Saved = lazy(() => import("@/pages/Saved"));
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
@@ -54,7 +55,6 @@ const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 function ProtectedRoute({ component: Component, path }: { component: React.ComponentType<any>; path: string }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
-    // T35: branded garden loading screen — replaces the plain PageLoader spinner
     return <LoadingScreen />;
   }
   if (!user) {
@@ -78,13 +78,12 @@ const PAGE_TITLES: Record<string, string> = {
   "/accessibility": "Accessibility \u2014 The Page Gallery",
   "/sign-in": "Sign In \u2014 The Page Gallery",
   "/for-journals": "For Journals \u2014 The Page Gallery",
+  "/saved": "Saved Pieces \u2014 The Page Gallery",
 };
 function PageTitle() {
   const [location] = useLocation();
   useEffect(() => {
-    // Dynamic title for piece pages
     if (location.startsWith("/piece/")) {
-      // Title will be set by the Piece page component itself
       return;
     }
     const title = PAGE_TITLES[location] || "The Page Gallery Journal";
@@ -107,6 +106,7 @@ function Router() {
         <Route path="/piece/:id" component={Piece} />
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={InBloom} />
+        <Route path="/saved" component={Saved} />
         <Route path="/editor-studio">{() => <ProtectedRoute component={EditorStudio} path="/editor-studio" />}</Route>
         <Route path="/about" component={About} />
         <Route path="/courses" component={Courses} />
