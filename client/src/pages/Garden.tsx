@@ -3958,7 +3958,7 @@ export default function Garden() {
                           <a
                             href={`/public-garden/${user?.id}`}
                             target="_blank"
-                            rel="noopener"
+                            rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-emerald-400/50 hover:text-emerald-400/80 transition-colors mt-2"
                             data-testid="link-public-garden"
                           >
