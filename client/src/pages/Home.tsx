@@ -9,6 +9,7 @@ import NewsletterSignup from "@/components/ui/NewsletterSignup";
 import ServicesWeProvide from "@/components/sections/ServicesWeProvide";
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap-init";
+import { prefersReducedMotion } from "@/lib/gsap-init";
 
 /**
  * GSAP-powered atmosphere layer.
@@ -21,6 +22,9 @@ function ScrollAtmosphere() {
   const coolRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // T36: skip GSAP scroll atmosphere when user prefers reduced motion
+    if (prefersReducedMotion) return;
+
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         start: "top top",
@@ -60,10 +64,11 @@ function ScrollAtmosphere() {
 }
 
 export default function Home() {
-    useEffect(() => {
+  useEffect(() => {
     document.body.classList.add('starfield-active');
     return () => document.body.classList.remove('starfield-active');
   }, []);
+
   return (
     <div className="min-h-screen bg-transparent text-foreground selection:bg-secondary selection:text-secondary-foreground">
       <ScrollAtmosphere />
@@ -73,7 +78,7 @@ export default function Home() {
         <Hero />
         <Featured />
         <GardenIntro />
-                  <ServicesWeProvide />
+        <ServicesWeProvide />
         <NewsletterSignup />
         <SocialCTA />
       </main>
