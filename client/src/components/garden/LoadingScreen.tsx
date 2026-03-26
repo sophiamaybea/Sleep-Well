@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sprout } from "lucide-react";
 
 const gardenPhrases = [
   "Preparing the soil...",
@@ -11,24 +10,41 @@ const gardenPhrases = [
   "Unfurling the leaves...",
 ];
 
+// T36: detect user's motion preference once at module level
+const prefersReducedMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export default function LoadingScreen() {
   const [phraseIndex, setPhraseIndex] = useState(() =>
     Math.floor(Math.random() * gardenPhrases.length)
   );
-  const [growthStage, setGrowthStage] = useState(0);
+  // T36: if reduced-motion, skip growth animation — jump straight to final stage
+  const [growthStage, setGrowthStage] = useState(
+    prefersReducedMotion ? 3 : 0
+  );
 
   useEffect(() => {
     const phraseTimer = setInterval(() => {
       setPhraseIndex((i) => (i + 1) % gardenPhrases.length);
     }, 1800);
-    const growthTimer = setInterval(() => {
-      setGrowthStage((s) => Math.min(s + 1, 3));
-    }, 600);
+
+    // T36: only run growth interval when motion is allowed
+    let growthTimer: ReturnType<typeof setInterval> | undefined;
+    if (!prefersReducedMotion) {
+      growthTimer = setInterval(() => {
+        setGrowthStage((s) => Math.min(s + 1, 3));
+      }, 600);
+    }
+
     return () => {
       clearInterval(phraseTimer);
-      clearInterval(growthTimer);
+      if (growthTimer !== undefined) clearInterval(growthTimer);
     };
   }, []);
+
+  // T36: static variants — instant visibility, no transforms
+  const staticVariant = { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 }, transition: { duration: 0 } };
 
   return (
     <div className="min-h-screen bg-transparent text-foreground relative flex items-center justify-center">
@@ -38,16 +54,16 @@ export default function LoadingScreen() {
           {/* Ground */}
           <motion.div
             className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-px bg-emerald-700/30"
-            initial={{ scaleX: 0 }}
+            initial={{ scaleX: prefersReducedMotion ? 1 : 0 }}
             animate={{ scaleX: 1 }}
-            transition={{ duration: 0.5 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
           />
           {/* Seed */}
           <motion.div
             className="absolute bottom-0 left-1/2 -translate-x-1/2"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
             animate={{ opacity: growthStage >= 0 ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
           >
             <div className="w-3 h-4 rounded-full bg-amber-700/40 border border-amber-600/30" />
           </motion.div>
@@ -56,9 +72,9 @@ export default function LoadingScreen() {
             {growthStage >= 1 && (
               <motion.div
                 className="absolute bottom-3 left-1/2 -translate-x-1/2 w-0.5 bg-emerald-600/50 origin-bottom"
-                initial={{ height: 0 }}
+                initial={{ height: prefersReducedMotion ? 36 : 0 }}
                 animate={{ height: 36 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: "easeOut" }}
               />
             )}
           </AnimatePresence>
@@ -68,9 +84,9 @@ export default function LoadingScreen() {
               <motion.div
                 className="absolute left-1/2 -translate-x-full"
                 style={{ bottom: 26 }}
-                initial={{ scale: 0, rotate: -30, originX: "right", originY: "center" }}
+                initial={prefersReducedMotion ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -30 }}
                 animate={{ scale: 1, rotate: 0 }}
-                transition={{ duration: 0.4, ease: "backOut" }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: "backOut" }}
               >
                 <div className="w-5 h-3 rounded-full bg-emerald-500/40 border border-emerald-500/30 -rotate-12" />
               </motion.div>
@@ -82,9 +98,9 @@ export default function LoadingScreen() {
               <motion.div
                 className="absolute left-1/2"
                 style={{ bottom: 26 }}
-                initial={{ scale: 0, rotate: 30, originX: "left", originY: "center" }}
+                initial={prefersReducedMotion ? { scale: 1, rotate: 0 } : { scale: 0, rotate: 30 }}
                 animate={{ scale: 1, rotate: 0 }}
-                transition={{ duration: 0.4, ease: "backOut", delay: 0.1 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: "backOut", delay: 0.1 }}
               >
                 <div className="w-5 h-3 rounded-full bg-emerald-500/40 border border-emerald-500/30 rotate-12" />
               </motion.div>
@@ -96,9 +112,9 @@ export default function LoadingScreen() {
               <motion.div
                 className="absolute left-1/2 -translate-x-1/2"
                 style={{ bottom: 38 }}
-                initial={{ scale: 0, opacity: 0 }}
+                initial={prefersReducedMotion ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5, type: "spring", stiffness: 200, damping: 10 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, type: "spring", stiffness: 200, damping: 10 }}
               >
                 <div className="w-4 h-4 rounded-full bg-amber-400/30 border border-amber-400/40" />
               </motion.div>
@@ -116,34 +132,36 @@ export default function LoadingScreen() {
           </p>
         </div>
 
-        {/* Rotating phrase */}
+        {/* Rotating phrase — static text if reduced motion */}
         <div className="h-5">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={phraseIndex}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.3 }}
-              className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/35"
-            >
+          {prefersReducedMotion ? (
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/35">
               {gardenPhrases[phraseIndex]}
-            </motion.p>
-          </AnimatePresence>
+            </p>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={phraseIndex}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.3 }}
+                className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/35"
+              >
+                {gardenPhrases[phraseIndex]}
+              </motion.p>
+            </AnimatePresence>
+          )}
         </div>
 
-        {/* Subtle progress dots */}
+        {/* Subtle progress dots — static opacity if reduced motion */}
         <div className="flex items-center justify-center gap-1.5">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               className="w-1 h-1 rounded-full bg-emerald-500/30"
-              animate={{ opacity: [0.3, 0.8, 0.3] }}
-              transition={{
-                duration: 1.2,
-                repeat: Infinity,
-                delay: i * 0.2,
-              }}
+              animate={prefersReducedMotion ? { opacity: 0.6 } : { opacity: [0.3, 0.8, 0.3] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
             />
           ))}
         </div>
