@@ -54,6 +54,28 @@ function upsertOgMeta(property: string, content: string): () => void {
   };
 }
 
+// ─── JSON-LD helper ───────────────────────────────────────────────────────────
+
+const JSONLD_ID = "tpg-article-jsonld";
+
+function upsertJsonLd(data: Record<string, unknown>): () => void {
+  let script = document.getElementById(JSONLD_ID) as HTMLScriptElement | null;
+  const existed = !!script;
+  if (!script) {
+    script = document.createElement("script");
+    script.id = JSONLD_ID;
+    script.type = "application/ld+json";
+    document.head.appendChild(script);
+  }
+  script.textContent = JSON.stringify(data);
+  return () => {
+    const el = document.getElementById(JSONLD_ID);
+    if (!el) return;
+    if (!existed) el.remove();
+    else el.textContent = "";
+  };
+}
+
 // ─── localStorage bookmark helpers ────────────────────────────────────────────
 
 const LS_KEY = "tpg_saved_pieces";
@@ -160,7 +182,6 @@ function BookmarkButton({ pieceId, size = "default" }: { pieceId: string; size?:
 
 export default function Piece() {
   const { id } = useParams<{ id: string }>();
-  const queryClient = useQueryClient_UNUSED_REMOVED();
 
   useEffect(() => {
     if (id) {
@@ -184,23 +205,52 @@ export default function Piece() {
 
   useEffect(() => {
     if (!piece?.title) return;
+
     const pageTitle = `${piece.title} | The Page Gallery`;
     const previousTitle = document.title;
     document.title = pageTitle;
+
     const rawText = stripHtml(piece.content || "");
     const ogDescription = (piece.description || rawText).slice(0, 160).trim();
-    const ogUrl = `${window.location.origin}/piece/${piece.id}`;
+    // Always use the canonical /piece/:id form — never rely on window.location.pathname
+    const canonicalUrl = `${window.location.origin}/piece/${piece.id}`;
+
     const cleanups = [
       upsertOgMeta("og:title", piece.title),
       upsertOgMeta("og:description", ogDescription),
-      upsertOgMeta("og:url", ogUrl),
+      upsertOgMeta("og:url", canonicalUrl),
       upsertOgMeta("og:type", "article"),
+      // JSON-LD Article schema
+      upsertJsonLd({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: piece.title,
+        description: ogDescription,
+        url: canonicalUrl,
+        author: {
+          "@type": "Person",
+          name: piece.author?.displayName || piece.authorName || "Anonymous",
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "The Page Gallery",
+          url: window.location.origin,
+        },
+        ...(piece.publishedAt ? { datePublished: piece.publishedAt } : {}),
+        ...(piece.createdAt ? { dateCreated: piece.createdAt } : {}),
+        ...(piece.tags && piece.tags.length > 0 ? { keywords: piece.tags.join(", ") } : {}),
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": canonicalUrl,
+        },
+      }),
     ];
+
     return () => {
       document.title = previousTitle;
       cleanups.forEach((fn) => fn());
     };
-  }, [piece?.title, piece?.content, piece?.id, piece?.description]);
+  }, [piece?.title, piece?.content, piece?.id, piece?.description, piece?.publishedAt, piece?.createdAt, piece?.tags, piece?.author, piece?.authorName]);
 
   const { data: comments = [] } = useQuery<Comment[]>({
     queryKey: ["/api/gallery-comments", id],
@@ -247,12 +297,14 @@ export default function Piece() {
   const authorBio = piece.author?.bio || piece.authorBio;
   const readingTime = getReadingTime(piece.content || "");
 
+  // ── Canonical URL — always /piece/:id regardless of current browser path ──
+  const canonicalUrl = `${window.location.origin}/piece/${piece.id}`;
+
   const handleShare = async () => {
-    const url = window.location.href;
     if (navigator.share) {
-      try { await navigator.share({ title: piece.title, url }); } catch {}
+      try { await navigator.share({ title: piece.title, url: canonicalUrl }); } catch {}
     } else {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(canonicalUrl);
       alert("Link copied to clipboard!");
     }
   };
@@ -389,6 +441,3 @@ export default function Piece() {
     </div>
   );
 }
-
-// Stub to prevent unused import error — queryClient is not needed in this page
-function useQueryClient_UNUSED_REMOVED() { return null; }
