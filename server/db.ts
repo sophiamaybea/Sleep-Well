@@ -731,7 +731,33 @@ export async function runMigrations() {
       }
     }
 
-    // T46: Rejection feedback requests table — flag_id included inline so fresh
+  // T46-pre: editorial_flags must exist before rejection_feedback_requests can reference it
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS editorial_flags (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        writing_id varchar NOT NULL REFERENCES writings(id),
+        author_id varchar NOT NULL REFERENCES users(id),
+        status text NOT NULL DEFAULT 'flagged',
+        is_paid_flag boolean NOT NULL DEFAULT false,
+        seen_by_editor_id varchar REFERENCES users(id),
+        seen_at timestamp,
+        editor_response text,
+        responded_at timestamp,
+        decision text NOT NULL DEFAULT 'pending',
+        free_note text,
+        free_note_sent_at timestamp,
+        is_publishable boolean NOT NULL DEFAULT false,
+        created_at timestamp DEFAULT now()
+      );
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error("[MIGRATION CRITICAL]: CREATE editorial_flags failed:", (e as Error).message);
+      migrationErrors++;
+    }
+  }
+    // T46-pre: editorial_flags table must exist before rejection_feedback_requests references it   try {     await pool.query(`       CREATE TABLE IF NOT EXISTS editorial_flags (         id varchar PRIMARY KEY DEFAULT gen_random_uuid(),         writing_id varchar NOT NULL REFERENCES writings(id),         author_id varchar NOT NULL REFERENCES users(id),         status text NOT NULL DEFAULT 'flagged',         is_paid_flag boolean NOT NULL DEFAULT false,         seen_by_editor_id varchar REFERENCES users(id),         seen_at timestamp,         editor_response text,         responded_at timestamp,         decision text NOT NULL DEFAULT 'pending',         free_note text,         free_note_sent_at timestamp,         is_publishable boolean NOT NULL DEFAULT false,         created_at timestamp DEFAULT now()       );     `);   } catch (e) {     if (!isBenignMigrationError(e)) {       console.error("[MIGRATION CRITICAL]: CREATE editorial_flags failed:", (e as Error).message);       migrationErrors++;     }   }   // T46: Rejection feedback requests table — flag_id included inline so fresh
     // installs get the NOT NULL FK constraint without needing the ALTER below.
     try {
       await pool.query(`
