@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Private / authenticated areas
+Disallow: /garden
+Disallow: /editor-studio
+Disallow: /eic-dashboard
+Disallow: /edit-profile
+Disallow: /dashboard
+Disallow: /editorial-room
+Disallow: /editor-onboarding
+Disallow: /exercise-admin
+Disallow: /sign-in
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://www.thepagegalleryjournal.com/sitemap.xml
