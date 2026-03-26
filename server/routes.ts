@@ -229,6 +229,18 @@ export async function registerRoutes(
       );
   });
 
+    // GET /api/writings/drafts — FIX 4: server-side drafts filter by userId
+  app.get("/api/writings/drafts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      const allWritings = await storage.getWritingsByAuthor(userId);
+      const drafts = allWritings.filter((w: any) => !w.isPublished);
+      return res.json(drafts);
+    } catch (err) {
+      console.error("[GET /api/writings/drafts] failed:", err);
+      return res.status(500).json({ error: "Failed to load drafts" });
+    }
+  });
   // === WRITINGS ===
   app.get("/api/writings", isAuthenticated, async (req: any, res) => {
     try {
