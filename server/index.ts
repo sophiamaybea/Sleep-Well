@@ -196,6 +196,24 @@ app.get("/api/debug/db", async (req: any, res) => {
       log(`serving on port ${port}`);
     },
   );
+    // T45/T42: Startup env-var audit — emit loud warnings for missing SMTP / PayPal credentials
+  // These vars must be set in Render environment variables before production launch.
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn(
+      "[startup] WARNING: SMTP_USER and/or SMTP_PASS not set — " +
+      "service-inquiry email notifications will be skipped. " +
+      "Inquiries are still saved to the database. " +
+      "Set SMTP_USER=your@gmail.com and SMTP_PASS=your-app-password in Render env vars."
+    );
+  }
+  if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+    console.warn(
+      "[startup] WARNING: PAYPAL_CLIENT_ID and/or PAYPAL_CLIENT_SECRET not set — " +
+      "all payment routes (/api/editorial-orders/create-order, /api/editorial-orders/capture-order) " +
+      "will throw a 500 error when called. " +
+      "Set these in Render environment variables before enabling editorial payment flows."
+    );
+  }
   // Keep-warm: prevent Render free-tier cold starts by pinging the public URL every 13 minutes.
   // IMPORTANT: APP_URL *must* be set in Render environment variables for this to work.
   // Without it, no interval is scheduled and Render will sleep the service after 15 min inactivity.
