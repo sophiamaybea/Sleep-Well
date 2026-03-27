@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "./use-auth";
 
 const API = (path: string) => fetch(path, { credentials: "include" }).then(r => r.json());
 const POST = (path: string, body: unknown) =>
@@ -20,7 +21,8 @@ export function useMarketplaceServices() {
 export function useMyServices() {
   return useQuery({
     queryKey: ["marketplace-my-services"],
-    queryFn: () => API("/api/marketplace/services/mine"),
+    // server route: GET /api/marketplace/services/my
+    queryFn: () => API("/api/marketplace/services/my"),
   });
 }
 
@@ -62,8 +64,9 @@ export function useDeleteService(id: string) {
 export function useBookService() {
   const qc = useQueryClient();
   return useMutation({
+    // server route: POST /api/marketplace/bookings/create-checkout
     mutationFn: (body: { serviceId: string; note?: string }) =>
-      POST("/api/marketplace/bookings", body),
+      POST("/api/marketplace/bookings/create-checkout", body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["marketplace-my-bookings"] });
     },
@@ -73,23 +76,23 @@ export function useBookService() {
 export function useMyBookings() {
   return useQuery({
     queryKey: ["marketplace-my-bookings"],
-    queryFn: () => API("/api/marketplace/bookings/mine"),
-  });
-}
-
-export function useServiceOrders() {
-  return useQuery({
-    queryKey: ["marketplace-service-orders"],
-    queryFn: () => API("/api/marketplace/bookings/orders"),
+    // server route: GET /api/marketplace/bookings
+    queryFn: () => API("/api/marketplace/bookings"),
   });
 }
 
 // ─── Tip Jar ──────────────────────────────────────────────────────────────────
 
 export function useMyTipJar() {
+  // Fetch the current user's tip jar via their authorId
+  // The server exposes GET /api/marketplace/tip-jar/:authorId (public)
+  // and POST /api/marketplace/tip-jar (upsert, auth required)
+  // We fetch the upsert endpoint response via the POST, or use the user's id via auth
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["marketplace-my-tip-jar"],
-    queryFn: () => API("/api/marketplace/tip-jar/mine"),
+    queryKey: ["marketplace-my-tip-jar", user?.id],
+    queryFn: () => API(`/api/marketplace/tip-jar/${user!.id}`),
+    enabled: !!user?.id,
   });
 }
 
@@ -104,6 +107,7 @@ export function useTipJar(authorId: string) {
 export function useUpsertTipJar() {
   const qc = useQueryClient();
   return useMutation({
+    // server route: POST /api/marketplace/tip-jar
     mutationFn: (body: unknown) => POST("/api/marketplace/tip-jar", body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["marketplace-my-tip-jar"] });
@@ -114,8 +118,9 @@ export function useUpsertTipJar() {
 export function useSendTip() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { tipJarId: string; amountPence: number }) =>
-      POST("/api/marketplace/tip-jar/tip", body),
+    // server route: POST /api/marketplace/tip
+    mutationFn: (body: { authorId: string; amountPence: number }) =>
+      POST("/api/marketplace/tip", body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["marketplace-my-tip-jar"] });
     },
