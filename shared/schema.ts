@@ -2618,7 +2618,7 @@ export const editorialServiceOrders = pgTable("editorial_service_orders", {
   // 'single_piece' | 'collection' | 'portfolio'
   serviceScope: text("service_scope").notNull().default("collection"),
   // price in GBP pence: 9500 = £95, 13500 = £135, 17500 = £175
-  quotedPricePence: integer("quoted_price_pence").notNull().default(0),
+  quotedPricePence: integer("quoted_price_pence").notNull().default(500),
   // 'pending_quote' | 'quoted' | 'payment_pending' | 'paid' | 'in_progress' | 'delivered' | 'cancelled'
   status: text("status").notNull().default("payment_pending"),
   paypalOrderId: text("paypal_order_id"),
