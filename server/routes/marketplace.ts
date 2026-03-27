@@ -6,7 +6,7 @@ import {
   tipJars,
   tipTransactions,
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const PAYPAL_API =
   process.env.NODE_ENV === "production"
@@ -39,8 +39,6 @@ async function getPayPalAccessToken(): Promise<string> {
 
 export function registerMarketplaceRoutes(app: Express) {
   // —— WRITER SERVICES ——————————————————————————————————————————
-
-  // GET /api/marketplace/services
   app.get("/api/marketplace/services", async (_req, res) => {
     try {
       const services = await db
@@ -54,7 +52,22 @@ export function registerMarketplaceRoutes(app: Express) {
     }
   });
 
-  // POST /api/marketplace/services — create a listing (writer/editor/admin)
+  app.get("/api/marketplace/services/my", async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const services = await db
+        .select()
+        .from(writerServices)
+        .where(eq(writerServices.authorId, req.user.id));
+      return res.json(services);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Failed to fetch your services" });
+    }
+  });
+
   app.post("/api/marketplace/services", async (req: any, res) => {
     if (
       !req.isAuthenticated() ||
@@ -84,7 +97,6 @@ export function registerMarketplaceRoutes(app: Express) {
     }
   });
 
-  // POST /api/marketplace/services/:id/book — create PayPal order for service booking
   app.post("/api/marketplace/services/:id/book", async (req: any, res) => {
     if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -114,12 +126,12 @@ export function registerMarketplaceRoutes(app: Express) {
           ],
         }),
       });
+
       if (!orderRes.ok) {
         const text = await orderRes.text();
         throw new Error(`[PayPal] Order creation failed: ${text}`);
       }
       const order = await orderRes.json();
-
       const [booking] = await db
         .insert(serviceBookings)
         .values({
@@ -135,67 +147,64 @@ export function registerMarketplaceRoutes(app: Express) {
         [order.id, booking.id]
       );
 
-      return res.json({ orderId: order.id, bookingId: booking.id, order });
+      return res.json({ 
+        orderId: order.id, 
+        bookingId: booking.id, 
+        checkoutUrl: order.links.find((l: any) => l.rel === "approve")?.href 
+      });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Failed to create booking" });
     }
   });
 
-  // POST /api/marketplace/services/bookings/:bookingId/capture
-  app.post(
-    "/api/marketplace/services/bookings/:bookingId/capture",
-    async (req: any, res) => {
-      if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      try {
-        const result = await pool.query(
-          "SELECT * FROM service_bookings WHERE id = $1",
-          [req.params.bookingId]
-        );
-        const booking = result.rows[0];
-        if (!booking) return res.status(404).json({ error: "Booking not found" });
-
-        const token = await getPayPalAccessToken();
-        const captureRes = await fetch(
-          `${PAYPAL_API}/v2/checkout/orders/${booking.paypal_order_id}/capture`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!captureRes.ok) {
-          const text = await captureRes.text();
-          throw new Error(`[PayPal] Capture failed: ${text}`);
-        }
-        const capture = await captureRes.json();
-
-        await pool.query(
-          "UPDATE service_bookings SET status = 'paid', payment_confirmed = true, paid_at = now() WHERE id = $1",
-          [booking.id]
-        );
-
-        return res.json({ success: true, capture });
-      } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Failed to capture payment" });
-      }
+  app.post("/api/marketplace/services/bookings/:bookingId/capture", async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
-  );
+    try {
+      const result = await pool.query(
+        "SELECT * FROM service_bookings WHERE id = $1",
+        [req.params.bookingId]
+      );
+      const booking = result.rows[0];
+      if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+      const token = await getPayPalAccessToken();
+      const captureRes = await fetch(
+        `${PAYPAL_API}/v2/checkout/orders/${booking.paypal_order_id}/capture`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!captureRes.ok) {
+        const text = await captureRes.text();
+        throw new Error(`[PayPal] Capture failed: ${text}`);
+      }
+      const capture = await captureRes.json();
+      await pool.query(
+        "UPDATE service_bookings SET status = 'paid', payment_confirmed = true, paid_at = now() WHERE id = $1",
+        [booking.id]
+      );
+      return res.json({ success: true, capture });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Failed to capture payment" });
+    }
+  });
 
   // —— TIP JAR ——————————————————————————————————————————————————
-
-  // GET /api/marketplace/tips/:writerId — fetch a writer's tip jar
-  app.get("/api/marketplace/tips/:writerId", async (req, res) => {
+  app.get("/api/marketplace/tip-jar/:authorId", async (req, res) => {
     try {
       const [jar] = await db
         .select()
         .from(tipJars)
-        .where(eq(tipJars.authorId, req.params.writerId));
+        .where(eq(tipJars.authorId, req.params.authorId));
       return res.json(jar || null);
     } catch (err) {
       console.error(err);
@@ -203,27 +212,67 @@ export function registerMarketplaceRoutes(app: Express) {
     }
   });
 
-  // POST /api/marketplace/tips/:writerId — create PayPal order for tip
-  app.post("/api/marketplace/tips/:writerId", async (req: any, res) => {
+  app.post("/api/marketplace/tip-jar", async (req: any, res) => {
     if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     try {
+      const { isActive, message, suggestedAmountPence } = req.body;
+      const [existing] = await db
+        .select()
+        .from(tipJars)
+        .where(eq(tipJars.authorId, req.user.id));
+
+      if (existing) {
+        const [jar] = await db
+          .update(tipJars)
+          .set({ 
+            isActive: !!isActive, 
+            message: message || "Buy me a coffee ☕", 
+            suggestedAmountPence: Number(suggestedAmountPence) || 300 
+          })
+          .where(eq(tipJars.authorId, req.user.id))
+          .returning();
+        return res.json(jar);
+      } else {
+        const [jar] = await db
+          .insert(tipJars)
+          .values({
+            authorId: req.user.id,
+            isActive: !!isActive,
+            message: message || "Buy me a coffee ☕",
+            suggestedAmountPence: Number(suggestedAmountPence) || 300,
+          })
+          .returning();
+        return res.json(jar);
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Failed to update tip jar" });
+    }
+  });
+
+  app.post("/api/marketplace/tip", async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const { authorId, amountPence } = req.body;
       const [jar] = await db
         .select()
         .from(tipJars)
-        .where(eq(tipJars.authorId, req.params.writerId));
+        .where(eq(tipJars.authorId, authorId));
+      
       if (!jar || !jar.isActive) {
         return res.status(404).json({ error: "Tip jar not found or inactive" });
       }
 
-      const { amountPence } = req.body;
       const pence = Number(amountPence);
       if (!pence || pence < 50) {
         return res.status(400).json({ error: "Minimum tip is 50p" });
       }
-      const gbpAmount = (pence / 100).toFixed(2);
 
+      const gbpAmount = (pence / 100).toFixed(2);
       const token = await getPayPalAccessToken();
       const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
         method: "POST",
@@ -241,12 +290,12 @@ export function registerMarketplaceRoutes(app: Express) {
           ],
         }),
       });
+
       if (!orderRes.ok) {
         const text = await orderRes.text();
         throw new Error(`[PayPal] Tip order creation failed: ${text}`);
       }
       const order = await orderRes.json();
-
       const [tx] = await db
         .insert(tipTransactions)
         .values({
@@ -261,55 +310,54 @@ export function registerMarketplaceRoutes(app: Express) {
         [order.id, tx.id]
       );
 
-      return res.json({ orderId: order.id, transactionId: tx.id, order });
+      return res.json({ 
+        orderId: order.id, 
+        transactionId: tx.id, 
+        checkoutUrl: order.links.find((l: any) => l.rel === "approve")?.href 
+      });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Failed to create tip order" });
     }
   });
 
-  // POST /api/marketplace/tips/transactions/:txId/capture
-  app.post(
-    "/api/marketplace/tips/transactions/:txId/capture",
-    async (req: any, res) => {
-      if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      try {
-        const result = await pool.query(
-          "SELECT * FROM tip_transactions WHERE id = $1",
-          [req.params.txId]
-        );
-        const tx = result.rows[0];
-        if (!tx) return res.status(404).json({ error: "Transaction not found" });
-
-        const token = await getPayPalAccessToken();
-        const captureRes = await fetch(
-          `${PAYPAL_API}/v2/checkout/orders/${tx.paypal_order_id}/capture`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!captureRes.ok) {
-          const text = await captureRes.text();
-          throw new Error(`[PayPal] Tip capture failed: ${text}`);
-        }
-        const capture = await captureRes.json();
-
-        await pool.query(
-          "UPDATE tip_transactions SET payment_confirmed = true WHERE id = $1",
-          [tx.id]
-        );
-
-        return res.json({ success: true, capture });
-      } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Failed to capture tip" });
-      }
+  app.post("/api/marketplace/tips/transactions/:txId/capture", async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
-  );
+    try {
+      const result = await pool.query(
+        "SELECT * FROM tip_transactions WHERE id = $1",
+        [req.params.txId]
+      );
+      const tx = result.rows[0];
+      if (!tx) return res.status(404).json({ error: "Transaction not found" });
+
+      const token = await getPayPalAccessToken();
+      const captureRes = await fetch(
+        `${PAYPAL_API}/v2/checkout/orders/${tx.paypal_order_id}/capture`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!captureRes.ok) {
+        const text = await captureRes.text();
+        throw new Error(`[PayPal] Tip capture failed: ${text}`);
+      }
+      const capture = await captureRes.json();
+      await pool.query(
+        "UPDATE tip_transactions SET payment_confirmed = true WHERE id = $1",
+        [tx.id]
+      );
+      return res.json({ success: true, capture });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Failed to capture tip" });
+    }
+  });
 }
