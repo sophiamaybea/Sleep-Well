@@ -10,7 +10,6 @@ const DELETE = (path: string) =>
   fetch(path, { method: "DELETE", credentials: "include" }).then(r => r.json());
 
 // ─── Writer Services ──────────────────────────────────────────────────────────
-
 export function useMarketplaceServices() {
   return useQuery({
     queryKey: ["marketplace-services"],
@@ -21,7 +20,6 @@ export function useMarketplaceServices() {
 export function useMyServices() {
   return useQuery({
     queryKey: ["marketplace-my-services"],
-    // server route: GET /api/marketplace/services/my
     queryFn: () => API("/api/marketplace/services/my"),
   });
 }
@@ -60,13 +58,18 @@ export function useDeleteService(id: string) {
 }
 
 // ─── Service Bookings ─────────────────────────────────────────────────────────
-
 export function useBookService() {
   const qc = useQueryClient();
   return useMutation({
-    // server route: POST /api/marketplace/bookings/create-checkout
     mutationFn: (body: { serviceId: string; note?: string }) =>
-      POST("/api/marketplace/bookings/create-checkout", body),
+      POST(`/api/marketplace/services/${body.serviceId}/book`, body),
+  });
+}
+
+export function useCaptureBooking(bookingId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => POST(`/api/marketplace/services/bookings/${bookingId}/capture`, {}),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["marketplace-my-bookings"] });
     },
@@ -76,18 +79,12 @@ export function useBookService() {
 export function useMyBookings() {
   return useQuery({
     queryKey: ["marketplace-my-bookings"],
-    // server route: GET /api/marketplace/bookings
     queryFn: () => API("/api/marketplace/bookings"),
   });
 }
 
 // ─── Tip Jar ──────────────────────────────────────────────────────────────────
-
 export function useMyTipJar() {
-  // Fetch the current user's tip jar via their authorId
-  // The server exposes GET /api/marketplace/tip-jar/:authorId (public)
-  // and POST /api/marketplace/tip-jar (upsert, auth required)
-  // We fetch the upsert endpoint response via the POST, or use the user's id via auth
   const { user } = useAuth();
   return useQuery({
     queryKey: ["marketplace-my-tip-jar", user?.id],
@@ -107,7 +104,6 @@ export function useTipJar(authorId: string) {
 export function useUpsertTipJar() {
   const qc = useQueryClient();
   return useMutation({
-    // server route: POST /api/marketplace/tip-jar
     mutationFn: (body: unknown) => POST("/api/marketplace/tip-jar", body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["marketplace-my-tip-jar"] });
@@ -116,28 +112,18 @@ export function useUpsertTipJar() {
 }
 
 export function useSendTip() {
+  return useMutation({
+    mutationFn: (body: { authorId: string; amountPence: number }) =>
+      POST(`/api/marketplace/tip`, body),
+  });
+}
+
+export function useCaptureTip(txId: string) {
   const qc = useQueryClient();
   return useMutation({
-    // server route: POST /api/marketplace/tip
-    mutationFn: (body: { authorId: string; amountPence: number }) =>
-      POST("/api/marketplace/tip", body),
+    mutationFn: () => POST(`/api/marketplace/tips/transactions/${txId}/capture`, {}),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["marketplace-my-tip-jar"] });
     },
-  });
-}
-
-// ─── Stripe Connect Onboarding ────────────────────────────────────────────────
-
-export function useStripeConnectOnboard() {
-  return useMutation({
-    mutationFn: () => POST("/api/marketplace/connect/onboard", {}),
-  });
-}
-
-export function useStripeConnectStatus() {
-  return useQuery({
-    queryKey: ["marketplace-connect-status"],
-    queryFn: () => API("/api/marketplace/connect/status"),
   });
 }
