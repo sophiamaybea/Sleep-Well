@@ -48,7 +48,7 @@ const V2Community = lazy(() => import("@/pages/V2Community"));
 const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
-const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
+const EditorialRoom = lazy(() => import("@/pages/EditorialRoom")); const Marketplace = lazy(() => import("@/pages/Marketplace")); const Marketplace = lazy(() => import("@/pages/Marketplace"));
 
 // T35: ProtectedRoute uses branded LoadingScreen instead of generic PageLoader
 // T48: destructure path out so it is never spread into the Component
@@ -138,7 +138,7 @@ function Router() {
         <Route path="/submissions" component={Submissions} />
         <Route path="/for-journals" component={ForJournals} />
         <Route path="/exercise-admin">{() => <ProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
-        <Route path="/" component={Home} />
+        <Route path="/marketplace" component={Marketplace} />               <Route path="/marketplace" component={Marketplace} />               <Route path="/marketplace" component={Marketplace} />               <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
