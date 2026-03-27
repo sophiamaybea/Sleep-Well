@@ -68,6 +68,7 @@ export default function Navigation() {
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
     { label: "My Garden", href: "/garden", isPage: true, tooltip: "Write & Grow Your Work" },
+      { label: "Marketplace", href: "/marketplace", isPage: true, tooltip: "Services & Tip Jars" },
   ];
 
   const editorMenuItems = [
