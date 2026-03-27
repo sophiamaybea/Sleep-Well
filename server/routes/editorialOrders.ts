@@ -11,6 +11,9 @@ const SCOPE_PRICES: Record<string, number> = {
   portfolio: 17500,
 };
 
+// Editorial Feedback (Garden) — flat rate £5 / 500p — IMMUTABLE
+const EDITORIAL_FEEDBACK_PRICE_PENCE = 500;
+
 const PAYPAL_API =
   process.env.NODE_ENV === "production"
     ? "https://api-m.paypal.com"
@@ -200,5 +203,59 @@ export function registerEditorialOrderRoutes(app: Express) {
   // GET /api/editorial-orders/price — public, returns price map for the frontend
   app.get("/api/editorial-orders/price", (_req, res) => {
     res.json(SCOPE_PRICES);
+  });
+
+    // POST /api/editorial-orders/feedback-order
+  // Garden-specific: flat £5 / 500p editorial feedback via Stripe Checkout
+  app.post("/api/editorial-orders/feedback-order", async (req: any, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+    const { writingId, writingTitle } = req.body;
+    if (!writingId) return res.status(400).json({ error: "writingId required" });
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) {
+      return res.json({
+        mode: "confirm",
+        pricePence: EDITORIAL_FEEDBACK_PRICE_PENCE,
+        message: "Editorial feedback: £5. Stripe not yet configured.",
+      });
+    }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Stripe = require("stripe");
+      const stripe = new Stripe(stripeKey, { apiVersion: "2025-01-27.acacia" });
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: [{
+          price_data: {
+            currency: "gbp",
+            unit_amount: EDITORIAL_FEEDBACK_PRICE_PENCE,
+            product_data: {
+              name: "Editorial Feedback — The Page Gallery",
+              description: writingTitle ? `Read: "${String(writingTitle).slice(0, 80)}"` : "Editorial read (5-day turnaround)",
+            },
+          },
+          quantity: 1,
+        }],
+        metadata: { writingId: String(writingId), userId: String(req.user.id), type: "editorial_feedback" },
+        success_url: `${process.env.PUBLIC_URL || "https://sleep-well-production.up.railway.app"}/garden?feedback_success=1`,
+        cancel_url: `${process.env.PUBLIC_URL || "https://sleep-well-production.up.railway.app"}/garden?feedback_cancelled=1`,
+      });
+      await db.insert(editorialServiceOrders).values({
+        name: req.user.name || req.user.username || "Writer",
+        email: req.user.email || "",
+        genre: "garden",
+        manuscriptType: "single_piece",
+        estimatedWordCount: null,
+        brief: writingTitle ? `Garden: ${String(writingTitle)}` : null,
+        serviceScope: "editorial_feedback",
+        quotedPricePence: EDITORIAL_FEEDBACK_PRICE_PENCE,
+        status: "payment_pending",
+        paypalOrderId: session.id,
+      });
+      res.json({ url: session.url, pricePence: EDITORIAL_FEEDBACK_PRICE_PENCE });
+    } catch (err) {
+      console.error("[editorial-orders] feedback-order error:", err);
+      res.status(500).json({ error: "Could not create checkout session" });
+    }
   });
 }
