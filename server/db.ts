@@ -901,6 +901,91 @@ export async function runMigrations() {
         }
       }
     }
+      // Marketplace tables — writer_services, service_bookings, tip_jars, tip_transactions
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS writer_services (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        author_id varchar NOT NULL REFERENCES users(id),
+        title text NOT NULL,
+        description text NOT NULL DEFAULT '',
+        service_type text NOT NULL DEFAULT 'manuscript_feedback',
+        price_pence integer NOT NULL,
+        delivery_days integer NOT NULL DEFAULT 7,
+        currency text NOT NULL DEFAULT 'gbp',
+        is_active boolean NOT NULL DEFAULT true,
+        stripe_price_id text,
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error('[MIGRATION CRITICAL]: CREATE writer_services failed:', (e as Error).message);
+      migrationErrors++;
+    }
+  }
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS service_bookings (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        service_id varchar NOT NULL REFERENCES writer_services(id),
+        client_id varchar NOT NULL REFERENCES users(id),
+        note text,
+        price_pence integer NOT NULL,
+        currency text NOT NULL DEFAULT 'gbp',
+        status text NOT NULL DEFAULT 'pending_payment',
+        stripe_session_id text,
+        stripe_payment_intent_id text,
+        payment_confirmed boolean NOT NULL DEFAULT false,
+        paid_at timestamp,
+        created_at timestamp DEFAULT now()
+      );
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error('[MIGRATION CRITICAL]: CREATE service_bookings failed:', (e as Error).message);
+      migrationErrors++;
+    }
+  }
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tip_jars (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        author_id varchar NOT NULL UNIQUE REFERENCES users(id),
+        is_active boolean NOT NULL DEFAULT false,
+        message text NOT NULL DEFAULT 'Buy me a coffee',
+        suggested_amount_pence integer NOT NULL DEFAULT 300,
+        created_at timestamp DEFAULT now(),
+        updated_at timestamp DEFAULT now()
+      );
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error('[MIGRATION CRITICAL]: CREATE tip_jars failed:', (e as Error).message);
+      migrationErrors++;
+    }
+  }
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tip_transactions (
+        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        tip_jar_id varchar NOT NULL REFERENCES tip_jars(id),
+        tipper_id varchar REFERENCES users(id),
+        amount_pence integer NOT NULL,
+        currency text NOT NULL DEFAULT 'gbp',
+        stripe_session_id text,
+        stripe_payment_intent_id text,
+        payment_confirmed boolean NOT NULL DEFAULT false,
+        created_at timestamp DEFAULT now()
+      );
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error('[MIGRATION CRITICAL]: CREATE tip_transactions failed:', (e as Error).message);
+      migrationErrors++;
+    }
+  }
 
     // T19: Final migration summary
     if (migrationErrors > 0) {
