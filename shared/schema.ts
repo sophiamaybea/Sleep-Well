@@ -2790,7 +2790,8 @@ export const serviceBookings = pgTable("service_bookings", {
   // 'pending_payment' | 'paid' | 'in_progress' | 'delivered' | 'cancelled'
   status: text("status").notNull().default("pending_payment"),
   stripeSessionId: text("stripe_session_id"),
-  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripePaymentIntentId: text("stripe_payment_intent_id")
+    paypalOrderId: text("paypal_order_id"),,
   paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
   paidAt: timestamp("paid_at"),
   deliveredAt: timestamp("delivered_at"),
@@ -2818,6 +2819,8 @@ export const tipTransactions = pgTable("tip_transactions", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
+    paypalOrderId: text("paypal_order_id"),
+    paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
   tipJarId: varchar("tip_jar_id")
     .notNull()
     .references(() => tipJars.id),
