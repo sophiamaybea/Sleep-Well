@@ -1,4 +1,4 @@
-# DEPLOYMENT: This repo deploys to Render.com (NOT Replit, NOT Railway)
+# DEPLOYMENT: This repo deploys to Render.com (Deployed on Render (not Replit or Railway))
 # Render service: dashboard.render.com/web/srv-d6u05c450q8c73fo69q0
 # Build: npm run build | Start: npm start
 # Any changes pushed to main branch auto-deploy to Render.
@@ -7,7 +7,7 @@
 providers = ["node"]
 
 [phases.setup]
-nixPkgs = ["nodejs-18_x"]
+nixPkgs = ["nodejs-20_x"]
 
 [variables]
 NPM_CONFIG_LEGACY_PEER_DEPS = "true"
