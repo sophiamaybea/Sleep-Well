@@ -31,7 +31,7 @@
     --space-10: 80px;
 
   /* Teal-Indigo Watercolor Night — bioluminescent garden palette */
-      --color-background: #060b14;
+      --color-background: #000000;
   --color-foreground: #ffffff;
   
   --color-card: #112838;
@@ -1598,7 +1598,7 @@ body {
 
 /* Body bg: always dark so transparent canvas shows stars */
 html, body, #root {
-  background-color: #060b14;
+  background-color: #000000;
 
 }
 body.starfield-active, body.starfield-active #root {
