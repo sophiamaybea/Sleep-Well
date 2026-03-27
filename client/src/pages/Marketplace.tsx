@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   useMarketplaceServices, 
   useCreateService, 
   useMyTipJar, 
   useUpsertTipJar, 
-  useBookService 
+  useBookService,
+  useCaptureBooking,
+  useCaptureTip,
+  useSendTip
 } from "../hooks/useMarketplace";
 import { useAuth } from "../hooks/use-auth";
+import { useSearch } from "wouter";
 
 function formatPrice(pence: number, currency = "gbp") {
   return new Intl.NumberFormat("en-GB", { style: "currency", currency: currency.toUpperCase() }).format(pence / 100);
@@ -41,6 +45,7 @@ function TipJarSection() {
   const { user } = useAuth();
   const { data: tipJar } = useMyTipJar();
   const upsert = useUpsertTipJar();
+  const sendTip = useSendTip();
   const [msg, setMsg] = useState("");
   const [amount, setAmount] = useState(300);
   const [active, setActive] = useState(false);
@@ -150,10 +155,37 @@ function CreateServiceForm({ onDone }: { onDone: () => void }) {
 
 export default function Marketplace() {
   const { user } = useAuth();
+  const search = useSearch();
   const { data: services, isLoading } = useMarketplaceServices();
   const bookService = useBookService();
   const [showCreate, setShowCreate] = useState(false);
   const [tab, setTab] = useState<"browse" | "manage">("browse");
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+
+  const params = new URLSearchParams(search);
+  const bookingId = params.get("bookingId");
+  const success = params.get("success");
+  const txId = params.get("txId");
+  const tipSuccess = params.get("tipSuccess");
+
+  const captureBooking = useCaptureBooking(bookingId || "");
+  const captureTip = useCaptureTip(txId || "");
+
+  useEffect(() => {
+    if (success === "true" && bookingId) {
+      setPaymentStatus("Capturing booking payment...");
+      captureBooking.mutate(undefined, {
+        onSuccess: () => setPaymentStatus("Payment successful! Your booking is confirmed."),
+        onError: () => setPaymentStatus("Payment failed during capture. Please contact support.")
+      });
+    } else if (tipSuccess === "true" && txId) {
+      setPaymentStatus("Capturing tip...");
+      captureTip.mutate(undefined, {
+        onSuccess: () => setPaymentStatus("Thank you for your tip!"),
+        onError: () => setPaymentStatus("Failed to capture tip.")
+      });
+    }
+  }, [success, bookingId, tipSuccess, txId]);
 
   const isWriter = user?.role === "writer" || user?.role === "editor" || user?.role === "admin";
   const allServices = (services as any[]) ?? [];
@@ -169,6 +201,12 @@ export default function Marketplace() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      {paymentStatus && (
+        <div className="bg-primary/10 border border-primary/20 text-primary rounded-md p-4 text-sm font-medium">
+          {paymentStatus}
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold">Literary Marketplace</h1>
         <p className="text-sm text-muted-foreground mt-1">Discover services from writers and editors in the garden. Book feedback, coaching, workshops, and more via PayPal.</p>
