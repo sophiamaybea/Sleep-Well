@@ -1,12 +1,18 @@
 import { useState } from "react";
-import { useMarketplaceServices, useMyServices, useCreateService, useMyTipJar, useUpsertTipJar, useBookService, useStripeConnectStatus, useStripeConnectOnboard } from "../hooks/useMarketplace";
+import { 
+  useMarketplaceServices, 
+  useCreateService, 
+  useMyTipJar, 
+  useUpsertTipJar, 
+  useBookService 
+} from "../hooks/useMarketplace";
 import { useAuth } from "../hooks/use-auth";
 
 function formatPrice(pence: number, currency = "gbp") {
   return new Intl.NumberFormat("en-GB", { style: "currency", currency: currency.toUpperCase() }).format(pence / 100);
 }
 
-function ServiceCard({ service, onBook }: { service: any; onBook: (id: string) => void }) {
+function ServiceCard({ service, onBook, isBooking }: { service: any; onBook: (id: string) => void; isBooking: boolean }) {
   return (
     <div className="border border-border rounded-lg p-4 space-y-2">
       <div className="flex items-start justify-between gap-2">
@@ -22,9 +28,10 @@ function ServiceCard({ service, onBook }: { service: any; onBook: (id: string) =
       <p className="text-xs text-muted-foreground">Delivery: {service.deliveryDays} days</p>
       <button
         onClick={() => onBook(service.id)}
-        className="w-full mt-1 rounded-md bg-primary text-primary-foreground text-xs py-1.5 px-3 hover:opacity-90 transition"
+        disabled={isBooking}
+        className="w-full mt-1 rounded-md bg-primary text-primary-foreground text-xs py-1.5 px-3 hover:opacity-90 transition disabled:opacity-50"
       >
-        Book this service
+        {isBooking ? "Redirecting to PayPal..." : "Book this service"}
       </button>
     </div>
   );
@@ -39,13 +46,12 @@ function TipJarSection() {
   const [active, setActive] = useState(false);
 
   if (!user) return null;
-
   const jar = tipJar as any;
 
   function handleSave() {
     upsert.mutate({
       isActive: active,
-      message: msg || jar?.message || "Buy me a coffee \u2615",
+      message: msg || jar?.message || "Buy me a coffee ☕",
       suggestedAmountPence: amount,
     });
   }
@@ -53,6 +59,7 @@ function TipJarSection() {
   return (
     <div className="border border-border rounded-lg p-4 space-y-3">
       <h3 className="font-semibold text-sm">Your Tip Jar</h3>
+      <p className="text-xs text-muted-foreground">Tips will be sent directly to your PayPal account once configured.</p>
       <label className="flex items-center gap-2 text-xs">
         <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} />
         Enable tip jar
@@ -63,7 +70,7 @@ function TipJarSection() {
           className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs"
           value={msg || jar?.message || ""}
           onChange={e => setMsg(e.target.value)}
-          placeholder="Buy me a coffee \u2615"
+          placeholder="Buy me a coffee ☕"
         />
       </div>
       <div>
@@ -82,40 +89,6 @@ function TipJarSection() {
       >
         {upsert.isPending ? "Saving..." : "Save tip jar"}
       </button>
-    </div>
-  );
-}
-
-function ConnectSection() {
-  const { data: status } = useStripeConnectStatus();
-  const onboard = useStripeConnectOnboard();
-  const s = status as any;
-
-  function handleOnboard() {
-    onboard.mutate(undefined, {
-      onSuccess: (data: any) => {
-        if (data?.url) window.location.href = data.url;
-      },
-    });
-  }
-
-  return (
-    <div className="border border-border rounded-lg p-4 space-y-2">
-      <h3 className="font-semibold text-sm">Stripe Payouts</h3>
-      {s?.connected ? (
-        <p className="text-xs text-green-600">\u2713 Stripe account connected. Payouts enabled.</p>
-      ) : (
-        <>
-          <p className="text-xs text-muted-foreground">Connect Stripe to receive payouts from bookings and tips.</p>
-          <button
-            onClick={handleOnboard}
-            disabled={onboard.isPending}
-            className="w-full rounded-md bg-primary text-primary-foreground text-xs py-1.5 px-3 hover:opacity-90 transition"
-          >
-            {onboard.isPending ? "Redirecting..." : "Connect Stripe"}
-          </button>
-        </>
-      )}
     </div>
   );
 }
@@ -182,7 +155,7 @@ export default function Marketplace() {
   const [showCreate, setShowCreate] = useState(false);
   const [tab, setTab] = useState<"browse" | "manage">("browse");
 
-  const isWriter = user?.role === "writer" || user?.role === "editor";
+  const isWriter = user?.role === "writer" || user?.role === "editor" || user?.role === "admin";
   const allServices = (services as any[]) ?? [];
 
   function handleBook(serviceId: string) {
@@ -198,7 +171,7 @@ export default function Marketplace() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Literary Marketplace</h1>
-        <p className="text-sm text-muted-foreground mt-1">Discover services from writers and editors in the garden. Book feedback, coaching, workshops, and more.</p>
+        <p className="text-sm text-muted-foreground mt-1">Discover services from writers and editors in the garden. Book feedback, coaching, workshops, and more via PayPal.</p>
       </div>
 
       {isWriter && (
@@ -217,7 +190,6 @@ export default function Marketplace() {
             )}
           </div>
           {showCreate && <CreateServiceForm onDone={() => setShowCreate(false)} />}
-          <ConnectSection />
           <TipJarSection />
         </div>
       )}
@@ -231,7 +203,12 @@ export default function Marketplace() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {allServices.map((s: any) => (
-                <ServiceCard key={s.id} service={s} onBook={handleBook} />
+                <ServiceCard 
+                  key={s.id} 
+                  service={s} 
+                  onBook={handleBook} 
+                  isBooking={bookService.isPending && bookService.variables?.serviceId === s.id}
+                />
               ))}
             </div>
           )}
