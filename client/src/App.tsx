@@ -104,7 +104,8 @@ function Router() {
         <Route path="/garden/collections/:id" component={Collections} />
         <Route path="/collections/:slug" component={PublicCollection} />
         <Route path="/garden/:username" component={PublicGarden} />
-        <Route path="/edit-profile" component={EditProfile} />
+        {/* FIX: /edit-profile now requires authentication — unauthenticated visitors are redirected to /sign-in */}
+        <Route path="/edit-profile">{() => <ProtectedRoute component={EditProfile} path="/edit-profile" />}</Route>
         <Route path="/writer/:id" component={WriterProfile} />
         <Route path="/public-garden/:userId" component={PublicGarden} />
         <Route path="/piece/:id" component={Piece} />
