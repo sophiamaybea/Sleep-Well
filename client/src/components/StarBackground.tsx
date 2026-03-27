@@ -58,8 +58,8 @@ const StarMaterial = shaderMaterial(
 
     void main() {
       vPhase = aPhase;
-      // Gentle per-star twinkle: ±25% brightness oscillation
-      vAlpha = 0.55 + 0.25 * sin(uTime * 1.4 + aPhase * 6.2831);
+      // Gentle per-star twinkle: ±10% brightness oscillation
+      vAlpha = 0.65 + 0.10 * sin(uTime * 1.1 + aPhase * 6.2831);
       
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       // Size stays small – sizeAttenuation for perspective feel
@@ -83,7 +83,7 @@ const StarMaterial = shaderMaterial(
       intensity = pow(intensity, 1.6); // sharpen centre without hard edge
 
       gl_FragColor = vec4(
-        mix(vec3(0.78, 0.75, 0.88), vec3(1.0, 0.97, 0.92), intensity),
+        mix(vec3(1.0, 0.96, 0.88), vec3(0.90, 0.92, 1.0), intensity),
         intensity * vAlpha * uOpacity
       );
     }
@@ -122,7 +122,7 @@ function StarField() {
       positions[i * 3 + 1] = (Math.random() - 0.5) * 70;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 70;
       // Vary star sizes – slightly smaller for delicacy
-      sizes[i] = Math.random() * 2.0 + 0.8;
+      sizes[i] = Math.random() < 0.05 ? Math.random() * 1.2 + 2.2 : Math.random() * 1.4 + 0.5;
       phases[i] = Math.random();
     }
     return { positions, sizes, phases };
@@ -172,7 +172,7 @@ interface WeatherLayerProps { progress: number }
 function WeatherLayer({ progress }: WeatherLayerProps) {
   // Rain: zones with softer alphas
   const rainOp = Math.max(
-    weatherOpacity(progress, 0.15, 0.22, 0.35),
+    weatherOpacity(progress, 0.28, 0.35, 0.48),
     weatherOpacity(progress, 0.85, 0.90, 1.0),
   );
 
@@ -328,7 +328,7 @@ export default function StarBackground() {
       {/* Dark sky base — pure black night for delicate stars */}
       <div 
         className="fixed inset-0 pointer-events-none" 
-        style={{ zIndex: -1, background: '#020309' }} 
+        style={{ zIndex: -1, background: '#000000' }} 
         aria-hidden="true" 
       />
 
