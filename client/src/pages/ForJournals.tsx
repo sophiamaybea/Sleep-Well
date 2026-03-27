@@ -119,54 +119,110 @@ const ForJournals: React.FC = () => {
       <Navigation />
 
       <main className="relative z-10">
-        {/* I. WHAT YOU HAVE BEEN CALLING SUBMISSIONS */}
+        {/* I. HERO — THE VISION */}
         <section className="min-h-screen flex flex-col justify-center px-6 md:px-[12vw] py-24 fade-in">
           <div className="max-w-4xl">
-            <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">Section I</span>
+            <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">For Journals</span>
             <h1 className="text-4xl md:text-6xl font-display mb-8 leading-tight">
-              This is not a better bucket for manuscripts.<br />It is a different organism entirely.
+              We are trying to build the literary landscape of the future.
             </h1>
             <div className="space-y-6 text-lg leading-relaxed text-white/80">
-              <p>You know this choreography. You post an open call. A platform receives the file. You read from whatever happened to arrive during that window and call it discovery.</p>
-              <p>The system works. Which is the problem. Because what it selects for is not talent. It is stamina.</p>
+              <p>One where the best writing finds the editors who will love it. Where journals are not competing against each other for the same exhausted submissions pool, but drawing from a living ecosystem of writers who chose to grow here.</p>
+              <p>The Garden is not a platform. It is a community — built around the belief that literary publishing should serve the writing first, and everything else second.</p>
+              <p className="font-display border-l border-white/20 pl-6 text-white/70 italic">The question is not whether your journal is good enough. The question is whether you believe the current system is.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* II. THE PROBLEM WE ALL KNOW */}
+        <section className="min-h-screen flex flex-col justify-center px-6 md:px-[12vw] py-24 border-t border-white/10 fade-in">
+          <div className="max-w-4xl">
+            <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">The Problem</span>
+            <h2 className="text-3xl md:text-5xl font-display mb-8">Submissions infrastructure was not built for discovery.</h2>
+            <div className="space-y-6 text-lg text-white/80">
+              <p>You post an open call. A platform receives the file. You read from whatever happened to arrive during that window and call it discovery. The system works. Which is the problem. Because what it selects for is not talent. It is stamina.</p>
+              <p>Writers mass-submit to dozens of journals they have never read. Editors receive hundreds of pieces that have nothing to do with their vision. Everyone is busy. Nobody is matched.</p>
               <p className="font-display border-l border-white/20 pl-6 text-white/70 italic">You are not reading literature's best offer. You are reading what survived the infrastructure.</p>
             </div>
           </div>
         </section>
 
-        {/* VI. THE PART WHERE EVERYONE PRETENDS MONEY DOESN'T EXIST */}
-        <section className="min-h-screen flex flex-col justify-center px-6 md:px-[12vw] py-24 border-y border-white/10 fade-in">
+        {/* III. WHAT THE GARDEN DOES DIFFERENTLY */}
+        <section className="py-24 px-6 md:px-[12vw] border-t border-white/10 fade-in">
+          <div className="max-w-4xl space-y-8">
+            <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">A Different Organism</span>
+            <h2 className="text-3xl md:text-5xl font-display">Community first. Curation by nature.</h2>
+            <div className="space-y-6 text-lg text-white/80">
+              <p>The Garden is a shared literary space where writers develop their craft, read each other's work, and grow alongside the journals that publish them. When your journal joins, you are not just getting a submissions tool. You are entering a community of writers who are here because they care about the work.</p>
+              <p>Writers in the Garden have profiles, portfolios, and reading histories. You can see who they are before you read a single word. Submissions become introductions, not cold calls.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+              <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">The Bloom Pool</h3>
+                <p className="font-display text-white/85">Writers grow work in the Garden. When a piece is ready, it enters the bloom pool — visible to journals whose aesthetic aligns. Discovery happens by fit, not by volume.</p>
+              </div>
+              <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">Open Calls, Reimagined</h3>
+                <p className="font-display text-white/85">Run themed calls that reach writers already matched to your sensibility. No more sifting through hundreds of misaligned pieces.</p>
+              </div>
+              <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">Editorial Rooms</h3>
+                <p className="font-display text-white/85">A shared reading space for your editorial team. Review, discuss, and decide together — no more email chains or spreadsheet trackers.</p>
+              </div>
+              <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">Writer Relationships</h3>
+                <p className="font-display text-white/85">Build lasting connections with contributors. See their growth over time. Commission work from writers whose voice you already trust.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* IV. THE READING ROOM */}
+        <section className="py-24 px-6 md:px-[12vw] fade-in">
+          <div className="max-w-3xl space-y-8">
+            <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">Getting Started</span>
+            <h2 className="text-3xl md:text-5xl font-display">Start in the Reading Room. Stay as long as you like.</h2>
+            <div className="space-y-6 text-lg text-white/80">
+              <p className="font-medium text-emerald-400">The Reading Room — Free, forever.</p>
+              <p>One active open call. 75 submissions per month. 3 staff logins. Full bloom pool access. 5 publication requests per month. Everything you need to run a serious literary journal, without paying for the privilege.</p>
+              <p>You can remain a completely non-monetised, volunteer-run journal indefinitely. The Garden does not require you to grow. It just makes it possible if you choose to.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* V. SUSTAINABILITY — MONEY REFRAMED */}
+        <section className="py-24 px-6 md:px-[12vw] border-t border-white/10 fade-in">
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-16 items-start">
             <div className="space-y-8">
-              <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">Section VI</span>
-              <h2 className="text-3xl md:text-5xl font-display">The labour no one pays for.</h2>
+              <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">Sustainability</span>
+              <h2 className="text-3xl md:text-5xl font-display">If the labour deserves more than a moral glow.</h2>
               <div className="space-y-6 text-lg text-white/80">
-                <p>You run a journal the way other people run small religions: unpaid, devout, and slightly deranged. The hours go into the inbox. The money, when it appears, goes to the printer, the domain registrar, the platform that charges you for the privilege of reading other people's grief.</p>
-                <p>The Garden does not fix that. It does something meaner and more precise: it removes the infrastructural excuse.</p>
+                <p>Running a journal is real work. The Garden does not pretend otherwise. If you choose to, every tool you need to make that work sustainable is already here — reading fees, donations, workshops, digital issues. No one is forced to monetise. But no one should have to pretend that running a journal is free either.</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                  <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
-                    <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">Channel I</h3>
-                    <p className="font-display text-white/85">Reading fees without the tithe. You set a fee. You keep 85%.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03]">
+                    <p className="text-xs uppercase tracking-widest text-white/50 mb-1">Reading Fees</p>
+                    <p className="text-white/80 text-sm">You set the fee. You keep 85%.</p>
                   </div>
-                  <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
-                    <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">Channel II</h3>
-                    <p className="font-display text-white/85">Donations without the cult. You keep 90%.</p>
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03]">
+                    <p className="text-xs uppercase tracking-widest text-white/50 mb-1">Donations</p>
+                    <p className="text-white/80 text-sm">Readers support you directly. You keep 90%.</p>
                   </div>
-                  <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
-                    <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">Channel III</h3>
-                    <p className="font-display text-white/85">Workshops without admin hell. You keep 85%.</p>
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03]">
+                    <p className="text-xs uppercase tracking-widest text-white/50 mb-1">Workshops</p>
+                    <p className="text-white/80 text-sm">Host craft sessions. You keep 85%.</p>
                   </div>
-                  <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
-                    <h3 className="text-xs uppercase tracking-widest text-white/50 mb-2">Channel IV</h3>
-                    <p className="font-display text-white/85">Digital issues as quiet engine. You keep 80%.</p>
+                  <div className="p-5 rounded-xl border border-white/10 bg-white/[0.03]">
+                    <p className="text-xs uppercase tracking-widest text-white/50 mb-1">Digital Issues</p>
+                    <p className="text-white/80 text-sm">Sell your publication. You keep 80%.</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <aside className="font-sans text-sm text-white/60 border-l border-white/15 pl-8 space-y-4">
-              <p>We built the Garden because we ran a journal and watched it eat every spare hour. The only people getting paid were the platforms that called our work a "use case."</p>
+              <p>We built the Garden because we ran a journal and watched it eat every spare hour. The only people getting paid were the platforms.</p>
               <div className="p-4 rounded-xl border border-dashed border-white/20 bg-white/[0.03]">
                 <p className="font-medium mb-2 text-white/80">Example Annual Flow:</p>
                 <div className="flex justify-between text-xs mb-1"><span>Reading Fees</span><span>£850</span></div>
@@ -178,24 +234,10 @@ const ForJournals: React.FC = () => {
           </div>
         </section>
 
-        {/* VII. TIERS WITHOUT STRINGS ATTACHED */}
-        <section className="py-24 px-6 md:px-[12vw] fade-in">
-          <div className="max-w-3xl space-y-8">
-            <span className="font-sans text-[0.7rem] tracking-[0.18em] uppercase text-white/40 mb-4 block">Section VII</span>
-            <h2 className="text-3xl md:text-5xl font-display">Staying small, staying serious.</h2>
-            <div className="space-y-6 text-lg text-white/80">
-              <p>The default state of the Garden is simple: journals using shared tools, not revenue targets. Every journal begins in the Reading Room, and many will never need to leave it.</p>
-              <p className="font-medium text-emerald-400">The Reading Room — Free, Forever.</p>
-              <p>One active open call. 75 submissions per month. 3 staff logins. Full bloom pool access. 5 publication requests per month. All money tools ready if you choose to flick them on.</p>
-              <p>You can remain a completely non-monetised, volunteer-run journal indefinitely. If you decide the labour deserves more than a moral glow, you move sideways into convenience.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* XII. FINAL STATEMENT */}
+        {/* VI. FINAL STATEMENT */}
         <section className="min-h-[60vh] flex items-center px-6 md:px-[12vw] py-24 fade-in">
           <div className="max-w-4xl">
-            <h2 className="text-4xl md:text-6xl font-display italic mb-12">No writer should die unheard because the infrastructure never made a path between their private pages and the journals that would have loved them.</h2>
+            <h2 className="text-4xl md:text-6xl font-display italic mb-12">No writer should go unheard because the infrastructure never made a path between their private pages and the journals that would have loved them.</h2>
             <p className="text-xl font-display">The Garden is the path.</p>
           </div>
         </section>
