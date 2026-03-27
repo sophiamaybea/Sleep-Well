@@ -986,6 +986,28 @@ export async function runMigrations() {
       migrationErrors++;
     }
   }
+  // Add paypal_order_id to service_bookings for PayPal payment capture
+  try {
+    await pool.query(`
+      ALTER TABLE service_bookings ADD COLUMN IF NOT EXISTS paypal_order_id text;
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error('[MIGRATION CRITICAL]: ALTER service_bookings paypal_order_id failed:', (e as Error).message);
+      migrationErrors++;
+    }
+  }
+  // Add paypal_order_id to tip_transactions for PayPal payment capture
+  try {
+    await pool.query(`
+      ALTER TABLE tip_transactions ADD COLUMN IF NOT EXISTS paypal_order_id text;
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error('[MIGRATION CRITICAL]: ALTER tip_transactions paypal_order_id failed:', (e as Error).message);
+      migrationErrors++;
+    }
+  }
 
     // T19: Final migration summary
     if (migrationErrors > 0) {
