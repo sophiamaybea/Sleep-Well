@@ -26,6 +26,7 @@ import { ResonanceBar, MarginaliaSection, TendButton } from "@/components/garden
 import { TablesRoom, WorkshopRoom, SwapRoom, TheDeskRoom, FirstReaderRoom, ReadingShelfRoom } from "@/components/garden/CommunityRooms";
 import RichEditor, { ContentRenderer, stripHtml, wordCountFromContent } from "@/components/garden/RichEditor";
 import ExportMenu from "@/components/garden/ExportMenu";
+import { EditorialFeedbackBanner } from "@/components/garden/EditorialFeedbackBanner";
 import SendToEditors from "@/components/garden/SendToEditors";
 import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
@@ -1313,12 +1314,12 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
   );
 }
 
-function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
+function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting, onRequestFeedback }: {
   writing: Writing;
   onBack: () => void;
   onSave: (data: { title: string; content: string; genre: string; readiness?: string; tags?: string[] }) => void;
   onDelete: () => void;
-  onOpenPlanting: () => void;
+  onOpenPlanting: () => void;   onRequestFeedback?: () => void;
 }) {
   const [editTitle, setEditTitle] = useState(writing.title);
   const [editContent, setEditContent] = useState(writing.content);
@@ -1484,7 +1485,8 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting }: {
         )}
       </AnimatePresence>
 
-      <div className="space-y-6">
+<EditorialFeedbackBanner onRequestFeedback={() => {}} />
+                <div className="space-y-6">
         <input
           type="text"
           value={editTitle}
@@ -3583,8 +3585,9 @@ export default function Garden() {
   const [showA11yPanel, setShowA11yPanel] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
-    const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);
+    const [const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);, setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);] = useState(false);
   const [feedbackWritingId, setFeedbackWritingId] = useState<string | null>(null);
+        const [showEditorialModal, setShowEditorialModal] = useState(false);
   const { settings: a11y, toggle: toggleA11y } = useAccessibility();
 
   const { data: writings = [], isLoading } = useQuery<Writing[]>({
@@ -3786,7 +3789,7 @@ export default function Garden() {
   function handlePlantingSave(data: { visibility: string; readiness: string; editorialAvailable: boolean }) {
     if (plantingTarget) updateMutation.mutate({ id: plantingTarget.id, ...data });
         if (plantingTarget && (data.visibility === 'gallery' || data.visibility === 'gallery_opt_in')) {      setFeedbackWritingId(plantingTarget.id);
-      setShowGalleryFeedback(true);
+      setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);(true);
     }
   }
 
@@ -4165,6 +4168,7 @@ export default function Garden() {
                   onSave={(data) => updateMutation.mutate({ id: activeWriting.id, ...data })}
                   onDelete={() => deleteMutation.mutate(activeWriting.id)}
                   onOpenPlanting={() => openPlanting(activeWriting)}
+                                onRequestFeedback={() => setShowEditorialModal(true)}
                 />
               ) : activeZone === "desk" ? (
                 <DeskZone
@@ -4216,8 +4220,8 @@ export default function Garden() {
         title={plantingTarget?.title}
       />
             <GalleryFeedbackModal
-        isOpen={showGalleryFeedback}
-        onClose={() => { setShowGalleryFeedback(false); setFeedbackWritingId(null); }}
+        isOpen={const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);}
+        onClose={() => { setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);(false); setFeedbackWritingId(null); }}
         writingId={feedbackWritingId || ""}
       />
     </div>
