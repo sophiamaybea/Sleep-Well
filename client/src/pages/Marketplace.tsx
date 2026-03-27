@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import StarBackground from "@/components/StarBackground";
 import { 
   useMarketplaceServices, 
   useCreateService, 
@@ -49,10 +52,8 @@ function TipJarSection() {
   const [msg, setMsg] = useState("");
   const [amount, setAmount] = useState(300);
   const [active, setActive] = useState(false);
-
   if (!user) return null;
   const jar = tipJar as any;
-
   function handleSave() {
     upsert.mutate({
       isActive: active,
@@ -60,7 +61,6 @@ function TipJarSection() {
       suggestedAmountPence: amount,
     });
   }
-
   return (
     <div className="border border-border rounded-lg p-4 space-y-3">
       <h3 className="font-semibold text-sm">Your Tip Jar</h3>
@@ -107,12 +107,10 @@ function CreateServiceForm({ onDone }: { onDone: () => void }) {
     pricePence: 5000,
     deliveryDays: 7,
   });
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     create.mutate(form, { onSuccess: onDone });
   }
-
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
@@ -161,16 +159,13 @@ export default function Marketplace() {
   const [showCreate, setShowCreate] = useState(false);
   const [tab, setTab] = useState<"browse" | "manage">("browse");
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
-
   const params = new URLSearchParams(search);
   const bookingId = params.get("bookingId");
   const success = params.get("success");
   const txId = params.get("txId");
   const tipSuccess = params.get("tipSuccess");
-
   const captureBooking = useCaptureBooking(bookingId || "");
   const captureTip = useCaptureTip(txId || "");
-
   useEffect(() => {
     if (success === "true" && bookingId) {
       setPaymentStatus("Capturing booking payment...");
@@ -186,10 +181,8 @@ export default function Marketplace() {
       });
     }
   }, [success, bookingId, tipSuccess, txId]);
-
   const isWriter = user?.role === "writer" || user?.role === "editor" || user?.role === "admin";
   const allServices = (services as any[]) ?? [];
-
   function handleBook(serviceId: string) {
     if (!user) return;
     bookService.mutate({ serviceId }, {
@@ -198,60 +191,60 @@ export default function Marketplace() {
       },
     });
   }
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      {paymentStatus && (
-        <div className="bg-primary/10 border border-primary/20 text-primary rounded-md p-4 text-sm font-medium">
-          {paymentStatus}
+    <div className="min-h-screen bg-[#FAF8F4] text-foreground selection:bg-secondary">
+      <StarBackground />
+      <Navigation />
+      <main className="relative z-10 max-w-4xl mx-auto px-4 py-8 space-y-6">
+        {paymentStatus && (
+          <div className="bg-primary/10 border border-primary/20 text-primary rounded-md p-4 text-sm font-medium">
+            {paymentStatus}
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl font-bold">Literary Marketplace</h1>
+          <p className="text-sm text-muted-foreground mt-1">Discover services from writers and editors in the garden. Book feedback, coaching, workshops, and more via PayPal.</p>
         </div>
-      )}
-
-      <div>
-        <h1 className="text-2xl font-bold">Literary Marketplace</h1>
-        <p className="text-sm text-muted-foreground mt-1">Discover services from writers and editors in the garden. Book feedback, coaching, workshops, and more via PayPal.</p>
-      </div>
-
-      {isWriter && (
-        <div className="flex gap-2 border-b border-border pb-2">
-          <button onClick={() => setTab("browse")} className={`text-sm px-3 py-1 rounded-md transition ${tab === "browse" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>Browse</button>
-          <button onClick={() => setTab("manage")} className={`text-sm px-3 py-1 rounded-md transition ${tab === "manage" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>Manage my services</button>
-        </div>
-      )}
-
-      {tab === "manage" && isWriter && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-sm">My Services</h2>
-            {!showCreate && (
-              <button onClick={() => setShowCreate(true)} className="text-xs rounded-md bg-primary text-primary-foreground px-3 py-1.5 hover:opacity-90 transition">+ New service</button>
+        {isWriter && (
+          <div className="flex gap-2 border-b border-border pb-2">
+            <button onClick={() => setTab("browse")} className={`text-sm px-3 py-1 rounded-md transition ${tab === "browse" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>Browse</button>
+            <button onClick={() => setTab("manage")} className={`text-sm px-3 py-1 rounded-md transition ${tab === "manage" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>Manage my services</button>
+          </div>
+        )}
+        {tab === "manage" && isWriter && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-sm">My Services</h2>
+              {!showCreate && (
+                <button onClick={() => setShowCreate(true)} className="text-xs rounded-md bg-primary text-primary-foreground px-3 py-1.5 hover:opacity-90 transition">+ New service</button>
+              )}
+            </div>
+            {showCreate && <CreateServiceForm onDone={() => setShowCreate(false)} />}
+            <TipJarSection />
+          </div>
+        )}
+        {tab === "browse" && (
+          <div>
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading services...</p>
+            ) : allServices.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No services listed yet. Writers and editors can add services from the Manage tab.</p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {allServices.map((s: any) => (
+                  <ServiceCard 
+                    key={s.id} 
+                    service={s} 
+                    onBook={handleBook} 
+                    isBooking={bookService.isPending && bookService.variables?.serviceId === s.id}
+                  />
+                ))}
+              </div>
             )}
           </div>
-          {showCreate && <CreateServiceForm onDone={() => setShowCreate(false)} />}
-          <TipJarSection />
-        </div>
-      )}
-
-      {tab === "browse" && (
-        <div>
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading services...</p>
-          ) : allServices.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No services listed yet. Writers and editors can add services from the Manage tab.</p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {allServices.map((s: any) => (
-                <ServiceCard 
-                  key={s.id} 
-                  service={s} 
-                  onBook={handleBook} 
-                  isBooking={bookService.isPending && bookService.variables?.serviceId === s.id}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </main>
+      <Footer />
     </div>
   );
 }
