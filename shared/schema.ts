@@ -2285,7 +2285,6 @@ export const insertStudioProductSchema = createInsertSchema(studioProducts).omit
 export type StudioProduct = typeof studioProducts.$inferSelect;
 export type InsertStudioProduct = z.infer<typeof insertStudioProductSchema>;
 export type StudioPurchase = typeof studioPurchases.$inferSelect;
-export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
 
 // === CHAPBOOK COLLECTIONS / BEDS ===
 export const chapbookCollections = pgTable("chapbook_collections", {
