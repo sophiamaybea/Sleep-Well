@@ -877,7 +877,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         </motion.button>
       </div>
 
-      <div className="flex hidden flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-grow">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/90" />
           <input
@@ -907,7 +907,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         </div>
       </div>
 
-      <div className="hidden flex items-center gap-2 mb-6 flex-wrap">
+      <div className="flex items-center gap-2 mb-6 flex-wrap">
         {allTags.length > 0 && (
           <>
             {allTags.map((tag) => (
