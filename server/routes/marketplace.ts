@@ -1,5 +1,5 @@
 import { type Express } from "express";
-import { db } from "../db";
+import { db, pool } from "../db";
 import {
   writerServices,
   serviceBookings,
@@ -120,8 +120,6 @@ export function registerMarketplaceRoutes(app: Express) {
       }
       const order = await orderRes.json();
 
-      // Store booking with paypal_order_id via raw pool query (schema uses stripe fields,
-      // we add paypal_order_id via migration in db.ts)
       const [booking] = await db
         .insert(serviceBookings)
         .values({
@@ -132,9 +130,8 @@ export function registerMarketplaceRoutes(app: Express) {
         })
         .returning();
 
-      // Update with paypal order id
-      await db.execute(
-        `UPDATE service_bookings SET paypal_order_id = $1 WHERE id = $2`,
+      await pool.query(
+        "UPDATE service_bookings SET paypal_order_id = $1 WHERE id = $2",
         [order.id, booking.id]
       );
 
@@ -153,8 +150,8 @@ export function registerMarketplaceRoutes(app: Express) {
         return res.status(401).json({ error: "Unauthorized" });
       }
       try {
-        const result = await db.execute(
-          `SELECT * FROM service_bookings WHERE id = $1`,
+        const result = await pool.query(
+          "SELECT * FROM service_bookings WHERE id = $1",
           [req.params.bookingId]
         );
         const booking = result.rows[0];
@@ -177,8 +174,8 @@ export function registerMarketplaceRoutes(app: Express) {
         }
         const capture = await captureRes.json();
 
-        await db.execute(
-          `UPDATE service_bookings SET status = 'paid', payment_confirmed = true, paid_at = now() WHERE id = $1`,
+        await pool.query(
+          "UPDATE service_bookings SET status = 'paid', payment_confirmed = true, paid_at = now() WHERE id = $1",
           [booking.id]
         );
 
@@ -259,9 +256,8 @@ export function registerMarketplaceRoutes(app: Express) {
         })
         .returning();
 
-      // Store paypal order id
-      await db.execute(
-        `UPDATE tip_transactions SET paypal_order_id = $1 WHERE id = $2`,
+      await pool.query(
+        "UPDATE tip_transactions SET paypal_order_id = $1 WHERE id = $2",
         [order.id, tx.id]
       );
 
@@ -280,8 +276,8 @@ export function registerMarketplaceRoutes(app: Express) {
         return res.status(401).json({ error: "Unauthorized" });
       }
       try {
-        const result = await db.execute(
-          `SELECT * FROM tip_transactions WHERE id = $1`,
+        const result = await pool.query(
+          "SELECT * FROM tip_transactions WHERE id = $1",
           [req.params.txId]
         );
         const tx = result.rows[0];
@@ -304,8 +300,8 @@ export function registerMarketplaceRoutes(app: Express) {
         }
         const capture = await captureRes.json();
 
-        await db.execute(
-          `UPDATE tip_transactions SET payment_confirmed = true WHERE id = $1`,
+        await pool.query(
+          "UPDATE tip_transactions SET payment_confirmed = true WHERE id = $1",
           [tx.id]
         );
 
