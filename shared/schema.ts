@@ -2790,8 +2790,8 @@ export const serviceBookings = pgTable("service_bookings", {
   // 'pending_payment' | 'paid' | 'in_progress' | 'delivered' | 'cancelled'
   status: text("status").notNull().default("pending_payment"),
   stripeSessionId: text("stripe_session_id"),
-  stripePaymentIntentId: text("stripe_payment_intent_id")
-    paypalOrderId: text("paypal_order_id"),,
+  stripePaymentIntentId: text("stripe_payment_intent_id"),         
+    paypalOrderId: text("paypal_order_id"),
   paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
   paidAt: timestamp("paid_at"),
   deliveredAt: timestamp("delivered_at"),
