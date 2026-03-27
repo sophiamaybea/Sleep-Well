@@ -48,7 +48,8 @@ const V2Community = lazy(() => import("@/pages/V2Community"));
 const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
-const EditorialRoom = lazy(() => import("@/pages/EditorialRoom")); const Marketplace = lazy(() => import("@/pages/Marketplace")); const Marketplace = lazy(() => import("@/pages/Marketplace"));
+const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
+const Marketplace = lazy(() => import("@/pages/Marketplace"));
 
 // T35: ProtectedRoute uses branded LoadingScreen instead of generic PageLoader
 // T48: destructure path out so it is never spread into the Component
