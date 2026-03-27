@@ -2753,4 +2753,120 @@ export const insertJournalApplicationSchema = createInsertSchema(
 
 export type JournalApplication = typeof journalApplications.$inferSelect;
 export type InsertJournalApplication = z.infer<typeof insertJournalApplicationSchema>;
+
+// === MARKETPLACE — writer_services, service_bookings, tip_jars ===
+export const writerServices = pgTable("writer_services", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  serviceType: text("service_type").notNull().default("manuscript_feedback"),
+  pricePence: integer("price_pence").notNull().default(0),
+  currency: text("currency").notNull().default("gbp"),
+  deliveryDays: integer("delivery_days").notNull().default(7),
+  isActive: boolean("is_active").notNull().default(true),
+  stripeProductId: text("stripe_product_id"),
+  stripePriceId: text("stripe_price_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const serviceBookings = pgTable("service_bookings", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  serviceId: varchar("service_id")
+    .notNull()
+    .references(() => writerServices.id),
+  clientId: varchar("client_id")
+    .notNull()
+    .references(() => users.id),
+  note: text("note"),
+  pricePence: integer("price_pence").notNull().default(0),
+  currency: text("currency").notNull().default("gbp"),
+  // 'pending_payment' | 'paid' | 'in_progress' | 'delivered' | 'cancelled'
+  status: text("status").notNull().default("pending_payment"),
+  stripeSessionId: text("stripe_session_id"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
+  paidAt: timestamp("paid_at"),
+  deliveredAt: timestamp("delivered_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const tipJars = pgTable("tip_jars", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id)
+    .unique(),
+  isActive: boolean("is_active").notNull().default(false),
+  message: text("message").notNull().default("Buy me a coffee ☕"),
+  suggestedAmountPence: integer("suggested_amount_pence").notNull().default(300),
+  stripeProductId: text("stripe_product_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const tipTransactions = pgTable("tip_transactions", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  tipJarId: varchar("tip_jar_id")
+    .notNull()
+    .references(() => tipJars.id),
+  // null = anonymous tipper (Stripe Checkout, no session required)
+  tipperId: varchar("tipper_id").references(() => users.id),
+  amountPence: integer("amount_pence").notNull(),
+  currency: text("currency").notNull().default("gbp"),
+  stripeSessionId: text("stripe_session_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertWriterServiceSchema = createInsertSchema(writerServices).omit({
+  id: true,
+  authorId: true,
+  stripeProductId: true,
+  stripePriceId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateWriterServiceSchema = insertWriterServiceSchema.partial();
+
+export const insertServiceBookingSchema = createInsertSchema(serviceBookings).omit({
+  id: true,
+  clientId: true,
+  status: true,
+  stripeSessionId: true,
+  stripePaymentIntentId: true,
+  paymentConfirmed: true,
+  paidAt: true,
+  deliveredAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTipJarSchema = createInsertSchema(tipJars).omit({
+  id: true,
+  authorId: true,
+  stripeProductId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateTipJarSchema = insertTipJarSchema.partial();
+
+export type WriterService = typeof writerServices.$inferSelect;
+export type InsertWriterService = z.infer<typeof insertWriterServiceSchema>;
+export type ServiceBooking = typeof serviceBookings.$inferSelect;
+export type InsertServiceBooking = z.infer<typeof insertServiceBookingSchema>;
+export type TipJar = typeof tipJars.$inferSelect;
+export type InsertTipJar = z.infer<typeof insertTipJarSchema>;
+export type TipTransaction = typeof tipTransactions.$inferSelect;
 export type InsertEditorialServiceOrder = z.infer<typeof insertEditorialServiceOrderSchema>;
