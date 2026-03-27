@@ -38,7 +38,7 @@ function ServiceCard({ service, onBook, isBooking }: { service: any; onBook: (id
         disabled={isBooking}
         className="w-full mt-1 rounded-md bg-primary text-primary-foreground text-xs py-1.5 px-3 hover:opacity-90 transition disabled:opacity-50"
       >
-        {isBooking ? "Redirecting to PayPal..." : "Book this service"}
+        {isBooking ? "Redirecting..." : "Book this service"}
       </button>
     </div>
   );
@@ -64,7 +64,7 @@ function TipJarSection() {
   return (
     <div className="border border-border rounded-lg p-4 space-y-3">
       <h3 className="font-semibold text-sm">Your Tip Jar</h3>
-      <p className="text-xs text-muted-foreground">Tips will be sent directly to your PayPal account once configured.</p>
+      <p className="text-xs text-muted-foreground">Tips will be sent directly to your account once configured.</p>
       <label className="flex items-center gap-2 text-xs">
         <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} />
         Enable tip jar
@@ -203,7 +203,7 @@ export default function Marketplace() {
         )}
         <div>
           <h1 className="text-2xl font-bold">Literary Marketplace</h1>
-          <p className="text-sm text-muted-foreground mt-1">Discover services from writers and editors in the garden. Book feedback, coaching, workshops, and more via PayPal.</p>
+          <p className="text-sm text-muted-foreground mt-1">A place to discover and offer literary services — feedback, coaching, editing, workshops, and more.</p>
         </div>
         {isWriter && (
           <div className="flex gap-2 border-b border-border pb-2">
@@ -228,7 +228,7 @@ export default function Marketplace() {
             {isLoading ? (
               <p className="text-sm text-muted-foreground">Loading services...</p>
             ) : allServices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No services listed yet. Writers and editors can add services from the Manage tab.</p>
+              <p className="text-sm text-muted-foreground">No services listed yet. Check back soon, or list your own from the Manage tab.</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {allServices.map((s: any) => (
