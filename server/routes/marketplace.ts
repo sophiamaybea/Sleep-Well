@@ -39,7 +39,22 @@ async function getPayPalAccessToken(): Promise<string> {
 
 export function registerMarketplaceRoutes(app: Express) {
   // —— WRITER SERVICES ——————————————————————————————————————————
-  // POST /api/marketplace/services — authenticated writer/editor only
+
+  // GET /api/marketplace/services
+  app.get("/api/marketplace/services", async (_req, res) => {
+    try {
+      const services = await db
+        .select()
+        .from(writerServices)
+        .where(eq(writerServices.isActive, true));
+      return res.json(services);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Failed to fetch services" });
+    }
+  });
+
+  // POST /api/marketplace/services — create a listing (writer/editor/admin)
   app.post("/api/marketplace/services", async (req: any, res) => {
     if (
       !req.isAuthenticated() ||
@@ -49,16 +64,17 @@ export function registerMarketplaceRoutes(app: Express) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     try {
-      const { title, description, scope, priceGbp } = req.body;
+      const { title, description, serviceType, pricePence, deliveryDays } = req.body;
       const [service] = await db
         .insert(writerServices)
         .values({
-          writerId: req.user.id,
+          authorId: req.user.id,
           title,
-          description,
-          scope,
-          priceGbp: String(priceGbp),
-          active: true,
+          description: description || "",
+          serviceType: serviceType || "manuscript_feedback",
+          pricePence: Number(pricePence),
+          deliveryDays: deliveryDays || 7,
+          isActive: true,
         })
         .returning();
       return res.json(service);
@@ -68,21 +84,7 @@ export function registerMarketplaceRoutes(app: Express) {
     }
   });
 
-  // GET /api/marketplace/services
-  app.get("/api/marketplace/services", async (_req, res) => {
-    try {
-      const services = await db
-        .select()
-        .from(writerServices)
-        .where(eq(writerServices.active, true));
-      return res.json(services);
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Failed to fetch services" });
-    }
-  });
-
-  // POST /api/marketplace/services/:id/book — create PayPal order
+  // POST /api/marketplace/services/:id/book — create PayPal order for service booking
   app.post("/api/marketplace/services/:id/book", async (req: any, res) => {
     if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -91,10 +93,11 @@ export function registerMarketplaceRoutes(app: Express) {
       const [service] = await db
         .select()
         .from(writerServices)
-        .where(eq(writerServices.id, Number(req.params.id)));
+        .where(eq(writerServices.id, req.params.id));
       if (!service) return res.status(404).json({ error: "Service not found" });
 
       const token = await getPayPalAccessToken();
+      const gbpAmount = (service.pricePence / 100).toFixed(2);
       const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
         method: "POST",
         headers: {
@@ -105,10 +108,7 @@ export function registerMarketplaceRoutes(app: Express) {
           intent: "CAPTURE",
           purchase_units: [
             {
-              amount: {
-                currency_code: "GBP",
-                value: Number(service.priceGbp).toFixed(2),
-              },
+              amount: { currency_code: "GBP", value: gbpAmount },
               description: service.title,
             },
           ],
@@ -120,16 +120,23 @@ export function registerMarketplaceRoutes(app: Express) {
       }
       const order = await orderRes.json();
 
+      // Store booking with paypal_order_id via raw pool query (schema uses stripe fields,
+      // we add paypal_order_id via migration in db.ts)
       const [booking] = await db
         .insert(serviceBookings)
         .values({
           serviceId: service.id,
           clientId: req.user.id,
-          paypalOrderId: order.id,
-          status: "pending",
-          amountGbp: String(service.priceGbp),
+          pricePence: service.pricePence,
+          status: "pending_payment",
         })
         .returning();
+
+      // Update with paypal order id
+      await db.execute(
+        `UPDATE service_bookings SET paypal_order_id = $1 WHERE id = $2`,
+        [order.id, booking.id]
+      );
 
       return res.json({ orderId: order.id, bookingId: booking.id, order });
     } catch (err) {
@@ -146,15 +153,16 @@ export function registerMarketplaceRoutes(app: Express) {
         return res.status(401).json({ error: "Unauthorized" });
       }
       try {
-        const [booking] = await db
-          .select()
-          .from(serviceBookings)
-          .where(eq(serviceBookings.id, Number(req.params.bookingId)));
+        const result = await db.execute(
+          `SELECT * FROM service_bookings WHERE id = $1`,
+          [req.params.bookingId]
+        );
+        const booking = result.rows[0];
         if (!booking) return res.status(404).json({ error: "Booking not found" });
 
         const token = await getPayPalAccessToken();
         const captureRes = await fetch(
-          `${PAYPAL_API}/v2/checkout/orders/${booking.paypalOrderId}/capture`,
+          `${PAYPAL_API}/v2/checkout/orders/${booking.paypal_order_id}/capture`,
           {
             method: "POST",
             headers: {
@@ -169,10 +177,10 @@ export function registerMarketplaceRoutes(app: Express) {
         }
         const capture = await captureRes.json();
 
-        await db
-          .update(serviceBookings)
-          .set({ status: "paid" })
-          .where(eq(serviceBookings.id, booking.id));
+        await db.execute(
+          `UPDATE service_bookings SET status = 'paid', payment_confirmed = true, paid_at = now() WHERE id = $1`,
+          [booking.id]
+        );
 
         return res.json({ success: true, capture });
       } catch (err) {
@@ -183,13 +191,14 @@ export function registerMarketplaceRoutes(app: Express) {
   );
 
   // —— TIP JAR ——————————————————————————————————————————————————
-  // GET /api/marketplace/tips/:writerId
+
+  // GET /api/marketplace/tips/:writerId — fetch a writer's tip jar
   app.get("/api/marketplace/tips/:writerId", async (req, res) => {
     try {
       const [jar] = await db
         .select()
         .from(tipJars)
-        .where(eq(tipJars.writerId, Number(req.params.writerId)));
+        .where(eq(tipJars.authorId, req.params.writerId));
       return res.json(jar || null);
     } catch (err) {
       console.error(err);
@@ -203,10 +212,20 @@ export function registerMarketplaceRoutes(app: Express) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     try {
-      const { amountGbp } = req.body;
-      if (!amountGbp || Number(amountGbp) < 0.5) {
-        return res.status(400).json({ error: "Minimum tip is £0.50" });
+      const [jar] = await db
+        .select()
+        .from(tipJars)
+        .where(eq(tipJars.authorId, req.params.writerId));
+      if (!jar || !jar.isActive) {
+        return res.status(404).json({ error: "Tip jar not found or inactive" });
       }
+
+      const { amountPence } = req.body;
+      const pence = Number(amountPence);
+      if (!pence || pence < 50) {
+        return res.status(400).json({ error: "Minimum tip is 50p" });
+      }
+      const gbpAmount = (pence / 100).toFixed(2);
 
       const token = await getPayPalAccessToken();
       const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
@@ -219,10 +238,7 @@ export function registerMarketplaceRoutes(app: Express) {
           intent: "CAPTURE",
           purchase_units: [
             {
-              amount: {
-                currency_code: "GBP",
-                value: Number(amountGbp).toFixed(2),
-              },
+              amount: { currency_code: "GBP", value: gbpAmount },
               description: "Tip for writer",
             },
           ],
@@ -237,13 +253,17 @@ export function registerMarketplaceRoutes(app: Express) {
       const [tx] = await db
         .insert(tipTransactions)
         .values({
-          writerId: Number(req.params.writerId),
+          tipJarId: jar.id,
           tipperId: req.user.id,
-          paypalOrderId: order.id,
-          amountGbp: String(amountGbp),
-          status: "pending",
+          amountPence: pence,
         })
         .returning();
+
+      // Store paypal order id
+      await db.execute(
+        `UPDATE tip_transactions SET paypal_order_id = $1 WHERE id = $2`,
+        [order.id, tx.id]
+      );
 
       return res.json({ orderId: order.id, transactionId: tx.id, order });
     } catch (err) {
@@ -260,15 +280,16 @@ export function registerMarketplaceRoutes(app: Express) {
         return res.status(401).json({ error: "Unauthorized" });
       }
       try {
-        const [tx] = await db
-          .select()
-          .from(tipTransactions)
-          .where(eq(tipTransactions.id, Number(req.params.txId)));
+        const result = await db.execute(
+          `SELECT * FROM tip_transactions WHERE id = $1`,
+          [req.params.txId]
+        );
+        const tx = result.rows[0];
         if (!tx) return res.status(404).json({ error: "Transaction not found" });
 
         const token = await getPayPalAccessToken();
         const captureRes = await fetch(
-          `${PAYPAL_API}/v2/checkout/orders/${tx.paypalOrderId}/capture`,
+          `${PAYPAL_API}/v2/checkout/orders/${tx.paypal_order_id}/capture`,
           {
             method: "POST",
             headers: {
@@ -283,10 +304,10 @@ export function registerMarketplaceRoutes(app: Express) {
         }
         const capture = await captureRes.json();
 
-        await db
-          .update(tipTransactions)
-          .set({ status: "paid" })
-          .where(eq(tipTransactions.id, tx.id));
+        await db.execute(
+          `UPDATE tip_transactions SET payment_confirmed = true WHERE id = $1`,
+          [tx.id]
+        );
 
         return res.json({ success: true, capture });
       } catch (err) {
