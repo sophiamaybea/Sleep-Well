@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Download, FileText, FileCode, File, FileType } from "lucide-react";
+import { Download, FileText, FileCode, File, FileType, Sparkles } from "lucide-react";
 import { stripHtml } from "./RichEditor";
 
 interface ExportMenuProps {
   title: string;
   content: string;
   compact?: boolean;
-  writingId?: string;
+  writingId?: string;   onRequestFeedback?: () => void;
 }
 
 function htmlToMarkdown(html: string): string {
@@ -54,7 +54,7 @@ function sanitizeFilename(title: string): string {
     .slice(0, 60);
 }
 
-export default function ExportMenu({ title, content, compact = false, writingId }: ExportMenuProps) {
+export default function ExportMenu({ title, content, compact = false, writingId, onRequestFeedback }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -154,6 +154,15 @@ ${bodyContent}
             <File size={13} className="text-white/40" />
             Print / PDF
           </button>
+                      <div className="border-t border-white/[0.08] my-1" />
+            <button
+              onClick={onRequestFeedback}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left font-mono text-[10px] uppercase tracking-widest text-amber-300/70 hover:text-amber-200 hover:bg-amber-500/[0.07] transition-all"
+              data-testid="menu-editorial-feedback"
+            >
+              <Sparkles size={13} className="text-amber-400/60" />
+              Editorial Feedback — £5
+            </button>
         </div>
       )}
     </div>
