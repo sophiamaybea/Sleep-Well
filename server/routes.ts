@@ -5,6 +5,7 @@ import { registerEditorialOrderRoutes } from "./routes/editorialOrders";
 import { registerWritingLayoutRoutes } from "./routes/writingLayout";
 import { registerWritingExerciseRoutes } from "./routes/writingExercises";
 import { registerJournalApplicationRoutes } from "./routes/journalApplications";
+import { registerMarketplaceRoutes } from "./routes/marketplace";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import {
@@ -8536,5 +8537,6 @@ const sharedPieces = await db.select({
     registerWritingLayoutRoutes(app);
     registerWritingExerciseRoutes(app);
     registerJournalApplicationRoutes(app);
-  return httpServer;
+  registerMarketplaceRoutes(app);
+  return httpServer;  registerMarketplaceRoutes(app);
 }
