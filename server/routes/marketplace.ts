@@ -7,296 +7,292 @@ import {
   tipTransactions,
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import Stripe from "stripe";
 
-// Env-check similar to editorialOrders.ts PayPal guard
-function getStripeClient(): Stripe {
-  if (!process.env.STRIPE_SECRET_KEY) {
+const PAYPAL_API =
+  process.env.NODE_ENV === "production"
+    ? "https://api-m.paypal.com"
+    : "https://api-m.sandbox.paypal.com";
+
+async function getPayPalAccessToken(): Promise<string> {
+  if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
     throw new Error(
-      "[Stripe] STRIPE_SECRET_KEY must be set in environment variables. Marketplace routes will not function without it."
+      "[PayPal] PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set in environment variables. Marketplace routes cannot initialise."
     );
   }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2025-01-27.acacia",
+  const clientId = process.env.PAYPAL_CLIENT_ID!;
+  const secret = process.env.PAYPAL_CLIENT_SECRET!;
+  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(`${clientId}:${secret}`).toString("base64")}`,
+    },
+    body: "grant_type=client_credentials",
   });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`[PayPal] Failed to get access token: ${text}`);
+  }
+  const data = (await res.json()) as { access_token: string };
+  return data.access_token;
 }
 
 export function registerMarketplaceRoutes(app: Express) {
-  // ─── WRITER SERVICES ────────────────────────────────────────────────────────
+  // —— WRITER SERVICES ——————————————————————————————————————————
   // POST /api/marketplace/services — authenticated writer/editor only
   app.post("/api/marketplace/services", async (req: any, res) => {
     if (
+      !req.isAuthenticated() ||
       !req.user ||
-      (req.user.role !== "writer" &&
-        req.user.role !== "editor" &&
-        req.user.role !== "editor_in_chief")
+      !(["writer", "editor", "admin"].includes(req.user.role))
     ) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-    const { title, description, serviceType, pricePence, deliveryDays } =
-      req.body;
-    if (!title || pricePence === undefined) {
-      return res
-        .status(400)
-        .json({ error: "title and pricePence are required" });
+      return res.status(401).json({ error: "Unauthorized" });
     }
     try {
+      const { title, description, scope, priceGbp } = req.body;
       const [service] = await db
         .insert(writerServices)
         .values({
-          authorId: req.user.id,
+          writerId: req.user.id,
           title,
-          description: description || "",
-          serviceType: serviceType || "manuscript_feedback",
-          pricePence,
-          deliveryDays: deliveryDays || 7,
-          currency: "gbp",
-          isActive: true,
+          description,
+          scope,
+          priceGbp: String(priceGbp),
+          active: true,
         })
         .returning();
-      res.json(service);
+      return res.json(service);
     } catch (err) {
-      console.error("[marketplace] create service error:", err);
-      res.status(500).json({ error: "Could not create service" });
+      console.error(err);
+      return res.status(500).json({ error: "Failed to create service" });
     }
   });
 
-  // GET /api/marketplace/services — public, returns all active services
+  // GET /api/marketplace/services
   app.get("/api/marketplace/services", async (_req, res) => {
     try {
       const services = await db
         .select()
         .from(writerServices)
-        .where(eq(writerServices.isActive, true))
-        .orderBy(writerServices.createdAt);
-      res.json(services);
+        .where(eq(writerServices.active, true));
+      return res.json(services);
     } catch (err) {
-      console.error("[marketplace] list services error:", err);
-      res.status(500).json({ error: "Could not fetch services" });
+      console.error(err);
+      return res.status(500).json({ error: "Failed to fetch services" });
     }
   });
 
-  // GET /api/marketplace/services/my — authenticated, user's own services
-  app.get("/api/marketplace/services/my", async (req: any, res) => {
-    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    try {
-      const services = await db
-        .select()
-        .from(writerServices)
-        .where(eq(writerServices.authorId, req.user.id));
-      res.json(services);
-    } catch (err) {
-      console.error("[marketplace] my services error:", err);
-      res.status(500).json({ error: "Could not fetch services" });
+  // POST /api/marketplace/services/:id/book — create PayPal order
+  app.post("/api/marketplace/services/:id/book", async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
-  });
-
-  // ─── SERVICE BOOKINGS ───────────────────────────────────────────────────────
-  // POST /api/marketplace/bookings/create-checkout — authenticated user books a service
-  app.post("/api/marketplace/bookings/create-checkout", async (req: any, res) => {
-    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { serviceId, note } = req.body;
-    if (!serviceId) return res.status(400).json({ error: "serviceId required" });
     try {
       const [service] = await db
         .select()
         .from(writerServices)
-        .where(eq(writerServices.id, serviceId));
-      if (!service || !service.isActive) {
-        return res
-          .status(404)
-          .json({ error: "Service not found or inactive" });
-      }
-      const stripe = getStripeClient();
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "payment",
-        line_items: [
-          {
-            price_data: {
-              currency: service.currency,
-              product_data: { name: service.title },
-              unit_amount: service.pricePence,
+        .where(eq(writerServices.id, Number(req.params.id)));
+      if (!service) return res.status(404).json({ error: "Service not found" });
+
+      const token = await getPayPalAccessToken();
+      const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          intent: "CAPTURE",
+          purchase_units: [
+            {
+              amount: {
+                currency_code: "GBP",
+                value: Number(service.priceGbp).toFixed(2),
+              },
+              description: service.title,
             },
-            quantity: 1,
-          },
-        ],
-        success_url: `${req.headers.origin || "https://the-page-gallery.replit.app"}/marketplace?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.headers.origin || "https://the-page-gallery.replit.app"}/marketplace?cancelled=true`,
+          ],
+        }),
       });
-      // Insert pending booking
-      await db.insert(serviceBookings).values({
-        serviceId,
-        clientId: req.user.id,
-        note: note || null,
-        pricePence: service.pricePence,
-        currency: service.currency,
-        status: "pending_payment",
-        stripeSessionId: session.id,
-      });
-      res.json({ sessionId: session.id, url: session.url });
+      if (!orderRes.ok) {
+        const text = await orderRes.text();
+        throw new Error(`[PayPal] Order creation failed: ${text}`);
+      }
+      const order = await orderRes.json();
+
+      const [booking] = await db
+        .insert(serviceBookings)
+        .values({
+          serviceId: service.id,
+          clientId: req.user.id,
+          paypalOrderId: order.id,
+          status: "pending",
+          amountGbp: String(service.priceGbp),
+        })
+        .returning();
+
+      return res.json({ orderId: order.id, bookingId: booking.id, order });
     } catch (err) {
-      console.error("[marketplace] create-checkout error:", err);
-      res.status(500).json({ error: "Could not create checkout" });
+      console.error(err);
+      return res.status(500).json({ error: "Failed to create booking" });
     }
   });
 
-  // POST /api/marketplace/bookings/webhook — Stripe webhook to confirm payment
+  // POST /api/marketplace/services/bookings/:bookingId/capture
   app.post(
-    "/api/marketplace/bookings/webhook",
+    "/api/marketplace/services/bookings/:bookingId/capture",
     async (req: any, res) => {
-      const sig = req.headers["stripe-signature"];
-      if (!process.env.STRIPE_WEBHOOK_SECRET) {
-        console.error(
-          "[marketplace] STRIPE_WEBHOOK_SECRET not set. Cannot verify webhook."
-        );
-        return res.status(500).send("Webhook secret not configured");
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
       }
       try {
-        const stripe = getStripeClient();
-        const event = stripe.webhooks.constructEvent(
-          req.body,
-          sig,
-          process.env.STRIPE_WEBHOOK_SECRET
+        const [booking] = await db
+          .select()
+          .from(serviceBookings)
+          .where(eq(serviceBookings.id, Number(req.params.bookingId)));
+        if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+        const token = await getPayPalAccessToken();
+        const captureRes = await fetch(
+          `${PAYPAL_API}/v2/checkout/orders/${booking.paypalOrderId}/capture`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-        if (event.type === "checkout.session.completed") {
-          const session = event.data.object as Stripe.Checkout.Session;
-          await db
-            .update(serviceBookings)
-            .set({
-              paymentConfirmed: true,
-              status: "paid",
-              paidAt: new Date(),
-              stripePaymentIntentId: session.payment_intent as string,
-            })
-            .where(eq(serviceBookings.stripeSessionId, session.id));
+        if (!captureRes.ok) {
+          const text = await captureRes.text();
+          throw new Error(`[PayPal] Capture failed: ${text}`);
         }
-        res.json({ received: true });
-      } catch (err: any) {
-        console.error("[marketplace] webhook error:", err.message);
-        res.status(400).send(`Webhook Error: ${err.message}`);
+        const capture = await captureRes.json();
+
+        await db
+          .update(serviceBookings)
+          .set({ status: "paid" })
+          .where(eq(serviceBookings.id, booking.id));
+
+        return res.json({ success: true, capture });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to capture payment" });
       }
     }
   );
 
-  // GET /api/marketplace/bookings — authenticated user's bookings
-  app.get("/api/marketplace/bookings", async (req: any, res) => {
-    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+  // —— TIP JAR ——————————————————————————————————————————————————
+  // GET /api/marketplace/tips/:writerId
+  app.get("/api/marketplace/tips/:writerId", async (req, res) => {
     try {
-      const bookings = await db
+      const [jar] = await db
         .select()
-        .from(serviceBookings)
-        .where(eq(serviceBookings.clientId, req.user.id))
-        .orderBy(serviceBookings.createdAt);
-      res.json(bookings);
+        .from(tipJars)
+        .where(eq(tipJars.writerId, Number(req.params.writerId)));
+      return res.json(jar || null);
     } catch (err) {
-      console.error("[marketplace] bookings error:", err);
-      res.status(500).json({ error: "Could not fetch bookings" });
+      console.error(err);
+      return res.status(500).json({ error: "Failed to fetch tip jar" });
     }
   });
 
-  // ─── TIP JARS ───────────────────────────────────────────────────────────────
-  // POST /api/marketplace/tip-jar — authenticated user activates/updates tip jar
-  app.post("/api/marketplace/tip-jar", async (req: any, res) => {
-    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { isActive, message, suggestedAmountPence } = req.body;
+  // POST /api/marketplace/tips/:writerId — create PayPal order for tip
+  app.post("/api/marketplace/tips/:writerId", async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     try {
-      const [existing] = await db
-        .select()
-        .from(tipJars)
-        .where(eq(tipJars.authorId, req.user.id));
-      if (existing) {
-        const [updated] = await db
-          .update(tipJars)
-          .set({
-            isActive: isActive !== undefined ? isActive : existing.isActive,
-            message: message || existing.message,
-            suggestedAmountPence:
-              suggestedAmountPence || existing.suggestedAmountPence,
-            updatedAt: new Date(),
-          })
-          .where(eq(tipJars.id, existing.id))
-          .returning();
-        return res.json(updated);
+      const { amountGbp } = req.body;
+      if (!amountGbp || Number(amountGbp) < 0.5) {
+        return res.status(400).json({ error: "Minimum tip is £0.50" });
       }
-      const [jar] = await db
-        .insert(tipJars)
+
+      const token = await getPayPalAccessToken();
+      const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          intent: "CAPTURE",
+          purchase_units: [
+            {
+              amount: {
+                currency_code: "GBP",
+                value: Number(amountGbp).toFixed(2),
+              },
+              description: "Tip for writer",
+            },
+          ],
+        }),
+      });
+      if (!orderRes.ok) {
+        const text = await orderRes.text();
+        throw new Error(`[PayPal] Tip order creation failed: ${text}`);
+      }
+      const order = await orderRes.json();
+
+      const [tx] = await db
+        .insert(tipTransactions)
         .values({
-          authorId: req.user.id,
-          isActive: isActive !== undefined ? isActive : false,
-          message: message || "Buy me a coffee ☕",
-          suggestedAmountPence: suggestedAmountPence || 300,
+          writerId: Number(req.params.writerId),
+          tipperId: req.user.id,
+          paypalOrderId: order.id,
+          amountGbp: String(amountGbp),
+          status: "pending",
         })
         .returning();
-      res.json(jar);
+
+      return res.json({ orderId: order.id, transactionId: tx.id, order });
     } catch (err) {
-      console.error("[marketplace] tip-jar error:", err);
-      res.status(500).json({ error: "Could not update tip jar" });
+      console.error(err);
+      return res.status(500).json({ error: "Failed to create tip order" });
     }
   });
 
-  // GET /api/marketplace/tip-jar/:authorId — public, fetches tip jar config
-  app.get("/api/marketplace/tip-jar/:authorId", async (req, res) => {
-    try {
-      const [jar] = await db
-        .select()
-        .from(tipJars)
-        .where(eq(tipJars.authorId, req.params.authorId));
-      if (!jar || !jar.isActive) {
-        return res.status(404).json({ error: "Tip jar not found or inactive" });
+  // POST /api/marketplace/tips/transactions/:txId/capture
+  app.post(
+    "/api/marketplace/tips/transactions/:txId/capture",
+    async (req: any, res) => {
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
       }
-      res.json(jar);
-    } catch (err) {
-      console.error("[marketplace] get tip jar error:", err);
-      res.status(500).json({ error: "Could not fetch tip jar" });
-    }
-  });
+      try {
+        const [tx] = await db
+          .select()
+          .from(tipTransactions)
+          .where(eq(tipTransactions.id, Number(req.params.txId)));
+        if (!tx) return res.status(404).json({ error: "Transaction not found" });
 
-  // POST /api/marketplace/tip — public (no auth required), create Stripe Checkout for tip
-  app.post("/api/marketplace/tip", async (req, res) => {
-    const { authorId, amountPence } = req.body;
-    if (!authorId || !amountPence) {
-      return res
-        .status(400)
-        .json({ error: "authorId and amountPence required" });
-    }
-    try {
-      const [jar] = await db
-        .select()
-        .from(tipJars)
-        .where(eq(tipJars.authorId, authorId));
-      if (!jar || !jar.isActive) {
-        return res.status(404).json({ error: "Tip jar not active" });
-      }
-      const stripe = getStripeClient();
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "payment",
-        line_items: [
+        const token = await getPayPalAccessToken();
+        const captureRes = await fetch(
+          `${PAYPAL_API}/v2/checkout/orders/${tx.paypalOrderId}/capture`,
           {
-            price_data: {
-              currency: "gbp",
-              product_data: { name: `Tip for ${jar.message}` },
-              unit_amount: amountPence,
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
-            quantity: 1,
-          },
-        ],
-        success_url: `${req.headers.origin || "https://the-page-gallery.replit.app"}/profile/${authorId}?tip=success`,
-        cancel_url: `${req.headers.origin || "https://the-page-gallery.replit.app"}/profile/${authorId}?tip=cancelled`,
-      });
-      // Record transaction (tipper is null = anonymous)
-      await db.insert(tipTransactions).values({
-        tipJarId: jar.id,
-        tipperId: null,
-        amountPence,
-        currency: "gbp",
-        stripeSessionId: session.id,
-      });
-      res.json({ sessionId: session.id, url: session.url });
-    } catch (err) {
-      console.error("[marketplace] tip error:", err);
-      res.status(500).json({ error: "Could not create tip checkout" });
+          }
+        );
+        if (!captureRes.ok) {
+          const text = await captureRes.text();
+          throw new Error(`[PayPal] Tip capture failed: ${text}`);
+        }
+        const capture = await captureRes.json();
+
+        await db
+          .update(tipTransactions)
+          .set({ status: "paid" })
+          .where(eq(tipTransactions.id, tx.id));
+
+        return res.json({ success: true, capture });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to capture tip" });
+      }
     }
-  });
+  );
 }
