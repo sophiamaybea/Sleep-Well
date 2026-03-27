@@ -2768,7 +2768,6 @@ export const writerServices = pgTable("writer_services", {
   currency: text("currency").notNull().default("gbp"),
   deliveryDays: integer("delivery_days").notNull().default(7),
   isActive: boolean("is_active").notNull().default(true),
-  stripeProductId: text("stripe_product_id"),
   stripePriceId: text("stripe_price_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -2810,7 +2809,7 @@ export const tipJars = pgTable("tip_jars", {
   isActive: boolean("is_active").notNull().default(false),
   message: text("message").notNull().default("Buy me a coffee ☕"),
   suggestedAmountPence: integer("suggested_amount_pence").notNull().default(300),
-  stripeProductId: text("stripe_product_id"),
+    stripeProductId: text("stripe_product_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
