@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Feather, ChevronDown, Home, Sparkles, Copy, Check, Pin } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
 import { TendButton } from "@/components/garden/SocialFeatures";
-import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
+import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor"; import { usePageMeta } from "@/hooks/usePageMeta";
 
 type PublicWriting = {
   id: string;
@@ -83,7 +83,7 @@ export default function PublicGarden() {
     retry: false,
   });
 
-  const isAuthenticated = !!authData;
+  const isAuthenticated = !!authData;   const fullNameMeta = data ? [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') : 'Garden';   usePageMeta({     title: fullNameMeta + "'s Garden — The Page Gallery",     description: data?.user.bio || (fullNameMeta + "'s writing garden on The Page Gallery Journal."),     ogTitle: fullNameMeta + "'s Garden",     ogDescription: data?.user.bio || (fullNameMeta + " shares their writing on The Page Gallery Journal."),     ogType: 'profile',     canonicalPath: '/garden/' + userId,   });
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
