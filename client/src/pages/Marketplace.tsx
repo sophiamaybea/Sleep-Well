@@ -363,6 +363,7 @@ export default function Marketplace() {
         onError: () => setPaymentStatus("Failed to capture tip."),
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, bookingId, tipSuccess, txId]);
 
   const isWriter =
@@ -708,7 +709,7 @@ export default function Marketplace() {
         }
         .mp-tipjar__field input:focus { border-color: oklch(from var(--color-text, #ffffff) l c h / 0.5); }
         .mp-tipjar__btn { padding: 0.6rem 1.2rem; border-radius: 0.4rem; font-size: 0.82rem; background: #ffffff; color: #000000; border: none; cursor: pointer; transition: opacity 0.18s; }
-        .mp-tipjar__btn:hover:not(:disabled) { opacity: 0.82; }
+        .mp-tipjar__btn:hover:not(:disabled) { opacity: 0.82; }     .mp-tipjar__btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         /* ── Create form ── */
         .mp-create-form { background: oklch(from var(--color-text, #ffffff) l c h / 0.02); border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1); border-radius: 0.65rem; padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; }
