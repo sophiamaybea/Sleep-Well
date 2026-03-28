@@ -4223,9 +4223,9 @@ export default function Garden() {
         title={plantingTarget?.title}
       />
             <GalleryFeedbackModal
-        isOpen={const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);}
-        onClose={() => { setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);(false); setFeedbackWritingId(null); }}
-        writingId={feedbackWritingId || ""}
+                      isOpen={showGalleryFeedback}
+                                onClose={() => { setShowGalleryFeedback(false); setFeedbackWritingId(null); }}
+          writingId={feedbackWritingId || ""}
       />
     </div>
   );
