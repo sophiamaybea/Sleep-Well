@@ -10,6 +10,8 @@ import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import OnboardingModal from "@/components/OnboardingModal";
 import LoadingScreen from "@/components/garden/LoadingScreen";
 import { useAuth } from "@/hooks/use-auth";
+import StarBackground from "@/components/StarBackground";
+import IllustrationLayer from "@/components/IllustrationLayer";
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
 const Collections = lazy(() => import("@/pages/Collections"));
@@ -50,7 +52,6 @@ const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
-
 // T35: ProtectedRoute uses branded LoadingScreen instead of generic PageLoader
 // T48: destructure path out so it is never spread into the Component
 function ProtectedRoute({ component: Component, path }: { component: React.ComponentType<any>; path: string }) {
@@ -104,7 +105,7 @@ function Router() {
         <Route path="/garden/collections/:id" component={Collections} />
         <Route path="/collections/:slug" component={PublicCollection} />
         <Route path="/garden/:username" component={PublicGarden} />
-        {/* FIX: /edit-profile now requires authentication — unauthenticated visitors are redirected to /sign-in */}
+        {/* FIX: /edit-profile now requires authentication */}
         <Route path="/edit-profile">{() => <ProtectedRoute component={EditProfile} path="/edit-profile" />}</Route>
         <Route path="/writer/:id" component={WriterProfile} />
         <Route path="/public-garden/:userId" component={PublicGarden} />
@@ -155,6 +156,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScroll>
+          {/* z-index 0: animated star field (Three.js canvas, pure black sky) */}
+          <StarBackground />
+          {/* z-index 1: random illustration per page load, fixed bottom-left */}
+          <IllustrationLayer />
           <NoiseOverlay />
           <AccessibilityToolbar />
           <OnboardingModal />
