@@ -121,7 +121,6 @@ const HOW_IT_WORKS_STEPS = [
 ];
 
 // ─── Sub-components ────────────────────────────────────────────────────────
-
 function ServiceCard({
   service,
   onBook,
@@ -168,8 +167,10 @@ function TipJarSection() {
   const [msg, setMsg] = useState("");
   const [amount, setAmount] = useState(300);
   const [active, setActive] = useState(false);
+
   if (!user) return null;
   const jar = tipJar as any;
+
   function handleSave() {
     upsert.mutate({
       isActive: active,
@@ -177,6 +178,7 @@ function TipJarSection() {
       suggestedAmountPence: amount,
     });
   }
+
   return (
     <div className="mp-tipjar scroll-reveal">
       <h3 className="mp-tipjar__heading">Your Tip Jar</h3>
@@ -227,10 +229,12 @@ function CreateServiceForm({ onDone }: { onDone: () => void }) {
     pricePence: 5000,
     deliveryDays: 7,
   });
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     create.mutate(form, { onSuccess: onDone });
   }
+
   return (
     <form onSubmit={handleSubmit} className="mp-create-form scroll-reveal">
       <div className="mp-create-form__field">
@@ -316,6 +320,7 @@ export default function Marketplace() {
   const success = params.get("success");
   const txId = params.get("txId");
   const tipSuccess = params.get("tipSuccess");
+
   const captureBooking = useCaptureBooking(bookingId || "");
   const captureTip = useCaptureTip(txId || "");
 
@@ -414,14 +419,14 @@ export default function Marketplace() {
           justify-content: flex-end;
           padding-bottom: clamp(2.5rem, 5vw, 4rem);
           overflow: hidden;
-          border-bottom: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.08);
+          border-bottom: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1);
         }
         .mp-hero__bg {
           position: absolute;
           inset: 0;
           background:
-            radial-gradient(ellipse 80% 60% at 50% 120%, oklch(0.72 0.04 60 / 0.18) 0%, transparent 70%),
-            radial-gradient(ellipse 40% 40% at 10% 30%, oklch(0.75 0.03 220 / 0.10) 0%, transparent 60%);
+            radial-gradient(ellipse 80% 60% at 50% 120%, oklch(0.72 0.04 60 / 0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 40% at 10% 30%, oklch(0.75 0.03 220 / 0.08) 0%, transparent 60%);
           pointer-events: none;
         }
         .mp-hero__rule {
@@ -430,7 +435,7 @@ export default function Marketplace() {
           left: clamp(1.5rem, 5vw, 5rem);
           right: clamp(1.5rem, 5vw, 5rem);
           height: 1px;
-          background: oklch(from var(--color-text, #28251d) l c h / 0.10);
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.1);
         }
         .mp-hero__inner {
           position: relative;
@@ -443,7 +448,7 @@ export default function Marketplace() {
           font-size: clamp(0.7rem, 1.2vw, 0.8rem);
           letter-spacing: 0.16em;
           text-transform: uppercase;
-          color: oklch(from var(--color-text-muted, #7a7974) l c h / 0.75);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.6);
           margin-bottom: 1.2rem;
           font-family: var(--font-body, serif);
         }
@@ -453,20 +458,20 @@ export default function Marketplace() {
           line-height: 1.0;
           font-weight: 400;
           font-style: italic;
-          color: var(--color-text, #28251d);
+          color: #ffffff;
           max-width: 14ch;
           letter-spacing: -0.01em;
         }
         .mp-hero__heading em {
           font-style: normal;
           font-weight: 300;
-          color: oklch(from var(--color-text, #28251d) l c h / 0.5);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.4);
         }
         .mp-hero__sub {
           margin-top: 1.6rem;
           font-family: var(--font-body, sans-serif);
           font-size: clamp(0.9rem, 1.4vw, 1.05rem);
-          color: var(--color-text-muted, #7a7974);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.8);
           max-width: 52ch;
           line-height: 1.65;
         }
@@ -491,7 +496,7 @@ export default function Marketplace() {
           font-size: clamp(0.68rem, 1vw, 0.75rem);
           letter-spacing: 0.16em;
           text-transform: uppercase;
-          color: oklch(from var(--color-text-muted, #7a7974) l c h / 0.65);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.5);
           margin-bottom: 0.9rem;
           font-family: var(--font-body, sans-serif);
         }
@@ -501,12 +506,12 @@ export default function Marketplace() {
           font-weight: 400;
           font-style: italic;
           line-height: 1.1;
-          color: var(--color-text, #28251d);
+          color: #ffffff;
           margin-bottom: clamp(0.8rem, 2vw, 1.2rem);
         }
         .mp-section-body {
           font-size: clamp(0.9rem, 1.4vw, 1.05rem);
-          color: var(--color-text-muted, #7a7974);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.75);
           max-width: 60ch;
           line-height: 1.72;
           margin-bottom: 3rem;
@@ -520,8 +525,8 @@ export default function Marketplace() {
           margin-top: 2.5rem;
         }
         .mp-offer-card {
-          background: var(--color-surface, #f9f8f5);
-          border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.08);
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.03);
+          border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.08);
           border-radius: 0.75rem;
           padding: clamp(1.4rem, 2.5vw, 2rem);
           display: flex;
@@ -530,7 +535,8 @@ export default function Marketplace() {
           transition: box-shadow 0.22s cubic-bezier(0.16,1,0.3,1), transform 0.22s cubic-bezier(0.16,1,0.3,1);
         }
         .mp-offer-card:hover {
-          box-shadow: 0 8px 28px oklch(0.2 0.01 80 / 0.09);
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.05);
+          box-shadow: 0 8px 28px oklch(0 0 0 / 0.2);
           transform: translateY(-2px);
         }
         .mp-offer-card__icon {
@@ -542,17 +548,17 @@ export default function Marketplace() {
           font-size: clamp(1rem, 1.6vw, 1.2rem);
           font-weight: 400;
           font-style: italic;
-          color: var(--color-text, #28251d);
+          color: #ffffff;
         }
         .mp-offer-card__tagline {
           font-size: clamp(0.72rem, 1.1vw, 0.82rem);
           letter-spacing: 0.06em;
-          color: var(--color-text-muted, #7a7974);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.6);
           text-transform: uppercase;
         }
         .mp-offer-card__desc {
           font-size: clamp(0.85rem, 1.2vw, 0.95rem);
-          color: var(--color-text-muted, #7a7974);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.8);
           line-height: 1.65;
           flex: 1;
         }
@@ -560,8 +566,8 @@ export default function Marketplace() {
           font-size: clamp(0.78rem, 1.1vw, 0.87rem);
           padding: 0.5rem 0.75rem;
           border-radius: 0.4rem;
-          background: oklch(from var(--color-text, #28251d) l c h / 0.04);
-          color: var(--color-text, #28251d);
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.05);
+          color: #ffffff;
           font-family: var(--font-body, sans-serif);
           letter-spacing: 0.01em;
         }
@@ -581,8 +587,8 @@ export default function Marketplace() {
         .mp-hiw-grid {
           display: grid;
           gap: 1px;
-          background: oklch(from var(--color-text, #28251d) l c h / 0.08);
-          border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.08);
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.1);
+          border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1);
           border-radius: 0.75rem;
           overflow: hidden;
           margin-top: 2.5rem;
@@ -591,7 +597,7 @@ export default function Marketplace() {
           .mp-hiw-grid { grid-template-columns: 1fr 1fr; }
         }
         .mp-hiw-item {
-          background: var(--color-surface, #f9f8f5);
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.02);
           padding: clamp(1.6rem, 3vw, 2.4rem);
           display: flex;
           flex-direction: column;
@@ -601,7 +607,7 @@ export default function Marketplace() {
           font-size: clamp(2rem, 4vw, 3rem);
           font-family: var(--font-display, Georgia, serif);
           font-weight: 300;
-          color: oklch(from var(--color-text, #28251d) l c h / 0.15);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.2);
           line-height: 1;
           margin-bottom: 0.2rem;
         }
@@ -609,12 +615,12 @@ export default function Marketplace() {
           font-family: var(--font-display, Georgia, serif);
           font-size: clamp(0.95rem, 1.6vw, 1.15rem);
           font-style: italic;
-          color: var(--color-text, #28251d);
+          color: #ffffff;
           line-height: 1.25;
         }
         .mp-hiw-item__body {
           font-size: clamp(0.82rem, 1.1vw, 0.92rem);
-          color: var(--color-text-muted, #7a7974);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.7);
           line-height: 1.65;
         }
 
@@ -625,8 +631,8 @@ export default function Marketplace() {
           grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
         }
         .mp-service-card {
-          background: var(--color-surface, #f9f8f5);
-          border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.09);
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.03);
+          border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1);
           border-radius: 0.65rem;
           padding: 1.4rem;
           display: flex;
@@ -634,91 +640,105 @@ export default function Marketplace() {
           gap: 0.6rem;
           transition: box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);
         }
-        .mp-service-card:hover { box-shadow: 0 4px 20px oklch(0.2 0.01 80 / 0.08); }
+        .mp-service-card:hover { 
+          background: oklch(from var(--color-text, #ffffff) l c h / 0.05);
+          box-shadow: 0 4px 20px oklch(0 0 0 / 0.2); 
+        }
         .mp-service-card__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-        .mp-service-card__title { font-family: var(--font-display, Georgia, serif); font-size: 1rem; font-style: italic; color: var(--color-text, #28251d); }
-        .mp-service-card__type { font-size: 0.75rem; color: var(--color-text-muted, #7a7974); text-transform: capitalize; margin-top: 0.15rem; }
-        .mp-service-card__price { font-size: 0.9rem; font-weight: 500; color: var(--color-text, #28251d); white-space: nowrap; }
-        .mp-service-card__desc { font-size: 0.83rem; color: var(--color-text-muted, #7a7974); line-height: 1.6; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .mp-service-card__delivery { font-size: 0.75rem; color: var(--color-text-muted, #7a7974); }
-        .mp-service-card__btn { margin-top: 0.25rem; width: 100%; padding: 0.6rem 1rem; border-radius: 0.4rem; font-size: 0.8rem; background: var(--color-text, #28251d); color: var(--color-bg, #FAF8F4); cursor: pointer; transition: opacity 0.18s; border: none; }
+        .mp-service-card__title { font-family: var(--font-display, Georgia, serif); font-size: 1rem; font-style: italic; color: #ffffff; }
+        .mp-service-card__type { font-size: 0.75rem; color: oklch(from var(--color-text, #ffffff) l c h / 0.6); text-transform: capitalize; margin-top: 0.15rem; }
+        .mp-service-card__price { font-size: 0.9rem; font-weight: 500; color: #ffffff; white-space: nowrap; }
+        .mp-service-card__desc { font-size: 0.83rem; color: oklch(from var(--color-text, #ffffff) l c h / 0.8); line-height: 1.6; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .mp-service-card__delivery { font-size: 0.75rem; color: oklch(from var(--color-text, #ffffff) l c h / 0.6); }
+        .mp-service-card__btn { 
+          margin-top: 0.25rem; width: 100%; padding: 0.6rem 1rem; border-radius: 0.4rem; font-size: 0.8rem; 
+          background: #ffffff; color: #000000; cursor: pointer; transition: opacity 0.18s; border: none; 
+        }
         .mp-service-card__btn:hover:not(:disabled) { opacity: 0.85; }
         .mp-service-card__btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         /* ── Tabs ── */
-        .mp-tabs { display: flex; gap: 0.4rem; border-bottom: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.09); padding-bottom: 0.25rem; margin-bottom: 2rem; }
-        .mp-tab { font-size: 0.85rem; padding: 0.4rem 0.9rem; border-radius: 0.375rem; transition: background 0.18s, color 0.18s; border: none; cursor: pointer; color: var(--color-text-muted, #7a7974); background: none; }
-        .mp-tab--active { background: var(--color-text, #28251d); color: var(--color-bg, #FAF8F4); }
-        .mp-tab:not(.mp-tab--active):hover { background: oklch(from var(--color-text, #28251d) l c h / 0.06); color: var(--color-text, #28251d); }
+        .mp-tabs { display: flex; gap: 0.4rem; border-bottom: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1); padding-bottom: 0.25rem; margin-bottom: 2rem; }
+        .mp-tab { 
+          font-size: 0.85rem; padding: 0.4rem 0.9rem; border-radius: 0.375rem; transition: background 0.18s, color 0.18s; border: none; cursor: pointer; 
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.6); background: none; 
+        }
+        .mp-tab--active { background: #ffffff; color: #000000; }
+        .mp-tab:not(.mp-tab--active):hover { background: oklch(from var(--color-text, #ffffff) l c h / 0.08); color: #ffffff; }
 
         /* ── Buttons ── */
         .mp-btn-primary {
           padding: 0.65rem 1.4rem; border-radius: 0.45rem; font-size: 0.85rem;
-          background: var(--color-text, #28251d); color: var(--color-bg, #FAF8F4);
+          background: #ffffff; color: #000000;
           border: none; cursor: pointer; transition: opacity 0.18s;
           font-family: var(--font-body, sans-serif);
         }
         .mp-btn-primary:hover:not(:disabled) { opacity: 0.82; }
         .mp-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+        
         .mp-btn-ghost {
           padding: 0.65rem 1.4rem; border-radius: 0.45rem; font-size: 0.85rem;
-          background: none; color: var(--color-text-muted, #7a7974);
-          border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.15);
+          background: none; color: oklch(from var(--color-text, #ffffff) l c h / 0.8);
+          border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.2);
           cursor: pointer; transition: border-color 0.18s, color 0.18s;
           font-family: var(--font-body, sans-serif);
         }
-        .mp-btn-ghost:hover { border-color: oklch(from var(--color-text, #28251d) l c h / 0.35); color: var(--color-text, #28251d); }
+        .mp-btn-ghost:hover { border-color: oklch(from var(--color-text, #ffffff) l c h / 0.5); color: #ffffff; }
+        
         .mp-btn-outline-sm {
           padding: 0.45rem 1rem; border-radius: 0.375rem; font-size: 0.78rem;
-          background: none; color: var(--color-text, #28251d);
-          border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.18);
+          background: none; color: #ffffff;
+          border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.3);
           cursor: pointer; transition: background 0.18s, border-color 0.18s;
           font-family: var(--font-body, sans-serif);
         }
-        .mp-btn-outline-sm:hover { background: oklch(from var(--color-text, #28251d) l c h / 0.05); }
+        .mp-btn-outline-sm:hover { background: oklch(from var(--color-text, #ffffff) l c h / 0.1); }
 
         /* ── Tip jar ── */
-        .mp-tipjar { background: var(--color-surface, #f9f8f5); border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.09); border-radius: 0.65rem; padding: 1.6rem; display: flex; flex-direction: column; gap: 0.9rem; }
-        .mp-tipjar__heading { font-family: var(--font-display, Georgia, serif); font-size: 1.05rem; font-style: italic; color: var(--color-text, #28251d); }
-        .mp-tipjar__sub { font-size: 0.82rem; color: var(--color-text-muted, #7a7974); line-height: 1.6; }
-        .mp-tipjar__check-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--color-text, #28251d); cursor: pointer; }
+        .mp-tipjar { background: oklch(from var(--color-text, #ffffff) l c h / 0.02); border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1); border-radius: 0.65rem; padding: 1.6rem; display: flex; flex-direction: column; gap: 0.9rem; }
+        .mp-tipjar__heading { font-family: var(--font-display, Georgia, serif); font-size: 1.05rem; font-style: italic; color: #ffffff; }
+        .mp-tipjar__sub { font-size: 0.82rem; color: oklch(from var(--color-text, #ffffff) l c h / 0.6); line-height: 1.6; }
+        .mp-tipjar__check-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: #ffffff; cursor: pointer; }
         .mp-tipjar__field { display: flex; flex-direction: column; gap: 0.3rem; }
-        .mp-tipjar__field label { font-size: 0.75rem; color: var(--color-text-muted, #7a7974); }
-        .mp-tipjar__field input { border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.18); border-radius: 0.375rem; background: var(--color-bg, #FAF8F4); padding: 0.45rem 0.65rem; font-size: 0.82rem; color: var(--color-text, #28251d); outline: none; transition: border-color 0.18s; }
-        .mp-tipjar__field input:focus { border-color: oklch(from var(--color-text, #28251d) l c h / 0.45); }
-        .mp-tipjar__btn { padding: 0.6rem 1.2rem; border-radius: 0.4rem; font-size: 0.82rem; background: var(--color-text, #28251d); color: var(--color-bg, #FAF8F4); border: none; cursor: pointer; transition: opacity 0.18s; }
+        .mp-tipjar__field label { font-size: 0.75rem; color: oklch(from var(--color-text, #ffffff) l c h / 0.5); }
+        .mp-tipjar__field input { 
+          border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.2); border-radius: 0.375rem; 
+          background: #000000; padding: 0.45rem 0.65rem; font-size: 0.82rem; color: #ffffff; 
+          outline: none; transition: border-color 0.18s; 
+        }
+        .mp-tipjar__field input:focus { border-color: oklch(from var(--color-text, #ffffff) l c h / 0.5); }
+        .mp-tipjar__btn { padding: 0.6rem 1.2rem; border-radius: 0.4rem; font-size: 0.82rem; background: #ffffff; color: #000000; border: none; cursor: pointer; transition: opacity 0.18s; }
         .mp-tipjar__btn:hover:not(:disabled) { opacity: 0.82; }
-        .mp-tipjar__btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         /* ── Create form ── */
-        .mp-create-form { background: var(--color-surface, #f9f8f5); border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.09); border-radius: 0.65rem; padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; }
+        .mp-create-form { background: oklch(from var(--color-text, #ffffff) l c h / 0.02); border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1); border-radius: 0.65rem; padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; }
         .mp-create-form__field { display: flex; flex-direction: column; gap: 0.3rem; }
-        .mp-create-form__field label { font-size: 0.75rem; color: var(--color-text-muted, #7a7974); }
+        .mp-create-form__field label { font-size: 0.75rem; color: oklch(from var(--color-text, #ffffff) l c h / 0.5); }
         .mp-create-form__field input, .mp-create-form__field select, .mp-create-form__field textarea {
-          border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.18);
-          border-radius: 0.375rem; background: var(--color-bg, #FAF8F4);
-          padding: 0.45rem 0.65rem; font-size: 0.82rem; color: var(--color-text, #28251d);
+          border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.2); 
+          border-radius: 0.375rem; background: #000000;
+          padding: 0.45rem 0.65rem; font-size: 0.82rem; color: #ffffff;
           outline: none; transition: border-color 0.18s; resize: vertical;
           font-family: var(--font-body, sans-serif);
         }
-        .mp-create-form__field input:focus, .mp-create-form__field select:focus, .mp-create-form__field textarea:focus { border-color: oklch(from var(--color-text, #28251d) l c h / 0.45); }
+        .mp-create-form__field input:focus, .mp-create-form__field select:focus, .mp-create-form__field textarea:focus { border-color: oklch(from var(--color-text, #ffffff) l c h / 0.5); }
         .mp-create-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
         .mp-create-form__actions { display: flex; gap: 0.6rem; }
 
         /* ── Manage section heading row ── */
         .mp-manage-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-        .mp-manage-header h2 { font-family: var(--font-display, Georgia, serif); font-size: 1rem; font-style: italic; color: var(--color-text, #28251d); }
+        .mp-manage-header h2 { font-family: var(--font-display, Georgia, serif); font-size: 1rem; font-style: italic; color: #ffffff; }
 
         /* ── Payment notice ── */
-        .mp-payment-notice { background: oklch(from var(--color-text, #28251d) l c h / 0.05); border: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.12); border-radius: 0.5rem; padding: 0.9rem 1.2rem; font-size: 0.85rem; color: var(--color-text, #28251d); font-weight: 500; margin-bottom: 1.5rem; }
+        .mp-payment-notice { background: oklch(from var(--color-text, #ffffff) l c h / 0.1); border: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.2); border-radius: 0.5rem; padding: 0.9rem 1.2rem; font-size: 0.85rem; color: #ffffff; font-weight: 500; margin-bottom: 1.5rem; }
 
         /* ── Divider rule ── */
-        .mp-rule { height: 1px; background: oklch(from var(--color-text, #28251d) l c h / 0.08); margin: 0 clamp(1.5rem, 5vw, 5rem); }
+        .mp-rule { height: 1px; background: oklch(from var(--color-text, #ffffff) l c h / 0.1); margin: 0 clamp(1.5rem, 5vw, 5rem); }
 
         /* ── Empty state ── */
-        .mp-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 4rem 2rem; color: var(--color-text-muted, #7a7974); gap: 0.75rem; }
+        .mp-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 4rem 2rem; color: oklch(from var(--color-text, #ffffff) l c h / 0.6); gap: 0.75rem; }
         .mp-empty__icon { font-size: 2rem; opacity: 0.35; }
-        .mp-empty__heading { font-family: var(--font-display, Georgia, serif); font-style: italic; font-size: 1.1rem; color: var(--color-text, #28251d); }
+        .mp-empty__heading { font-family: var(--font-display, Georgia, serif); font-style: italic; font-size: 1.1rem; color: #ffffff; }
         .mp-empty__body { font-size: 0.87rem; max-width: 38ch; line-height: 1.6; }
 
         /* ── Footer note ── */
@@ -726,24 +746,24 @@ export default function Marketplace() {
           text-align: center;
           padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 5vw, 5rem);
           font-size: clamp(0.78rem, 1.1vw, 0.87rem);
-          color: oklch(from var(--color-text-muted, #7a7974) l c h / 0.7);
+          color: oklch(from var(--color-text, #ffffff) l c h / 0.5);
           font-family: var(--font-body, sans-serif);
           line-height: 1.7;
-          border-top: 1px solid oklch(from var(--color-text, #28251d) l c h / 0.07);
+          border-top: 1px solid oklch(from var(--color-text, #ffffff) l c h / 0.1);
         }
-        .mp-footnote strong { color: var(--color-text, #28251d); font-weight: 500; }
+        .mp-footnote strong { color: #ffffff; font-weight: 500; }
 
         /* ── Loading skeleton ── */
         @keyframes mp-shimmer {
-          0%   { background-position: -200% 0; }
-          100% { background-position:  200% 0; }
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
         }
         .mp-skeleton {
           background: linear-gradient(
             90deg,
-            var(--color-surface, #f9f8f5) 25%,
-            var(--color-surface-dynamic, #e6e4df) 50%,
-            var(--color-surface, #f9f8f5) 75%
+            oklch(from var(--color-text, #ffffff) l c h / 0.05) 25%,
+            oklch(from var(--color-text, #ffffff) l c h / 0.1) 50%,
+            oklch(from var(--color-text, #ffffff) l c h / 0.05) 75%
           );
           background-size: 200% 100%;
           animation: mp-shimmer 1.5s ease-in-out infinite;
@@ -752,12 +772,10 @@ export default function Marketplace() {
         }
       `}</style>
 
-      <div className="min-h-screen" style={{ background: "var(--color-bg, #FAF8F4)", color: "var(--color-text, #28251d)" }}>
+      <div className="min-h-screen" style={{ background: "transparent", color: "#ffffff" }}>
         <StarBackground />
         <Navigation />
-
         <main className="relative z-10">
-
           {/* ── HERO ─────────────────────────────────────── */}
           <section className="mp-hero" ref={heroRef} aria-label="Marketplace introduction">
             <div className="mp-hero__bg" aria-hidden="true" />
@@ -801,6 +819,7 @@ export default function Marketplace() {
               None of these require an agent, a publisher, or a platform. Just
               your expertise, offered plainly, to people who need it.
             </p>
+
             <div className="mp-offer-grid scroll-stagger">
               {OFFER_CARDS.map((card) => (
                 <article key={card.id} className="mp-offer-card scroll-reveal">
@@ -829,6 +848,7 @@ export default function Marketplace() {
           <section className="mp-section mp-section--narrow" aria-label="How it works">
             <p className="mp-section-label scroll-reveal">How it works</p>
             <h2 className="mp-section-heading scroll-reveal">Four steps. No middleman.</h2>
+            
             <div className="mp-hiw-grid scroll-stagger">
               {HOW_IT_WORKS_STEPS.map((step) => (
                 <div key={step.n} className="mp-hiw-item scroll-reveal">
@@ -889,9 +909,11 @@ export default function Marketplace() {
                     </button>
                   )}
                 </div>
+
                 {showCreate && (
                   <CreateServiceForm onDone={() => setShowCreate(false)} />
                 )}
+
                 <div style={{ marginTop: "1.5rem" }}>
                   <TipJarSection />
                 </div>
@@ -949,9 +971,7 @@ export default function Marketplace() {
             Payment processing is via Stripe. Writers set their own prices, keep their earnings,
             and build their own practice — here, in the same place their work lives.
           </p>
-
         </main>
-
         <Footer />
       </div>
     </>
