@@ -2301,6 +2301,9 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
 
       {allPieces.length > 0 && filteredPieces.length === 0 && (
         <div className="border border-dashed border-white/[0.06] rounded-2xl p-12 text-center space-y-3">
+3588
+3588
+
           <Eye size={24} className="mx-auto text-white/90" />
           <p className="font-serif text-sm text-white/90 italic">
             {activeSort === "tended"
@@ -3585,7 +3588,7 @@ export default function Garden() {
   const [showA11yPanel, setShowA11yPanel] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
-    const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);, setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);] = useState(false);
+    const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);
   const [feedbackWritingId, setFeedbackWritingId] = useState<string | null>(null);
         const [showEditorialModal, setShowEditorialModal] = useState(false);
   const { settings: a11y, toggle: toggleA11y } = useAccessibility();
