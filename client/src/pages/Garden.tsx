@@ -3585,7 +3585,7 @@ export default function Garden() {
   const [showA11yPanel, setShowA11yPanel] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<ActiveRoom>(null);
-    const [const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);, setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);] = useState(false);
+    const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);, setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);] = useState(false);
   const [feedbackWritingId, setFeedbackWritingId] = useState<string | null>(null);
         const [showEditorialModal, setShowEditorialModal] = useState(false);
   const { settings: a11y, toggle: toggleA11y } = useAccessibility();
