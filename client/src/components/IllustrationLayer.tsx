@@ -1,17 +1,14 @@
 import { useMemo } from 'react';
+import ill1 from '@/assets/upload 1.png';
+import ill2 from '@/assets/upload 2.png';
+import ill3 from '@/assets/upload 3.png';
+import ill4 from '@/assets/upload 4.png';
+import ill5 from '@/assets/upload 5.png';
+import ill6 from '@/assets/upload 6.png';
+import ill7 from '@/assets/upload 7.png';
+import ill8 from '@/assets/upload 8.png';
 
-// Place your renamed illustration PNGs in: client/public/images/illustrations/
-// Rename: Untitled design (34).png → ill-1.png, (35)→ill-2.png ... (40)→ill-7.png
-
-const ILLUSTRATIONS = [
-  '/images/illustrations/ill-1.png',
-  '/images/illustrations/ill-2.png',
-  '/images/illustrations/ill-3.png',
-  '/images/illustrations/ill-4.png',
-  '/images/illustrations/ill-5.png',
-  '/images/illustrations/ill-6.png',
-  '/images/illustrations/ill-7.png',
-];
+const ILLUSTRATIONS = [ill1, ill2, ill3, ill4, ill5, ill6, ill7, ill8];
 
 export default function IllustrationLayer() {
   // Pick one illustration randomly per page load, stable across re-renders
