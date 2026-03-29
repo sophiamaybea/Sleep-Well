@@ -11,6 +11,9 @@ interface Publication {
   coverColor: string;
   status: "available" | "out_of_print";
   buyLink?: string;
+    // Friend/partner publication fields
+  name?: string;
+  link?: string;
 }
 
 const currentIssues: Publication[] = [];
