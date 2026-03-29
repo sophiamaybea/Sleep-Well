@@ -404,7 +404,7 @@ export default function EICDashboard() {
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => { setActiveTab(tab.key); setSelectedWriting(null); }}
+                onClick={() => { setActiveTab(tab.key); window.scrollTo(0, 0); setSelectedWriting(null); }}
                 className={`px-4 py-3 font-['Cormorant_Garamond',serif] text-base transition-colors border-b-2 -mb-px ${
                   activeTab === tab.key
                     ? "border-[#c4a24d] text-[#c4a24d]"
