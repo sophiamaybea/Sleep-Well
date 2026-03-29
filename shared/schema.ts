@@ -2938,3 +2938,59 @@ export const seoMeta = pgTable("seo_meta", {
 
 export type CopySnapshot = typeof copySnapshots.$inferSelect;
 export type SeoMeta = typeof seoMeta.$inferSelect;
+
+// === WRITERS' STUDIO — ENROLLMENT ===
+// Tracks free access grants (cultivator membership, manual grants)
+// Additive only — does not modify existing userCourseAccess table
+export const studioEnrollments = pgTable("studio_enrollments", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  courseId: varchar("course_id")
+    .notNull()
+    .references(() => courses.id),
+  // 'cultivator' | 'complimentary' | 'bundle'
+  accessReason: text("access_reason").notNull().default("cultivator"),
+  grantedAt: timestamp("granted_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const insertStudioEnrollmentSchema = createInsertSchema(
+  studioEnrollments,
+).omit({ id: true, grantedAt: true });
+
+export type StudioEnrollment = typeof studioEnrollments.$inferSelect;
+export type InsertStudioEnrollment = z.infer<typeof insertStudioEnrollmentSchema>;
+
+// === AI AGENT — PATTERN INSIGHTS ===
+// Stores pattern spotter results for the authenticated writer.
+// Never contains data from other users. Read-only for writers.
+export const agentPatternInsights = pgTable("agent_pattern_insights", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  // 'theme' | 'rhythm' | 'genre_drift' | 'session_habit'
+  insightType: text("insight_type").notNull().default("theme"),
+  summary: text("summary").notNull(),
+  // JSON array of writing IDs that contributed to this insight
+  sourceWritingIds: jsonb("source_writing_ids").notNull().default(sql`'[]'::jsonb`),
+  // Raw pattern data for rendering (word clusters, frequency etc.)
+  patternData: jsonb("pattern_data").notNull().default(sql`'{}'::jsonb`),
+  // 'active' | 'dismissed'
+  status: text("status").notNull().default("active"),
+  dismissedAt: timestamp("dismissed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAgentPatternInsightSchema = createInsertSchema(
+  agentPatternInsights,
+).omit({ id: true, dismissedAt: true, createdAt: true });
+
+export type AgentPatternInsight = typeof agentPatternInsights.$inferSelect;
+export type InsertAgentPatternInsight = z.infer<typeof insertAgentPatternInsightSchema>;
