@@ -1960,3 +1960,10 @@ html.a11y-light-mode span,
 html.a11y-light-mode div {
   color: #1a1a1a !important;
 }
+
+
+/* ── IllustrationLayer fade-in animation ── */
+@keyframes ill-fadein {
+  from { opacity: 0; }
+  to { opacity: 0.8; }
+}
