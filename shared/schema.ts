@@ -2871,3 +2871,70 @@ export type TipJar = typeof tipJars.$inferSelect;
 export type InsertTipJar = z.infer<typeof insertTipJarSchema>;
 export type TipTransaction = typeof tipTransactions.$inferSelect;
 export type InsertEditorialServiceOrder = z.infer<typeof insertEditorialServiceOrderSchema>;
+
+
+// === AGENT SYSTEM ===
+export const agentNotifications = pgTable("agent_notifications", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  agentName: text("agent_name").notNull(),
+  message: text("message").notNull(),
+  writingId: varchar("writing_id").references(() => writings.id),
+  readAt: timestamp("read_at"),
+  dismissedAt: timestamp("dismissed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const siteConfig = pgTable("site_config", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  key: varchar("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type AgentNotification = typeof agentNotifications.$inferSelect;
+export type SiteConfig = typeof siteConfig.$inferSelect;
+
+// === COPY AGENT ===
+export const copySnapshots = pgTable("copy_snapshots", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  pageKey: text("page_key").notNull(),
+  sectionKey: text("section_key").notNull(),
+  draftCopy: text("draft_copy").notNull(),
+  approvedCopy: text("approved_copy"),
+  generatedBy: text("generated_by").notNull().default("agent"),
+  status: text("status").notNull().default("draft"),
+  approvedById: varchar("approved_by_id").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const seoMeta = pgTable("seo_meta", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  writingId: varchar("writing_id")
+    .notNull()
+    .references(() => writings.id),
+  seoTitle: text("seo_title").notNull().default(""),
+  seoDescription: text("seo_description").notNull().default(""),
+  ogTitle: text("og_title").notNull().default(""),
+  ogDescription: text("og_description").notNull().default(""),
+  displayStandfirst: text("display_standfirst").notNull().default(""),
+  status: text("status").notNull().default("draft"),
+  approvedById: varchar("approved_by_id").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type CopySnapshot = typeof copySnapshots.$inferSelect;
+export type SeoMeta = typeof seoMeta.$inferSelect;
