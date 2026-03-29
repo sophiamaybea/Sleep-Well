@@ -152,16 +152,38 @@ export default function StarTitle() {
       className="h-screen w-full relative overflow-hidden"
       style={{ perspective: "1200px", perspectiveOrigin: "50% 40%" }}
     >
-      {/* Star particle canvas (original) */}
+      {/* Depth Layer -1: full-viewport background image — sits behind everything */}
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <motion.div
+          style={{
+            scale: logoScale,
+            opacity: logoOpacity,
+            y: logoY,
+          }}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute inset-0"
+        >
+          <img
+            src="/logo%20(2).png"
+            alt="The Page Gallery"
+            className="w-full h-full object-cover"
+            style={{ filter: "drop-shadow(0 0 60px rgba(255,255,255,0.15))" }}
+          />
+        </motion.div>
+      </div>
+
+      {/* Star particle canvas — above background image */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        className="absolute inset-0 w-full h-full pointer-events-none z-10"
       />
 
       {/* Depth Layer 0: far background teal/indigo glow — slowest parallax */}
       <div
         ref={bgGlowRef}
-        className="pointer-events-none absolute inset-0 z-1"
+        className="pointer-events-none absolute inset-0 z-10"
         aria-hidden="true"
         style={{
           background:
@@ -174,7 +196,7 @@ export default function StarTitle() {
       {/* Depth Layer 1: mid gold ambient glow — medium parallax */}
       <div
         ref={midGlowRef}
-        className="pointer-events-none absolute inset-0 z-1"
+        className="pointer-events-none absolute inset-0 z-10"
         aria-hidden="true"
         style={{
           background:
@@ -182,27 +204,6 @@ export default function StarTitle() {
           willChange: "transform, opacity",
         }}
       />
-
-      {/* Depth Layer 2: logo illustration (foreground) — framer-motion handles its own parallax */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <motion.div
-          style={{
-            scale: logoScale,
-            opacity: logoOpacity,
-            y: logoY,
-          }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          className="relative"
-        >
-          <img
-            src="/logo%20(2).png"
-            alt="The Page Gallery"
-            className="w-[320px] md:w-[420px] lg:w-[500px] h-auto drop-shadow-[0_0_60px_rgba(255,255,255,0.15)]"
-          />
-        </motion.div>
-      </div>
 
       {/* Scroll cue — fades out instantly on scroll */}
       <div
