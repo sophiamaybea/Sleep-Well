@@ -3,6 +3,13 @@ import { Canvas, useFrame, extend } from '@react-three/fiber';
 import * as THREE from 'three';
 import { shaderMaterial } from '@react-three/drei';
 
+// R3F extend() type declaration for custom shader material
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    starMaterial: any;
+  }
+}
+
 /* ─────────────────────────────────────────────
    Shared scroll-progress atom (plain ref so no
    React state overhead inside render loops)
