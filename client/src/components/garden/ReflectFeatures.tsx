@@ -63,7 +63,7 @@ const staggerContainer = {
 
 const staggerItem = {
   hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
 };
 
 export function InnerWeatherPage() {
@@ -383,7 +383,7 @@ export function ReflectionsPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
             className="overflow-hidden mb-8"
           >
             <GlassCard className="p-6 md:p-8" hoverGlow="rgba(168,85,247,0.06)" data-testid="form-reflection">
@@ -697,7 +697,7 @@ export function RootSystemPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
             className="overflow-hidden mb-8"
           >
             <GlassCard className="p-6 md:p-8" hoverGlow="rgba(52,211,153,0.05)" data-testid="form-influence">
