@@ -271,7 +271,7 @@ export default function PoemScrollReveal({ content, theme, title }: PoemScrollRe
             return (
               <div
                 key={i}
-                ref={(el) => (lineRefs.current[i] = el)}
+                ref={(el) => { lineRefs.current[i] = el; }}
                 className={`${textBase} ${config.lineClass}`}
                 dangerouslySetInnerHTML={{ __html: line.html }}
               />
