@@ -142,7 +142,7 @@ function StarField() {
       </bufferGeometry>
       {/* @ts-ignore – extended material */}
       <starMaterial
-        ref={matRef}
+        ref={matRef as any}
         attach="material"
         uTime={0}
         uOpacity={0.7}
