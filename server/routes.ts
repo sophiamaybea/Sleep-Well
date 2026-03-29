@@ -11,6 +11,7 @@ import { registerWritingLayoutRoutes } from "./routes/writingLayout";
 import { registerWritingExerciseRoutes } from "./routes/writingExercises";
 import { registerJournalApplicationRoutes } from "./routes/journalApplications";
 import { registerMarketplaceRoutes } from "./routes/marketplace";
+import { registerAgentSystemRoutes } from "./routes/agentSystem";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import {
@@ -8548,5 +8549,6 @@ const sharedPieces = await db.select({
   registerSocialFeedRoutes(app);
   registerPromptFloaterRoutes(app);
   registerDesignAgentRoutes(app);
+    registerAgentSystemRoutes(app);
   return httpServer;  registerMarketplaceRoutes(app);
 }
