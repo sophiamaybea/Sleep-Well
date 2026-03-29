@@ -715,11 +715,11 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
   );
 }
 
-const printEditions = [];
+const printEditions: GalleryItem[] = [];
 
-const pastEditions = [];
+const pastEditions: GalleryItem[] = [];
 
-const friendlyPresses = [];
+const friendlyPresses: GalleryItem[] = [];
 
 function PlantedInTheGarden() {
   return (
