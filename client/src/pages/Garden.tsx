@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import StudioPanel from "@/components/garden/StudioPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -12,7 +13,7 @@ import {
   Bell, FileCheck, Heart, Bookmark, MessageCircle,
   Pin, PinOff, ArchiveRestore, Tag, X,
   TreePine, Glasses, Compass, Eye, Moon, Clock, Check, Send,
-  Flag, ExternalLink, Camera, Crown, RotateCcw, Settings, GraduationCap, Trophy
+  Flag, ExternalLink, Camera, Crown, RotateCcw, Settings, GraduationCap, Trophy, Brain
 } from "lucide-react";
 import type { Writing, WritingSnapshot } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -31,7 +32,7 @@ import SendToEditors from "@/components/garden/SendToEditors";
 import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 import { GalleryFeedbackModal } from "@/components/GalleryFeedbackModal";
-type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
+type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections" | "studio";
 type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 type GreenhouseTool = "freewrite" | "growth-journal" | "circles" | "compost" | null;
 
@@ -451,6 +452,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
     { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
     { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
       { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },     { id: "collections", label: "Beds", desc: "Curate your work into chapbook collections", icon: <BookOpen size={14} />, activeColor: "border-violet-500/25 bg-violet-900/20 text-violet-200/90" },
+      { id: "studio", label: "Studio", desc: "AI writing patterns & insights", icon: <Brain size={14} />, activeColor: "border-purple-500/25 bg-purple-900/20 text-purple-200/90" },
   ];
 
   return (
@@ -4207,7 +4209,7 @@ export default function Garden() {
                         <GardenGateZone />
                   ) : activeZone === "collections" ? (
                           <CollectionsRedirect />
-                          ) : (<GreenhouseZone /> )}
+                          ) : activeZone === "studio" ? (<StudioPanel />) : (<GreenhouseZone /> )}
             </motion.div>
           </AnimatePresence>
         </main>
