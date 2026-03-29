@@ -25,10 +25,16 @@ import { desc, sql, count } from "drizzle-orm";
 
 const router = Router();
 
-/** EIC / admin guard */
+/** EIC / admin guard — hydrates req.user from session before checking role */
 const requireEditor = (req: any, res: any, next: any) => {
+  // Hydrate req.user from session (mirrors isEditor pattern in routes.ts)
+  if (!req.user?.id) {
+    const sessionUser = (req.session as any)?.user;
+    if (sessionUser) req.user = sessionUser;
+  }
   if (!req.user) return res.status(401).json({ error: "Unauthorised" });
-  if (req.user.role !== "editor" && req.user.role !== "admin")
+  const allowed = ["editor", "admin", "editor_in_chief"];
+  if (!allowed.includes(req.user.role))
     return res.status(403).json({ error: "Forbidden — Editor in Chief access only" });
   next();
 };

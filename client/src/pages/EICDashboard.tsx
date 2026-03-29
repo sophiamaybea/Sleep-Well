@@ -119,6 +119,26 @@ interface ActivityFeed {
   }>;
 }
 
+interface AgentSummary {
+  totals: Record<string, number>;
+  breakdowns: {
+    notifsByAgent: Array<{ agentName: string; total: number }>;
+    insightsByType: Array<{ insightType: string; total: number }>;
+    copySnapshotsByStatus: Array<{ status: string; total: number }>;
+    editorialBriefsByStatus: Array<{ status: string; total: number }>;
+  };
+}
+
+interface AgentNotification {
+  id: string;
+  userId: string;
+  agentName: string;
+  message: string;
+  createdAt: string;
+  readAt: string | null;
+  dismissedAt: string | null;
+}
+
 type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries" | "silent-agents";
 
 export default function EICDashboard() {
@@ -251,6 +271,28 @@ export default function EICDashboard() {
     enabled: roleData?.role === "editor_in_chief" && activeTab === "feed",
   });
 
+  const { data: agentSummary, isLoading: agentSummaryLoading } = useQuery<AgentSummary>({
+    queryKey: ["/api/agent-dashboard/summary"],
+    queryFn: async () => {
+      const res = await fetch("/api/agent-dashboard/summary", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch agent summary");
+      const json = await res.json();
+      return json.data;
+    },
+    enabled: roleData?.role === "editor_in_chief" && activeTab === "silent-agents",
+  });
+
+  const { data: agentNotifs = [], isLoading: agentNotifsLoading } = useQuery<AgentNotification[]>({
+    queryKey: ["/api/agent-dashboard/notifications"],
+    queryFn: async () => {
+      const res = await fetch("/api/agent-dashboard/notifications", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch agent notifications");
+      const json = await res.json();
+      return json.data;
+    },
+    enabled: roleData?.role === "editor_in_chief" && activeTab === "silent-agents",
+  });
+
   const { data: previewWriting } = useQuery<EICWriting>({
     queryKey: ["/api/eic/writing", selectedWriting],
     queryFn: async () => {
@@ -328,7 +370,7 @@ export default function EICDashboard() {
     { key: "users", label: "All Users" },
     { key: "team", label: "Editorial Team" },
     { key: "enquiries", label: "Enquiries" },
-        { key: "silent-agents", label: "Silent AI Agents" },
+    { key: "silent-agents", label: "Silent AI Agents" },
   ];
 
   const timeAgo = (date: string) => {
@@ -705,36 +747,94 @@ export default function EICDashboard() {
           </motion.div>
         )}
 
-          {activeTab === "silent-agents" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          <div className="space-y-6">
-            <div>
-              <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 mb-4">Silent AI Agents</h2>
-              <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-6">
-                Configure autonomous agents to work silently in the background
+        {activeTab === "silent-agents" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+            <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">
+              Silent AI Agents
+            </h2>
+            <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-8">
+              Live activity across all autonomous background agents
+            </p>
+
+            {/* Summary tiles */}
+            {agentSummaryLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
+                {[1,2,3,4,5].map((i) => <div key={i} className="h-20 bg-[#f0eeea]/5 rounded animate-pulse" />)}
+              </div>
+            ) : agentSummary ? (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
+                {Object.entries(agentSummary.totals).map(([key, val]) => (
+                  <div key={key} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+                    <div className="text-[#c4a24d] font-['Space_Mono',monospace] text-2xl">{String(val)}</div>
+                    <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">
+                      {key.replace(/([A-Z])/g, " $1").toLowerCase()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm mb-8">
+                Failed to load agent summary. Check that the backend is running and your role is correct.
               </p>
+            )}
+
+            {/* Agent breakdown by name */}
+            {agentSummary?.breakdowns?.notifsByAgent && agentSummary.breakdowns.notifsByAgent.length > 0 && (
+              <div className="mb-10">
+                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-xs uppercase tracking-widest mb-3">
+                  Activity by Agent
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {agentSummary.breakdowns.notifsByAgent.map((a) => (
+                    <div key={a.agentName} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+                      <div className="text-[#5eb5a0] font-['Space_Mono',monospace] text-lg">{a.total}</div>
+                      <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">
+                        {a.agentName.replace(/_/g, " ")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent agent notifications */}
+            <div>
+              <h3 className="text-[#5eb5a0]/70 font-['Space_Mono',monospace] text-xs uppercase tracking-widest mb-3">
+                Recent Agent Activity
+              </h3>
+              {agentNotifsLoading ? (
+                <div className="space-y-2">
+                  {[1,2,3].map((i) => <div key={i} className="h-14 bg-[#f0eeea]/5 rounded animate-pulse" />)}
+                </div>
+              ) : agentNotifs.length === 0 ? (
+                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-sm italic">
+                  No agent activity yet — agents will surface here as they run.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {agentNotifs.slice(0, 30).map((n) => (
+                    <div key={n.id} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded flex items-start justify-between gap-4">
+                      <div>
+                        <span className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider">
+                          {n.agentName.replace(/_/g, " ")}
+                        </span>
+                        <p className="text-[#f0eeea]/70 font-['Lora',serif] text-sm mt-1 leading-snug">{n.message}</p>
+                      </div>
+                      <span className="text-[#f0eeea]/20 font-['Space_Mono',monospace] text-[10px] whitespace-nowrap">
+                        {timeAgo(n.createdAt)}
+                      </span>
+                    </div>
+                  ))}
+                  <p className="text-[#f0eeea]/20 font-['Lora',serif] text-xs mt-3">
+                    {agentNotifs.length} total agent events
+                  </p>
+                </div>
+              )}
             </div>
-            
-            <div className="grid gap-4">
-              <div className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
-                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-sm mb-2">Content Analysis Agent</h3>
-                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">Automatically analyzes new submissions for quality and readiness</p>
-              </div>
-              
-              <div className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
-                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-sm mb-2">Engagement Monitor</h3>
-                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">Tracks user activity and engagement patterns across the platform</p>
-              </div>
-              
-              <div className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
-                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-sm mb-2">Editorial Matchmaker</h3>
-                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">Intelligently matches writers with suitable editors based on style and genre</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-              </div>
+          </motion.div>
+        )}
+
+      </div>
     </div>
   );
 }

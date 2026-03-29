@@ -17,8 +17,13 @@ import { eq, desc, isNull } from 'drizzle-orm';
 
 const router = Router();
 
-// Auth guard — all agent routes require authentication
+// Auth guard — hydrates req.user from session before checking auth
 const requireAuth = (req: any, res: any, next: any) => {
+  // Hydrate req.user from session (mirrors isEditor pattern in routes.ts)
+  if (!req.user?.id) {
+    const sessionUser = (req.session as any)?.user;
+    if (sessionUser) req.user = sessionUser;
+  }
   if (!req.user) return res.status(401).json({ error: 'Unauthorised' });
   next();
 };
