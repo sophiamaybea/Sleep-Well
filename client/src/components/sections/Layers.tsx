@@ -15,7 +15,7 @@ export default function Layers() {
           </h2>
         </div>
         <div className="grid gap-4">
-          {content.layers.steps.map((step, index) => (
+          {content.layers.steps.map((step: { title: string; subtitle: string; desc: string }, index: number) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -20 }}
