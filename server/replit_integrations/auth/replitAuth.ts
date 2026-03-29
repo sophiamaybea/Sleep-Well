@@ -5,6 +5,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
+// @ts-expect-error — bcryptjs has no bundled types; @types/bcryptjs resolves this
 import bcrypt from "bcryptjs";
 import { authStorage } from "./storage";
 
@@ -76,7 +77,7 @@ export async function setupAuth(app: Express) {
       tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
       verified: passport.AuthenticateCallback
     ) => {
-      const user = {};
+      const user = {}} as Express.User;
       updateUserSession(user, tokens);
       await upsertUser(tokens.claims());
       verified(null, user);
