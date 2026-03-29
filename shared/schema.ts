@@ -1115,6 +1115,7 @@ export const insertEditorialFlagSchema = createInsertSchema(
 export const insertSubmissionCallSchema = createInsertSchema(
   submissionCalls,
 ).omit({ id: true, createdById: true, createdAt: true });
+export type InsertSubmissionCall = z.infer<typeof insertSubmissionCallSchema>;
 export const insertQuietReadSchema = createInsertSchema(quietReads).omit({
   id: true,
   readerId: true,

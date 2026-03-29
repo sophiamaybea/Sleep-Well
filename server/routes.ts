@@ -7714,7 +7714,7 @@ const sharedPieces = await db.select({
       const posts = await db
         .select()
         .from(boardPosts)
-        .where(eq(boardPosts.circleId, circleId))
+        .where(eq(boardPosts.circleId, String(circleId)))
         .orderBy(desc(boardPosts.createdAt));
       res.json(posts);
     } catch (error) {
@@ -7776,7 +7776,7 @@ const sharedPieces = await db.select({
     try {
       const user = await storage.getUser(req.params.userId);
       if (!user) return res.status(404).json({ message: "Writer not found" });
-      const writings = await storage.getPublishedWritingsByAuthor(req.params.userId).catch(() => []);
+      const writings = await storage.getPublishedWritings(req.params.userId).catch(() => []);
       res.json({
         id: user.id,
         displayName: user.displayName || user.firstName || "Anonymous",
@@ -8211,7 +8211,7 @@ const sharedPieces = await db.select({
       const [collection] = await db
         .select()
         .from(chapbookCollections)
-        .where(eq(chapbookCollections.id, id));
+        .where(eq(chapbookCollections.id, String(id)));
 
       if (!collection) {
         return res.status(404).json({ message: "Collection not found" });
@@ -8244,7 +8244,7 @@ const sharedPieces = await db.select({
       const items = await db
         .select()
         .from(collectionItems)
-        .where(eq(collectionItems.collectionId, id))
+        .where(eq(collectionItems.collectionId, String(id)))
         .orderBy(collectionItems.sortOrder);
 
       res.json({ collection, items });
@@ -8264,7 +8264,7 @@ const sharedPieces = await db.select({
       const [existing] = await db
         .select()
         .from(chapbookCollections)
-        .where(eq(chapbookCollections.id, id));
+        .where(eq(chapbookCollections.id, String(id)));
 
       if (!existing || existing.authorId !== req.user!.id) {
         return res.status(404).json({ message: "Collection not found" });
@@ -8273,7 +8273,7 @@ const sharedPieces = await db.select({
       const [updated] = await db
         .update(chapbookCollections)
         .set({ ...data, updatedAt: new Date() })
-        .where(eq(chapbookCollections.id, id))
+        .where(eq(chapbookCollections.id, String(id)))
         .returning();
 
       res.json(updated);
@@ -8292,18 +8292,18 @@ const sharedPieces = await db.select({
       const [existing] = await db
         .select()
         .from(chapbookCollections)
-        .where(eq(chapbookCollections.id, id));
+        .where(eq(chapbookCollections.id, String(id)));
 
       if (!existing || existing.authorId !== req.user!.id) {
         return res.status(404).json({ message: "Collection not found" });
       }
 
       // Delete items first
-      await db.delete(collectionItems).where(eq(collectionItems.collectionId, id));
+      await db.delete(collectionItems).where(eq(collectionItems.collectionId, String(id)));
       // Delete unlocks
       await db.delete(collectionUnlocks).where(eq(collectionUnlocks.collectionId, id));
       // Delete collection
-      await db.delete(chapbookCollections).where(eq(chapbookCollections.id, id));
+      await db.delete(chapbookCollections).where(eq(chapbookCollections.id, String(id)));
 
       res.json({ message: "Collection deleted" });
     } catch (error) {
@@ -8322,7 +8322,7 @@ const sharedPieces = await db.select({
       const [collection] = await db
         .select()
         .from(chapbookCollections)
-        .where(eq(chapbookCollections.id, id));
+        .where(eq(chapbookCollections.id, String(id)));
 
       if (!collection || collection.authorId !== req.user!.id) {
         return res.status(404).json({ message: "Collection not found" });
@@ -8349,7 +8349,7 @@ const sharedPieces = await db.select({
       const [collection] = await db
         .select()
         .from(chapbookCollections)
-        .where(eq(chapbookCollections.id, id));
+        .where(eq(chapbookCollections.id, String(id)));
 
       if (!collection || collection.authorId !== req.user!.id) {
         return res.status(404).json({ message: "Collection not found" });
@@ -8374,7 +8374,7 @@ const sharedPieces = await db.select({
       const [collection] = await db
         .select()
         .from(chapbookCollections)
-        .where(eq(chapbookCollections.id, id));
+        .where(eq(chapbookCollections.id, String(id)));
 
       if (!collection) {
         return res.status(404).json({ message: "Collection not found" });
@@ -8419,7 +8419,7 @@ const sharedPieces = await db.select({
       const [collection] = await db
         .select()
         .from(chapbookCollections)
-        .where(eq(chapbookCollections.id, id));
+        .where(eq(chapbookCollections.id, String(id)));
 
       if (!collection || !collection.isPublic) {
         return res.status(404).json({ message: "Collection not found or not public" });
