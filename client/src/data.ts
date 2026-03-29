@@ -51,10 +51,32 @@ export const content = {
       "That's it. That's the whole model. You tend your Garden. We tend our attention."
     ]
   },
+    howItWorks: {
+    title: "How It Works",
+    subtitle: "WRITE. GROW. PUBLISH.",
+    steps: [
+      {
+        number: "01",
+        title: "Write in the Garden",
+        description: "Your private writing space. Drafts grow through stages: seed, sprout, bloom. No audience until you're ready."
+      },
+      {
+        number: "02",
+        title: "Grow with Your Circle",
+        description: "A small group of writers who read your work and offer real feedback. Real readers, not metrics."
+      },
+      {
+        number: "03",
+        title: "Enter the Gallery",
+        description: "Editors browse the Garden. When something catches their eye, it enters the Gallery. You never have to apply."
+      }
+    ]
+  },
   overclock: {
     eyebrow: "System Status",
     subtitle: "Always On. Always Writing.",
     text: "Your creative rhythm is a system. We help you keep it running.",
+    
     warning: "Don't Overheat"
   },
   layers: {
