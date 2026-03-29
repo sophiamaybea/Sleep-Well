@@ -1,0 +1,77 @@
+name: Dead Route Auditor
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  dead-route-audit:
+    runs-on: ubuntu-latest
+    name: Scan for dead or orphaned API routes
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run dead route audit
+        id: audit
+        run: |
+          echo "=== Dead Route Auditor ==="
+          echo "Scanning server/routes/ for registered routes..."
+
+          # Extract route registrations from server/routes.ts
+          SERVER_ROUTES=$(grep -rE "router\.(get|post|put|patch|delete)\(" server/ 2>/dev/null | grep -oE "'[/a-zA-Z0-9:_-]+'" | sort -u || true)
+
+          # Extract client-side API calls
+          CLIENT_CALLS=$(grep -rE "(fetch|useQuery|useMutation).*['\"/]api/" client/src/ 2>/dev/null | grep -oE "/api/[a-zA-Z0-9/_:-]+" | sort -u || true)
+
+          echo "Server routes found:"
+          echo "$SERVER_ROUTES"
+          echo ""
+          echo "Client API calls found:"
+          echo "$CLIENT_CALLS"
+
+          # Count routes
+          ROUTE_COUNT=$(echo "$SERVER_ROUTES" | grep -c '/' || echo 0)
+          echo "Total server routes: $ROUTE_COUNT"
+
+          echo "AUDIT_COMPLETE=true" >> $GITHUB_OUTPUT
+          echo "ROUTE_COUNT=$ROUTE_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Open GitHub issue with audit results
+        if: steps.audit.outputs.AUDIT_COMPLETE == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const date = new Date().toISOString().split('T')[0];
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Dead Route Audit] Weekly scan - ${date}`,
+              body: [
+                '## Dead Route Auditor Weekly Report',
+                '',
+                `**Date:** ${date}`,
+                `**Routes scanned:** ${{ steps.audit.outputs.ROUTE_COUNT }}`,
+                '',
+                '### Action Required',
+                'Review the [Actions run](https://github.com/${{ github.repository }}/actions) for the full list of server routes vs client API calls.',
+                'Identify any routes registered on the server that are never called by the client.',
+                '',
+                '### Constraints',
+                '- Never expose `/api/debug/db` in new routes (no auth guard)',
+                '- Routes touching `writings` or `submissions` without auth guards are security risks',
+                '',
+                '_This issue was opened automatically by the Dead Route Auditor agent._'
+              ].join('\n'),
+              labels: ['maintenance', 'agent-report']
+            });
