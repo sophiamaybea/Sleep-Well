@@ -53,6 +53,7 @@ export function useAuth() {
     retry: false,
       staleTime: 1000 * 60, // 60s — reduced from 5min (T20)
       refetchOnWindowFocus: true, // T20
+        gcTime: 0, // evict immediately so stale user never lingers in cache
   });
 
   // T50: clear cache BEFORE redirect so cache is clean regardless of how
