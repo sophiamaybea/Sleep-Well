@@ -704,8 +704,6 @@ export default function EICDashboard() {
             </section>
           </motion.div>
         )}
-      </div>
-    </div>
 
           {activeTab === "silent-agents" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
@@ -736,6 +734,8 @@ export default function EICDashboard() {
           </div>
         </motion.div>
       )}
+              </div>
+    </div>
   );
 }
 
