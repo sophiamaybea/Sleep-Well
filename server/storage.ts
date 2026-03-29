@@ -1643,7 +1643,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getPublishedWritings(): Promise<
+    async getPublishedWritings(userId?: string): Promise<
     (Writing & { authorName: string | null; authorBio: string | null })[]
   > {
     const results = await db
@@ -1657,7 +1657,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(writings)
       .leftJoin(users, eq(writings.authorId, users.id))
-      .where(eq(writings.isPublished, true))
+            .where(userId ? and(eq(writings.isPublished, true), eq(writings.authorId, userId)) : eq(writings.isPublished, true))
       .orderBy(desc(writings.publishedAt));
     return results;
   }

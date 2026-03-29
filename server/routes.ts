@@ -8226,10 +8226,10 @@ const sharedPieces = await db.select({
           const unlocks = await db
             .select()
             .from(collectionUnlocks)
-            .where(
-              eq(collectionUnlocks.collectionId, id),
-              eq(collectionUnlocks.readerId, req.user.id)
-            );
+                      .where(and(
+            eq(collectionUnlocks.collectionId, id),
+            eq(collectionUnlocks.readerId, req.user.id)
+          ));
           if (unlocks.length > 0) {
             canView = true;
           }
@@ -8301,7 +8301,7 @@ const sharedPieces = await db.select({
       // Delete items first
       await db.delete(collectionItems).where(eq(collectionItems.collectionId, String(id)));
       // Delete unlocks
-      await db.delete(collectionUnlocks).where(eq(collectionUnlocks.collectionId, id));
+            await db.delete(collectionUnlocks).where(eq(collectionUnlocks.collectionId, String(id)));
       // Delete collection
       await db.delete(chapbookCollections).where(eq(chapbookCollections.id, String(id)));
 
@@ -8355,7 +8355,7 @@ const sharedPieces = await db.select({
         return res.status(404).json({ message: "Collection not found" });
       }
 
-      await db.delete(collectionItems).where(eq(collectionItems.id, itemId));
+      await db.delete(collectionItems).where(eq(collectionItems.id, String(itemId)));
       res.json({ message: "Item removed" });
     } catch (error) {
       console.error("Remove item error:", error);
@@ -8384,11 +8384,10 @@ const sharedPieces = await db.select({
       const existing = await db
         .select()
         .from(collectionUnlocks)
-        .where(
-          eq(collectionUnlocks.collectionId, id),
-          eq(collectionUnlocks.readerId, req.user!.id)
-        );
-
+          .where(and(
+            eq(collectionUnlocks.collectionId, String(id)),
+            eq(collectionUnlocks.readerId, req.user!.id)
+          ));
       if (existing.length > 0) {
         return res.json({ message: "Already unlocked" });
       }
@@ -8397,7 +8396,7 @@ const sharedPieces = await db.select({
       const [unlock] = await db
         .insert(collectionUnlocks)
         .values({
-          collectionId: id,
+          collectionId: String(id),
           readerId: req.user!.id,
           paypalOrderId,
           amountPaidPence: amountPaidPence || collection.tipAmountPence,
