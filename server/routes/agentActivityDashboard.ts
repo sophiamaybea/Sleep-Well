@@ -33,7 +33,7 @@ const requireEditor = (req: any, res: any, next: any) => {
     if (sessionUser) req.user = sessionUser;
   }
   if (!req.user) return res.status(401).json({ error: "Unauthorised" });
-  const allowed = ["editor", "admin", "editor_in_chief"];
+  const allowed = ["admin", "editor_in_chief"];
   if (!allowed.includes(req.user.role))
     return res.status(403).json({ error: "Forbidden — Editor in Chief access only" });
   next();
