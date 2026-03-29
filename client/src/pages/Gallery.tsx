@@ -19,6 +19,13 @@ interface GalleryItem {
   authorBio: string | null;
   publishedAt: string | null;
   authorId?: string;
+    // Print edition fields (used in PlantedInTheGarden section)
+  name?: string;
+  link?: string;
+  buyLink?: string;
+  description?: string;
+  type?: string;
+  coverColor?: string;
 }
 
 const genreFilters = ["all", "poetry", "fiction", "essay", "fragment", "other"];
