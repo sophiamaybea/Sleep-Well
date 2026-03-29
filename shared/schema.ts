@@ -2994,3 +2994,83 @@ export const insertAgentPatternInsightSchema = createInsertSchema(
 
 export type AgentPatternInsight = typeof agentPatternInsights.$inferSelect;
 export type InsertAgentPatternInsight = z.infer<typeof insertAgentPatternInsightSchema>;
+
+
+// === EDITORIAL BRIEFS ===
+// Stores editorial briefs for journal issues, created/managed by editors.
+export const editorialBriefs = pgTable("editorial_briefs", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  issueId: varchar("issue_id")
+    .notNull()
+    .references(() => issues.id),
+  displayIntro: text("display_intro").notNull().default(""),
+  seoExcerpt: text("seo_excerpt").notNull().default(""),
+  draftByAgent: text("draft_by_agent"),
+  status: text("status").notNull().default("draft"),
+  approvedById: varchar("approved_by_id")
+    .references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEditorialBriefSchema = createInsertSchema(
+  editorialBriefs,
+).omit({ id: true, createdAt: true, updatedAt: true });
+
+export type EditorialBrief = typeof editorialBriefs.$inferSelect;
+export type InsertEditorialBrief = z.infer<typeof insertEditorialBriefSchema>;
+
+// === PROMPT FLOATS ===
+// Tracks which prompts have been surfaced to users in the editor.
+export const promptFloats = pgTable("prompt_floats", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  writingId: varchar("writing_id")
+    .references(() => writings.id),
+  promptId: varchar("prompt_id")
+    .references(() => prompts.id),
+  promptText: text("prompt_text").notNull(),
+  dismissed: boolean("dismissed").notNull().default(false),
+  surfacedAt: timestamp("surfaced_at").defaultNow(),
+});
+
+export const insertPromptFloatSchema = createInsertSchema(
+  promptFloats,
+).omit({ id: true, surfacedAt: true });
+
+export type PromptFloat = typeof promptFloats.$inferSelect;
+export type InsertPromptFloat = z.infer<typeof insertPromptFloatSchema>;
+
+// === FEED EVENTS ===
+// Social feed events for tended gardener activity.
+export const feedEvents = pgTable("feed_events", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  actorId: varchar("actor_id")
+    .notNull()
+    .references(() => users.id),
+  eventType: text("event_type").notNull(),
+  writingId: varchar("writing_id")
+    .references(() => writings.id),
+  metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertFeedEventSchema = createInsertSchema(
+  feedEvents,
+).omit({ id: true, createdAt: true });
+
+export type FeedEvent = typeof feedEvents.$inferSelect;
+export type InsertFeedEvent = z.infer<typeof insertFeedEventSchema>;
