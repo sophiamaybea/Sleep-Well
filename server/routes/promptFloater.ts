@@ -15,7 +15,7 @@ const requireAuth = (req: any, res: any, next: any) => {
 router.get("/prompt-float", requireAuth, async (req, res) => {
   try {
     const { writingId } = req.query;
-    const userId = req.user.id;
+    const userId = req.user!.id;
 
     // Get the last 10 prompts shown to avoid repeating
     const recentFloats = await db.select()
@@ -55,7 +55,7 @@ router.post("/prompt-float/log", requireAuth, async (req, res) => {
     if (!promptText)
       return res.status(400).json({ error: "promptText required" });
     const [row] = await db.insert(promptFloats).values({
-      userId: req.user.id,
+      userId: req.user!.id,
       writingId: writingId ?? null,
       promptId: promptId ?? null,
       promptText,
@@ -75,7 +75,7 @@ router.patch("/prompt-float/:id/dismiss", requireAuth, async (req, res) => {
       .set({ dismissed: true })
       .where(and(
         eq(promptFloats.id, req.params.id),
-        eq(promptFloats.userId, req.user.id)
+        eq(promptFloats.userId, req.user!.id)
       ))
       .returning();
     if (!row) return res.status(404).json({ error: "Not found" });

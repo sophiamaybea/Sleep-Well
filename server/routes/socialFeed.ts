@@ -13,7 +13,7 @@ const requireAuth = (req: any, res: any, next: any) => {
 // GET feed events for the current user (their circle of tended gardeners)
 router.get("/feed", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     // Find everyone this user tends
     const tendedRows = await db.select()
       .from(tending)
@@ -68,7 +68,7 @@ router.patch("/feed/events/:id/read", requireAuth, async (req, res) => {
       .set({ isRead: true })
       .where(and(
         eq(feedEvents.id, req.params.id),
-        eq(feedEvents.userId, req.user.id)
+        eq(feedEvents.userId, req.user!.id)
       ))
       .returning();
     if (!row) return res.status(404).json({ error: "Not found" });
@@ -84,7 +84,7 @@ router.patch("/feed/read-all", requireAuth, async (req, res) => {
   try {
     await db.update(feedEvents)
       .set({ isRead: true })
-      .where(eq(feedEvents.userId, req.user.id));
+      .where(eq(feedEvents.userId, req.user!.id));
     return res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -98,7 +98,7 @@ router.get("/feed/unread-count", requireAuth, async (req, res) => {
     const rows = await db.select()
       .from(feedEvents)
       .where(and(
-        eq(feedEvents.userId, req.user.id),
+        eq(feedEvents.userId, req.user!.id),
         eq(feedEvents.isRead, false)
       ));
     return res.json({ count: rows.length });

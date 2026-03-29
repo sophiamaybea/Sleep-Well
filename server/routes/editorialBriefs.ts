@@ -7,7 +7,7 @@ const router = Router();
 
 const requireEditor = (req: any, res: any, next: any) => {
   if (!req.user) return res.status(401).json({ error: "Unauthorised" });
-  if (req.user.role !== "editor" && req.user.role !== "admin")
+  if (req.user!.role !== "editor" && req.user!.role !== "admin")
     return res.status(403).json({ error: "Forbidden" });
   next();
 };
@@ -79,7 +79,7 @@ router.patch("/editorial-briefs/:id/approve", requireEditor, async (req, res) =>
     const [row] = await db.update(editorialBriefs)
       .set({
         status: "approved",
-        approvedById: req.user.id,
+        approvedById: req.user!.id,
         approvedAt: new Date(),
       })
       .where(eq(editorialBriefs.id, req.params.id))

@@ -7,7 +7,7 @@ const router = Router();
 
 const requireEditor = (req: any, res: any, next: any) => {
   if (!req.user) return res.status(401).json({ error: "Unauthorised" });
-  if (req.user.role !== "editor" && req.user.role !== "admin")
+  if (req.user!.role !== "editor" && req.user!.role !== "admin")
     return res.status(403).json({ error: "Forbidden" });
   next();
 };
@@ -60,7 +60,7 @@ router.patch("/copy-snapshots/:id/approve", requireEditor, async (req, res) => {
       .set({
         approvedCopy: approvedCopy ?? undefined,
         status: "approved",
-        approvedById: req.user.id,
+        approvedById: req.user!.id,
         approvedAt: new Date(),
       })
       .where(eq(copySnapshots.id, req.params.id))
@@ -114,7 +114,7 @@ router.post("/seo-meta", requireEditor, async (req, res) => {
 router.patch("/seo-meta/:id/approve", requireEditor, async (req, res) => {
   try {
     const [row] = await db.update(seoMeta)
-      .set({ status: "approved", approvedById: req.user.id, approvedAt: new Date() })
+      .set({ status: "approved", approvedById: req.user!.id, approvedAt: new Date() })
       .where(eq(seoMeta.id, req.params.id))
       .returning();
     if (!row) return res.status(404).json({ error: "Not found" });
