@@ -119,7 +119,7 @@ interface ActivityFeed {
   }>;
 }
 
-type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries | "silent-agents";
+type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries" | "silent-agents";
 
 export default function EICDashboard() {
   const { user, isLoading: authLoading } = useAuth();
