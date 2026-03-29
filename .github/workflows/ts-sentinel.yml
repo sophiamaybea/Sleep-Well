@@ -1,0 +1,43 @@
+name: TypeScript Sentinel
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  typescript-check:
+    runs-on: ubuntu-latest
+    name: TypeScript type check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript compiler check
+        run: npx tsc --noEmit 2>&1 | tee /tmp/ts-errors.txt; exit ${PIPESTATUS[0]}
+        env:
+          NODE_ENV: test
+
+      - name: Report on success
+        if: success()
+        run: echo "TypeScript Sentinel — PASS. Zero type errors detected."
+
+      - name: Report on failure
+        if: failure()
+        run: |
+          echo "TypeScript Sentinel — FAIL. Type errors found:"
+          cat /tmp/ts-errors.txt
+          echo ""
+          echo "Fix all TypeScript errors before merging to main."
+          exit 1
