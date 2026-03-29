@@ -17,7 +17,7 @@ const currentIssues: Publication[] = [];
 
 const pastIssues: Publication[] = [];
 
-const friends = [];
+const friends: Publication[] = [];
 const hasPublications = currentIssues.length > 0 || (friends as any[]).length > 0 || pastIssues.length > 0;
 
 export default function Publications() {
