@@ -1,3 +1,5 @@
+import { Brain, Sparkles, Zap, Activity, MessageSquare, Terminal, Bell, BarChart3, Search, ShieldCheck } from "lucide-react";
+import StudioPanel from "@/components/garden/StudioPanel";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -326,6 +328,7 @@ export default function EICDashboard() {
     { key: "users", label: "All Users" },
     { key: "team", label: "Editorial Team" },
     { key: "enquiries", label: "Enquiries" },
+        { key: "silent-agents", label: "Silent AI Agents" },
   ];
 
   const timeAgo = (date: string) => {
@@ -703,6 +706,36 @@ export default function EICDashboard() {
         )}
       </div>
     </div>
+
+          {activeTab === "silent-agents" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          <div className="space-y-6">
+            <div>
+              <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 mb-4">Silent AI Agents</h2>
+              <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-6">
+                Configure autonomous agents to work silently in the background
+              </p>
+            </div>
+            
+            <div className="grid gap-4">
+              <div className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-sm mb-2">Content Analysis Agent</h3>
+                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">Automatically analyzes new submissions for quality and readiness</p>
+              </div>
+              
+              <div className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-sm mb-2">Engagement Monitor</h3>
+                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">Tracks user activity and engagement patterns across the platform</p>
+              </div>
+              
+              <div className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-sm mb-2">Editorial Matchmaker</h3>
+                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">Intelligently matches writers with suitable editors based on style and genre</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
   );
 }
 
