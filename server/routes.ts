@@ -1,3 +1,8 @@
+import { registerCopyAgentRoutes } from "./routes/copyAgent";
+import { registerEditorialBriefRoutes } from "./routes/editorialBriefs";
+import { registerSocialFeedRoutes } from "./routes/socialFeed";
+import { registerPromptFloaterRoutes } from "./routes/promptFloater";
+import { registerDesignAgentRoutes } from "./routes/designAgent";
 import { registerGalleryFeedbackRoutes } from "./routes/galleryFeedback";
 import { registerEditorialRoomRoutes } from "./routes/editorialRooms";
 import { registerServiceInquiryRoutes } from "./routes/serviceInquiries";
@@ -8538,5 +8543,10 @@ const sharedPieces = await db.select({
     registerWritingExerciseRoutes(app);
     registerJournalApplicationRoutes(app);
   registerMarketplaceRoutes(app);
+  registerCopyAgentRoutes(app);
+  registerEditorialBriefRoutes(app);
+  registerSocialFeedRoutes(app);
+  registerPromptFloaterRoutes(app);
+  registerDesignAgentRoutes(app);
   return httpServer;  registerMarketplaceRoutes(app);
 }
