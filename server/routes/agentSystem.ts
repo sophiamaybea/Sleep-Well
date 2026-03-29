@@ -214,4 +214,6 @@ router.get('/site-config/:key', async (req, res) => {
   }
 });
 
-export default router;
+export function registerAgentSystemRoutes(app: any) {
+  app.use('/api/agent', router);
+}
