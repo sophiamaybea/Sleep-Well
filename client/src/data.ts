@@ -1,4 +1,3 @@
-
 export const content = {
   hero: {
     title: "A Room for Writing",
@@ -79,6 +78,33 @@ export const content = {
       "The writer never submits. The writer never formats a cover letter. The writer never wonders if the font was wrong or the bio was too long. The writer just writes.",
       "And if something they wrote is the kind of thing that stops a person mid-sentence — the kind of thing that makes an editor close their laptop and sit with it for a minute — then that editor sends a Replant Request, and the piece moves from the Garden to the Gallery wall.",
       "That's it. That's the whole model. You tend your Garden. We tend our attention."
+    ]
+  },
+  overclock: {
+    eyebrow: "System Status",
+    subtitle: "Always On. Always Writing.",
+    text: "Your creative rhythm is a system. We help you keep it running.",
+    warning: "Don't Overheat"
+  },
+  layers: {
+    eyebrow: "How It Layers",
+    title: "The Full Stack",
+    steps: [
+      {
+        title: "Write",
+        subtitle: "The Garden",
+        desc: "Your private studio. Drafts, fragments, false starts. No audience until you're ready."
+      },
+      {
+        title: "Grow",
+        subtitle: "The Circle",
+        desc: "A small group of writers who read your work. Real readers, not metrics."
+      },
+      {
+        title: "Publish",
+        subtitle: "The Gallery",
+        desc: "Editors find your work in the Garden. You never have to apply."
+      }
     ]
   }
 }
