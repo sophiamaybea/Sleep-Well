@@ -203,6 +203,7 @@ import {
     editorialThreads,
   editorialThreadMessages,
   contributorNotes,
+    editorialInboxStates,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -4128,7 +4129,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<RequestMessage> {
     const [msg] = await db
       .insert(requestMessages)
-      .values({ senderId, ...data })
+      .values({ authorId: senderId, threadId: data.threadId, body: data.content })
       .returning();
     const [request] = await db
       .select()
@@ -6702,7 +6703,7 @@ export class DatabaseStorage implements IStorage {
     if (existing) {
       const [updated] = await db
         .update(courseExerciseResponses)
-        .set({ content, updatedAt: new Date() })
+        .set({ note: content, updatedAt: new Date() })
         .where(eq(courseExerciseResponses.id, existing.id))
         .returning();
       return updated;
@@ -7998,13 +7999,13 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: editorialThreadMessages.id,
         threadId: editorialThreadMessages.threadId,
-        senderId: editorialThreadMessages.senderId,
-        content: editorialThreadMessages.content,
+        senderId: editorialThreadMessages.authorId,
+        content: editorialThreadMessages.body,
         createdAt: editorialThreadMessages.createdAt,
         senderName: users.firstName,
       })
       .from(editorialThreadMessages)
-      .leftJoin(users, eq(editorialThreadMessages.senderId, users.id))
+      .leftJoin(users, eq(editorialThreadMessages.authorId, users.id))
       .where(eq(editorialThreadMessages.threadId, id))
       .orderBy(asc(editorialThreadMessages.createdAt));
     return { ...thread, messages };
@@ -8013,7 +8014,7 @@ export class DatabaseStorage implements IStorage {
   async addEditorialThreadMessage(senderId: string, data: { threadId: string; content: string }): Promise<any> {
     const [msg] = await db
       .insert(editorialThreadMessages)
-      .values({ senderId, ...data })
+      .values({ authorId: senderId, threadId: data.threadId, body: data.content })
       .returning();
     await db
       .update(editorialThreads)
@@ -8110,16 +8111,16 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select({
         id: contributorNotes.id,
-        subjectUserId: contributorNotes.subjectUserId,
+        subjectUserId: contributorNotes.contributorId,
         editorId: contributorNotes.editorId,
-        content: contributorNotes.content,
+        content: contributorNotes.note,
         createdAt: contributorNotes.createdAt,
         updatedAt: contributorNotes.updatedAt,
         editorName: users.firstName,
       })
       .from(contributorNotes)
       .leftJoin(users, eq(contributorNotes.editorId, users.id))
-      .where(eq(contributorNotes.subjectUserId, subjectUserId))
+      .where(eq(contributorNotes.contributorId, subjectUserId))
       .orderBy(desc(contributorNotes.createdAt));
   }
 
@@ -8127,18 +8128,18 @@ export class DatabaseStorage implements IStorage {
     const [existing] = await db
       .select()
       .from(contributorNotes)
-      .where(and(eq(contributorNotes.editorId, editorId), eq(contributorNotes.subjectUserId, subjectUserId)));
+      .where(and(eq(contributorNotes.editorId, editorId), eq(contributorNotes.contributorId, subjectUserId)));
     if (existing) {
       const [updated] = await db
         .update(contributorNotes)
-        .set({ content, updatedAt: new Date() })
+        .set({ note: content, updatedAt: new Date() })
         .where(eq(contributorNotes.id, existing.id))
         .returning();
       return updated;
     }
     const [created] = await db
       .insert(contributorNotes)
-      .values({ editorId, subjectUserId, content })
+      .values({ editorId, contributorId: subjectUserId, note: content })
       .returning();
     return created;
   }
