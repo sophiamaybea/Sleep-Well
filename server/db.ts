@@ -1073,9 +1073,6 @@ export async function runMigrations() {
       }
     }
 
-    // T19: Final migration summary
-    if (migrationErrors > 0) {
-      console.error(
 
             // T23: Create agent_notifications table
     try {
@@ -1165,6 +1162,10 @@ export async function runMigrations() {
         migrationErrors++;
       }
     }
+        
+    // T19: Final migration summary
+    if (migrationErrors > 0) {
+      console.error(
         `[MIGRATION] ${migrationErrors} critical error(s) occurred during migrations — check logs above. ` +
         `Server continuing but some features may be broken.`
       );
