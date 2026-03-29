@@ -11,8 +11,8 @@ interface V2LayoutProps {
 export default function V2Layout({ children, activeTab = "garden" }: V2LayoutProps) {
   const { user } = useAuth();
 
-  const initials = user?.username
-    ? user.username.slice(0, 2).toUpperCase()
+  const initials = user?.displayName
+    ? user.displayName!.slice(0, 2).toUpperCase()
     : "??";
 
   const tabs = [
