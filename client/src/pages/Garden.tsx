@@ -2375,7 +2375,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                       <ResonanceBar writingId={piece.id} compact />
                       <MarginaliaCount writingId={piece.id} /><motion.button onClick={(e) => { e.stopPropagation(); apiRequest("POST", "/api/saved", { writingId: piece.id }).then(() => toast({ title: "Saved to your collection" })).catch(() => toast({ title: "Could not save", variant: "destructive" })); }} whileTap={{ scale: 1.3 }} whileHover={{ scale: 1.1 }} className="p-1.5 rounded-lg text-white/30 hover:text-amber-400/70 hover:bg-amber-500/[0.06] transition-all" title="Save piece" data-testid={`button-save-${piece.id}`}><Bookmark size={12} /></motion.button>
                       <PauseStoneButton writingId={piece.id} />
-                                          <TendButton writingId={piece.id} authorId={piece.authorId} compact />
+                                          <TendButton gardenerId={piece.authorId} />
                       <button
                         onClick={(e) => { e.stopPropagation(); setExpandedId(piece.id); }}
                         className="flex items-center gap-1 font-mono text-[8px] text-white/90 hover:text-white/90 transition-colors"
@@ -3794,7 +3794,7 @@ export default function Garden() {
   function handlePlantingSave(data: { visibility: string; readiness: string; editorialAvailable: boolean }) {
     if (plantingTarget) updateMutation.mutate({ id: plantingTarget.id, ...data });
         if (plantingTarget && (data.visibility === 'gallery' || data.visibility === 'gallery_opt_in')) {      setFeedbackWritingId(plantingTarget.id);
-      setconst [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);(true);
+      const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);(true);
     }
   }
 
@@ -4227,7 +4227,7 @@ export default function Garden() {
             <GalleryFeedbackModal
                       isOpen={showGalleryFeedback}
                                 onClose={() => { setShowGalleryFeedback(false); setFeedbackWritingId(null); }}
-          writingId={feedbackWritingId || ""}
+          writingId={feedbackWritingId || ""}               writingTitle={""}
       />
     </div>
   );
