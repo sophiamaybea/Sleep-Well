@@ -12,7 +12,7 @@ interface Message {
 const GardenWalkInbox: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [sendMessageMutation, { isPending }] = useState({ isPending: false });
+  const [isPending, setIsPending] = useState(false);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
