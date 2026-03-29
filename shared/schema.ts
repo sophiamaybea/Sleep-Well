@@ -2385,6 +2385,8 @@ export const editorialThreads = pgTable("editorial_threads", {
   createdByEditorId: varchar("created_by_editor_id")
     .notNull()
     .references(() => users.id),
+      issueId: varchar("issue_id"),
+    status: varchar("status", { length: 32 }).notNull().default("open"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
