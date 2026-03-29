@@ -61,7 +61,7 @@ export default function HowItWorks() {
         <div className="relative">
           <AnimatedLine />
           <div className="space-y-24">
-            {content.howItWorks.steps.map((step, index) => (
+            {content.howItWorks.steps.map((step: { number: string; title: string; description: string }, index: number) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -30 }}
