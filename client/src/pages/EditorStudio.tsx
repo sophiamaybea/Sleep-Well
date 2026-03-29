@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged" | "editorial-inbox" | "threads" | "garden-walk" | "tasks";
 
