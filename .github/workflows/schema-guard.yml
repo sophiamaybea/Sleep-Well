@@ -1,0 +1,56 @@
+name: Schema Guardian
+
+on:
+  push:
+    paths:
+      - 'shared/schema.ts'
+  pull_request:
+    paths:
+      - 'shared/schema.ts'
+
+jobs:
+  schema-guard:
+    runs-on: ubuntu-latest
+    name: Guard schema against destructive changes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for destructive schema changes
+        run: |
+          echo "Checking shared/schema.ts for destructive changes..."
+          git diff HEAD~1 HEAD -- shared/schema.ts > /tmp/schema.diff
+          if [ ! -s /tmp/schema.diff ]; then
+            echo "No changes to shared/schema.ts on this commit."
+            exit 0
+          fi
+          # Fail if any existing column definition was modified (not added)
+          # We look for removed lines that contain column definitions
+          REMOVED=$(grep '^-' /tmp/schema.diff | grep -v '^---' | grep -E '\.(varchar|text|integer|boolean|timestamp|jsonb|unique)\(' || true)
+          ADDED=$(grep '^+' /tmp/schema.diff | grep -v '^+++' | grep -E '\.(varchar|text|integer|boolean|timestamp|jsonb|unique)\(' || true)
+          if [ -n "$REMOVED" ]; then
+            echo "FAIL: Detected potential modification or removal of existing column definitions:"
+            echo "$REMOVED"
+            echo ""
+            echo "shared/schema.ts is ADDITIVE ONLY. Never modify existing column definitions."
+            echo "Only add new tables or append new columns."
+            exit 1
+          fi
+          echo "PASS: Schema changes are additive only."
+
+      - name: TypeScript compile check
+        run: npx tsc --noEmit
+        env:
+          NODE_ENV: test
