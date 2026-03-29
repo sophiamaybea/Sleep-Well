@@ -106,5 +106,35 @@ export const content = {
         desc: "Editors find your work in the Garden. You never have to apply."
       }
     ]
+  },
+  tips: {
+    eyebrow: "Practical Writing",
+    subtitle: "Small shifts that change the way you write.",
+    list: [
+      {
+        title: "Write before you think",
+        desc: "Start with the sentence. The idea will follow."
+      },
+      {
+        title: "Read what you envy",
+        desc: "Jealousy is a compass. Follow it to the shelf."
+      },
+      {
+        title: "Finish ugly drafts",
+        desc: "A finished mess teaches more than a perfect paragraph."
+      }
+    ]
+  },
+  rhythm: {
+    eyebrow: "Creative Rhythm",
+    title: "Write Like You Breathe",
+    subtitle: "A PRACTICE, NOT A PERFORMANCE",
+    text: "The best writing doesn't happen in bursts of genius. It happens in the quiet repetition of showing up — morning pages, evening edits, the slow accumulation of words that eventually become something.",
+    stat: "Daily practice beats weekly inspiration, every time."
+  },
+  pills: {
+    eyebrow: "THE SHORTCUT TRAP",
+    text: "There are no shortcuts to writing well. No AI prompt, no viral template, no five-step formula will replace the hours you spend alone with your sentences. The only pill worth swallowing is discipline.",
+    cta: "Start Writing"
   }
 }
