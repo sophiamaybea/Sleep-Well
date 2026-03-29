@@ -86,7 +86,7 @@ const GardenWalkInbox: React.FC = () => {
               />
               <button
                 onClick={handleSendMessage}
-                disabled={sendMessageMutation.isPending || !newMessage.trim()}
+                disabled={isPending || !newMessage.trim()}
                 className="px-4 py-2 rounded-lg bg-white/[0.08] border border-white/[0.2] hover:bg-white/[0.15] transition-colors"
               >
                 <Send size={16} />
