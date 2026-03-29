@@ -76,7 +76,7 @@ export default function V2Dashboard() {
 
   const totalPieces = writings.filter((w) => !w.isArchived).length;
   const greeting = greetingForHour();
-  const firstName = user?.firstName || user?.username || "";
+    const firstName = user?.firstName || user?.displayName || "";
 
   return (
     <V2Layout activeTab="garden">
