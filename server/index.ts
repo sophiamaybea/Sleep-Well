@@ -132,7 +132,7 @@ app.get("/api/debug/db", async (req: any, res) => {
     const siteContent = await pool.query(`SELECT count(*) FROM site_content`);
     res.json({ tables: tables.rows.map((r: any) => r.tablename), writings: writings.rows[0], siteContent: siteContent.rows[0] });
   } catch (error) {
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
+          res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 (async () => {
