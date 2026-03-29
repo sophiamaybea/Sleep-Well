@@ -17,23 +17,29 @@ export default function IllustrationLayer() {
   }, []);
 
   return (
-    <img
-      src={src}
-      alt=""
+    <div
       aria-hidden="true"
       style={{
         position: 'fixed',
-        bottom: 0,
-        left: 0,
-        width: 'clamp(240px, 30vw, 480px)',
-        height: 'auto',
-        opacity: 0.80,
-        zIndex: 1,
+        inset: 0,
+        zIndex: 0,
         pointerEvents: 'none',
         userSelect: 'none',
-        // Fade in smoothly
+        overflow: 'hidden',
         animation: 'ill-fadein 1.2s ease forwards',
       }}
-    />
+    >
+      <img
+        src={src}
+        alt=""
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          opacity: 0.18,
+        }}
+      />
+    </div>
   );
 }
