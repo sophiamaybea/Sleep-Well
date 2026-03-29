@@ -19,6 +19,12 @@ declare global {
       hasCompletedOnboarding: boolean;
       createdAt: Date | null;
       updatedAt: Date | null;
+            // OIDC session fields (set by Replit Auth verify callback)
+      claims?: Record<string, unknown>;
+      access_token?: string;
+      refresh_token?: string;
+      expires_at?: number;
+      passwordHash?: string | null;
     }
   }
 }
