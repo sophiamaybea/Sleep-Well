@@ -200,6 +200,9 @@ import {
   studioNotes,
   type StudioNote,
   type InsertStudioNote,
+    editorialThreads,
+  editorialThreadMessages,
+  contributorNotes,
 } from "@shared/schema";
 import { users, type User } from "@shared/models/auth";
 import { db } from "./db";
@@ -2229,7 +2232,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<Circle> {
     const [circle] = await db
       .insert(circles)
-      .values({ createdById: userId, ...data })
+      .values({ createdByEditorId: userId, ...data })
       .returning();
     await db.insert(circleMembers).values({ circleId: circle.id, userId });
     return circle;
@@ -2976,7 +2979,7 @@ export class DatabaseStorage implements IStorage {
     const exercises = await db
       .select({
         id: workshopExercises.id,
-        createdById: workshopExercises.createdById,
+        createdByEditorId: workshopExercises.createdByEditorId,
         title: workshopExercises.title,
         prompt: workshopExercises.prompt,
         category: workshopExercises.category,
@@ -2986,7 +2989,7 @@ export class DatabaseStorage implements IStorage {
         authorName: users.firstName,
       })
       .from(workshopExercises)
-      .leftJoin(users, eq(workshopExercises.createdById, users.id))
+      .leftJoin(users, eq(workshopExercises.createdByEditorId, users.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(workshopExercises.createdAt));
 
@@ -3015,7 +3018,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<WorkshopExercise> {
     const [exercise] = await db
       .insert(workshopExercises)
-      .values({ createdById: userId, ...data })
+      .values({ createdByEditorId: userId, ...data })
       .returning();
     return exercise;
   }
@@ -3056,7 +3059,7 @@ export class DatabaseStorage implements IStorage {
     const allExercises = await db
       .select({
         id: workshopExercises.id,
-        createdById: workshopExercises.createdById,
+        createdByEditorId: workshopExercises.createdByEditorId,
         title: workshopExercises.title,
         prompt: workshopExercises.prompt,
         category: workshopExercises.category,
@@ -3066,7 +3069,7 @@ export class DatabaseStorage implements IStorage {
         authorName: users.firstName,
       })
       .from(workshopExercises)
-      .leftJoin(users, eq(workshopExercises.createdById, users.id))
+      .leftJoin(users, eq(workshopExercises.createdByEditorId, users.id))
       .orderBy(workshopExercises.createdAt);
 
     if (allExercises.length === 0) return undefined;
@@ -3524,7 +3527,7 @@ export class DatabaseStorage implements IStorage {
         responseCount: sql<number>`(SELECT count(*) FROM submission_call_responses WHERE call_id = ${submissionCalls.id})::int`,
       })
       .from(submissionCalls)
-      .leftJoin(users, eq(submissionCalls.createdById, users.id))
+      .leftJoin(users, eq(submissionCalls.createdByEditorId, users.id))
       .orderBy(desc(submissionCalls.createdAt));
     return calls;
   }
@@ -3543,7 +3546,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<SubmissionCall> {
     const [call] = await db
       .insert(submissionCalls)
-      .values({ ...data, createdById: editorId })
+      .values({ ...data, createdByEditorId: editorId })
       .returning();
     return call;
   }
@@ -3626,7 +3629,7 @@ export class DatabaseStorage implements IStorage {
         responseCount: sql<number>`(SELECT count(*) FROM submission_call_responses WHERE call_id = ${submissionCalls.id})::int`,
       })
       .from(submissionCalls)
-      .leftJoin(users, eq(submissionCalls.createdById, users.id))
+      .leftJoin(users, eq(submissionCalls.createdByEditorId, users.id))
       .where(eq(submissionCalls.status, "open"))
       .orderBy(desc(submissionCalls.createdAt));
     return calls;
@@ -4155,13 +4158,13 @@ export class DatabaseStorage implements IStorage {
         themeNote: issues.themeNote,
         publishDate: issues.publishDate,
         status: issues.status,
-        createdById: issues.createdById,
+        createdByEditorId: issues.createdByEditorId,
         createdAt: issues.createdAt,
         updatedAt: issues.updatedAt,
         creatorName: users.firstName,
       })
       .from(issues)
-      .leftJoin(users, eq(issues.createdById, users.id))
+      .leftJoin(users, eq(issues.createdByEditorId, users.id))
       .orderBy(desc(issues.createdAt));
 
     const result: (Issue & {
@@ -4189,13 +4192,13 @@ export class DatabaseStorage implements IStorage {
         themeNote: issues.themeNote,
         publishDate: issues.publishDate,
         status: issues.status,
-        createdById: issues.createdById,
+        createdByEditorId: issues.createdByEditorId,
         createdAt: issues.createdAt,
         updatedAt: issues.updatedAt,
         creatorName: users.firstName,
       })
       .from(issues)
-      .leftJoin(users, eq(issues.createdById, users.id))
+      .leftJoin(users, eq(issues.createdByEditorId, users.id))
       .where(eq(issues.id, id));
     return issue || undefined;
   }
@@ -4211,7 +4214,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<Issue> {
     const [issue] = await db
       .insert(issues)
-      .values({ createdById: userId, ...data })
+      .values({ createdByEditorId: userId, ...data })
       .returning();
     return issue;
   }
@@ -7955,22 +7958,22 @@ export class DatabaseStorage implements IStorage {
         id: editorialThreads.id,
         subject: editorialThreads.subject,
         issueId: editorialThreads.issueId,
-        createdById: editorialThreads.createdById,
+        createdByEditorId: editorialThreads.createdByEditorId,
         status: editorialThreads.status,
         createdAt: editorialThreads.createdAt,
         updatedAt: editorialThreads.updatedAt,
         creatorName: users.firstName,
       })
       .from(editorialThreads)
-      .leftJoin(users, eq(editorialThreads.createdById, users.id))
+      .leftJoin(users, eq(editorialThreads.createdByEditorId, users.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(editorialThreads.updatedAt));
   }
 
-  async createEditorialThread(createdById: string, data: { subject: string; issueId?: string }): Promise<any> {
+  async createEditorialThread(createdByEditorId: string, data: { subject: string; issueId?: string }): Promise<any> {
     const [thread] = await db
       .insert(editorialThreads)
-      .values({ createdById, ...data })
+      .values({ createdByEditorId, ...data })
       .returning();
     return thread;
   }
@@ -7981,14 +7984,14 @@ export class DatabaseStorage implements IStorage {
         id: editorialThreads.id,
         subject: editorialThreads.subject,
         issueId: editorialThreads.issueId,
-        createdById: editorialThreads.createdById,
+        createdByEditorId: editorialThreads.createdByEditorId,
         status: editorialThreads.status,
         createdAt: editorialThreads.createdAt,
         updatedAt: editorialThreads.updatedAt,
         creatorName: users.firstName,
       })
       .from(editorialThreads)
-      .leftJoin(users, eq(editorialThreads.createdById, users.id))
+      .leftJoin(users, eq(editorialThreads.createdByEditorId, users.id))
       .where(eq(editorialThreads.id, id));
     if (!thread) return undefined;
     const messages = await db
@@ -8030,7 +8033,7 @@ export class DatabaseStorage implements IStorage {
 
   async getEditorialTasks(assigneeId?: string, status?: string): Promise<any[]> {
     const conditions: any[] = [];
-    if (assigneeId) conditions.push(eq(editorialTasks.assigneeId, assigneeId));
+    if (assigneeId) conditions.push(eq(editorialTasks.assignedEditorId, assigneeId));
     if (status) conditions.push(eq(editorialTasks.status, status));
     return await db
       .select({
@@ -8039,8 +8042,8 @@ export class DatabaseStorage implements IStorage {
         description: editorialTasks.description,
         status: editorialTasks.status,
         priority: editorialTasks.priority,
-        assigneeId: editorialTasks.assigneeId,
-        createdById: editorialTasks.createdById,
+        assigneeId: editorialTasks.assignedEditorId,
+        createdByEditorId: editorialTasks.createdByEditorId,
         issueId: editorialTasks.issueId,
         writingId: editorialTasks.writingId,
         dueDate: editorialTasks.dueDate,
@@ -8049,15 +8052,15 @@ export class DatabaseStorage implements IStorage {
         assigneeName: users.firstName,
       })
       .from(editorialTasks)
-      .leftJoin(users, eq(editorialTasks.assigneeId, users.id))
+      .leftJoin(users, eq(editorialTasks.assignedEditorId, users.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(editorialTasks.createdAt));
   }
 
-  async createEditorialTask(createdById: string, data: { title: string; description?: string; priority?: string; assigneeId?: string; issueId?: string; writingId?: string; dueDate?: Date }): Promise<any> {
+  async createEditorialTask(createdByEditorId: string, data: { title: string; description?: string; priority?: string; assigneeId?: string; issueId?: string; writingId?: string; dueDate?: Date }): Promise<any> {
     const [task] = await db
       .insert(editorialTasks)
-      .values({ createdById, ...data })
+      .values({ createdByEditorId, ...data })
       .returning();
     return task;
   }
