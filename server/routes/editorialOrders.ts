@@ -241,7 +241,7 @@ export function registerEditorialOrderRoutes(app: Express) {
         cancel_url: `${process.env.PUBLIC_URL || "https://sleep-well-production.up.railway.app"}/garden?feedback_cancelled=1`,
       });
       await db.insert(editorialServiceOrders).values({
-        name: req.user.name || req.user.username || "Writer",
+                  name: req.user!.displayName || req.user!.email || "Writer",
         email: req.user.email || "",
         genre: "garden",
         manuscriptType: "single_piece",
