@@ -1076,6 +1076,95 @@ export async function runMigrations() {
     // T19: Final migration summary
     if (migrationErrors > 0) {
       console.error(
+
+            // T23: Create agent_notifications table
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS agent_notifications (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id varchar NOT NULL REFERENCES users(id),
+          agent_name text NOT NULL,
+          message text,
+          writing_id varchar REFERENCES writings(id),
+          read_at timestamp,
+          dismissed_at timestamp,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE agent_notifications failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // T24: Create agent_pattern_insights table
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS agent_pattern_insights (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id varchar NOT NULL REFERENCES users(id),
+          insight_type text NOT NULL,
+          title text NOT NULL,
+          description text,
+          writing_ids text[],
+          status text NOT NULL DEFAULT 'active',
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE agent_pattern_insights failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // T25: Create copy_snapshots table
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS copy_snapshots (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id varchar NOT NULL REFERENCES users(id),
+          writing_id varchar REFERENCES writings(id),
+          page_key text NOT NULL,
+          section_key text NOT NULL,
+          draft_copy text NOT NULL,
+          approved_copy text,
+          generated_by text NOT NULL DEFAULT 'agent',
+          status text NOT NULL DEFAULT 'draft',
+          approved_by_id varchar REFERENCES users(id),
+          approved_at timestamp,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE copy_snapshots failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // T26: Create editorial_briefs table
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS editorial_briefs (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id varchar NOT NULL REFERENCES users(id),
+          writing_id varchar REFERENCES writings(id),
+          brief_type text NOT NULL,
+          content text NOT NULL,
+          status text NOT NULL DEFAULT 'draft',
+          approved_by_id varchar REFERENCES users(id),
+          approved_at timestamp,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE editorial_briefs failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
         `[MIGRATION] ${migrationErrors} critical error(s) occurred during migrations — check logs above. ` +
         `Server continuing but some features may be broken.`
       );
