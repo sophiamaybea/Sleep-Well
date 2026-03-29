@@ -55,7 +55,7 @@ export default function Manifesto() {
         </motion.div>
         <div className="grid md:grid-cols-2 gap-16 md:gap-24 text-lg md:text-xl font-serif leading-loose opacity-90 text-white/90 font-light">
           <div className="space-y-12">
-            {content.manifesto.text.slice(0, 3).map((paragraph, i) => (
+            {content.manifesto.paragraphs.slice(0, 3).map((paragraph: string, i: number) => (
               <motion.p
                 key={i}
                 initial={{ opacity: 0.2, y: 25 }}
@@ -70,7 +70,7 @@ export default function Manifesto() {
             ))}
           </div>
           <div className="space-y-12 md:pt-24">
-            {content.manifesto.text.slice(3).map((paragraph, i) => (
+            {content.manifesto.paragraphs.slice(3).map((paragraph: string, i: number) => (
               <motion.p
                 key={i + 3}
                 initial={{ opacity: 0.2, y: 25 }}
