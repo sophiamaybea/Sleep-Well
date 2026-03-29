@@ -50,58 +50,50 @@ const StarMaterial = shaderMaterial(
   { uTime: 0, uOpacity: 0.7 },
   /* vertex */
   `
-    attribute float aSize;
-    attribute float aPhase;
-    uniform float uTime;
-    varying float vAlpha;
-    varying float vPhase;
-
-    void main() {
-      vPhase = aPhase;
-      // Gentle per-star twinkle: ±10% brightness oscillation
-      vAlpha = 0.65 + 0.10 * sin(uTime * 1.1 + aPhase * 6.2831);
-      
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      // Size stays small – sizeAttenuation for perspective feel
-      gl_PointSize = aSize * (300.0 / -mvPosition.z);
-      gl_Position = projectionMatrix * mvPosition;
-    }
+  attribute float aSize;
+  attribute float aPhase;
+  uniform float uTime;
+  varying float vAlpha;
+  varying float vPhase;
+  void main() {
+    vPhase = aPhase;
+    // Gentle per-star twinkle: ±10% brightness oscillation
+    vAlpha = 0.65 + 0.10 * sin(uTime * 1.1 + aPhase * 6.2831);
+    
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    // Size stays small – sizeAttenuation for perspective feel
+    gl_PointSize = aSize * (300.0 / -mvPosition.z);
+    gl_Position = projectionMatrix * mvPosition;
+  }
   `,
   /* fragment */
   `
-    uniform float uOpacity;
-    varying float vAlpha;
-
-    void main() {
-      // Circular disc with soft radial falloff – no more squares
-      vec2 uv = gl_PointCoord - 0.5;
-      float r = length(uv);
-      if (r > 0.5) discard;
-
-      // Smooth soft glow edge
-      float intensity = 1.0 - smoothstep(0.0, 0.5, r);
-      intensity = pow(intensity, 1.6); // sharpen centre without hard edge
-
-      gl_FragColor = vec4(
-        mix(vec3(1.0, 0.96, 0.88), vec3(0.90, 0.92, 1.0), intensity),
-        intensity * vAlpha * uOpacity
-      );
-    }
+  uniform float uOpacity;
+  varying float vAlpha;
+  void main() {
+    // Circular disc with soft radial falloff – no more squares
+    vec2 uv = gl_PointCoord - 0.5;
+    float r = length(uv);
+    if (r > 0.5) discard;
+    // Smooth soft glow edge
+    float intensity = 1.0 - smoothstep(0.0, 0.5, r);
+    intensity = pow(intensity, 1.6); // sharpen centre without hard edge
+    gl_FragColor = vec4(
+      mix(vec3(1.0, 0.96, 0.88), vec3(0.90, 0.92, 1.0), intensity),
+      intensity * vAlpha * uOpacity
+    );
+  }
   `,
 );
 
 extend({ StarMaterial });
 
 // TypeScript declaration so JSX can find the extended element
-declare module '@react-three/fiber' {
-  interface ThreeElements {
-    starMaterial: React.PropsWithChildren<{
-      uTime?: number;
-      uOpacity?: number;
-      attach?: string;
-      transparent?: boolean;
-      depthWrite?: boolean;
-    }>;
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      starMaterial: any;
+    }
   }
 }
 
@@ -109,7 +101,7 @@ declare module '@react-three/fiber' {
    3-D star field
    ───────────────────────────────────────────── */
 function StarField() {
-  const matRef = useRef<InstanceType<typeof StarMaterial>>(null);
+  const matRef = useRef<THREE.ShaderMaterial>(null);
   const count = 1600;
 
   const { positions, sizes, phases } = useMemo(() => {
@@ -140,9 +132,8 @@ function StarField() {
         <bufferAttribute attach="attributes-aSize" args={[sizes, 1]} />
         <bufferAttribute attach="attributes-aPhase" args={[phases, 1]} />
       </bufferGeometry>
-      {/* @ts-ignore – extended material */}
       <starMaterial
-        ref={matRef as any}
+        ref={matRef}
         attach="material"
         uTime={0}
         uOpacity={0.7}
@@ -175,7 +166,6 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
     weatherOpacity(progress, 0.28, 0.35, 0.48),
     weatherOpacity(progress, 0.85, 0.90, 1.0),
   );
-
   const sunOp = weatherOpacity(progress, 0.45, 0.52, 0.65);
   const mistOp = weatherOpacity(progress, 0.65, 0.72, 0.85);
 
@@ -312,6 +302,7 @@ export default function StarBackground() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
+
     if (!prefersReducedMotion) animateMood();
 
     return () => {
