@@ -45,6 +45,7 @@ export const writings = pgTable("writings", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   circleId: varchar("circle_id"),
+    layout: text("layout").notNull().default("single"),
 });
 
 export const writingSnapshots = pgTable("writing_snapshots", {
@@ -2837,11 +2838,9 @@ export const tipTransactions = pgTable("tip_transactions", {
 export const insertWriterServiceSchema = createInsertSchema(writerServices).omit({
   id: true,
   authorId: true,
-  stripeProductId: true,
-  stripePriceId: true,
+    stripePriceId: true,
   createdAt: true,
   updatedAt: true,
-});
 export const updateWriterServiceSchema = insertWriterServiceSchema.partial();
 
 export const insertServiceBookingSchema = createInsertSchema(serviceBookings).omit({
