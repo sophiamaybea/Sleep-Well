@@ -2841,6 +2841,7 @@ export const insertWriterServiceSchema = createInsertSchema(writerServices).omit
     stripePriceId: true,
   createdAt: true,
   updatedAt: true,
+  });
 export const updateWriterServiceSchema = insertWriterServiceSchema.partial();
 
 export const insertServiceBookingSchema = createInsertSchema(serviceBookings).omit({
