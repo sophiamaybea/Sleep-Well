@@ -45,7 +45,7 @@ export const writings = pgTable("writings", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   circleId: varchar("circle_id"),
-    layout: text("layout").notNull().default("single"),
+    layout: text("layout").default("single"),
 });
 
 export const writingSnapshots = pgTable("writing_snapshots", {
