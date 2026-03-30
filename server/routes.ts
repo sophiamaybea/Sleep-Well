@@ -8330,7 +8330,7 @@ const sharedPieces = await db.select({
 
       const [item] = await db
         .insert(collectionItems)
-        .values({ ...data, collectionId: id })
+        .values({ ...data, collectionId: String(id) })
         .returning();
 
       res.json(item);
