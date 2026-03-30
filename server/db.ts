@@ -1009,49 +1009,6 @@ export async function runMigrations() {
     }
   }
 
-        // T20: Create editorial_briefs table
-    try {
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS editorial_briefs (
-          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-          issue_id varchar NOT NULL REFERENCES issues(id),
-          display_intro text NOT NULL DEFAULT '',
-          seo_excerpt text NOT NULL DEFAULT '',
-          draft_by_agent text,
-          status text NOT NULL DEFAULT 'draft',
-          approved_by_id varchar REFERENCES users(id),
-          approved_at timestamp,
-          created_at timestamp DEFAULT now(),
-          updated_at timestamp DEFAULT now()
-        );
-      `);
-    } catch (e) {
-      if (!isBenignMigrationError(e)) {
-        console.error('[MIGRATION CRITICAL]: CREATE editorial_briefs failed:', (e as Error).message);
-        migrationErrors++;
-      }
-    }
-
-    // T21: Create prompt_floats table
-    try {
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS prompt_floats (
-          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id varchar NOT NULL REFERENCES users(id),
-          writing_id varchar REFERENCES writings(id),
-          prompt_id varchar REFERENCES prompts(id),
-          prompt_text text NOT NULL,
-          dismissed boolean NOT NULL DEFAULT false,
-          surfaced_at timestamp DEFAULT now()
-        );
-      `);
-    } catch (e) {
-      if (!isBenignMigrationError(e)) {
-        console.error('[MIGRATION CRITICAL]: CREATE prompt_floats failed:', (e as Error).message);
-        migrationErrors++;
-      }
-    }
-
     // T22: Create feed_events table
     try {
       await pool.query(`
@@ -1163,12 +1120,7 @@ export async function runMigrations() {
       }
     }
         
-    // T19: Final migration summary
-    if (migrationErrors > 0) {
-      console.error(
-        `[MIGRATION] ${migrationErrors} critical error(s) occurred during migrations — check logs above. ` +
-
-            // EIC Command Centre tables
+    // EIC Command Centre tables
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS eic_agent_conversations (
@@ -1185,6 +1137,7 @@ export async function runMigrations() {
         migrationErrors++;
       }
     }
+
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS eic_feature_registry (
@@ -1206,6 +1159,7 @@ export async function runMigrations() {
         migrationErrors++;
       }
     }
+
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS poem_exhibitions (
@@ -1229,6 +1183,11 @@ export async function runMigrations() {
         migrationErrors++;
       }
     }
+
+    // T19: Final migration summary
+    if (migrationErrors > 0) {
+      console.error(
+        `[MIGRATION] ${migrationErrors} critical error(s) occurred during migrations — check logs above. ` +
         `Server continuing but some features may be broken.`
       );
     } else {
