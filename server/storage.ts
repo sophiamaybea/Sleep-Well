@@ -1641,7 +1641,7 @@ export class DatabaseStorage implements IStorage {
       updatedAt: writings.updatedAt,
       circleId: writings.circleId,
       layout: writings.layout,
-    \};
+    };
   }
 
     async getPublishedWritings(userId?: string): Promise<
