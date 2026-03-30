@@ -4,9 +4,9 @@ on:
   push:
     paths:
       - 'shared/schema.ts'
-  pull_request:
-    paths:
-      - 'shared/schema.ts'
+    pull_request:
+      paths:
+        - 'shared/schema.ts'
 
 jobs:
   schema-guard:
