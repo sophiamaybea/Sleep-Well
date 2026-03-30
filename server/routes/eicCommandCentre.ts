@@ -17,6 +17,7 @@
 
 import { Router } from "express";
 import { db } from "../db";
+import { eicFeatureRegistry, eicAgentConversations } from "../../shared/schema";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 
@@ -53,7 +54,7 @@ router.get("/features", async (req, res) => {
 router.post("/features", async (req, res) => {
   try {
     const { targetEditor, featureName, featureDescription, status } = req.body;
-    const [feature] = await db.insert(db.query.eicFeatureRegistry).values({
+    const [feature] = await db.insert(eicFeatureRegistry).values({
       targetEditor,
       featureName,
       featureDescription,
@@ -69,9 +70,9 @@ router.post("/features", async (req, res) => {
 // PATCH update feature
 router.patch("/features/:id", async (req, res) => {
   try {
-    const [updated] = await db.update(db.query.eicFeatureRegistry)
+    const [updated] = await db.update(eicFeatureRegistry)
       .set({ ...req.body, updatedAt: new Date() })
-      .where(eq(db.query.eicFeatureRegistry.id, req.params.id))
+      .where(eq(eicFeatureRegistry.id, req.params.id))
       .returning();
     res.json(updated);
   } catch (error) {
@@ -83,7 +84,7 @@ router.patch("/features/:id", async (req, res) => {
 // DELETE feature
 router.delete("/features/:id", async (req, res) => {
   try {
-    await db.delete(db.query.eicFeatureRegistry).where(eq(db.query.eicFeatureRegistry.id, req.params.id));
+    await db.delete(eicFeatureRegistry).where(eq(eicFeatureRegistry.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     console.error("[eicCommandCentre] DELETE /features/:id error:", error);
@@ -216,7 +217,7 @@ router.post("/agent/chat", async (req, res) => {
     const reply = completion.choices[0].message.content;
 
     // Persist conversation to DB
-    await db.insert(db.query.eicAgentConversations).values({
+    await db.insert(eicAgentConversations).values({
       agentType,
       messages: [
         ...(conversationHistory || []),
@@ -237,7 +238,7 @@ router.get("/agent/conversations/:agentType", async (req, res) => {
   try {
     const { agentType } = req.params;
     const conversations = await db.query.eicAgentConversations.findMany({
-      where: eq(db.query.eicAgentConversations.agentType, agentType),
+      where: eq(eicAgentConversations.agentType, agentType),
       orderBy: (t, { desc }) => [desc(t.createdAt)],
       limit: 10,
     });
