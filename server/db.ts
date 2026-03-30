@@ -306,6 +306,18 @@ export async function runMigrations() {
       }
     }
 
+
+      // Add layout column to writings table (schema defines it in shared/schema.ts)
+  try {
+    await pool.query(`
+      ALTER TABLE writings ADD COLUMN IF NOT EXISTS layout text NOT NULL DEFAULT 'single';
+    `);
+  } catch (e) {
+    if (!isBenignMigrationError(e)) {
+      console.error("[MIGRATION CRITICAL]: ALTER writings layout failed:", (e as Error).message);
+      migrationErrors++;
+    }
+  }
     try {
       await pool.query(`
         ALTER TABLE circles ADD COLUMN IF NOT EXISTS theme text;
