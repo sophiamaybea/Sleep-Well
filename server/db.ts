@@ -1167,6 +1167,68 @@ export async function runMigrations() {
     if (migrationErrors > 0) {
       console.error(
         `[MIGRATION] ${migrationErrors} critical error(s) occurred during migrations — check logs above. ` +
+
+            // EIC Command Centre tables
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS eic_agent_conversations (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          agent_type varchar NOT NULL,
+          messages jsonb NOT NULL DEFAULT '[]'::jsonb,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE eic_agent_conversations failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS eic_feature_registry (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          target_editor varchar NOT NULL,
+          feature_name varchar NOT NULL,
+          feature_description text,
+          status varchar NOT NULL DEFAULT 'proposed',
+          built_by_agent boolean DEFAULT false,
+          code_snippet text,
+          task_notes text,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE eic_feature_registry failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS poem_exhibitions (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          title text NOT NULL,
+          slug varchar NOT NULL UNIQUE,
+          description text,
+          curator_notes text,
+          poem_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
+          mood varchar,
+          illustration_urls jsonb DEFAULT '[]'::jsonb,
+          gsap_config jsonb DEFAULT '{}'::jsonb,
+          is_published boolean DEFAULT false,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE poem_exhibitions failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
         `Server continuing but some features may be broken.`
       );
     } else {
