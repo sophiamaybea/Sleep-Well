@@ -1,6 +1,6 @@
-import { Brain, Sparkles, Zap, Activity, MessageSquare, Terminal, Bell, BarChart3, Search, ShieldCheck } from "lucide-react";
+import { Brain, Sparkles, Zap, Activity, MessageSquare, Terminal, Bell, BarChart3, Search, ShieldCheck, Send, RotateCcw, ChevronDown } from "lucide-react";
 import StudioPanel from "@/components/garden/StudioPanel";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -139,7 +139,27 @@ interface AgentNotification {
   dismissedAt: string | null;
 }
 
-type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries" | "silent-agents";
+type AgentType = "design" | "writers" | "exhibitions" | "monetisation" | "caleb_studio" | "giove_studio";
+
+const AGENTS: Array<{ key: AgentType; label: string; emoji: string; colour: string; description: string }> = [
+  { key: "design", label: "Design", emoji: "✦", colour: "#8b7ec8", description: "Visual identity, CSS, animations, typography" },
+  { key: "writers", label: "Writers", emoji: "✿", colour: "#5eb5a0", description: "Garden.tsx, writer profiles, seed-to-bloom stages" },
+  { key: "exhibitions", label: "Exhibitions", emoji: "◈", colour: "#c4a24d", description: "Poetry gallery, GSAP scroll, mood detection, illustrations" },
+  { key: "monetisation", label: "Monetisation", emoji: "◇", colour: "#f0eeea", description: "Stripe, PayPal, pricing, checkout flows, MRR" },
+  { key: "caleb_studio", label: "Caleb's Studio", emoji: "⌘", colour: "#5eb5a0", description: "Features and tools for Caleb's editorial workflow" },
+  { key: "giove_studio", label: "Giove's Studio", emoji: "⌘", colour: "#8b7ec8", description: "Features and tools for Giove's editorial workflow" },
+];
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  agentType?: AgentType;
+  agentLabel?: string;
+  agentColour?: string;
+  timestamp: number;
+}
+
+type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries" | "silent-agents" | "agents";
 
 export default function EICDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -149,6 +169,20 @@ export default function EICDashboard() {
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [selectedWriting, setSelectedWriting] = useState<string | null>(null);
+
+  // Agent chat state
+  const [selectedAgent, setSelectedAgent] = useState<AgentType | "collaborative">("design");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (activeTab === "agents") {
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
+    }
+  }, [chatMessages, activeTab]);
 
   const { data: roleData, isLoading: roleLoading } = useQuery<{ role: string; tier: string }>({
     queryKey: ["/api/user/role"],
@@ -320,7 +354,97 @@ export default function EICDashboard() {
     },
   });
 
-  // T35: branded garden loading screen replaces raw animate-spin
+  // ─── Agent chat send handler ────────────────────────────────────────────────
+  const sendMessage = async () => {
+    const text = chatInput.trim();
+    if (!text || isSending) return;
+    setChatInput("");
+    setIsSending(true);
+
+    const userMsg: ChatMessage = { role: "user", content: text, timestamp: Date.now() };
+    setChatMessages((prev) => [...prev, userMsg]);
+
+    const historyForApi = chatMessages
+      .filter((m) => selectedAgent === "collaborative" ? true : m.agentType === selectedAgent || m.role === "user")
+      .map((m) => ({ role: m.role, content: m.content }));
+
+    if (selectedAgent === "collaborative") {
+      // Fan out to all six agents in parallel
+      const agentsToCall = AGENTS;
+      try {
+        const results = await Promise.allSettled(
+          agentsToCall.map((agent) =>
+            fetch("/api/eic/command-centre/agent/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                agentType: agent.key,
+                userMessage: text,
+                conversationHistory: historyForApi,
+              }),
+            }).then((r) => r.json())
+          )
+        );
+        const replies: ChatMessage[] = results.map((result, i) => {
+          const agent = agentsToCall[i];
+          if (result.status === "fulfilled" && result.value?.reply) {
+            return {
+              role: "assistant" as const,
+              content: result.value.reply,
+              agentType: agent.key,
+              agentLabel: agent.label,
+              agentColour: agent.colour,
+              timestamp: Date.now() + i,
+            };
+          }
+          return {
+            role: "assistant" as const,
+            content: `${agent.label} agent encountered an error.`,
+            agentType: agent.key,
+            agentLabel: agent.label,
+            agentColour: agent.colour,
+            timestamp: Date.now() + i,
+          };
+        });
+        setChatMessages((prev) => [...prev, ...replies]);
+      } catch {
+        setChatMessages((prev) => [...prev, { role: "assistant", content: "The agents could not be reached. Check the server logs.", timestamp: Date.now() }]);
+      }
+    } else {
+      // Single agent
+      const agentMeta = AGENTS.find((a) => a.key === selectedAgent)!;
+      try {
+        const res = await fetch("/api/eic/command-centre/agent/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            agentType: selectedAgent,
+            userMessage: text,
+            conversationHistory: historyForApi,
+          }),
+        });
+        const data = await res.json();
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: data.reply ?? "No response from agent.",
+            agentType: agentMeta.key,
+            agentLabel: agentMeta.label,
+            agentColour: agentMeta.colour,
+            timestamp: Date.now(),
+          },
+        ]);
+      } catch {
+        setChatMessages((prev) => [...prev, { role: "assistant", content: "Agent unreachable. Check the server and your API key.", timestamp: Date.now() }]);
+      }
+    }
+    setIsSending(false);
+    setTimeout(() => inputRef.current?.focus(), 80);
+  };
+
   if (authLoading || roleLoading) return <LoadingScreen />;
 
   if (!user) {
@@ -371,6 +495,7 @@ export default function EICDashboard() {
     { key: "team", label: "Editorial Team" },
     { key: "enquiries", label: "Enquiries" },
     { key: "silent-agents", label: "Silent AI Agents" },
+    { key: "agents", label: "Agent Command Centre" },
   ];
 
   const timeAgo = (date: string) => {
@@ -385,6 +510,8 @@ export default function EICDashboard() {
     if (days < 7) return `${days}d ago`;
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
+
+  const activeAgentMeta = AGENTS.find((a) => a.key === selectedAgent);
 
   return (
     <div className="min-h-screen bg-[#0d1e2d] relative z-10">
@@ -473,19 +600,6 @@ export default function EICDashboard() {
                         <div key={key} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
                           <div className="text-[#c4a24d] font-['Space_Mono',monospace] text-lg">{val}</div>
                           <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">{key.replace(/_/g, " ")}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {stats.genreBreakdown && Object.keys(stats.genreBreakdown).length > 0 && (
-                  <div className="mb-12">
-                    <h3 className="font-['Cormorant_Garamond',serif] text-xl text-[#f0eeea]/80 font-light mb-4">Genre Breakdown</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {Object.entries(stats.genreBreakdown).map(([key, val]) => (
-                        <div key={key} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
-                          <div className="text-[#5eb5a0] font-['Space_Mono',monospace] text-lg">{val}</div>
-                          <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">{key}</div>
                         </div>
                       ))}
                     </div>
@@ -749,14 +863,8 @@ export default function EICDashboard() {
 
         {activeTab === "silent-agents" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-            <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">
-              Silent AI Agents
-            </h2>
-            <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-8">
-              Live activity across all autonomous background agents
-            </p>
-
-            {/* Summary tiles */}
+            <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Silent AI Agents</h2>
+            <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-8">Live activity across all autonomous background agents</p>
             {agentSummaryLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
                 {[1,2,3,4,5].map((i) => <div key={i} className="h-20 bg-[#f0eeea]/5 rounded animate-pulse" />)}
@@ -766,71 +874,190 @@ export default function EICDashboard() {
                 {Object.entries(agentSummary.totals).map(([key, val]) => (
                   <div key={key} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
                     <div className="text-[#c4a24d] font-['Space_Mono',monospace] text-2xl">{String(val)}</div>
-                    <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">
-                      {key.replace(/([A-Z])/g, " $1").toLowerCase()}
-                    </div>
+                    <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">{key.replace(/([A-Z])/g, " $1").toLowerCase()}</div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm mb-8">
-                Failed to load agent summary. Check that the backend is running and your role is correct.
-              </p>
+              <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm mb-8">Failed to load agent summary. Check that the backend is running and your role is correct.</p>
             )}
-
-            {/* Agent breakdown by name */}
             {agentSummary?.breakdowns?.notifsByAgent && agentSummary.breakdowns.notifsByAgent.length > 0 && (
               <div className="mb-10">
-                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-xs uppercase tracking-widest mb-3">
-                  Activity by Agent
-                </h3>
+                <h3 className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-xs uppercase tracking-widest mb-3">Activity by Agent</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {agentSummary.breakdowns.notifsByAgent.map((a) => (
                     <div key={a.agentName} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
                       <div className="text-[#5eb5a0] font-['Space_Mono',monospace] text-lg">{a.total}</div>
-                      <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">
-                        {a.agentName.replace(/_/g, " ")}
-                      </div>
+                      <div className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mt-1">{a.agentName.replace(/_/g, " ")}</div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Recent agent notifications */}
             <div>
-              <h3 className="text-[#5eb5a0]/70 font-['Space_Mono',monospace] text-xs uppercase tracking-widest mb-3">
-                Recent Agent Activity
-              </h3>
+              <h3 className="text-[#5eb5a0]/70 font-['Space_Mono',monospace] text-xs uppercase tracking-widest mb-3">Recent Agent Activity</h3>
               {agentNotifsLoading ? (
-                <div className="space-y-2">
-                  {[1,2,3].map((i) => <div key={i} className="h-14 bg-[#f0eeea]/5 rounded animate-pulse" />)}
-                </div>
+                <div className="space-y-2">{[1,2,3].map((i) => <div key={i} className="h-14 bg-[#f0eeea]/5 rounded animate-pulse" />)}</div>
               ) : agentNotifs.length === 0 ? (
-                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-sm italic">
-                  No agent activity yet — agents will surface here as they run.
-                </p>
+                <p className="text-[#f0eeea]/30 font-['Lora',serif] text-sm italic">No agent activity yet — agents will surface here as they run.</p>
               ) : (
                 <div className="space-y-2">
                   {agentNotifs.slice(0, 30).map((n) => (
                     <div key={n.id} className="px-4 py-3 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded flex items-start justify-between gap-4">
                       <div>
-                        <span className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider">
-                          {n.agentName.replace(/_/g, " ")}
-                        </span>
+                        <span className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider">{n.agentName.replace(/_/g, " ")}</span>
                         <p className="text-[#f0eeea]/70 font-['Lora',serif] text-sm mt-1 leading-snug">{n.message}</p>
                       </div>
-                      <span className="text-[#f0eeea]/20 font-['Space_Mono',monospace] text-[10px] whitespace-nowrap">
-                        {timeAgo(n.createdAt)}
-                      </span>
+                      <span className="text-[#f0eeea]/20 font-['Space_Mono',monospace] text-[10px] whitespace-nowrap">{timeAgo(n.createdAt)}</span>
                     </div>
                   ))}
-                  <p className="text-[#f0eeea]/20 font-['Lora',serif] text-xs mt-3">
-                    {agentNotifs.length} total agent events
-                  </p>
+                  <p className="text-[#f0eeea]/20 font-['Lora',serif] text-xs mt-3">{agentNotifs.length} total agent events</p>
                 </div>
               )}
             </div>
+          </motion.div>
+        )}
+
+        {/* ── AGENT COMMAND CENTRE ─────────────────────────────────────────── */}
+        {activeTab === "agents" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="flex flex-col" style={{ minHeight: "70vh" }}>
+            <div className="mb-6">
+              <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-1">Agent Command Centre</h2>
+              <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs">Speak to one agent or set all six working together on the same brief</p>
+            </div>
+
+            {/* Agent selector */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                onClick={() => setSelectedAgent("collaborative")}
+                className={`px-4 py-2 rounded border font-['Space_Mono',monospace] text-xs transition-all ${
+                  selectedAgent === "collaborative"
+                    ? "bg-[#c4a24d]/20 border-[#c4a24d]/50 text-[#c4a24d]"
+                    : "bg-transparent border-[#f0eeea]/10 text-[#f0eeea]/40 hover:border-[#f0eeea]/30 hover:text-[#f0eeea]/60"
+                }`}
+              >
+                ✦ Collaborative — all agents
+              </button>
+              {AGENTS.map((agent) => (
+                <button
+                  key={agent.key}
+                  onClick={() => setSelectedAgent(agent.key)}
+                  className={`px-4 py-2 rounded border font-['Space_Mono',monospace] text-xs transition-all ${
+                    selectedAgent === agent.key
+                      ? "border-opacity-50 text-opacity-100"
+                      : "bg-transparent border-[#f0eeea]/10 text-[#f0eeea]/40 hover:border-[#f0eeea]/30 hover:text-[#f0eeea]/60"
+                  }`}
+                  style={selectedAgent === agent.key ? { backgroundColor: `${agent.colour}18`, borderColor: `${agent.colour}60`, color: agent.colour } : {}}
+                >
+                  {agent.emoji} {agent.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Agent context strip */}
+            {selectedAgent !== "collaborative" && activeAgentMeta && (
+              <div className="mb-4 px-4 py-3 bg-[#f0eeea]/[0.02] border border-[#f0eeea]/[0.06] rounded text-[#f0eeea]/40 font-['Lora',serif] text-xs">
+                <span style={{ color: activeAgentMeta.colour }} className="font-['Space_Mono',monospace]">{activeAgentMeta.emoji} {activeAgentMeta.label}</span>
+                <span className="mx-2 opacity-40">·</span>
+                {activeAgentMeta.description}
+              </div>
+            )}
+            {selectedAgent === "collaborative" && (
+              <div className="mb-4 px-4 py-3 bg-[#c4a24d]/[0.04] border border-[#c4a24d]/10 rounded text-[#f0eeea]/40 font-['Lora',serif] text-xs">
+                <span className="text-[#c4a24d] font-['Space_Mono',monospace]">✦ Collaborative mode</span>
+                <span className="mx-2 opacity-40">·</span>
+                Your message will be sent to all six agents simultaneously. Each responds independently, then you see all their answers together.
+              </div>
+            )}
+
+            {/* Chat transcript */}
+            <div className="flex-1 mb-4 space-y-4 overflow-y-auto pr-1" style={{ maxHeight: "420px" }}>
+              {chatMessages.length === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-[#f0eeea]/20 font-['Cormorant_Garamond',serif] text-xl font-light mb-2">The room is quiet.</p>
+                  <p className="text-[#f0eeea]/15 font-['Lora',serif] text-sm">
+                    {selectedAgent === "collaborative"
+                      ? "Ask all six agents a question — they'll each respond in turn."
+                      : `Ask ${activeAgentMeta?.label ?? "the agent"} anything about The Page Gallery.`}
+                  </p>
+                </div>
+              )}
+              {chatMessages.map((msg, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease }}
+                  className={`flex ${ msg.role === "user" ? "justify-end" : "justify-start" }`}
+                >
+                  {msg.role === "user" ? (
+                    <div className="max-w-[72%] px-5 py-3 bg-[#c4a24d]/10 border border-[#c4a24d]/20 rounded-2xl rounded-tr-sm">
+                      <p className="text-[#f0eeea]/80 font-['Lora',serif] text-sm leading-relaxed">{msg.content}</p>
+                    </div>
+                  ) : (
+                    <div className="max-w-[80%]">
+                      {msg.agentLabel && (
+                        <p className="font-['Space_Mono',monospace] text-[10px] mb-1 ml-1 uppercase tracking-wider" style={{ color: msg.agentColour ?? "#f0eeea" }}>
+                          {msg.agentLabel}
+                        </p>
+                      )}
+                      <div
+                        className="px-5 py-3 rounded-2xl rounded-tl-sm border"
+                        style={{
+                          backgroundColor: msg.agentColour ? `${msg.agentColour}10` : "rgba(240,238,234,0.04)",
+                          borderColor: msg.agentColour ? `${msg.agentColour}25` : "rgba(240,238,234,0.08)",
+                        }}
+                      >
+                        <p className="text-[#f0eeea]/75 font-['Lora',serif] text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              {isSending && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                  <div className="px-5 py-3 bg-[#f0eeea]/[0.04] border border-[#f0eeea]/[0.07] rounded-2xl rounded-tl-sm">
+                    <span className="text-[#f0eeea]/30 font-['Space_Mono',monospace] text-xs tracking-widest animate-pulse">
+                      {selectedAgent === "collaborative" ? "all agents thinking..." : `${activeAgentMeta?.label ?? "agent"} thinking...`}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Composer */}
+            <div className="flex gap-3 items-end">
+              <textarea
+                ref={inputRef}
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder={selectedAgent === "collaborative" ? "Brief all agents together..." : `Ask ${activeAgentMeta?.label ?? "the agent"}...`}
+                rows={2}
+                className="flex-1 bg-[#f0eeea]/5 border border-[#f0eeea]/10 rounded-xl px-4 py-3 text-[#f0eeea]/80 font-['Lora',serif] text-sm placeholder:text-[#f0eeea]/25 focus:outline-none focus:border-[#c4a24d]/40 transition-colors resize-none"
+              />
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={sendMessage}
+                  disabled={isSending || !chatInput.trim()}
+                  className="p-3 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] rounded-xl hover:bg-[#c4a24d]/30 transition-colors disabled:opacity-30"
+                  title="Send (Enter)"
+                >
+                  <Send size={16} />
+                </button>
+                <button
+                  onClick={() => setChatMessages([])}
+                  className="p-3 bg-[#f0eeea]/[0.04] border border-[#f0eeea]/[0.08] text-[#f0eeea]/30 rounded-xl hover:text-[#f0eeea]/60 transition-colors"
+                  title="Clear conversation"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              </div>
+            </div>
+            <p className="text-[#f0eeea]/15 font-['Space_Mono',monospace] text-[10px] mt-2">
+              Enter to send · Shift+Enter for new line · conversations are persisted to the database
+            </p>
           </motion.div>
         )}
 
