@@ -12,6 +12,8 @@ import LoadingScreen from "@/components/garden/LoadingScreen";
 import { useAuth } from "@/hooks/use-auth";
 import StarBackground from "@/components/StarBackground";
 import IllustrationLayer from "@/components/IllustrationLayer";
+import { EICCommandBar } from "@/components/EICCommandBar";
+
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
 const Collections = lazy(() => import("@/pages/Collections"));
@@ -43,6 +45,7 @@ const Opportunities = lazy(() => import("@/pages/Opportunities"));
 const Submissions = lazy(() => import("@/pages/Submissions"));
 const ForJournals = lazy(() => import("@/pages/ForJournals"));
 const Saved = lazy(() => import("@/pages/Saved"));
+
 // V2 Redesign pages
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
@@ -52,8 +55,7 @@ const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
-// T35: ProtectedRoute uses branded LoadingScreen instead of generic PageLoader
-// T48: destructure path out so it is never spread into the Component
+
 function ProtectedRoute({ component: Component, path }: { component: React.ComponentType<any>; path: string }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
@@ -64,24 +66,26 @@ function ProtectedRoute({ component: Component, path }: { component: React.Compo
   }
   return <Component />;
 }
+
 const PAGE_TITLES: Record<string, string> = {
-  "/": "The Page Gallery Journal \u2014 A Literary Journal & Writing Garden",
-  "/in-bloom": "The Journal \u2014 The Page Gallery",
-  "/publications": "Archive & Contributors \u2014 The Page Gallery",
-  "/gallery": "The Journal \u2014 The Page Gallery",
-  "/journal": "The Journal \u2014 The Page Gallery",
-  "/about": "About \u2014 The Page Gallery Journal",
-  "/garden": "My Garden \u2014 The Page Gallery",
-  "/commons": "The Commons \u2014 The Page Gallery",
-  "/how-it-works": "How It Works \u2014 The Page Gallery",
-  "/garden-info": "Garden Seasons \u2014 The Page Gallery",
-  "/privacy": "Privacy Policy \u2014 The Page Gallery",
-  "/terms": "Terms of Service \u2014 The Page Gallery",
-  "/accessibility": "Accessibility \u2014 The Page Gallery",
-  "/sign-in": "Sign In \u2014 The Page Gallery",
-  "/for-journals": "For Journals \u2014 The Page Gallery",
-  "/saved": "Saved Pieces \u2014 The Page Gallery",
+  "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
+  "/in-bloom": "The Journal — The Page Gallery",
+  "/publications": "Archive & Contributors — The Page Gallery",
+  "/gallery": "The Journal — The Page Gallery",
+  "/journal": "The Journal — The Page Gallery",
+  "/about": "About — The Page Gallery Journal",
+  "/garden": "My Garden — The Page Gallery",
+  "/commons": "The Commons — The Page Gallery",
+  "/how-it-works": "How It Works — The Page Gallery",
+  "/garden-info": "Garden Seasons — The Page Gallery",
+  "/privacy": "Privacy Policy — The Page Gallery",
+  "/terms": "Terms of Service — The Page Gallery",
+  "/accessibility": "Accessibility — The Page Gallery",
+  "/sign-in": "Sign In — The Page Gallery",
+  "/for-journals": "For Journals — The Page Gallery",
+  "/saved": "Saved Pieces — The Page Gallery",
 };
+
 function PageTitle() {
   const [location] = useLocation();
   useEffect(() => {
@@ -93,6 +97,7 @@ function PageTitle() {
   }, [location]);
   return null;
 }
+
 function Router() {
   return (
     <Suspense fallback={<LoadingScreen />}>
@@ -105,7 +110,6 @@ function Router() {
         <Route path="/garden/collections/:id" component={Collections} />
         <Route path="/collections/:slug" component={PublicCollection} />
         <Route path="/garden/:username" component={PublicGarden} />
-        {/* FIX: /edit-profile now requires authentication */}
         <Route path="/edit-profile">{() => <ProtectedRoute component={EditProfile} path="/edit-profile" />}</Route>
         <Route path="/writer/:id" component={WriterProfile} />
         <Route path="/public-garden/:userId" component={PublicGarden} />
@@ -151,14 +155,17 @@ function Router() {
     </Suspense>
   );
 }
+
 function App() {
+  const { user } = useAuth();
+  const isEIC = user?.email === "sophiamaybea@gmail.com";
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScroll>
-          {/* z-index 0: animated star field (Three.js canvas, pure black sky) */}
+          {isEIC && <EICCommandBar />}
           <StarBackground />
-          {/* z-index 1: random illustration per page load, fixed bottom-left */}
           <IllustrationLayer />
           <NoiseOverlay />
           <AccessibilityToolbar />
@@ -171,4 +178,5 @@ function App() {
     </QueryClientProvider>
   );
 }
+
 export default App;
