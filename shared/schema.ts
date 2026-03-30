@@ -3077,3 +3077,64 @@ export const insertFeedEventSchema = createInsertSchema(
 
 export type FeedEvent = typeof feedEvents.$inferSelect;
 export type InsertFeedEvent = z.infer<typeof insertFeedEventSchema>;
+
+// === EIC COMMAND CENTRE TABLES ===
+// AI agent conversations and feature registry
+
+// EIC Agent conversations — stores all chat history with agents
+export const eicAgentConversations = pgTable("eic_agent_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentType: varchar("agent_type").notNull(), // 'caleb_studio' | 'giove_studio' | 'design' | 'writers' | 'exhibitions' | 'monetisation'
+  messages: jsonb("messages").notNull().default(sql`'[]'::jsonb`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEicAgentConversationsSchema = createInsertSchema(
+  eicAgentConversations,
+).omit({ id: true, createdAt: true });
+export type EicAgentConversation = typeof eicAgentConversations.$inferSelect;
+export type InsertEicAgentConversation = z.infer<typeof insertEicAgentConversationsSchema>;
+
+// Feature registry — tracks what features each editor has, status, who built them
+export const eicFeatureRegistry = pgTable("eic_feature_registry", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  targetEditor: varchar("target_editor").notNull(), // 'caleb' | 'giove' | 'design' | 'writers' | 'exhibitions' | 'monetisation'
+  featureName: varchar("feature_name").notNull(),
+  featureDescription: text("feature_description"),
+  status: varchar("status").notNull().default("proposed"), // 'proposed' | 'approved' | 'building' | 'live' | 'removed'
+  builtByAgent: boolean("built_by_agent").default(false),
+  codeSnippet: text("code_snippet"),
+  taskNotes: text("task_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEicFeatureRegistrySchema = createInsertSchema(
+  eicFeatureRegistry,
+).omit({ id: true, createdAt: true });
+export type EicFeatureRegistry = typeof eicFeatureRegistry.$inferSelect;
+export type InsertEicFeatureRegistry = z.infer<typeof insertEicFeatureRegistrySchema>;
+
+// Poem exhibitions — curated poetry gallery exhibitions with GSAP scroll, mood detection, illustrations
+export const poemExhibitions = pgTable("poem_exhibitions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: varchar("slug").notNull().unique(),
+  description: text("description"),
+  curatorNotes: text("curator_notes"),
+  poemIds: jsonb("poem_ids").notNull().default(sql`'[]'::jsonb`), // array of writing IDs
+  mood: varchar("mood"), // 'joyful' | 'melancholic' | 'urgent' | 'contemplative'
+  illustrationUrls: jsonb("illustration_urls").default(sql`'[]'::jsonb`), // array of illustration URLs
+  gsapConfig: jsonb("gsap_config").default(sql`'{}'::jsonb`), // GSAP animation configuration
+  isPublished: boolean("is_published").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPoemExhibitionsSchema = createInsertSchema(
+  poemExhibitions,
+).omit({ id: true, createdAt: true });
+export type PoemExhibition = typeof poemExhibitions.$inferSelect;
+export type InsertPoemExhibition = z.infer<typeof insertPoemExhibitionsSchema>;
+
