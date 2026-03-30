@@ -1,12 +1,12 @@
 /**
  * agentActivityDashboard.ts — Agent Activity Dashboard Routes
  * Handles:
- *   - GET /api/agent-dashboard/summary  — aggregated stats across all agents (EIC only)
- *   - GET /api/agent-dashboard/notifications — recent agent_notifications across all users (EIC only)
- *   - GET /api/agent-dashboard/pattern-insights — recent agentPatternInsights across all users (EIC only)
- *   - GET /api/agent-dashboard/copy-snapshots  — recent copySnapshots with status breakdown (EIC only)
- *   - GET /api/agent-dashboard/editorial-briefs — recent editorialBriefs with status (EIC only)
- *   - GET /api/agent-dashboard/prompt-floats   — prompt float surface stats (EIC only)
+ *  - GET /api/agent-dashboard/summary — aggregated stats across all agents (EIC only)
+ *  - GET /api/agent-dashboard/notifications — recent agent_notifications across all users (EIC only)
+ *  - GET /api/agent-dashboard/pattern-insights — recent agentPatternInsights across all users (EIC only)
+ *  - GET /api/agent-dashboard/copy-snapshots — recent copySnapshots with status breakdown (EIC only)
+ *  - GET /api/agent-dashboard/editorial-briefs — recent editorialBriefs with status (EIC only)
+ *  - GET /api/agent-dashboard/prompt-floats — prompt float surface stats (EIC only)
  *
  * ALL routes are Editor-in-Chief / admin only.
  */
@@ -18,21 +18,42 @@ import {
   copySnapshots,
   editorialBriefs,
   promptFloats,
+  users,
 } from "../../shared/schema";
-import { desc, count } from "drizzle-orm";
+import { desc, count, eq } from "drizzle-orm";
 
 const router = Router();
 
-/** EIC / admin guard — uses Passport's req.isAuthenticated() correctly */
-const requireEditor = (req: any, res: any, next: any) => {
-  if (!req.isAuthenticated || !req.isAuthenticated()) {
+/** EIC / admin guard — works on both Replit (Passport) and Render (session) */
+const requireEditor = async (req: any, res: any, next: any) => {
+  // Populate req.user from session for non-Replit (Render) auth
+  if (!req.user?.claims?.sub) {
+    const sessionUser = (req.session as any)?.user;
+    if (sessionUser) {
+      req.user = sessionUser;
+    }
+  }
+  const userId = req.user?.claims?.sub || req.user?.id;
+  if (!userId) {
     return res.status(401).json({ error: "Unauthorised" });
   }
-  const allowed = ["admin", "editor_in_chief"];
-  if (!allowed.includes(req.user?.role)) {
-    return res.status(403).json({ error: "Forbidden — Editor in Chief access only" });
+  // Look up user role from database
+  try {
+    const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId));
+    if (!dbUser) {
+      return res.status(401).json({ error: "Unauthorised — user not found" });
+    }
+    const allowed = ["admin", "editor_in_chief"];
+    if (!allowed.includes(dbUser.role ?? "")) {
+      return res.status(403).json({ error: "Forbidden — Editor in Chief access only" });
+    }
+    // Attach role to req.user for downstream handlers
+    req.user.role = dbUser.role;
+    next();
+  } catch (err) {
+    console.error("[AgentDashboard] requireEditor DB error:", err);
+    return res.status(500).json({ error: "Auth check failed" });
   }
-  next();
 };
 
 router.get("/summary", requireEditor, async (_req, res) => {
@@ -42,27 +63,22 @@ router.get("/summary", requireEditor, async (_req, res) => {
     const [copySnapshotCount] = await db.select({ total: count() }).from(copySnapshots);
     const [editorialBriefCount] = await db.select({ total: count() }).from(editorialBriefs);
     const [promptFloatCount] = await db.select({ total: count() }).from(promptFloats);
-
     const copySnapshotsByStatus = await db
       .select({ status: copySnapshots.status, total: count() })
       .from(copySnapshots)
       .groupBy(copySnapshots.status);
-
     const editorialBriefsByStatus = await db
       .select({ status: editorialBriefs.status, total: count() })
       .from(editorialBriefs)
       .groupBy(editorialBriefs.status);
-
     const notifsByAgent = await db
       .select({ agentName: agentNotifications.agentName, total: count() })
       .from(agentNotifications)
       .groupBy(agentNotifications.agentName);
-
     const insightsByType = await db
       .select({ insightType: agentPatternInsights.insightType, total: count() })
       .from(agentPatternInsights)
       .groupBy(agentPatternInsights.insightType);
-
     res.json({
       success: true,
       data: {
