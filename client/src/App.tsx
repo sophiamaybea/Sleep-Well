@@ -157,14 +157,12 @@ function Router() {
 }
 
 function App() {
-  const { user } = useAuth();
-  const isEIC = user?.email === "sophiamaybea@gmail.com";
-
+  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScroll>
-          {isEIC && <EICCommandBar />}
+            <EICCommandBar />
           <StarBackground />
           <IllustrationLayer />
           <NoiseOverlay />
