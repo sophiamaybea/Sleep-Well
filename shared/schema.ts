@@ -3136,5 +3136,36 @@ export const insertPoemExhibitionsSchema = createInsertSchema(
   poemExhibitions,
 ).omit({ id: true, createdAt: true });
 export type PoemExhibition = typeof poemExhibitions.$inferSelect;
+
+// === TAKEOVER SCREENS ===
+// Site-wide full-screen overlays for announcements, featured content, calls-to-action
+export const takeoverScreens = pgTable("takeover_screens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  ctaText: text("cta_text"),
+  ctaUrl: text("cta_url"),
+  bgColor: text("bg_color").notNull().default("#0d1e2d"),
+  textColor: text("text_color").notNull().default("#f0eeea"),
+  accentColor: text("accent_color").notNull().default("#c4a24d"),
+  isActive: boolean("is_active").notNull().default(false),
+  displayDuration: integer("display_duration").default(7), // days to show
+  priority: integer("priority").notNull().default(0), // higher = shows first
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTakeoverScreenSchema = createInsertSchema(
+  takeoverScreens,
+).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const updateTakeoverScreenSchema = insertTakeoverScreenSchema.partial();
+
+export type TakeoverScreen = typeof takeoverScreens.$inferSelect;
+export type InsertTakeoverScreen = z.infer<typeof insertTakeoverScreenSchema>;
+export type UpdateTakeoverScreen = z.infer<typeof updateTakeoverScreenSchema>;
+export type InsertTakeoverScreen = z.infer<typeof insertTakeoverScreenSchema>;
+export type UpdateTakeoverScreen = z.infer<typeof updateTakeoverScreenSchema>;
 export type InsertPoemExhibition = z.infer<typeof insertPoemExhibitionsSchema>;
 
