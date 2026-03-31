@@ -33,7 +33,7 @@ export function registerTakeoverScreenRoutes(app: any) {
       const screen = await db
         .select()
         .from(takeoverScreens)
-        .where(eq(takeoverScreens.id, req.params.id))
+        .where(eq(takeoverScreens.id, req.params.id as string))
         .limit(1);
       
       if (!screen.length) {
@@ -89,7 +89,7 @@ export function registerTakeoverScreenRoutes(app: any) {
       const updatedScreen = await db
         .update(takeoverScreens)
         .set(validatedData)
-        .where(eq(takeoverScreens.id, req.params.id))
+        .where(eq(takeoverScreens.id, req.params.id as string))
         .returning();
       
       if (!updatedScreen.length) {
@@ -116,7 +116,7 @@ export function registerTakeoverScreenRoutes(app: any) {
     try {
       const deleted = await db
         .delete(takeoverScreens)
-        .where(eq(takeoverScreens.id, req.params.id))
+        .where(eq(takeoverScreens.id, req.params.id as string))
         .returning();
       
       if (!deleted.length) {
