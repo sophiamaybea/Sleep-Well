@@ -3165,7 +3165,5 @@ export const updateTakeoverScreenSchema = insertTakeoverScreenSchema.partial();
 export type TakeoverScreen = typeof takeoverScreens.$inferSelect;
 export type InsertTakeoverScreen = z.infer<typeof insertTakeoverScreenSchema>;
 export type UpdateTakeoverScreen = z.infer<typeof updateTakeoverScreenSchema>;
-export type InsertTakeoverScreen = z.infer<typeof insertTakeoverScreenSchema>;
-export type UpdateTakeoverScreen = z.infer<typeof updateTakeoverScreenSchema>;
 export type InsertPoemExhibition = z.infer<typeof insertPoemExhibitionsSchema>;
 
