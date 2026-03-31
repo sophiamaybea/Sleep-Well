@@ -14,7 +14,6 @@ import {
   users,
   agentNotifications,
   agentPatternInsights,
-  editorialBriefs,
   promptFloats,
   prompts,
 } from "../../shared/schema";
@@ -78,6 +77,7 @@ async function runPatternSpotter() {
           .replace(/[^a-z\s]/g, " ")
           .split(/\s+/)
           .filter((w) => w.length > 3 && !stopwords.has(w));
+
         const seen = new Set<string>();
         for (const word of text) {
           wordCounts[word] = (wordCounts[word] || 0) + 1;
@@ -109,7 +109,11 @@ async function runPatternSpotter() {
               recurring.flatMap(([w]) => Array.from(wordToWritings[w] || []))
             )
           ).slice(0, 20),
-          patternData: { themes: recurring.map(([word, count]) => ({ word, count })), totalPiecesScanned: pieces.length, scannedAt: new Date().toISOString() },
+          patternData: {
+            themes: recurring.map(([word, count]) => ({ word, count })),
+            totalPiecesScanned: pieces.length,
+            scannedAt: new Date().toISOString()
+          },
           status: "active",
         });
         insightsCreated++;
@@ -185,7 +189,6 @@ async function runBlankPageTender() {
   try {
     // Find recent writings (last 24h) that don't have an agent notification yet
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
     const recentWritings = await db
       .select({
         id: writings.id,
@@ -236,62 +239,22 @@ async function runBlankPageTender() {
 }
 
 /**
- * Generate editorial briefs for writings that have reached "bloom" stage
- * but don't have a brief yet.
+ * Generate editorial briefs for writings that have reached "bloom" stage.
+ * Disabled: editorialBriefs schema is for issue-level briefs, not per-writing reviews.
  */
 async function runEditorialBriefGenerator() {
-  try {
-        // Disabled: editorialBriefs schema is for issue-level briefs, not per-writing reviews
-    return;
-    const bloomWritings = await db
-      .select({ id: writings.id, title: writings.title, authorId: writings.authorId })
-      .from(writings)
-      .where(eq(writings.stage, "bloom"))
-      .limit(20);
-
-    let created = 0;
-    for (const w of bloomWritings) {
-      // Check if brief already exists
-      const existing = await db
-        .select({ id: editorialBriefs.id })
-        .from(editorialBriefs)
-        .where(eq(editorialBriefs.writingId, w.id))
-        .limit(1);
-
-      if (existing.length > 0) continue;
-
-      try {
-        await db.insert(editorialBriefs).values({
-          writingId: w.id,
-          userId: w.authorId!,
-          briefType: "review_ready",
-          summary: `"${(w.title || "Untitled").slice(0, 60)}" has reached bloom stage and is ready for editorial review.`,
-          status: "pending",
-        });
-        created++;
-      } catch (e) {
-        // Column mismatch or table issue — skip
-      }
-    }
-
-    if (created > 0) {
-      console.log(`${TAG} EditorialBriefGenerator: created ${created} briefs`);
-    }
-  } catch (err) {
-    console.error(`${TAG} EditorialBriefGenerator failed:`, err);
-  }
+  // Disabled — schema mismatch: editorialBriefs does not have a writingId column.
+  return;
 }
 
 /** Run all agent tasks once */
 async function runAllAgents() {
   console.log(`${TAG} Running scheduled agent sweep...`);
   const start = Date.now();
-
   await runBlankPageTender();
   await runPatternSpotter();
   await runPromptFloater();
   await runEditorialBriefGenerator();
-
   console.log(`${TAG} Agent sweep complete in ${Date.now() - start}ms`);
 }
 
@@ -305,9 +268,7 @@ export function startAgentScheduler() {
     console.log(`${TAG} Skipping agent scheduler in development`);
     return;
   }
-
   console.log(`${TAG} Starting background agent scheduler (interval: ${INTERVAL_MS / 60000}min)`);
-
   // First run after 60s delay (let DB migrations finish)
   setTimeout(async () => {
     await runAllAgents();
