@@ -32,7 +32,7 @@ import SendToEditors from "@/components/garden/SendToEditors";
 import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 import { GalleryFeedbackModal } from "@/components/GalleryFeedbackModal";
-import NightGardenAtmosphere from "@/components/garden/NightGardenAtmosphere";
+import { NightGardenAtmosphere } from "@/components/garden/NightGardenAtmosphere";
 import { BloomCelebration } from "@/components/garden/BloomCelebration";
 import { SeedIcon, SproutIcon, BloomIcon, stageIcons } from "@/components/garden/GardenIcons";
 import { Skeleton, DeskSkeleton, ReadingRoomSkeleton, CommunityRoomSkeleton } from "@/components/garden/GardenSkeletons";
