@@ -235,7 +235,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     if (sessionUser.expires_at && now > sessionUser.expires_at) {
       return res.status(401).json({ message: "Session expired" });
     }
-    (req as any).user = sessionUser;
+    (req as any).user = { ...sessionUser, id: sessionUser.claims?.sub };
     return next();
   }
 };
