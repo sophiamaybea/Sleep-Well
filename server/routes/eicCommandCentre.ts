@@ -2,9 +2,6 @@
  * eicCommandCentre.ts — Expanded EIC AI Agent Command Centre
  */
 import { Router } from "express";
-import { db } from "../db";
-import { eicFeatureRegistry, eicAgentConversations } from "../../shared/schema";
-import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 
 const router = Router();
