@@ -254,7 +254,7 @@ export async function registerRoutes(
   // === WRITINGS ===
   app.get("/api/writings", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const writings = await storage.getWritingsByAuthor(userId);
       res.json(writings);
     } catch (error) {
@@ -266,7 +266,7 @@ export async function registerRoutes(
   // GET /api/garden/last-draft — returns the user's most recently updated writing
 app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   try {
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     const writings = await storage.getWritingsByAuthor(userId);
     if (!writings || writings.length === 0) {
       return res.json(null);
@@ -286,7 +286,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post("/api/writings", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const parsed = insertWritingSchema.safeParse(req.body);
       if (!parsed.success)
         return res
@@ -305,7 +305,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.patch("/api/writings/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const parsed = updateWritingSchema.safeParse(req.body);
       if (!parsed.success)
         return res
@@ -355,7 +355,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing || writing.authorId !== userId)
           return res.status(404).json({ message: "Writing not found" });
@@ -370,7 +370,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.delete("/api/writings/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const deleted = await storage.deleteWriting(req.params.id, userId);
       if (!deleted)
         return res.status(404).json({ message: "Writing not found" });
@@ -386,7 +386,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const count = await storage.deleteEmptyWritings(userId);
         res.json({ deleted: count });
       } catch (error) {
@@ -424,7 +424,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === DAILY LETTER ===
   app.get("/api/daily-letter", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const letter = await storage.getDailyLetter(userId);
       if (!letter) return res.json(null);
       res.json(letter);
@@ -458,7 +458,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === TAG-BASED DISCOVERY ===
   app.get("/api/discovery", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const feed = await storage.getDiscoveryFeed(userId);
       res.json(feed);
     } catch (error) {
@@ -485,7 +485,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === CIRCLE FEED ===
   app.get("/api/circle-feed", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const feed = await storage.getCircleFeed(userId);
       res.json(feed);
     } catch (error) {
@@ -497,7 +497,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === READING QUEUE ===
   app.get("/api/reading-queue", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getReadingQueue(req.user.claims.sub);
+      const items = await storage.getReadingQueue(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch reading queue" });
@@ -512,7 +512,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
       const item = await storage.addToReadingQueue(
-        req.user.claims.sub,
+        req.user.id,
         parsed.data.writingId,
       );
       res.status(201).json(item);
@@ -527,7 +527,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const deleted = await storage.removeFromReadingQueue(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -544,7 +544,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const item = await storage.markQueueItemRead(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!item) return res.status(404).json({ message: "Not found" });
@@ -558,7 +558,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === READING NOTES (annotation → seed) ===
   app.post("/api/reading-notes", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const schema = z.object({
         sourceWritingId: z.string(),
         sourceTitle: z.string().optional(),
@@ -606,7 +606,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === SAVED PIECES ===
   app.get("/api/saved", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getSavedPieces(req.user.claims.sub);
+      const items = await storage.getSavedPieces(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch saved pieces" });
@@ -621,7 +621,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
       const item = await storage.savePiece(
-        req.user.claims.sub,
+        req.user.id,
         parsed.data.writingId,
       );
       res.status(201).json(item);
@@ -633,7 +633,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.delete("/api/saved/:id", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.unsavePiece(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
       );
       if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -650,7 +650,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const items = await storage.getPollinationsReceived(
-          req.user.claims.sub,
+          req.user.id,
         );
         res.json(items);
       } catch (error) {
@@ -677,7 +677,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const item = await storage.createPollination(req.user.claims.sub, {
+      const item = await storage.createPollination(req.user.id, {
         writingId: parsed.data.writingId,
         affirmation: parsed.data.affirmation,
         highlightText: parsed.data.highlightText ?? undefined,
@@ -896,7 +896,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/rituals", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getRitualSessions(req.user.claims.sub);
+      const items = await storage.getRitualSessions(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch ritual sessions" });
@@ -910,7 +910,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const session = await storage.createRitualSession(req.user.claims.sub, {
+      const session = await storage.createRitualSession(req.user.id, {
         output: parsed.data.output || "",
         durationMinutes: parsed.data.durationMinutes || 10,
         promptId: parsed.data.promptId ?? undefined,
@@ -924,7 +924,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === COMPOST ===
   app.get("/api/compost", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getCompostEntries(req.user.claims.sub);
+      const items = await storage.getCompostEntries(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch compost" });
@@ -938,7 +938,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.createCompostEntry(req.user.claims.sub, {
+      const entry = await storage.createCompostEntry(req.user.id, {
         content: parsed.data.content,
         sourceWritingId: parsed.data.sourceWritingId ?? undefined,
       });
@@ -954,7 +954,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const entry = await storage.recycleCompostEntry(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!entry) return res.status(404).json({ message: "Not found" });
@@ -968,7 +968,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.delete("/api/compost/:id", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.deleteCompostEntry(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
       );
       if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -981,7 +981,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === GROWTH JOURNAL ===
   app.get("/api/growth-journal", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getGrowthJournalEntries(req.user.claims.sub);
+      const items = await storage.getGrowthJournalEntries(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch journal entries" });
@@ -995,7 +995,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const item = await storage.createGrowthJournalEntry(req.user.claims.sub, {
+      const item = await storage.createGrowthJournalEntry(req.user.id, {
         entry: parsed.data.entry,
         linkedWritingId: parsed.data.linkedWritingId ?? undefined,
       });
@@ -1011,7 +1011,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const deleted = await storage.deleteGrowthJournalEntry(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -1024,7 +1024,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/submissions", isAuthenticated, async (req: any, res) => {
     try {
-      const subs = await storage.getSubmissions(req.user.claims.sub);
+      const subs = await storage.getSubmissions(req.user.id);
       res.json(subs);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch submissions" });
@@ -1033,7 +1033,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/submissions/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getSubmissionStats(req.user.claims.sub);
+      const stats = await storage.getSubmissionStats(req.user.id);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch submission stats" });
@@ -1046,7 +1046,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const subs = await storage.getSubmissionsByWriting(
-          req.user.claims.sub,
+          req.user.id,
           req.params.writingId,
         );
         res.json(subs);
@@ -1058,7 +1058,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post("/api/submissions", isAuthenticated, async (req: any, res) => {
     try {
-      const sub = await storage.createSubmission(req.user.claims.sub, req.body);
+      const sub = await storage.createSubmission(req.user.id, req.body);
       res.json(sub);
     } catch (error) {
       res.status(500).json({ message: "Failed to create submission" });
@@ -1069,7 +1069,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const sub = await storage.updateSubmission(
         req.params.id,
-        req.user.claims.sub,
+        req.user.id,
         req.body,
       );
       if (!sub)
@@ -1084,7 +1084,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.deleteSubmission(
         req.params.id,
-        req.user.claims.sub,
+        req.user.id,
       );
       if (!deleted)
         return res.status(404).json({ message: "Submission not found" });
@@ -1101,7 +1101,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       try {
         const sub = await storage.updateSubmission(
           req.params.id,
-          req.user.claims.sub,
+          req.user.id,
           {
             status: "accepted",
             respondedAt: new Date(),
@@ -1111,7 +1111,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res.status(404).json({ message: "Submission not found" });
         const otherSubs = sub.writingId
           ? await storage.getSubmissionsByWriting(
-              req.user.claims.sub,
+              req.user.id,
               sub.writingId,
             )
           : [];
@@ -1137,7 +1137,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .json({ message: "submissionIds array required" });
         const results = await Promise.all(
           submissionIds.map((id: string) =>
-            storage.updateSubmission(id, req.user.claims.sub, {
+            storage.updateSubmission(id, req.user.id, {
               status: "withdrawn",
               respondedAt: new Date(),
             }),
@@ -1153,7 +1153,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === INNER WEATHER ===
   app.get("/api/inner-weather", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getInnerWeatherEntries(req.user.claims.sub);
+      const items = await storage.getInnerWeatherEntries(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch weather entries" });
@@ -1167,7 +1167,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.createInnerWeatherEntry(req.user.claims.sub, {
+      const entry = await storage.createInnerWeatherEntry(req.user.id, {
         mood: parsed.data.mood,
         energy: parsed.data.energy ?? 5,
         note: parsed.data.note ?? undefined,
@@ -1181,7 +1181,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === REFLECTIONS ===
   app.get("/api/reflections", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getReflections(req.user.claims.sub);
+      const items = await storage.getReflections(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch reflections" });
@@ -1195,7 +1195,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const entry = await storage.createReflection(req.user.claims.sub, {
+      const entry = await storage.createReflection(req.user.id, {
         topic: parsed.data.topic,
         body: parsed.data.body,
         linkedWritingId: parsed.data.linkedWritingId ?? undefined,
@@ -1209,7 +1209,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.delete("/api/reflections/:id", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.deleteReflection(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
       );
       if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -1222,7 +1222,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === SEASONAL REVIEW ===
   app.get("/api/seasonal-review", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getSeasonalStats(req.user.claims.sub);
+      const stats = await storage.getSeasonalStats(req.user.id);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch seasonal review" });
@@ -1232,7 +1232,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === ROOT SYSTEM ===
   app.get("/api/root-influences", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getRootInfluences(req.user.claims.sub);
+      const items = await storage.getRootInfluences(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch influences" });
@@ -1246,7 +1246,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const influence = await storage.createRootInfluence(req.user.claims.sub, {
+      const influence = await storage.createRootInfluence(req.user.id, {
         name: parsed.data.name,
         category: parsed.data.category ?? undefined,
         note: parsed.data.note ?? undefined,
@@ -1263,7 +1263,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const deleted = await storage.deleteRootInfluence(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -1277,7 +1277,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === CIRCLES ===
   app.get("/api/circles", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getCircles(req.user.claims.sub);
+      const items = await storage.getCircles(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch circles" });
@@ -1292,7 +1292,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
       const circle = await storage.createCircle(
-        req.user.claims.sub,
+        req.user.id,
         parsed.data,
       );
       res.status(201).json(circle);
@@ -1310,7 +1310,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res.status(400).json({ message: "This circle is full" });
       }
       const member = await storage.joinCircle(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
       );
       res.status(201).json(member);
@@ -1325,7 +1325,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const left = await storage.leaveCircle(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!left) return res.status(404).json({ message: "Not found" });
@@ -1362,7 +1362,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
-        const msg = await storage.createCircleMessage(req.user.claims.sub, {
+        const msg = await storage.createCircleMessage(req.user.id, {
           circleId: parsed.data.circleId,
           content: parsed.data.content,
           writingId: parsed.data.writingId ?? undefined,
@@ -1397,7 +1397,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
-        const share = await storage.createCircleShare(req.user.claims.sub, {
+        const share = await storage.createCircleShare(req.user.id, {
           circleId: parsed.data.circleId,
           writingId: parsed.data.writingId ?? undefined,
           weekOf: parsed.data.weekOf,
@@ -1443,7 +1443,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       try {
         const members = await storage.getCircleMembers(req.params.id);
         const isMember = members.some(
-          (m: any) => m.userId === req.user.claims.sub,
+          (m: any) => m.userId === req.user.id,
         );
         if (!isMember)
           return res
@@ -1464,7 +1464,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       try {
         const members = await storage.getCircleMembers(req.params.id);
         const isMember = members.some(
-          (m: any) => m.userId === req.user.claims.sub,
+          (m: any) => m.userId === req.user.id,
         );
         if (!isMember)
           return res
@@ -1476,7 +1476,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
         const response = await storage.respondToCircleMicroPrompt(
-          req.user.claims.sub,
+          req.user.id,
           parsed.data,
         );
         res.status(201).json(response);
@@ -1503,7 +1503,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "Invalid data", errors: parsed.error.flatten() });
-      const reading = await storage.createMoonlitReading(req.user.claims.sub, {
+      const reading = await storage.createMoonlitReading(req.user.id, {
         ...parsed.data,
         scheduledAt: parsed.data.scheduledAt
           ? new Date(parsed.data.scheduledAt)
@@ -1526,7 +1526,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
         const participant = await storage.joinMoonlitReading(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
           parsed.data.writingId,
         );
@@ -1543,7 +1543,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const left = await storage.leaveMoonlitReading(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!left) return res.status(404).json({ message: "Not found" });
@@ -1557,7 +1557,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === REPLANT REQUESTS ===
   app.get("/api/replant-requests", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getReplantRequests(req.user.claims.sub);
+      const items = await storage.getReplantRequests(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch replant requests" });
@@ -1575,7 +1575,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
         const request = await storage.respondToReplantRequest(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
           parsed.data.status,
         );
@@ -1593,7 +1593,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const tenderId = req.user.claims.sub;
+        const tenderId = req.user.id;
         const { gardenerId } = req.params;
         if (tenderId === gardenerId)
           return res
@@ -1618,7 +1618,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const result = await storage.untendGarden(
-          req.user.claims.sub,
+          req.user.id,
           req.params.gardenerId,
         );
         if (!result) return res.status(404).json({ message: "Not found" });
@@ -1631,7 +1631,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/tending", isAuthenticated, async (req: any, res) => {
     try {
-      const gardens = await storage.getTending(req.user.claims.sub);
+      const gardens = await storage.getTending(req.user.id);
       res.json(gardens);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch tending" });
@@ -1640,7 +1640,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/tenders", isAuthenticated, async (req: any, res) => {
     try {
-      const tenders = await storage.getTenders(req.user.claims.sub);
+      const tenders = await storage.getTenders(req.user.id);
       res.json(tenders);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch tenders" });
@@ -1653,7 +1653,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const isTending = await storage.isTending(
-          req.user.claims.sub,
+          req.user.id,
           req.params.gardenerId,
         );
         res.json({ isTending });
@@ -1665,7 +1665,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/tending-feed", isAuthenticated, async (req: any, res) => {
     try {
-      const feed = await storage.getTendingFeed(req.user.claims.sub);
+      const feed = await storage.getTendingFeed(req.user.id);
       res.json(feed);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch tending feed" });
@@ -1709,19 +1709,19 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       const writing = await storage.getWriting(writingId);
       if (!writing)
         return res.status(404).json({ message: "Writing not found" });
-      if (writing.authorId === req.user.claims.sub)
+      if (writing.authorId === req.user.id)
         return res
           .status(400)
           .json({ message: "Cannot resonate with your own work" });
       const result = await storage.addResonance(
-        req.user.claims.sub,
+        req.user.id,
         writingId,
         type,
       );
       const authorId = writing.authorId;
       await storage.createNotification(authorId, {
         type: "resonance",
-        actorId: req.user.claims.sub,
+        actorId: req.user.id,
         writingId,
         message: `left a ${type.replace("_", " ")} on "${writing.title || "Untitled"}"`,
       });
@@ -1739,7 +1739,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           .status(400)
           .json({ message: "writingId and type are required" });
       const result = await storage.removeResonance(
-        req.user.claims.sub,
+        req.user.id,
         writingId,
         type,
       );
@@ -1758,7 +1758,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           req.params.writingId,
         );
         const userResonances = await storage.getUserResonances(
-          req.user.claims.sub,
+          req.user.id,
           req.params.writingId,
         );
         res.json({ resonances, userResonances });
@@ -1774,7 +1774,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const items = await storage.getMarginaliaForWriting(
           req.params.writingId,
           userId,
@@ -1793,17 +1793,17 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         return res
           .status(400)
           .json({ message: "writingId and content are required" });
-      const result = await storage.createMarginalia(req.user.claims.sub, {
+      const result = await storage.createMarginalia(req.user.id, {
         writingId,
         content,
         parentId,
         highlightText,
       });
       const writing = await storage.getWriting(writingId);
-      if (writing && writing.authorId !== req.user.claims.sub) {
+      if (writing && writing.authorId !== req.user.id) {
         await storage.createNotification(writing.authorId, {
           type: "marginalia",
-          actorId: req.user.claims.sub,
+          actorId: req.user.id,
           writingId,
           message: `left a note on "${writing.title || "Untitled"}"`,
         });
@@ -1817,7 +1817,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.delete("/api/marginalia/:id", isAuthenticated, async (req: any, res) => {
     try {
       const result = await storage.deleteMarginalia(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
       );
       if (!result) return res.status(404).json({ message: "Not found" });
@@ -1833,7 +1833,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const result = await storage.surfaceMarginalia(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!result)
@@ -1853,7 +1853,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const result = await storage.unsurfaceMarginalia(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!result)
@@ -1872,7 +1872,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const unreadOnly = req.query.unread === "true";
       const items = await storage.getNotifications(
-        req.user.claims.sub,
+        req.user.id,
         unreadOnly,
       );
       res.json(items);
@@ -1887,7 +1887,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const count = await storage.getUnreadNotificationCount(
-          req.user.claims.sub,
+          req.user.id,
         );
         res.json({ count });
       } catch (error) {
@@ -1902,7 +1902,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const result = await storage.markNotificationRead(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         res.json({ success: result });
@@ -1917,7 +1917,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        await storage.markAllNotificationsRead(req.user.claims.sub);
+        await storage.markAllNotificationsRead(req.user.id);
         res.json({ success: true });
       } catch (error) {
         res.status(500).json({ message: "Failed to mark all read" });
@@ -1952,7 +1952,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post("/api/tables", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const parsed = insertTableTopicSchema.safeParse(req.body);
       if (!parsed.success)
         return res
@@ -1981,7 +1981,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const parsed = insertTableReplySchema.safeParse({
           ...req.body,
           topicId: req.params.id,
@@ -2029,7 +2029,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const content = req.body.content?.trim();
         if (!content)
           return res.status(400).json({ message: "Content is required" });
@@ -2093,7 +2093,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post("/api/workshop", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const parsed = insertWorkshopExerciseSchema.safeParse(req.body);
       if (!parsed.success)
         return res
@@ -2127,7 +2127,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const parsed = insertWorkshopResponseSchema.safeParse({
           ...req.body,
           exerciseId: req.params.id,
@@ -2162,7 +2162,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post("/api/swaps", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const parsed = insertSwapRequestSchema.safeParse(req.body);
       if (!parsed.success)
         return res
@@ -2184,7 +2184,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post("/api/swaps/:id/match", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { writingId } = req.body;
       if (!writingId)
         return res.status(400).json({ message: "writingId is required" });
@@ -2213,7 +2213,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const parsed = insertSwapFeedbackSchema.safeParse({
           ...req.body,
           swapId: req.params.id,
@@ -2240,7 +2240,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === MICRO-SWAP ===
   app.post("/api/micro-swaps", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const parsed = insertMicroSwapSchema.safeParse(req.body);
       if (!parsed.success)
         return res
@@ -2259,7 +2259,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/micro-swaps", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const swaps = await storage.getMyMicroSwaps(userId);
       res.json(swaps);
     } catch (error) {
@@ -2273,7 +2273,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const { response } = req.body;
         if (!response || typeof response !== "string")
           return res.status(400).json({ message: "Response is required" });
@@ -2307,7 +2307,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.patch("/api/profile/bio", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { bio } = req.body;
       if (typeof bio !== "string")
         return res.status(400).json({ message: "bio must be a string" });
@@ -2321,7 +2321,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.patch("/api/user/onboarding", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { displayName, bio } = req.body;
       if (
         !displayName ||
@@ -2359,7 +2359,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.patch("/api/profile", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { displayName, bio, isAnonymous } = req.body;
       if (
         displayName !== undefined &&
@@ -2501,7 +2501,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Title, startsAt, and endsAt are required" });
         }
-        const call = await storage.createSubmissionCall(req.user.claims.sub, {
+        const call = await storage.createSubmissionCall(req.user.id, {
           title,
           description: description || null,
           theme: theme || null,
@@ -2623,14 +2623,14 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         }
         if (writingId) {
           const writing = await storage.getWriting(writingId);
-          if (!writing || writing.authorId !== req.user.claims.sub) {
+          if (!writing || writing.authorId !== req.user.id) {
             return res
               .status(403)
               .json({ message: "You can only submit your own writings" });
           }
         }
         const response = await storage.createSubmissionCallResponse(
-          req.user.claims.sub,
+          req.user.id,
           {
             callId: req.params.id,
             writingId: writingId || null,
@@ -2654,12 +2654,12 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
-        if (writing.authorId !== req.user.claims.sub)
+        if (writing.authorId !== req.user.id)
           return res.status(403).json({ message: "Not authorized" });
         const { galleryOptIn } = req.body;
         const updated = await storage.updateWriting(
           req.params.id,
-          req.user.claims.sub,
+          req.user.id,
           {
             galleryOptIn: !!galleryOptIn,
             galleryOptInAt: galleryOptIn ? new Date() : null,
@@ -2691,7 +2691,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/editor/check", isAuthenticated, async (req: any, res) => {
     try {
-      const editorStatus = await storage.isEditor(req.user.claims.sub);
+      const editorStatus = await storage.isEditor(req.user.id);
       res.json({ isEditor: editorStatus });
     } catch (error) {
       res.status(500).json({ message: "Failed to check editor status" });
@@ -2704,7 +2704,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isEditor,
     async (req: any, res) => {
       try {
-        const overview = await storage.getEditorOverview(req.user.claims.sub);
+        const overview = await storage.getEditorOverview(req.user.id);
         res.json(overview);
       } catch (error) {
         res.status(500).json({ message: "Failed to fetch editor overview" });
@@ -2738,7 +2738,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isEditor,
     async (req: any, res) => {
       try {
-        const entries = await storage.getGreenhouseEntries(req.user.claims.sub);
+        const entries = await storage.getGreenhouseEntries(req.user.id);
         res.json(entries);
       } catch (error) {
         res.status(500).json({ message: "Failed to fetch greenhouse entries" });
@@ -2757,7 +2757,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
-        const entry = await storage.addToGreenhouse(req.user.claims.sub, {
+        const entry = await storage.addToGreenhouse(req.user.id, {
           writingId: parsed.data.writingId,
           issueId: parsed.data.issueId ?? undefined,
           themeFolder: parsed.data.themeFolder ?? undefined,
@@ -2779,7 +2779,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const entry = await storage.updateGreenhouseEntry(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
           req.body,
         );
@@ -2798,7 +2798,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const removed = await storage.removeFromGreenhouse(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!removed) return res.status(404).json({ message: "Not found" });
@@ -2816,7 +2816,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const { status } = req.query;
-        const filters: any = { editorId: req.user.claims.sub };
+        const filters: any = { editorId: req.user.id };
         if (status) filters.status = status;
         const requests = await storage.getPublishRequests(filters);
         res.json(requests);
@@ -2829,7 +2829,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.get("/api/author/requests", isAuthenticated, async (req: any, res) => {
     try {
       const requests = await storage.getAuthorPublishRequests(
-        req.user.claims.sub,
+        req.user.id,
       );
       res.json(requests);
     } catch (error) {
@@ -2849,7 +2849,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
         const request = await storage.createPublishRequest(
-          req.user.claims.sub,
+          req.user.id,
           {
             writingId: parsed.data.writingId,
             authorId: req.body.authorId,
@@ -2878,7 +2878,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
         const request = await storage.respondToPublishRequest(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
           parsed.data.status,
         );
@@ -2919,7 +2919,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
         const message = await storage.createRequestMessage(
-          req.user.claims.sub,
+          req.user.id,
           { requestId: req.params.id, content: parsed.data.content },
         );
         res.status(201).json(message);
@@ -2969,7 +2969,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
-        const issue = await storage.createIssue(req.user.claims.sub, {
+        const issue = await storage.createIssue(req.user.id, {
           title: parsed.data.title,
           subtitle: parsed.data.subtitle ?? undefined,
           themeNote: parsed.data.themeNote ?? undefined,
@@ -3117,7 +3117,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .status(400)
             .json({ message: "Invalid data", errors: parsed.error.flatten() });
         const note = await storage.createEditorNote(
-          req.user.claims.sub,
+          req.user.id,
           parsed.data,
         );
         res.status(201).json(note);
@@ -3134,7 +3134,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const deleted = await storage.deleteEditorNote(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -3184,7 +3184,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         if (!title)
           return res.status(400).json({ message: "Title is required" });
         const item = await storage.createCuratedOpportunity(
-          req.user.claims.sub,
+          req.user.id,
           {
             title,
             link,
@@ -3248,7 +3248,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         if (!parsed.success)
           return res.status(400).json({ message: "Invalid data" });
         const item = await storage.createCircleIntention(
-          req.user.claims.sub,
+          req.user.id,
           parsed.data,
         );
         res.status(201).json(item);
@@ -3264,7 +3264,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const deleted = await storage.deleteCircleIntention(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -3301,7 +3301,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         if (!parsed.success)
           return res.status(400).json({ message: "Invalid data" });
         const item = await storage.createCircleCelebration(
-          req.user.claims.sub,
+          req.user.id,
           {
             circleId: parsed.data.circleId,
             type: parsed.data.type,
@@ -3332,7 +3332,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       if (!parsed.success)
         return res.status(400).json({ message: "Invalid data" });
       const item = await storage.createRejectionWallEntry(
-        req.user.claims.sub,
+        req.user.id,
         parsed.data,
       );
       res.status(201).json(item);
@@ -3349,7 +3349,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const deleted = await storage.deleteRejectionWallEntry(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -3377,7 +3377,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       const parsed = insertOpportunitySchema.safeParse(req.body);
       if (!parsed.success)
         return res.status(400).json({ message: "Invalid data" });
-      const item = await storage.createOpportunity(req.user.claims.sub, {
+      const item = await storage.createOpportunity(req.user.id, {
         title: parsed.data.title,
         link: parsed.data.link ?? undefined,
         outlet: parsed.data.outlet ?? undefined,
@@ -3400,7 +3400,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const deleted = await storage.deleteOpportunity(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -3436,7 +3436,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         if (!parsed.success)
           return res.status(400).json({ message: "Invalid data" });
         const note = await storage.createOpportunityNote(
-          req.user.claims.sub,
+          req.user.id,
           parsed.data,
         );
         res.status(201).json(note);
@@ -3472,7 +3472,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         if (!parsed.success)
           return res.status(400).json({ message: "Invalid data" });
         const item = await storage.createPromptPotluckItem(
-          req.user.claims.sub,
+          req.user.id,
           parsed.data,
         );
         res.status(201).json(item);
@@ -3485,7 +3485,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.delete("/api/potluck/:id", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.deletePromptPotluckItem(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
       );
       if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -3516,7 +3516,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const hasRead = await storage.hasQuietRead(
           userId,
           req.params.writingId,
@@ -3533,7 +3533,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const result = await storage.addQuietRead(userId, req.params.writingId);
         res.status(201).json(result);
       } catch (error) {
@@ -3544,7 +3544,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.post("/api/quiet-read-counts", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { writingIds } = req.body;
       if (!Array.isArray(writingIds) || writingIds.length === 0)
         return res.json({});
@@ -3567,7 +3567,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
@@ -3613,7 +3613,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       if (!parsed.success)
         return res.status(400).json({ message: "Invalid data" });
       const item = await storage.createIdeaDrop(
-        req.user.claims.sub,
+        req.user.id,
         parsed.data,
       );
       res.status(201).json(item);
@@ -3628,7 +3628,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const item = await storage.adoptIdeaDrop(
-          req.user.claims.sub,
+          req.user.id,
           req.params.id,
         );
         if (!item)
@@ -3645,7 +3645,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.delete("/api/idea-drops/:id", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.deleteIdeaDrop(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
       );
       if (!deleted) return res.status(404).json({ message: "Not found" });
@@ -3663,10 +3663,10 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
-        if (writing.authorId !== req.user.claims.sub)
+        if (writing.authorId !== req.user.id)
           return res.status(403).json({ message: "Forbidden" });
 
-        const user = await storage.getUser(req.user.claims.sub);
+        const user = await storage.getUser(req.user.id);
         const authorName = user?.firstName || "Author";
         const plainContent = (writing.content || "")
           .replace(/<br\s*\/?>/gi, "\n")
@@ -3784,7 +3784,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === PRESENCE ===
   app.post("/api/presence", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.updatePresence(userId);
       res.json({ ok: true });
     } catch (error) {
@@ -3820,7 +3820,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === EDITORIAL FLAGS ===
   app.post("/api/editorial-flags", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { writingId } = req.body;
       if (!writingId)
         return res.status(400).json({ message: "writingId is required" });
@@ -3857,7 +3857,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const flags = await storage.getMyFlags(req.user.claims.sub);
+        const flags = await storage.getMyFlags(req.user.id);
         res.json(flags);
       } catch (error) {
         res.status(500).json({ message: "Failed to fetch flags" });
@@ -3870,7 +3870,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.writingId);
         if (!writing || writing.authorId !== userId)
           return res.status(404).json({ message: "Not found" });
@@ -3908,12 +3908,12 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       try {
         const flag = await storage.markFlagSeen(
           req.params.id,
-          req.user.claims.sub,
+          req.user.id,
         );
         if (!flag) return res.status(404).json({ message: "Flag not found" });
         await storage.createNotification(flag.authorId, {
           type: "editor_paused",
-          actorId: req.user.claims.sub,
+          actorId: req.user.id,
           message: "An editor paused on your piece",
           writingId: flag.writingId,
         });
@@ -3935,21 +3935,21 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res.status(400).json({ message: "response is required" });
         const flag = await storage.respondToFlag(
           req.params.id,
-          req.user.claims.sub,
+          req.user.id,
           response,
         );
         if (!flag) return res.status(404).json({ message: "Flag not found" });
         const noteType = response.startsWith("[Closed]")
           ? "decision"
           : "general_feedback";
-        await storage.createEditorNote(req.user.claims.sub, {
+        await storage.createEditorNote(req.user.id, {
           writingId: flag.writingId,
           content: response,
           noteType,
         });
         await storage.createNotification(flag.authorId, {
           type: "flag_response",
-          actorId: req.user.claims.sub,
+          actorId: req.user.id,
           message: response,
           writingId: flag.writingId,
         });
@@ -3975,7 +3975,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === TIER MANAGEMENT ===
   app.get("/api/user/tier", isAuthenticated, async (req: any, res) => {
     try {
-      const tier = await storage.getUserTier(req.user.claims.sub);
+      const tier = await storage.getUserTier(req.user.id);
       res.json({ tier });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch tier" });
@@ -3988,7 +3988,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const tier = await storage.getUserTier(userId);
         if (tier !== "paid")
           return res
@@ -4029,7 +4029,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const tier = await storage.getUserTier(req.user.claims.sub);
+        const tier = await storage.getUserTier(req.user.id);
         if (tier !== "paid")
           return res
             .status(403)
@@ -4056,7 +4056,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       const parsed = insertFirstReaderDropSchema.safeParse(req.body);
       if (!parsed.success)
         return res.status(400).json({ message: "Invalid data" });
-      const drop = await storage.createFirstReaderDrop(req.user.claims.sub, {
+      const drop = await storage.createFirstReaderDrop(req.user.id, {
         content: parsed.data.content,
         genre: parsed.data.genre ?? undefined,
       });
@@ -4070,7 +4070,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const genre = req.query.genre as string | undefined;
       const drops = await storage.getFirstReaderDrops(genre);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       res.json(drops.filter((d: any) => d.authorId !== userId));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch drops" });
@@ -4079,7 +4079,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/first-reader/mine", isAuthenticated, async (req: any, res) => {
     try {
-      const drops = await storage.getMyFirstReaderDrops(req.user.claims.sub);
+      const drops = await storage.getMyFirstReaderDrops(req.user.id);
       res.json(drops);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch my drops" });
@@ -4098,7 +4098,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         if (!parsed.success)
           return res.status(400).json({ message: "Invalid data" });
         const response = await storage.createFirstReaderResponse(
-          req.user.claims.sub,
+          req.user.id,
           {
             dropId: parsed.data.dropId,
             aliveSignal: parsed.data.aliveSignal,
@@ -4128,7 +4128,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       const parsed = insertReadingShelfSchema.safeParse(req.body);
       if (!parsed.success)
         return res.status(400).json({ message: "Invalid data" });
-      const entry = await storage.addToReadingShelf(req.user.claims.sub, {
+      const entry = await storage.addToReadingShelf(req.user.id, {
         bookTitle: parsed.data.bookTitle,
         author: parsed.data.author ?? undefined,
         reaction: parsed.data.reaction,
@@ -4190,7 +4190,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
             .json({ message: "writingId and targetEditorId required" });
         await storage.createNotification(targetEditorId, {
           type: "editor_handoff",
-          actorId: req.user.claims.sub,
+          actorId: req.user.id,
           message: note || "An editor wants you to look at this piece",
           writingId,
         });
@@ -4208,7 +4208,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const editors = await storage.getEditors();
-        res.json(editors.filter((e: any) => e.id !== req.user.claims.sub));
+        res.json(editors.filter((e: any) => e.id !== req.user.id));
       } catch (error) {
         res.status(500).json({ message: "Failed to fetch editors" });
       }
@@ -4255,7 +4255,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/credits", isAuthenticated, async (req: any, res) => {
     try {
-      const credits = await storage.getPublicationCredits(req.user.claims.sub);
+      const credits = await storage.getPublicationCredits(req.user.id);
       res.json(credits);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch credits" });
@@ -4265,7 +4265,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.get("/api/credits/reversions", isAuthenticated, async (req: any, res) => {
     try {
       const reversions = await storage.getUpcomingReversions(
-        req.user.claims.sub,
+        req.user.id,
       );
       res.json(reversions);
     } catch (error) {
@@ -4276,7 +4276,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.post("/api/credits", isAuthenticated, async (req: any, res) => {
     try {
       const credit = await storage.createPublicationCredit(
-        req.user.claims.sub,
+        req.user.id,
         req.body,
       );
       res.json(credit);
@@ -4289,7 +4289,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const credit = await storage.updatePublicationCredit(
         req.params.id,
-        req.user.claims.sub,
+        req.user.id,
         req.body,
       );
       if (!credit) return res.status(404).json({ message: "Credit not found" });
@@ -4303,7 +4303,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const deleted = await storage.deletePublicationCredit(
         req.params.id,
-        req.user.claims.sub,
+        req.user.id,
       );
       if (!deleted)
         return res.status(404).json({ message: "Credit not found" });
@@ -4316,7 +4316,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.get("/api/cover-letters", isAuthenticated, async (req: any, res) => {
     try {
       const templates = await storage.getCoverLetterTemplates(
-        req.user.claims.sub,
+        req.user.id,
       );
       res.json(templates);
     } catch (error) {
@@ -4329,7 +4329,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.post("/api/cover-letters", isAuthenticated, async (req: any, res) => {
     try {
       const template = await storage.createCoverLetterTemplate(
-        req.user.claims.sub,
+        req.user.id,
         req.body,
       );
       res.json(template);
@@ -4347,7 +4347,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       try {
         const template = await storage.updateCoverLetterTemplate(
           req.params.id,
-          req.user.claims.sub,
+          req.user.id,
           req.body,
         );
         if (!template)
@@ -4368,7 +4368,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       try {
         const deleted = await storage.deleteCoverLetterTemplate(
           req.params.id,
-          req.user.claims.sub,
+          req.user.id,
         );
         if (!deleted)
           return res.status(404).json({ message: "Template not found" });
@@ -4383,7 +4383,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/writer-bio", isAuthenticated, async (req: any, res) => {
     try {
-      const bio = await storage.getWriterBio(req.user.claims.sub);
+      const bio = await storage.getWriterBio(req.user.id);
       res.json(bio);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch writer bio" });
@@ -4392,7 +4392,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.put("/api/writer-bio", isAuthenticated, async (req: any, res) => {
     try {
-      const bio = await storage.upsertWriterBio(req.user.claims.sub, req.body);
+      const bio = await storage.upsertWriterBio(req.user.id, req.body);
       res.json(bio);
     } catch (error) {
       res.status(500).json({ message: "Failed to update writer bio" });
@@ -4401,7 +4401,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/writing-analytics", isAuthenticated, async (req: any, res) => {
     try {
-      const analytics = await storage.getWritingAnalytics(req.user.claims.sub);
+      const analytics = await storage.getWritingAnalytics(req.user.id);
       res.json(analytics);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch writing analytics" });
@@ -4487,7 +4487,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const course = await storage.getCourse(req.params.courseId);
         if (!course)
           return res.status(404).json({ message: "Course not found" });
@@ -4528,7 +4528,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const course = await storage.getCourse(req.params.courseId);
         if (!course)
           return res.status(404).json({ message: "Course not found" });
@@ -4549,7 +4549,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const p = await storage.markLessonComplete(
           userId,
           req.params.lessonId,
@@ -4567,7 +4567,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         await storage.unmarkLessonComplete(userId, req.params.lessonId);
         res.json({ ok: true });
       } catch (error) {
@@ -4786,7 +4786,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const rating = await storage.getUserCourseRating(
           userId,
           req.params.courseId,
@@ -4803,7 +4803,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const { rating, review } = req.body;
         if (!rating || rating < 1 || rating > 5)
           return res
@@ -4861,7 +4861,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const access = await verifyCourseAccess(
           userId,
           req.params.courseId,
@@ -4885,7 +4885,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const access = await verifyCourseAccess(
           userId,
           req.params.courseId,
@@ -4914,7 +4914,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const access = await verifyCourseAccess(
           userId,
           req.params.courseId,
@@ -5131,7 +5131,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const stone = await storage.addPauseStone(req.params.id, userId);
         res.status(201).json(stone);
       } catch (error) {
@@ -5145,7 +5145,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const count = await storage.getPauseStoneCount(req.params.id);
       const hasPlaced = req.user?.claims?.sub
-        ? await storage.hasUserPausedStone(req.params.id, req.user.claims.sub)
+        ? await storage.hasUserPausedStone(req.params.id, req.user.id)
         : false;
       res.json({ count, hasPlaced });
     } catch (error) {
@@ -5173,7 +5173,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const entries = await storage.compostWriting(req.params.id, userId);
         res.json({ fragments: entries.length, entries });
       } catch (error: any) {
@@ -5213,7 +5213,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const entry = await storage.recycleCompostEntry(userId, req.params.id);
         if (!entry) return res.status(404).json({ message: "Not found" });
         res.json(entry);
@@ -5227,7 +5227,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === GARDEN PRESENCE ===
   app.post("/api/garden/presence", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const zone = req.body.zone || "desk";
       await storage.updatePresenceWithZone(userId, zone);
       res.json({ ok: true });
@@ -5299,7 +5299,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       const invitation = await storage.createEditorInvitation({
         email: email.trim(),
         token,
-        invitedBy: req.user.claims.sub,
+        invitedBy: req.user.id,
         expiresAt,
       });
       res.json(invitation);
@@ -5372,7 +5372,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res
             .status(400)
             .json({ message: "This invitation has expired" });
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         await storage.acceptEditorInvitation(token, userId);
         res.json({
           success: true,
@@ -5672,7 +5672,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const exhibit = await storage.getExhibitBySlug(req.params.slug);
         if (!exhibit)
           return res.status(404).json({ message: "Exhibit not found" });
@@ -5699,7 +5699,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const exhibit = await storage.getExhibitBySlug(req.params.slug);
         if (!exhibit || !exhibit.isPublished)
           return res.status(404).json({ message: "Exhibit not found" });
@@ -5731,7 +5731,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const exhibit = await storage.getExhibitBySlug(req.params.slug);
         if (!exhibit || !exhibit.isPublished)
           return res.status(404).json({ message: "Exhibit not found" });
@@ -5782,7 +5782,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const exhibit = await storage.getExhibitBySlug(req.params.slug);
         if (!exhibit || !exhibit.isPublished)
           return res.status(404).json({ message: "Exhibit not found" });
@@ -5816,7 +5816,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const exhibit = await storage.getExhibitBySlug(req.params.slug);
         if (!exhibit || !exhibit.isPublished)
           return res.status(404).json({ message: "Exhibit not found" });
@@ -5834,7 +5834,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const exhibit = await storage.getExhibitBySlug(req.params.slug);
         if (!exhibit || !exhibit.isPublished)
           return res.status(404).json({ message: "Exhibit not found" });
@@ -5868,7 +5868,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/user/role", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
       res.json({ role: user.role, tier: user.tier });
@@ -5885,7 +5885,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         const items = await storage.getOpportunityTrackerItems(
-          req.user.claims.sub,
+          req.user.id,
         );
         res.json(items);
       } catch (error) {
@@ -5903,7 +5903,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
         if (!opportunityId || !status)
           return res.status(400).json({ message: "Missing fields" });
         const item = await storage.upsertOpportunityTracker(
-          req.user.claims.sub,
+          req.user.id,
           opportunityId,
           status,
           notes,
@@ -5921,7 +5921,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         await storage.deleteOpportunityTracker(
-          req.user.claims.sub,
+          req.user.id,
           req.params.opportunityId,
         );
         res.json({ success: true });
@@ -5946,7 +5946,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       const { writingId } = req.body;
       if (!writingId)
         return res.status(400).json({ message: "Missing writingId" });
-      const item = await storage.shareToCommons(req.user.claims.sub, writingId);
+      const item = await storage.shareToCommons(req.user.id, writingId);
       res.json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to share to commons" });
@@ -5959,7 +5959,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     async (req: any, res) => {
       try {
         await storage.removeFromCommons(
-          req.user.claims.sub,
+          req.user.id,
           req.params.writingId,
         );
         res.json({ success: true });
@@ -5993,7 +5993,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const { title, description, theme } = req.body;
       if (!title) return res.status(400).json({ message: "Title required" });
-      const bouquet = await storage.createBouquet(req.user.claims.sub, {
+      const bouquet = await storage.createBouquet(req.user.id, {
         title,
         description,
         theme,
@@ -6026,7 +6026,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.delete("/api/bouquets/:id", isAuthenticated, async (req: any, res) => {
     try {
-      await storage.deleteBouquet(req.user.claims.sub, req.params.id);
+      await storage.deleteBouquet(req.user.id, req.params.id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete bouquet" });
@@ -6036,7 +6036,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === MOODBOARDS ===
   app.get("/api/moodboards", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getMoodboards(req.user.claims.sub);
+      const items = await storage.getMoodboards(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch moodboards" });
@@ -6066,7 +6066,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     try {
       const { title, description } = req.body;
       if (!title) return res.status(400).json({ message: "Title required" });
-      const board = await storage.createMoodboard(req.user.claims.sub, {
+      const board = await storage.createMoodboard(req.user.id, {
         title,
         description,
       });
@@ -6079,7 +6079,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.patch("/api/moodboards/:id", isAuthenticated, async (req: any, res) => {
     try {
       const board = await storage.updateMoodboard(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
         req.body,
       );
@@ -6118,7 +6118,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.delete("/api/moodboards/:id", isAuthenticated, async (req: any, res) => {
     try {
-      await storage.deleteMoodboard(req.user.claims.sub, req.params.id);
+      await storage.deleteMoodboard(req.user.id, req.params.id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete moodboard" });
@@ -6128,7 +6128,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // === SOIL ENTRIES ===
   app.get("/api/soil", isAuthenticated, async (req: any, res) => {
     try {
-      const items = await storage.getSoilEntries(req.user.claims.sub);
+      const items = await storage.getSoilEntries(req.user.id);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch soil entries" });
@@ -6140,7 +6140,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
       const { content, entryType, tags } = req.body;
       if (!content)
         return res.status(400).json({ message: "Content required" });
-      const entry = await storage.createSoilEntry(req.user.claims.sub, {
+      const entry = await storage.createSoilEntry(req.user.id, {
         content,
         entryType,
         tags,
@@ -6154,7 +6154,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   app.patch("/api/soil/:id", isAuthenticated, async (req: any, res) => {
     try {
       const entry = await storage.updateSoilEntry(
-        req.user.claims.sub,
+        req.user.id,
         req.params.id,
         req.body,
       );
@@ -6167,7 +6167,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.delete("/api/soil/:id", isAuthenticated, async (req: any, res) => {
     try {
-      await storage.deleteSoilEntry(req.user.claims.sub, req.params.id);
+      await storage.deleteSoilEntry(req.user.id, req.params.id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete soil entry" });
@@ -6247,7 +6247,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const userWritings = await storage.getWritingsByAuthor(userId);
 
         const tagMap = new Map<string, { id: string; title: string }[]>();
@@ -6321,7 +6321,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   app.get("/api/writings/harvest", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const userWritings = await storage.getWritingsByAuthor(userId);
 
       const tagFrequency: Record<
@@ -6489,7 +6489,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const responses = await storage.getNoticingResponses(userId);
         res.json(responses);
       } catch (error) {
@@ -6504,7 +6504,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const { promptNumber, content, stage } = req.body;
         if (
           typeof promptNumber !== "number" ||
@@ -6770,7 +6770,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writingId = req.params.writingId;
         const existing = await db
           .select()
@@ -6821,7 +6821,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writingId = req.params.writingId;
         const [countResult] = await db
           .select({ value: count() })
@@ -6852,7 +6852,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const result = await db.execute(sql`
         SELECT COUNT(*) as total FROM appreciations a
         JOIN writings w ON a.writing_id = w.id
@@ -6888,7 +6888,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writingId = req.params.writingId;
         const parsed = insertLetterSchema.safeParse({
           writingId,
@@ -6911,7 +6911,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // ── Bookshelf (uses savedPieces) ──
   app.get("/api/bookshelf", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const result = await db.execute(sql`
         SELECT sp.id, sp.writing_id as "writingId", sp.saved_at as "savedAt",
                w.title, w.content, w.genre, w.author_id as "authorId",
@@ -6933,7 +6933,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writingId = req.params.writingId;
         const existing = await db.execute(sql`
         SELECT id FROM saved_pieces WHERE user_id = ${userId} AND writing_id = ${writingId} LIMIT 1
@@ -6959,7 +6959,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writingId = req.params.writingId;
         const existing = await db.execute(sql`
         SELECT id FROM saved_pieces WHERE user_id = ${userId} AND writing_id = ${writingId} LIMIT 1
@@ -6977,7 +6977,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const result = await db.execute(sql`
@@ -6998,7 +6998,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
@@ -7024,7 +7024,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
@@ -7048,7 +7048,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   // ── Echo ──
   app.post("/api/echoes", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { writingId, echoedLine } = req.body;
       if (!writingId || !echoedLine)
         return res
@@ -7087,7 +7087,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
@@ -7120,7 +7120,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
@@ -7148,7 +7148,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writingId = req.params.writingId;
         const { content } = req.body;
         if (!content || content.length > 280)
@@ -7188,7 +7188,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
@@ -7214,7 +7214,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     isAuthenticated,
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         const writing = await storage.getWriting(req.params.id);
         if (!writing)
           return res.status(404).json({ message: "Writing not found" });
@@ -7344,7 +7344,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
           return res
             .status(401)
             .json({ message: "Authentication required to send as editor" });
-        const editorUser = await storage.getUser(req.user.claims.sub);
+        const editorUser = await storage.getUser(req.user.id);
         if (
           !editorUser ||
           !["editor", "editor_in_chief"].includes(editorUser.role || "")
@@ -8440,7 +8440,7 @@ const sharedPieces = await db.select({
   // GET /api/editor/direct-messages/conversations — list editors I've messaged or who messaged me
   app.get("/api/editor/direct-messages/conversations", isAuthenticated, isEditor, async (req: any, res) => {
     try {
-      const myId = req.user.claims.sub;
+      const myId = req.user.id;
       const { pool } = await import("./db");
       const { rows } = await pool.query(`
         SELECT DISTINCT ON (other_id)
@@ -8476,7 +8476,7 @@ const sharedPieces = await db.select({
   // GET /api/editor/direct-messages/:editorId — full thread with a specific editor
   app.get("/api/editor/direct-messages/:editorId", isAuthenticated, isEditor, async (req: any, res) => {
     try {
-      const myId = req.user.claims.sub;
+      const myId = req.user.id;
       const otherId = req.params.editorId;
       const { pool } = await import("./db");
       const { rows } = await pool.query(`
@@ -8504,7 +8504,7 @@ const sharedPieces = await db.select({
   // POST /api/editor/direct-messages/:editorId — send a message to another editor
   app.post("/api/editor/direct-messages/:editorId", isAuthenticated, isEditor, async (req: any, res) => {
     try {
-      const myId = req.user.claims.sub;
+      const myId = req.user.id;
       const toId = req.params.editorId;
       const { content } = req.body;
       if (!content || typeof content !== "string" || !content.trim()) {
@@ -8526,7 +8526,7 @@ const sharedPieces = await db.select({
   // GET /api/editor/direct-messages/unread-count — badge count for nav
   app.get("/api/editor/dm-unread", isAuthenticated, isEditor, async (req: any, res) => {
     try {
-      const myId = req.user.claims.sub;
+      const myId = req.user.id;
       const { pool } = await import("./db");
       const { rows } = await pool.query(`
         SELECT COUNT(*) as count
