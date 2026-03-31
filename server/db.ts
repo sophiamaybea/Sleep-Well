@@ -1091,6 +1091,21 @@ export async function runMigrations() {
       }
     }
 
+        // T24b: Add missing columns to agent_pattern_insights for scheduler compatibility
+    try {
+      await pool.query(`
+        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS summary text;
+        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS source_writing_ids text[];
+        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS pattern_data jsonb;
+        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS dismissed_at timestamp;
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER agent_pattern_insights failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
     // T25: Create copy_snapshots table
     try {
       await pool.query(`
