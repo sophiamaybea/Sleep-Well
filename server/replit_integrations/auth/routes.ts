@@ -7,7 +7,7 @@ export function registerAuthRoutes(app: Express): void {
   // Get current authenticated user
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+              const userId = req.user.id;
       const user = await authStorage.getUser(userId);
       // T69: guard against deleted/missing user — return 401 instead of 500
       if (!user) {
