@@ -22,6 +22,7 @@ const WriterProfile = lazy(() => import("@/pages/WriterProfile"));
 const PublicGarden = lazy(() => import("@/pages/PublicGarden"));
 const EditorStudio = lazy(() => import("@/pages/EditorStudio"));
 const InBloom = lazy(() => import("@/pages/Gallery"));
+const PageGallery = lazy(() => import("@/pages/PageGallery"));
 const Piece = lazy(() => import("@/pages/Piece"));
 const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
@@ -149,6 +150,7 @@ function Router() {
         <Route path="/for-journals" component={ForJournals} />
         <Route path="/exercise-admin">{() => <ProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
         <Route path="/marketplace" component={Marketplace} />
+                    <Route path="/page-gallery" component={PageGallery} />
         <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
