@@ -12,6 +12,7 @@ import {
   reseedSiteContent,
   seedWelcomeNotifications,
 } from "./seedContent";
+import { startAgentScheduler } from "./lib/agentScheduler";
 const app = express();
 const httpServer = createServer(app);
 app.use(
@@ -194,6 +195,7 @@ app.get("/api/debug/db", async (req: any, res) => {
     },
     () => {
       log(`serving on port ${port}`);
+            startAgentScheduler();
     },
   );
     // T45/T42: Startup env-var audit — emit loud warnings for missing SMTP / PayPal credentials
