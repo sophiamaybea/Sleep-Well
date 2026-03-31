@@ -49,4 +49,6 @@ router.post("/agent/chat", async (req, res) => {
   }
 });
 
-export default router;
+export function registerEicCommandCentreRoutes(app: any) {
+  app.use("/api/eic/command-centre", router);
+}
