@@ -241,6 +241,8 @@ async function runBlankPageTender() {
  */
 async function runEditorialBriefGenerator() {
   try {
+        // Disabled: editorialBriefs schema is for issue-level briefs, not per-writing reviews
+    return;
     const bloomWritings = await db
       .select({ id: writings.id, title: writings.title, authorId: writings.authorId })
       .from(writings)
