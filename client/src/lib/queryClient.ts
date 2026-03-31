@@ -46,8 +46,14 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      // 5-minute staleTime: data is considered fresh for 5 min after fetch.
+      // Previously Infinity — which meant all queries (writings, editorial tasks, etc.)
+      // would never re-fetch after the first load, causing stale data for collaborative
+      // editorial workflows. 5 min is a good balance between freshness and chattiness.
+      staleTime: 5 * 60 * 1000,
+      // Re-fetch when the user returns to the tab — catches updates made
+      // in other tabs or by other editors without requiring a full page reload.
+      refetchOnWindowFocus: true,
       retry: false,
     },
     mutations: {
