@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Terminal, Cpu, Bug, GitBranch, Palette, Leaf, DollarSign, PenTool, Shield, Settings } from 'lucide-react';
 
@@ -19,6 +20,8 @@ export const EICCommandBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState('conductor');
   const [input, setInput] = useState('');
+    const { user } = useAuth();
+  if (user?.email !== 'sophiamaybea@gmail.com') return null;
 
   return (
     <div className="fixed top-0 left-0 w-full z-[9999] bg-[#0d1e2d]/90 backdrop-blur-md border-b border-[#c4a24d]/30 text-[#f0eeea] font-serif">
