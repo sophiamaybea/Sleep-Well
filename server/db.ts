@@ -306,18 +306,18 @@ export async function runMigrations() {
       }
     }
 
-
-      // Add layout column to writings table (schema defines it in shared/schema.ts)
-  try {
-    await pool.query(`
-      ALTER TABLE writings ADD COLUMN IF NOT EXISTS layout text NOT NULL DEFAULT 'single';
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error("[MIGRATION CRITICAL]: ALTER writings layout failed:", (e as Error).message);
-      migrationErrors++;
+    // Add layout column to writings table (schema defines it in shared/schema.ts)
+    try {
+      await pool.query(`
+        ALTER TABLE writings ADD COLUMN IF NOT EXISTS layout text NOT NULL DEFAULT 'single';
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: ALTER writings layout failed:", (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
+
     try {
       await pool.query(`
         ALTER TABLE circles ADD COLUMN IF NOT EXISTS theme text;
@@ -743,33 +743,34 @@ export async function runMigrations() {
       }
     }
 
-  // T46-pre: editorial_flags must exist before rejection_feedback_requests can reference it
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS editorial_flags (
-        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-        writing_id varchar NOT NULL REFERENCES writings(id),
-        author_id varchar NOT NULL REFERENCES users(id),
-        status text NOT NULL DEFAULT 'flagged',
-        is_paid_flag boolean NOT NULL DEFAULT false,
-        seen_by_editor_id varchar REFERENCES users(id),
-        seen_at timestamp,
-        editor_response text,
-        responded_at timestamp,
-        decision text NOT NULL DEFAULT 'pending',
-        free_note text,
-        free_note_sent_at timestamp,
-        is_publishable boolean NOT NULL DEFAULT false,
-        created_at timestamp DEFAULT now()
-      );
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error("[MIGRATION CRITICAL]: CREATE editorial_flags failed:", (e as Error).message);
-      migrationErrors++;
+    // T46: editorial_flags table — must exist before rejection_feedback_requests references it
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS editorial_flags (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          writing_id varchar NOT NULL REFERENCES writings(id),
+          author_id varchar NOT NULL REFERENCES users(id),
+          status text NOT NULL DEFAULT 'flagged',
+          is_paid_flag boolean NOT NULL DEFAULT false,
+          seen_by_editor_id varchar REFERENCES users(id),
+          seen_at timestamp,
+          editor_response text,
+          responded_at timestamp,
+          decision text NOT NULL DEFAULT 'pending',
+          free_note text,
+          free_note_sent_at timestamp,
+          is_publishable boolean NOT NULL DEFAULT false,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error("[MIGRATION CRITICAL]: CREATE editorial_flags failed:", (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
-    // T46-pre: editorial_flags table must exist before rejection_feedback_requests references it   try {     await pool.query(`       CREATE TABLE IF NOT EXISTS editorial_flags (         id varchar PRIMARY KEY DEFAULT gen_random_uuid(),         writing_id varchar NOT NULL REFERENCES writings(id),         author_id varchar NOT NULL REFERENCES users(id),         status text NOT NULL DEFAULT 'flagged',         is_paid_flag boolean NOT NULL DEFAULT false,         seen_by_editor_id varchar REFERENCES users(id),         seen_at timestamp,         editor_response text,         responded_at timestamp,         decision text NOT NULL DEFAULT 'pending',         free_note text,         free_note_sent_at timestamp,         is_publishable boolean NOT NULL DEFAULT false,         created_at timestamp DEFAULT now()       );     `);   } catch (e) {     if (!isBenignMigrationError(e)) {       console.error("[MIGRATION CRITICAL]: CREATE editorial_flags failed:", (e as Error).message);       migrationErrors++;     }   }   // T46: Rejection feedback requests table — flag_id included inline so fresh
+
+    // T46: Rejection feedback requests table — flag_id included inline so fresh
     // installs get the NOT NULL FK constraint without needing the ALTER below.
     try {
       await pool.query(`
@@ -913,113 +914,119 @@ export async function runMigrations() {
         }
       }
     }
-      // Marketplace tables — writer_services, service_bookings, tip_jars, tip_transactions
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS writer_services (
-        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-        author_id varchar NOT NULL REFERENCES users(id),
-        title text NOT NULL,
-        description text NOT NULL DEFAULT '',
-        service_type text NOT NULL DEFAULT 'manuscript_feedback',
-        price_pence integer NOT NULL,
-        delivery_days integer NOT NULL DEFAULT 7,
-        currency text NOT NULL DEFAULT 'gbp',
-        is_active boolean NOT NULL DEFAULT true,
-        stripe_price_id text,
-        created_at timestamp DEFAULT now(),
-        updated_at timestamp DEFAULT now()
-      );
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error('[MIGRATION CRITICAL]: CREATE writer_services failed:', (e as Error).message);
-      migrationErrors++;
+
+    // Marketplace tables — writer_services, service_bookings, tip_jars, tip_transactions
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS writer_services (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          author_id varchar NOT NULL REFERENCES users(id),
+          title text NOT NULL,
+          description text NOT NULL DEFAULT '',
+          service_type text NOT NULL DEFAULT 'manuscript_feedback',
+          price_pence integer NOT NULL,
+          delivery_days integer NOT NULL DEFAULT 7,
+          currency text NOT NULL DEFAULT 'gbp',
+          is_active boolean NOT NULL DEFAULT true,
+          stripe_price_id text,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE writer_services failed:', (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS service_bookings (
-        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-        service_id varchar NOT NULL REFERENCES writer_services(id),
-        client_id varchar NOT NULL REFERENCES users(id),
-        note text,
-        price_pence integer NOT NULL,
-        currency text NOT NULL DEFAULT 'gbp',
-        status text NOT NULL DEFAULT 'pending_payment',
-        stripe_session_id text,
-        stripe_payment_intent_id text,
-        payment_confirmed boolean NOT NULL DEFAULT false,
-        paid_at timestamp,
-        created_at timestamp DEFAULT now()
-      );
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error('[MIGRATION CRITICAL]: CREATE service_bookings failed:', (e as Error).message);
-      migrationErrors++;
+
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS service_bookings (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          service_id varchar NOT NULL REFERENCES writer_services(id),
+          client_id varchar NOT NULL REFERENCES users(id),
+          note text,
+          price_pence integer NOT NULL,
+          currency text NOT NULL DEFAULT 'gbp',
+          status text NOT NULL DEFAULT 'pending_payment',
+          stripe_session_id text,
+          stripe_payment_intent_id text,
+          payment_confirmed boolean NOT NULL DEFAULT false,
+          paid_at timestamp,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE service_bookings failed:', (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS tip_jars (
-        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-        author_id varchar NOT NULL UNIQUE REFERENCES users(id),
-        is_active boolean NOT NULL DEFAULT false,
-        message text NOT NULL DEFAULT 'Buy me a coffee',
-        suggested_amount_pence integer NOT NULL DEFAULT 300,
-        created_at timestamp DEFAULT now(),
-        updated_at timestamp DEFAULT now()
-      );
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error('[MIGRATION CRITICAL]: CREATE tip_jars failed:', (e as Error).message);
-      migrationErrors++;
+
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS tip_jars (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          author_id varchar NOT NULL UNIQUE REFERENCES users(id),
+          is_active boolean NOT NULL DEFAULT false,
+          message text NOT NULL DEFAULT 'Buy me a coffee',
+          suggested_amount_pence integer NOT NULL DEFAULT 300,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE tip_jars failed:', (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS tip_transactions (
-        id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-        tip_jar_id varchar NOT NULL REFERENCES tip_jars(id),
-        tipper_id varchar REFERENCES users(id),
-        amount_pence integer NOT NULL,
-        currency text NOT NULL DEFAULT 'gbp',
-        stripe_session_id text,
-        stripe_payment_intent_id text,
-        payment_confirmed boolean NOT NULL DEFAULT false,
-        created_at timestamp DEFAULT now()
-      );
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error('[MIGRATION CRITICAL]: CREATE tip_transactions failed:', (e as Error).message);
-      migrationErrors++;
+
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS tip_transactions (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          tip_jar_id varchar NOT NULL REFERENCES tip_jars(id),
+          tipper_id varchar REFERENCES users(id),
+          amount_pence integer NOT NULL,
+          currency text NOT NULL DEFAULT 'gbp',
+          stripe_session_id text,
+          stripe_payment_intent_id text,
+          payment_confirmed boolean NOT NULL DEFAULT false,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE tip_transactions failed:', (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
-  // Add paypal_order_id to service_bookings for PayPal payment capture
-  try {
-    await pool.query(`
-      ALTER TABLE service_bookings ADD COLUMN IF NOT EXISTS paypal_order_id text;
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error('[MIGRATION CRITICAL]: ALTER service_bookings paypal_order_id failed:', (e as Error).message);
-      migrationErrors++;
+
+    // Add paypal_order_id to service_bookings for PayPal payment capture
+    try {
+      await pool.query(`
+        ALTER TABLE service_bookings ADD COLUMN IF NOT EXISTS paypal_order_id text;
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER service_bookings paypal_order_id failed:', (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
-  // Add paypal_order_id to tip_transactions for PayPal payment capture
-  try {
-    await pool.query(`
-      ALTER TABLE tip_transactions ADD COLUMN IF NOT EXISTS paypal_order_id text;
-    `);
-  } catch (e) {
-    if (!isBenignMigrationError(e)) {
-      console.error('[MIGRATION CRITICAL]: ALTER tip_transactions paypal_order_id failed:', (e as Error).message);
-      migrationErrors++;
+
+    // Add paypal_order_id to tip_transactions for PayPal payment capture
+    try {
+      await pool.query(`
+        ALTER TABLE tip_transactions ADD COLUMN IF NOT EXISTS paypal_order_id text;
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER tip_transactions paypal_order_id failed:', (e as Error).message);
+        migrationErrors++;
+      }
     }
-  }
 
     // T22: Create feed_events table
     try {
@@ -1042,8 +1049,7 @@ export async function runMigrations() {
       }
     }
 
-
-            // T23: Create agent_notifications table
+    // T23: Create agent_notifications table
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS agent_notifications (
@@ -1131,7 +1137,7 @@ export async function runMigrations() {
         migrationErrors++;
       }
     }
-        
+
     // EIC Command Centre tables
     try {
       await pool.query(`
