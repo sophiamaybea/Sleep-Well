@@ -1,22 +1,21 @@
 /**
  * eicCommandCentre.ts — Expanded EIC AI Agent Command Centre
  */
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import OpenAI from "openai";
+import { isAuthenticated } from "../replit_integrations/auth";
 
 const router = Router();
 
-// EIC-only Auth Guard
-// req.user is populated by isAuthenticated() as { claims: { sub, email, ... }, id, ... }
-// Email lives at req.user.claims.email (not req.user.email) in the
-// email/password auth path used on Render.
-router.use((req, res, next) => {
-  const email = (req.user as any)?.claims?.email ?? (req.user as any)?.email;
+// EIC-only auth guard — runs AFTER isAuthenticated has populated req.user
+function isEIC(req: Request, res: Response, next: NextFunction) {
+  const user = req.user as any;
+  const email = user?.claims?.email ?? user?.email;
   if (email !== "sophiamaybea@gmail.com") {
     return res.status(403).json({ error: "EIC access only" });
   }
   next();
-});
+}
 
 // Agent system prompts keyed to match the frontend AGENTS array
 const AGENT_SYSTEM_PROMPTS: Record<string, string> = {
@@ -26,36 +25,30 @@ const AGENT_SYSTEM_PROMPTS: Record<string, string> = {
     "You govern visual identity: CSS, GSAP animations, typography, colour palettes, and layout. " +
     "Stay absolutely loyal to the dream-museum aesthetic — deep navy #0d1e2d, warm cream #f0eeea, gold #c4a24d. " +
     "Your suggestions are surgical and production-ready.",
-
   writers:
     "You are the Garden Vision agent for The Page Gallery Journal. " +
     "You manage everything related to the writer experience: Garden.tsx, seed-to-bloom writing stages, " +
     "writer profiles, the inner weather system, and ritual sessions. " +
     "You understand the emotional arc a writer takes from raw seed through to published bloom.",
-
   exhibitions:
     "You are the Exhibitions Curator agent for The Page Gallery Journal. " +
     "You handle the poetry gallery and poem exhibitions feature: GSAP scroll experiences, " +
     "mood detection, hand-illustrated character assets, and curated gallery layouts. " +
     "You understand how to turn a collection of poems into an immersive visual journey.",
-
   monetisation:
     "You are the Monetisation Builder agent for The Page Gallery Journal. " +
     "You build Stripe and PayPal features, subscription tiers, pricing pages, checkout flows, " +
     "and MRR dashboards. You always use verified, production-tested webhook patterns.",
-
   caleb_studio:
     "You are the Studio Keeper agent for Caleb's editorial studio within The Page Gallery Journal. " +
     "You maintain and enhance Caleb's editorial workflow: his writing tools, editorial briefs, " +
     "feedback systems, and personalised studio features. " +
     "You ensure Caleb's experience is polished, consistent, and reflects his editorial voice.",
-
   giove_studio:
     "You are the Studio Keeper agent for Giove's editorial studio within The Page Gallery Journal. " +
     "You maintain and enhance Giove's editorial workflow: his writing tools, editorial briefs, " +
     "feedback systems, and personalised studio features. " +
     "You ensure Giove's experience is polished, consistent, and reflects his editorial voice.",
-
   // ── Legacy / internal agent keys (kept for backward compat) ───────────────
   conductor:
     "You are the Command Conductor. Your job is to receive the EIC's brief, " +
@@ -84,7 +77,7 @@ const AGENT_SYSTEM_PROMPTS: Record<string, string> = {
     "ensuring parity, consistency, and general upkeep.",
 };
 
-router.post("/agent/chat", async (req, res) => {
+router.post("/agent/chat", isAuthenticated, isEIC, async (req: Request, res: Response) => {
   try {
     const { agentType, userMessage, conversationHistory } = req.body;
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
