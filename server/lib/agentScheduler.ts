@@ -104,7 +104,7 @@ async function runPatternSpotter() {
           userId: writer.authorId,
           insightType: "theme",
           summary,
-          sourceWritingIds: recurring.flatMap(([w]) => [...(wordToWritings[w] || [])]).slice(0, 20),
+          sourceWritingIds: Array.from(new Set(recurring.flatMap(([w]) => Array.from(wordToWritings[w] || [])))).slice(0, 20)(([w]) => [...(wordToWritings[w] || [])]).slice(0, 20),
           patternData: { themes: recurring.map(([word, count]) => ({ word, count })), totalPiecesScanned: pieces.length, scannedAt: new Date().toISOString() },
           status: "active",
         });
