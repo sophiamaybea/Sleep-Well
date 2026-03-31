@@ -12,6 +12,7 @@ import { registerWritingExerciseRoutes } from "./routes/writingExercises";
 import { registerJournalApplicationRoutes } from "./routes/journalApplications";
 import { registerMarketplaceRoutes } from "./routes/marketplace";
 import { registerAgentSystemRoutes } from "./routes/agentSystem";
+import { registerAgentPatternRoutes } from "./routes/agentPatterns";
 import { registerAgentActivityDashboardRoutes } from "./routes/agentActivityDashboard";
 import { registerEicCommandCentreRoutes } from "./routes/eicCommandCentre";
 import { registerTakeoverScreenRoutes } from "./routes/takeoverScreens";
@@ -8552,6 +8553,7 @@ const sharedPieces = await db.select({
   registerPromptFloaterRoutes(app);
   registerDesignAgentRoutes(app);
     registerAgentSystemRoutes(app);
+    registerAgentPatternRoutes(app);
     registerAgentActivityDashboardRoutes(app);
   registerEicCommandCentreRoutes(app);
     registerTakeoverScreenRoutes(app);return httpServer;  registerMarketplaceRoutes(app);
