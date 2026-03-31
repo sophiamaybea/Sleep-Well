@@ -157,7 +157,7 @@ async function runPromptFloater() {
         await db.insert(promptFloats).values({
           userId: writer.id,
           promptId: randomPrompt.id,
-          context: "daily_float",
+          promptText: randomPrompt.text || "A gentle nudge from the garden",
         });
         floated++;
       } catch (e) {
