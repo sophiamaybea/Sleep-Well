@@ -33,10 +33,10 @@ import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 import { GalleryFeedbackModal } from "@/components/GalleryFeedbackModal";
 import NightGardenAtmosphere from "@/components/garden/NightGardenAtmosphere";
-import BloomCelebration from "@/components/garden/BloomCelebration";
+import { BloomCelebration } from "@/components/garden/BloomCelebration";
 import { SeedIcon, SproutIcon, BloomIcon, stageIcons } from "@/components/garden/GardenIcons";
 import { Skeleton, DeskSkeleton, ReadingRoomSkeleton, CommunityRoomSkeleton } from "@/components/garden/GardenSkeletons";
-import { stageColors, stageAccent, stageGlow, stageCardBg, stageCardBorder, genreOptions, wordCount, timeAgo, Zone, ActiveRoom, GreenhouseTool, StageFilter, wordCount, timeAgo } from "@/components/garden/GardenUtils";
+import { stageColors, stageAccent, stageGlow, stageCardBg, stageCardBorder, genreOptions, wordCount, timeAgo, Zone, ActiveRoom, GreenhouseTool } from "@/components/garden/GardenUtils";
 
 const rooms = [
   { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Community discussions", comingSoon: false },
