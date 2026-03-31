@@ -10,8 +10,12 @@ import OpenAI from "openai";
 const router = Router();
 
 // EIC-only Auth Guard
+// req.user is populated by isAuthenticated() as { claims: { sub, email, ... }, id, ... }
+// Email lives at req.user.claims.email (not req.user.email) in the
+// email/password auth path used on Render.
 router.use((req, res, next) => {
-  if (req.user?.email !== "sophiamaybea@gmail.com") {
+  const email = (req.user as any)?.claims?.email ?? (req.user as any)?.email;
+  if (email !== "sophiamaybea@gmail.com") {
     return res.status(403).json({ error: "EIC access only" });
   }
   next();
@@ -45,7 +49,8 @@ router.post("/agent/chat", async (req, res) => {
     });
     res.json({ reply: completion.choices[0].message.content, agentType });
   } catch (error) {
-    res.status(500).json({ error: "Failed to process agent chat" });
+    console.error("[EIC agent/chat] Error:", error);
+    res.status(500).json({ error: "Failed to process agent chat", detail: error instanceof Error ? error.message : String(error) });
   }
 });
 
