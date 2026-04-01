@@ -1216,7 +1216,67 @@ export async function runMigrations() {
       }
     }
 
-    // T19: Final migration summary
+// Atelier feature tables
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS atelier_series (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          title text NOT NULL,
+          slug varchar NOT NULL UNIQUE,
+          description text,
+          curator_id varchar NOT NULL REFERENCES users(id),
+          status text NOT NULL DEFAULT 'draft',
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE atelier_series failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS atelier_sessions (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          series_id varchar NOT NULL REFERENCES atelier_series(id),
+          title text NOT NULL,
+          description text,
+          session_date timestamp,
+          sort_order integer NOT NULL DEFAULT 0,
+          status text NOT NULL DEFAULT 'draft',
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE atelier_sessions failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS atelier_prompts (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          session_id varchar NOT NULL REFERENCES atelier_sessions(id),
+          prompt_text text NOT NULL,
+          guidance_note text,
+          sort_order integer NOT NULL DEFAULT 0,
+          created_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE atelier_prompts failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+        // T19: Final migration summary
     if (migrationErrors > 0) {
       console.error(
         `[MIGRATION] ${migrationErrors} critical error(s) occurred during migrations — check logs above. ` +
