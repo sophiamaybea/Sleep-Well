@@ -4,9 +4,9 @@ on:
   push:
     paths:
       - 'shared/schema.ts'
-    pull_request:
-      paths:
-        - 'shared/schema.ts'
+  pull_request:
+    paths:
+      - 'shared/schema.ts'
 
 jobs:
   schema-guard:
@@ -26,7 +26,8 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-      run: npm install
+        run: npm install
+
       - name: Check for destructive schema changes
         run: |
           echo "Checking shared/schema.ts for destructive changes..."
