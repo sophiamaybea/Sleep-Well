@@ -17,19 +17,19 @@ export default function WorkshopRoom() {
 
   const { data: sessionDetail } = useQuery({
     queryKey: ["/api/workshop/sessions", activeSession],
-    queryFn: () => apiRequest(`/api/workshop/sessions/${activeSession}`),
+    queryFn: () => apiRequest("GET", `/api/workshop/sessions/${activeSession}`),
     enabled: !!activeSession,
   });
 
   const { data: exercises } = useQuery({
     queryKey: ["/api/workshop/sessions", activeSession, "exercises"],
-    queryFn: () => apiRequest(`/api/workshop/sessions/${activeSession}/exercises`),
+    queryFn: () => apiRequest("GET", `/api/workshop/sessions/${activeSession}/exercises`),
     enabled: !!activeSession,
   });
 
   const joinMutation = useMutation({
     mutationFn: (sessionId: string) =>
-      apiRequest(`/api/workshop/sessions/${sessionId}/join`, { method: "POST" }),
+            apiRequest("POST", `/api/workshop/sessions/${sessionId}/join`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/workshop/sessions", activeSession] });
     },
