@@ -3808,7 +3808,7 @@ export default function Garden() {
                         <GardenGateZone />
                   ) : activeZone === "collections" ? (
                           <CollectionsRedirect />
-                          ) : (<GreenhouseZone /> )
+                          ) : (<GreenhouseZone />)
             </motion.div>
           </AnimatePresence>
         </main>
