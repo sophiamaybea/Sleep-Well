@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import {
   useAtelierSeriesList,
   useAtelierSeries,
@@ -36,7 +36,7 @@ export default function Atelier() {
         <h1 className="font-serif text-4xl text-foreground mb-4">The Atelier</h1>
         <p className="text-muted-foreground text-sm max-w-prose leading-relaxed">
           A library of guided writing series. Each one moves through a technique, a form, or a
-          question — and leads you somewhere you wouldn’t have reached alone.
+          question — and leads you somewhere you wouldn't have reached alone.
         </p>
         {!isCultivator && (
           <div className="mt-5 px-4 py-3 rounded border border-[var(--gold)]/30 bg-[var(--gold)]/5 text-sm text-muted-foreground">
@@ -147,7 +147,7 @@ function SeriesDetail({
       </div>
     );
 
-  const { series, exercises, gated, total } = data;
+  const { series, exercises, gated, total } = data as any;
 
   return (
     <div>
@@ -210,7 +210,6 @@ function ExerciseList({
           isCultivator={isCultivator}
         />
       ))}
-
       {gated && (
         <div className="border border-dashed border-[var(--gold)]/40 rounded-md p-8 text-center mt-6">
           <p className="text-sm text-muted-foreground mb-1">
@@ -292,7 +291,7 @@ function ExerciseCard({
 
           {exercise.exampleLine && (
             <p className="text-xs italic text-muted-foreground mb-4">
-              e.g. “{exercise.exampleLine}”
+              e.g. "{exercise.exampleLine}"
             </p>
           )}
 
@@ -320,7 +319,6 @@ function ExerciseCard({
             >
               {respondMutation.isPending ? "Saving…" : "Save response"}
             </button>
-
             {saved && <span className="text-xs text-green-600">Saved ✓</span>}
 
             {isCultivator && exercise.myResponse && !gardenSaved && (
