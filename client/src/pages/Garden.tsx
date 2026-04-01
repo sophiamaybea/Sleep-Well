@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import StudioPanel from "@/components/garden/StudioPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, ChevronLeft, Feather, PenLine,
   Search, ChevronDown, BookOpen, Lock,
@@ -54,8 +52,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
     { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
     { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
       { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },     { id: "collections", label: "Beds", desc: "Curate your work into chapbook collections", icon: <BookOpen size={14} />, activeColor: "border-violet-500/25 bg-violet-900/20 text-violet-200/90" },
-      { id: "studio", label: "Studio", desc: "AI writing patterns & insights", icon: <Brain size={14} />, activeColor: "border-purple-500/25 bg-purple-900/20 text-purple-200/90" },
-  ];
+      ];
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -3811,7 +3808,7 @@ export default function Garden() {
                         <GardenGateZone />
                   ) : activeZone === "collections" ? (
                           <CollectionsRedirect />
-                          ) : activeZone === "studio" ? (<StudioPanel />) : (<GreenhouseZone /> )}
+                          ) : (<GreenhouseZone /> )
             </motion.div>
           </AnimatePresence>
         </main>
