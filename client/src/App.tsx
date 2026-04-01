@@ -26,6 +26,7 @@ const Piece = lazy(() => import("@/pages/Piece"));
 const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
 const Drafts = lazy(() => import("@/pages/Drafts"));
+const Atelier = lazy(() => import("@/pages/Atelier"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const ExerciseAdmin = lazy(() => import("@/pages/ExerciseAdmin"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
@@ -139,6 +140,7 @@ function Router() {
         <Route path="/editorial-payment">{() => <ProtectedRoute component={EditorialPayment} path="/editorial-payment" />}</Route>
         <Route path="/editorial-room">{() => <ProtectedRoute component={EditorialRoom} path="/editorial-room" />}</Route>
         <Route path="/marketplace" component={Marketplace} />
+                  <Route path="/atelier" component={Atelier} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
