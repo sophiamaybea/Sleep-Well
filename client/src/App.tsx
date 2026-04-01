@@ -51,7 +51,6 @@ const Saved = lazy(() => import("@/pages/Saved"));
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
 const V2Community = lazy(() => import("@/pages/V2Community"));
-const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
@@ -140,7 +139,6 @@ function Router() {
         <Route path="/dashboard">{() => <ProtectedRoute component={V2Dashboard} path="/dashboard" />}</Route>
         <Route path="/reading-room">{() => <ProtectedRoute component={V2ReadingRoom} path="/reading-room" />}</Route>
         <Route path="/community" component={V2Community} />
-        <Route path="/editorial-services" component={EditorialServices} />
         <Route path="/editorial-dashboard">{() => <ProtectedRoute component={EditorialDashboard} path="/editorial-dashboard" />}</Route>
         <Route path="/eic-dashboard">
           {() => <Redirect to="/editorial-dashboard" />}

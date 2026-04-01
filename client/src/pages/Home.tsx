@@ -5,7 +5,6 @@ import GardenIntro from "@/components/sections/GardenIntro";
 import Featured from "@/components/sections/Featured";
 import Footer from "@/components/Footer";
 import SocialCTA from "@/components/sections/SocialCTA";
-import NewsletterSignup from "@/components/ui/NewsletterSignup";
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/gsap-init";
@@ -77,7 +76,6 @@ export default function Home() {
         <Hero />
         <Featured />
         <GardenIntro />
-        <NewsletterSignup />
         <SocialCTA />
       </main>
       <div className="relative z-10">
