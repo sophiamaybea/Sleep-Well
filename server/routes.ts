@@ -16,6 +16,7 @@ import { registerAgentPatternRoutes } from "./routes/agentPatterns";
 import { registerAgentActivityDashboardRoutes } from "./routes/agentActivityDashboard";
 import { registerEicCommandCentreRoutes } from "./routes/eicCommandCentre";
 import { registerTakeoverScreenRoutes } from "./routes/takeoverScreens";
+import { registerGalleryDiscoverRoutes } from "./routes/galleryDiscover";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import {
@@ -8556,5 +8557,6 @@ const sharedPieces = await db.select({
     registerAgentPatternRoutes(app);
     registerAgentActivityDashboardRoutes(app);
   registerEicCommandCentreRoutes(app);
-    registerTakeoverScreenRoutes(app);return httpServer;  registerMarketplaceRoutes(app);
+    registerGalleryDiscoverRoutes(app);
+  registerTakeoverScreenRoutes(app);return httpServer;  registerMarketplaceRoutes(app);
 }
