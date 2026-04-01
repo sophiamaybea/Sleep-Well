@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sprout, Glasses, TreePine, Send, BookOpen, Brain,
+  Sprout, Glasses, TreePine, Send, BookOpen,
   Users, Compass, ChevronDown, Eye, PenLine, X,
 } from "lucide-react";
 
-export type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections" | "studio";
+export type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
 export type ActiveRoom = "tables" | "workshop" | "swap" | "the-desk" | "first-reader" | "shelf" | null;
 
 export const rooms = [
@@ -25,7 +25,6 @@ export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone
     { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
     { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },
     { id: "collections", label: "Beds", desc: "Curate your work into chapbook collections", icon: <BookOpen size={14} />, activeColor: "border-violet-500/25 bg-violet-900/20 text-violet-200/90" },
-    { id: "studio", label: "Studio", desc: "AI writing patterns & insights", icon: <Brain size={14} />, activeColor: "border-purple-500/25 bg-purple-900/20 text-purple-200/90" },
   ];
   return (
     <div className="flex flex-col items-center gap-2">
