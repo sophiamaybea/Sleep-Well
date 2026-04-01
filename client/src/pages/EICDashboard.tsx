@@ -1,5 +1,4 @@
 import { Brain, Sparkles, Zap, Activity, MessageSquare, Terminal, Bell, BarChart3, Search, ShieldCheck, Send, RotateCcw, ChevronDown } from "lucide-react";
-import StudioPanel from "@/components/garden/StudioPanel";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
