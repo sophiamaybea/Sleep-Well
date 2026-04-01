@@ -13,6 +13,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export * from "./models/auth";
+export * from "./atelier.schema";
 import { users } from "./models/auth";
 
 export const writings = pgTable("writings", {
