@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Cpu, Bug, GitBranch, Palette, Leaf, DollarSign, PenTool, Shield, Settings } from 'lucide-react';
+import { Cpu, Bug, GitBranch, Palette, Leaf, DollarSign, PenTool, Shield, Settings } from 'lucide-react';
 
 const AGENTS = [
-  { id: 'conductor', icon: Terminal, label: 'Conductor' },
   { id: 'genius_coder', icon: Cpu, label: 'Genius' },
   { id: 'fix_debug', icon: Bug, label: 'Fix' },
   { id: 'gitops', icon: GitBranch, label: 'GitOps' },
@@ -18,7 +17,7 @@ const AGENTS = [
 
 export const EICCommandBar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState('conductor');
+  const [selectedAgent, setSelectedAgent] = useState('genius_coder');
   const [input, setInput] = useState('');
     const { user } = useAuth();
   if (user?.email !== 'sophiamaybea@gmail.com') return null;
