@@ -32,8 +32,7 @@ function isBenignMigrationError(e: unknown): boolean {
   return (
     msg.includes("already exists") ||
     msg.includes("duplicate column") ||
-    msg.includes("duplicate table") ||
-    (msg.includes("column") && msg.includes("does not exist")) // column already dropped
+    msg.includes("duplicate table")
   );
 }
 

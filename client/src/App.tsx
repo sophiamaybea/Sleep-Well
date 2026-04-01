@@ -66,6 +66,21 @@ function ProtectedRoute({ component: Component, path }: { component: React.Compo
   return <Component />;
 }
 
+// T-audit: Editor-only route — requires editor or editor_in_chief role
+function EditorProtectedRoute({ component: Component, path }: { component: React.ComponentType; path: string }) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  if (!user) {
+    return <Redirect to="/sign-in" />;
+  }
+  if (user.role !== "editor" && user.role !== "editor_in_chief") {
+    return <Redirect to="/" />;
+  }
+  return <Component />;
+}
+
 const PAGE_TITLES: Record<string, string> = {
   "/": "The Page Gallery Journal — A Literary Journal & Writing Garden",
   "/in-bloom": "The Journal — The Page Gallery",
@@ -115,7 +130,7 @@ function Router() {
         <Route path="/courses" component={Courses} />
         <Route path="/drafts">{() => <ProtectedRoute component={Drafts} path="/drafts" />}</Route>
         <Route path="/editor-onboarding">{() => <ProtectedRoute component={EditorOnboarding} path="/editor-onboarding" />}</Route>
-        <Route path="/exercise-admin">{() => <ProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
+        <Route path="/exercise-admin">{() => <EditorProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
         <Route path="/sign-in" component={SignIn} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />

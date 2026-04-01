@@ -53,6 +53,7 @@ export function useAuth() {
     retry: false,
       staleTime: 1000 * 60, // 60s — reduced from 5min (T20)
       refetchOnWindowFocus: true, // T20
+  refetchOnMount: "always", // T-audit: force fresh check on every protected-route mount
         gcTime: 0, // evict immediately so stale user never lingers in cache
   });
 
