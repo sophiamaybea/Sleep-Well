@@ -39,13 +39,6 @@ export default function SocialCTA() {
             <Instagram size={16} className="opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
             <span className="font-mono text-[11px] tracking-[0.2em] uppercase">@pagegalleryjournal</span>
           </a>
-          <a
-                        href="mailto:submissions@pagegalleryjournal.com"
-            className="flex items-center gap-3 px-8 py-3.5 border border-white/10 hover:border-amber-400/30 bg-white/[0.02] hover:bg-amber-400/[0.04] text-white/60 hover:text-white/90 transition-all duration-500 rounded-none group"
-          >
-            <Mail size={16} className="opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
-            <span className="font-mono text-[11px] tracking-[0.2em] uppercase">Get in touch</span>
-          </a>
         </div>
         <div className="flex items-center justify-center gap-4 pt-2">
           <div className="h-px w-12 bg-gradient-to-r from-transparent to-amber-600/20" />

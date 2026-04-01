@@ -7,7 +7,7 @@ import {
   insertAtelierSeriesSchema,
   insertAtelierExerciseSchema,
   insertAtelierResponseSchema,
-} from "../../shared/atelier.schema";
+} from "@shared/schema";
 import { eq, and, asc } from "drizzle-orm";
 
 const router = Router();

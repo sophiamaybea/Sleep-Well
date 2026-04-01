@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Share2, BookOpen, Bookmark, BookmarkCheck } from "lucide-react";
+import { ArrowLeft, Share2, BookOpen, Bookmark, BookmarkCheck, ChevronRight, ChevronLeft } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import LoadingScreen from "@/components/garden/LoadingScreen";
 
@@ -190,6 +190,38 @@ export default function Piece() {
     }
   }, [id]);
 
+  // Keep body scroll available while in long-form reading content
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "auto";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  const { data: allPublished = [] } = useQuery<PieceData[]>({
+    queryKey: ["/api/gallery"],
+    queryFn: async () => {
+      const res = await fetch("/api/gallery");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const sortedPublishedPieces = useMemo(() => {
+    const list = [...allPublished];
+    list.sort((a, b) => {
+      const dateA = new Date(a.publishedAt || a.createdAt || "").getTime();
+      const dateB = new Date(b.publishedAt || b.createdAt || "").getTime();
+      return dateB - dateA;
+    });
+    return list;
+  }, [allPublished]);
+
+  const currentIndex = sortedPublishedPieces.findIndex((item) => item.id === id);
+  const previousPiece = currentIndex > 0 ? sortedPublishedPieces[currentIndex - 1] : null;
+  const nextPiece = currentIndex >= 0 && currentIndex < sortedPublishedPieces.length - 1 ? sortedPublishedPieces[currentIndex + 1] : null;
+
   const { data: piece, isLoading, isError } = useQuery<PieceData>({
     queryKey: ["/api/public-piece", id],
     queryFn: async () => {
@@ -321,6 +353,24 @@ export default function Piece() {
               <span className="hidden sm:inline">Share</span>
             </button>
           </div>
+        </div>
+
+        <div className="max-w-3xl mx-auto px-6 py-2 flex items-center justify-between gap-2 text-sm">
+          {previousPiece ? (
+            <Link href={`/piece/${previousPiece.id}`} className="inline-flex items-center gap-1 text-[#4a3728] hover:text-[#1e221f] transition-colors font-serif">
+              <ChevronLeft className="w-4 h-4" /> Previous
+            </Link>
+          ) : (
+            <span className="text-[#a19a8f]">Previous</span>
+          )}
+
+          {nextPiece ? (
+            <Link href={`/piece/${nextPiece.id}`} className="inline-flex items-center gap-1 text-[#4a3728] hover:text-[#1e221f] transition-colors font-serif">
+              Next <ChevronRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <span className="text-[#a19a8f]">Next</span>
+          )}
         </div>
       </div>
 

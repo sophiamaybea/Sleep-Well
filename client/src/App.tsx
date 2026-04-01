@@ -27,6 +27,7 @@ const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
 const Drafts = lazy(() => import("@/pages/Drafts"));
 const Atelier = lazy(() => import("@/pages/Atelier"));
+const Weave = lazy(() => import("@/pages/Weave"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const ExerciseAdmin = lazy(() => import("@/pages/ExerciseAdmin"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
@@ -112,6 +113,7 @@ function Router() {
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={PageGallery} />
         <Route path="/piece/:id" component={Piece} />
+        <Route path="/weave/:id" component={Weave} />
         <Route path="/about" component={About} />
         <Route path="/courses" component={Courses} />
         <Route path="/drafts">{() => <ProtectedRoute component={Drafts} path="/drafts" />}</Route>

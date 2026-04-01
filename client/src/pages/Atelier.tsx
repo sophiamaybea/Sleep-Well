@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   useAtelierSeriesList,
@@ -8,6 +8,123 @@ import {
 } from "@/hooks/useAtelier";
 
 const FREE_LIMIT = 2;
+
+// Starfield background component for immersive atmosphere
+function Starfield() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    resizeCanvas();
+
+    // Generate stars with varying opacity and size
+    const stars: Array<{
+      x: number;
+      y: number;
+      size: number;
+      opacity: number;
+      twinkleDuration: number;
+    }> = [];
+    const starCount = Math.floor((canvas.width * canvas.height) / 10000);
+
+    for (let i = 0; i < starCount; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 1.5,
+        opacity: Math.random() * 0.5 + 0.3,
+        twinkleDuration: Math.random() * 3 + 2,
+      });
+    }
+
+    let animationFrameId: number;
+    let elapsedTime = 0;
+
+    const animate = (timestamp: number) => {
+      elapsedTime = timestamp / 1000;
+
+      // Clear canvas with semi-transparent overlay for trail effect
+      ctx.fillStyle = "rgba(0, 0, 0, 0.02)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw stars with twinkling effect
+      stars.forEach((star) => {
+        const twinkle =
+          Math.sin((elapsedTime / star.twinkleDuration) * Math.PI * 2) * 0.5 +
+          0.5;
+        const finalOpacity = star.opacity * (0.4 + twinkle * 0.6);
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${finalOpacity})`;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Add shimmer glow to brighter stars
+        if (star.size > 0.8) {
+          ctx.strokeStyle = `rgba(196, 162, 77, ${finalOpacity * 0.3})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.size + 1, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resizeCanvas);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-0 opacity-60"
+    />
+  );
+}
+
+// Hook to trigger animations when element enters viewport
+function useInViewAnimation() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          // Keep the animation triggered once, don't reset on leaving
+        }
+      },
+      { threshold: 0.1, rootMargin: "50px" }
+    );
+
+    observer.observe(ref.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isInView };
+}
 
 export default function Atelier() {
   const { user } = useAuth();
@@ -21,55 +138,65 @@ export default function Atelier() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen relative z-10">
+        <Starfield />
         <p className="text-muted-foreground text-sm italic">Lighting the lamps…</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-14">
-      <header className="mb-12">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-          The Page Gallery
-        </p>
-        <h1 className="font-serif text-4xl text-foreground mb-4">The Atelier</h1>
-        <p className="text-muted-foreground text-sm max-w-prose leading-relaxed">
-          A library of guided writing series. Each one moves through a technique, a form, or a
-          question — and leads you somewhere you wouldn't have reached alone.
-        </p>
-        {!isCultivator && (
-          <div className="mt-5 px-4 py-3 rounded border border-[var(--gold)]/30 bg-[var(--gold)]/5 text-sm text-muted-foreground">
-            Free members may complete the first two exercises of any series.{" "}
-            <a
-              href="/cultivator"
-              className="underline text-foreground hover:opacity-70 transition"
-            >
-              Become a Cultivator
-            </a>{" "}
-            to work through every exercise and save your writing to the Garden.
+    <>
+      <Starfield />
+      <div className="max-w-3xl mx-auto px-4 py-14 relative z-10">
+        <header className="mb-12">
+          <div className="atelier-header-glow">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              The Page Gallery
+            </p>
+            <h1 className="font-serif text-4xl text-foreground mb-4 atelier-title-shimmer">
+              The Atelier
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-prose leading-relaxed atelier-subtitle-fade">
+              A library of guided writing series. Each one moves through a
+              technique, a form, or a question — and leads you somewhere you
+              wouldn't have reached alone.
+            </p>
           </div>
-        )}
-      </header>
+          {!isCultivator && (
+            <div className="mt-5 px-4 py-3 rounded border border-[var(--gold)]/30 bg-[var(--gold)]/5 text-sm text-muted-foreground atelier-callout-fade">
+              Free members may complete the first two exercises of any series.{" "}
+              <a
+                href="/cultivator"
+                className="underline text-foreground hover:opacity-70 transition"
+              >
+                Become a Cultivator
+              </a>{" "}
+              to work through every exercise and save your writing to the
+              Garden.
+            </div>
+          )}
+        </header>
 
-      {!activeSeries ? (
-        <SeriesList
-          series={seriesList}
-          isCultivator={isCultivator}
-          onOpen={setActiveSeries}
-        />
-      ) : (
-        <SeriesDetail
-          seriesId={activeSeries}
-          isCultivator={isCultivator}
-          onBack={() => setActiveSeries(null)}
-        />
-      )}
-    </div>
+        {!activeSeries ? (
+          <SeriesList
+            series={seriesList}
+            isCultivator={isCultivator}
+            onOpen={setActiveSeries}
+          />
+        ) : (
+          <SeriesDetail
+            seriesId={activeSeries}
+            isCultivator={isCultivator}
+            onBack={() => setActiveSeries(null)}
+          />
+        )}
+      </div>
+    </>
   );
 }
 
-// — Series list —
+// — Series list with gasp scroll animations —
 function SeriesList({
   series,
   isCultivator,
@@ -88,44 +215,85 @@ function SeriesList({
   }
 
   return (
-    <div className="space-y-0">
-      {series.map((s: any) => (
-        <button
+    <div className="space-y-0 atelier-garden-grid">
+      {series.map((s: any, index: number) => (
+        <SeriesCard
           key={s.id}
-          onClick={() => onOpen(s.id)}
-          className="w-full text-left group border-b border-border/40 py-6 hover:border-foreground/20 transition-colors"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
-                {s.genre !== "any" ? s.genre : ""}
-                {s.theme ? ` · ${s.theme}` : ""}
-              </p>
-              <h2 className="font-serif text-xl text-foreground group-hover:opacity-70 transition">
-                {s.title}
-              </h2>
-              {s.subtitle && (
-                <p className="text-sm text-muted-foreground mt-0.5">{s.subtitle}</p>
-              )}
-              <p className="text-xs text-muted-foreground mt-2">
-                {s.totalExercises} exercise{s.totalExercises !== 1 ? "s" : ""} · led by{" "}
-                {s.facilitator}
-                {!isCultivator && s.totalExercises > FREE_LIMIT && (
-                  <span className="ml-2 text-[var(--gold)]">first {FREE_LIMIT} free</span>
-                )}
-              </p>
-            </div>
-            <span className="text-muted-foreground text-xs mt-1 shrink-0 group-hover:translate-x-0.5 transition-transform">
-              →
-            </span>
-          </div>
-        </button>
+          series={s}
+          index={index}
+          isCultivator={isCultivator}
+          onOpen={onOpen}
+        />
       ))}
     </div>
   );
 }
 
-// — Series detail —
+// — Individual series card with gasp scroll animation —
+function SeriesCard({
+  series,
+  index,
+  isCultivator,
+  onOpen,
+}: {
+  series: any;
+  index: number;
+  isCultivator: boolean;
+  onOpen: (id: string) => void;
+}) {
+  const { ref, isInView } = useInViewAnimation();
+
+  return (
+    <div
+      ref={ref}
+      className={`series-card-container transition-all duration-500 ${
+        isInView ? "series-card-reveal" : "opacity-0"
+      }`}
+      style={{
+        animationDelay: `${index * 0.15}s`,
+        // @ts-ignore
+        "--card-index": index,
+      }}
+    >
+      <button
+        onClick={() => onOpen(series.id)}
+        className="w-full text-left group border-b border-border/40 py-6 hover:border-foreground/20 transition-all duration-300 hover:pl-2 atelier-series-hover"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1 atelier-series-label">
+              {series.genre !== "any" ? series.genre : ""}
+              {series.theme ? ` · ${series.theme}` : ""}
+            </p>
+            <h2 className="font-serif text-xl text-foreground group-hover:text-[var(--gold)] transition-colors duration-300 atelier-series-title">
+              {series.title}
+            </h2>
+            {series.subtitle && (
+              <p className="text-sm text-muted-foreground mt-0.5 atelier-series-subtitle">
+                {series.subtitle}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">
+              {series.totalExercises} exercise
+              {series.totalExercises !== 1 ? "s" : ""} · led by{" "}
+              {series.facilitator}
+              {!isCultivator && series.totalExercises > FREE_LIMIT && (
+                <span className="ml-2 text-[var(--gold)]">
+                  first {FREE_LIMIT} free
+                </span>
+              )}
+            </p>
+          </div>
+          <span className="text-muted-foreground text-xs mt-1 shrink-0 group-hover:translate-x-1 transition-transform duration-300 group-hover:text-[var(--gold)]">
+            →
+          </span>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+// — Series detail with garden environment feel —
 function SeriesDetail({
   seriesId,
   isCultivator,
@@ -136,9 +304,12 @@ function SeriesDetail({
   onBack: () => void;
 }) {
   const { data, isLoading, error } = useAtelierSeries(seriesId);
+  const { ref, isInView } = useInViewAnimation();
 
   if (isLoading)
-    return <p className="text-sm text-muted-foreground italic">Opening series…</p>;
+    return (
+      <p className="text-sm text-muted-foreground italic">Opening series…</p>
+    );
   if (error || !data)
     return (
       <div>
@@ -150,21 +321,30 @@ function SeriesDetail({
   const { series, exercises, gated, total } = data as any;
 
   return (
-    <div>
+    <div
+      ref={ref}
+      className={`series-detail-container transition-all duration-500 ${
+        isInView ? "series-detail-reveal" : "opacity-0"
+      }`}
+    >
       <BackLink onBack={onBack} />
-      <header className="mb-8">
+      <header className="mb-8 atelier-series-header">
         {series.theme && (
           <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
             {series.theme}
           </p>
         )}
-        <h2 className="font-serif text-3xl text-foreground mb-1">{series.title}</h2>
+        <h2 className="font-serif text-3xl text-foreground mb-1 atelier-detail-title">
+          {series.title}
+        </h2>
         {series.subtitle && (
           <p className="text-muted-foreground text-sm">{series.subtitle}</p>
         )}
-        <p className="text-xs text-muted-foreground mt-2">Led by {series.facilitator}</p>
+        <p className="text-xs text-muted-foreground mt-2">
+          Led by {series.facilitator}
+        </p>
         {series.description && (
-          <p className="text-sm text-muted-foreground mt-4 max-w-prose leading-relaxed">
+          <p className="text-sm text-muted-foreground mt-4 max-w-prose leading-relaxed atelier-description-fade">
             {series.description}
           </p>
         )}
@@ -217,7 +397,8 @@ function ExerciseList({
             {total - exercises.length !== 1 ? "s" : ""} in this series
           </p>
           <p className="text-xs text-muted-foreground mb-4">
-            Cultivator membership unlocks every exercise and saves your work to the Garden.
+            Cultivator membership unlocks every exercise and saves your work to
+            the Garden.
           </p>
           <a
             href="/cultivator"
@@ -266,12 +447,16 @@ function ExerciseCard({
           <p className="text-xs uppercase tracking-widest text-muted-foreground">
             Exercise {index + 1}
           </p>
-          <h3 className="font-medium text-foreground mt-0.5">{exercise.title}</h3>
+          <h3 className="font-medium text-foreground mt-0.5">
+            {exercise.title}
+          </h3>
           {exercise.myResponse && !isOpen && (
             <p className="text-xs text-green-600 mt-0.5">Response saved ✓</p>
           )}
         </div>
-        <span className="text-muted-foreground text-sm">{isOpen ? "↑" : "↓"}</span>
+        <span className="text-muted-foreground text-sm">
+          {isOpen ? "↑" : "↓"}
+        </span>
       </button>
 
       {isOpen && (
@@ -285,7 +470,9 @@ function ExerciseCard({
               <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
                 Craft note
               </p>
-              <p className="text-xs text-muted-foreground">{exercise.craftNote}</p>
+              <p className="text-xs text-muted-foreground">
+                {exercise.craftNote}
+              </p>
             </div>
           )}
 
@@ -336,13 +523,16 @@ function ExerciseCard({
             )}
 
             {gardenSaved && (
-              <span className="text-xs text-muted-foreground">In your Garden ✓</span>
+              <span className="text-xs text-muted-foreground">
+                In your Garden ✓
+              </span>
             )}
           </div>
 
           {respondMutation.error && (
             <p className="text-xs text-red-500 mt-2">
-              {(respondMutation.error as any)?.message ?? "Something went wrong"}
+              {(respondMutation.error as any)?.message ??
+                "Something went wrong"}
             </p>
           )}
         </div>

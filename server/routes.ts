@@ -11,6 +11,7 @@ import { registerWritingLayoutRoutes } from "./routes/writingLayout";
 import { registerWritingExerciseRoutes } from "./routes/writingExercises";
 import { registerJournalApplicationRoutes } from "./routes/journalApplications";
 import { registerMarketplaceRoutes } from "./routes/marketplace";
+import { registerPoemWeavingRoutes } from "./routes/poemWeaving";
 import { registerAgentSystemRoutes } from "./routes/agentSystem";
 import { registerAgentPatternRoutes } from "./routes/agentPatterns";
 import { registerAgentActivityDashboardRoutes } from "./routes/agentActivityDashboard";
@@ -8548,6 +8549,7 @@ const sharedPieces = await db.select({
     registerWritingExerciseRoutes(app);
     registerJournalApplicationRoutes(app);
   registerMarketplaceRoutes(app);
+  registerPoemWeavingRoutes(app);
   registerCopyAgentRoutes(app);
   registerEditorialBriefRoutes(app);
   registerSocialFeedRoutes(app);
