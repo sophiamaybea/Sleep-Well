@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import WorkshopSessionCard from "@/components/WorkshopSessionCard";
 import WorkshopPaywall from "@/components/WorkshopPaywall";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function WorkshopRoom() {
   const { user } = useAuth();
@@ -12,24 +12,26 @@ export default function WorkshopRoom() {
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ["/api/workshop/sessions"],
-    queryFn: () => apiRequest("/api/workshop/sessions"),
+    queryFn: () => apiRequest("GET", "/api/workshop/sessions").then((r) => r.json()),
   });
 
   const { data: sessionDetail } = useQuery({
     queryKey: ["/api/workshop/sessions", activeSession],
-    queryFn: () => apiRequest(`/api/workshop/sessions/${activeSession}`),
+    queryFn: () =>
+      apiRequest("GET", `/api/workshop/sessions/${activeSession}`).then((r) => r.json()),
     enabled: !!activeSession,
   });
 
   const { data: exercises } = useQuery({
     queryKey: ["/api/workshop/sessions", activeSession, "exercises"],
-    queryFn: () => apiRequest(`/api/workshop/sessions/${activeSession}/exercises`),
+    queryFn: () =>
+      apiRequest("GET", `/api/workshop/sessions/${activeSession}/exercises`).then((r) => r.json()),
     enabled: !!activeSession,
   });
 
   const joinMutation = useMutation({
     mutationFn: (sessionId: string) =>
-      apiRequest(`/api/workshop/sessions/${sessionId}/join`, { method: "POST" }),
+      apiRequest("POST", `/api/workshop/sessions/${sessionId}/join`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/workshop/sessions", activeSession] });
     },
@@ -51,13 +53,13 @@ export default function WorkshopRoom() {
       <div className="mb-10">
         <h1 className="font-serif text-3xl text-foreground mb-2">The Workshop Room</h1>
         <p className="text-muted-foreground text-sm max-w-prose">
-          A quiet room for writing together. Each session is led by an editor or guest facilitator —
-          a theme, a set of exercises, and time to write.
+          A quiet room for writing together. Each session is led by an editor or guest
+          facilitator — a theme, a set of exercises, and time to write.
         </p>
         {isFree && (
           <div className="mt-4 p-3 rounded-md border border-gold/30 bg-gold/5 text-sm text-muted-foreground">
-            Free members may join one session per month and preview the first two exercises of any
-            session.{" "}
+            Free members may join one session per month and preview the first two exercises of
+            any session.{" "}
             <a href="/cultivator" className="underline text-foreground">
               Upgrade to Cultivator
             </a>{" "}
@@ -70,9 +72,11 @@ export default function WorkshopRoom() {
       {!activeSession && (
         <div className="space-y-4">
           {sessions.length === 0 && (
-            <p className="text-muted-foreground italic text-sm">No sessions scheduled yet. Check back soon.</p>
+            <p className="text-muted-foreground italic text-sm">
+              No sessions scheduled yet. Check back soon.
+            </p>
           )}
-          {sessions.map((session: any) => (
+          {(sessions as any[]).map((session: any) => (
             <WorkshopSessionCard
               key={session.id}
               session={session}
@@ -91,21 +95,20 @@ export default function WorkshopRoom() {
           >
             ← All sessions
           </button>
-
           <div className="mb-6">
-            <h2 className="font-serif text-2xl mb-1">{sessionDetail.title}</h2>
-            {sessionDetail.theme && (
+            <h2 className="font-serif text-2xl mb-1">{(sessionDetail as any).title}</h2>
+            {(sessionDetail as any).theme && (
               <p className="text-sm uppercase tracking-widest text-muted-foreground mb-2">
-                {sessionDetail.theme}
+                {(sessionDetail as any).theme}
               </p>
             )}
-            <p className="text-sm text-muted-foreground">{sessionDetail.description}</p>
+            <p className="text-sm text-muted-foreground">{(sessionDetail as any).description}</p>
           </div>
 
           {/* Join / joined status */}
           <div className="mb-8">
-            {sessionDetail.hasJoined ? (
-              <span className="text-sm text-green-600 italic">You're in this session</span>
+            {(sessionDetail as any).hasJoined ? (
+              <span className="text-sm text-green-600 italic">You’re in this session</span>
             ) : (
               <button
                 onClick={() => joinMutation.mutate(activeSession)}
@@ -125,9 +128,9 @@ export default function WorkshopRoom() {
           {/* Exercises */}
           {exercises && (
             <WorkshopExercisePanel
-              exercises={exercises.exercises}
-              gated={exercises.gated}
-              total={exercises.total}
+              exercises={(exercises as any).exercises}
+              gated={(exercises as any).gated}
+              total={(exercises as any).total}
               sessionId={activeSession}
               tier={user?.tier ?? "free"}
             />
@@ -138,7 +141,7 @@ export default function WorkshopRoom() {
   );
 }
 
-// ── Exercise panel (inline sub-component) ────────────────────────
+// ── Exercise panel (inline sub-component) ────────────────────────────────────
 function WorkshopExercisePanel({
   exercises,
   gated,
@@ -159,13 +162,15 @@ function WorkshopExercisePanel({
 
   const respondMutation = useMutation({
     mutationFn: ({ exerciseId, content }: { exerciseId: string; content: string }) =>
-      apiRequest(`/api/workshop/sessions/${sessionId}/respond`, {
-        method: "POST",
-        body: JSON.stringify({ exerciseId, content }),
+      apiRequest("POST", `/api/workshop/sessions/${sessionId}/respond`, {
+        exerciseId,
+        content,
       }),
     onSuccess: () => {
       setSaved(true);
-      qc.invalidateQueries({ queryKey: ["/api/workshop/sessions", sessionId, "my-responses"] });
+      qc.invalidateQueries({
+        queryKey: ["/api/workshop/sessions", sessionId, "my-responses"],
+      });
     },
   });
 
@@ -196,7 +201,6 @@ function WorkshopExercisePanel({
                 {activeExercise === ex.id ? "Close" : "Open"}
               </button>
             </div>
-
             {activeExercise === ex.id && (
               <div className="mt-4">
                 {tier === "free" ? (
@@ -232,12 +236,12 @@ function WorkshopExercisePanel({
             )}
           </div>
         ))}
-
         {/* Paywall for remaining gated exercises */}
         {gated && (
           <div className="border border-dashed border-gold/40 rounded-md p-6 text-center">
             <p className="text-sm text-muted-foreground mb-3">
-              {total - exercises.length} more exercise{total - exercises.length !== 1 ? "s" : ""} in this session
+              {total - exercises.length} more exercise
+              {total - exercises.length !== 1 ? "s" : ""} in this session
             </p>
             <WorkshopPaywall inline />
           </div>
