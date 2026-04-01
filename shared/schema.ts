@@ -709,6 +709,71 @@ export const opportunityNotes = pgTable("opportunity_notes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === POEM WEAVING — Collaborative Poetry ===
+
+export const poemWeaves = pgTable("poem_weaves", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  prompt: text("prompt").notNull().default(""),
+  initiatorId: varchar("initiator_id").notNull().references(() => users.id),
+  circleId: varchar("circle_id").references(() => circles.id),
+  form: text("form").notNull().default("free"),
+  maxContributors: integer("max_contributors").notNull().default(6),
+  maxStanzasPerContributor: integer("max_stanzas_per_contributor").notNull().default(3),
+  status: text("status").notNull().default("open"),
+  writingId: varchar("writing_id").references(() => writings.id),
+  isNationalPoetryDay: boolean("is_national_poetry_day").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const weaveStanzas = pgTable("weave_stanzas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  weaveId: varchar("weave_id").notNull().references(() => poemWeaves.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  turnOrder: integer("turn_order").notNull(),
+  isPinned: boolean("is_pinned").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const weaveInvitations = pgTable("weave_invitations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  weaveId: varchar("weave_id").notNull().references(() => poemWeaves.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPoemWeaveSchema = createInsertSchema(poemWeaves).omit({
+  id: true,
+  initiatorId: true,
+  status: true,
+  writingId: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  form: z.enum(["free", "renga", "call_and_response", "cento"]).optional(),
+});
+
+export const insertWeaveStanzaSchema = createInsertSchema(weaveStanzas).omit({
+  id: true,
+  authorId: true,
+  turnOrder: true,
+  createdAt: true,
+});
+
+export const insertWeaveInvitationSchema = createInsertSchema(weaveInvitations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type PoemWeave = typeof poemWeaves.$inferSelect;
+export type InsertPoemWeave = z.infer<typeof insertPoemWeaveSchema>;
+export type WeaveStanza = typeof weaveStanzas.$inferSelect;
+export type InsertWeaveStanza = z.infer<typeof insertWeaveStanzaSchema>;
+export type WeaveInvitation = typeof weaveInvitations.$inferSelect;
+
 export const circleShares = pgTable("circle_shares", {
   id: varchar("id")
     .primaryKey()
@@ -3156,6 +3221,48 @@ export const takeoverScreens = pgTable("takeover_screens", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// === THE ATELIER — Workshop Room ===
+
+export const atelierSeries = pgTable("atelier_series", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  theme: text("theme"),
+  description: text("description").notNull().default(""),
+  facilitator: text("facilitator").notNull().default("The Editors"),
+  genre: text("genre").notNull().default("any"),
+  totalExercises: integer("total_exercises").notNull().default(0),
+  freeExerciseLimit: integer("free_exercise_limit").notNull().default(2),
+  isPublished: boolean("is_published").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdById: varchar("created_by_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const atelierExercises = pgTable("atelier_exercises", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  seriesId: varchar("series_id").notNull(),
+  title: text("title").notNull(),
+  prompt: text("prompt").notNull(),
+  craftNote: text("craft_note"),
+  exampleLine: text("example_line"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const atelierResponses = pgTable("atelier_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  exerciseId: varchar("exercise_id").notNull(),
+  seriesId: varchar("series_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  content: text("content").notNull().default(""),
+  savedToGarden: boolean("saved_to_garden").notNull().default(false),
+  gardenWritingId: varchar("garden_writing_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertTakeoverScreenSchema = createInsertSchema(
   takeoverScreens,
 ).omit({ id: true, createdAt: true, updatedAt: true });
@@ -3166,4 +3273,28 @@ export type TakeoverScreen = typeof takeoverScreens.$inferSelect;
 export type InsertTakeoverScreen = z.infer<typeof insertTakeoverScreenSchema>;
 export type UpdateTakeoverScreen = z.infer<typeof updateTakeoverScreenSchema>;
 export type InsertPoemExhibition = z.infer<typeof insertPoemExhibitionsSchema>;
+
+export const insertAtelierSeriesSchema = createInsertSchema(atelierSeries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAtelierExerciseSchema = createInsertSchema(atelierExercises).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAtelierResponseSchema = createInsertSchema(atelierResponses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AtelierSeries = typeof atelierSeries.$inferSelect;
+export type InsertAtelierSeries = z.infer<typeof insertAtelierSeriesSchema>;
+export type AtelierExercise = typeof atelierExercises.$inferSelect;
+export type InsertAtelierExercise = z.infer<typeof insertAtelierExerciseSchema>;
+export type AtelierResponse = typeof atelierResponses.$inferSelect;
+export type InsertAtelierResponse = z.infer<typeof insertAtelierResponseSchema>;
 

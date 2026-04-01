@@ -47,14 +47,13 @@ async function registerWithEmail(data: { email: string; password: string; firstN
 
 export function useAuth() {
   const queryClient = useQueryClient();
-  const { data: user, isLoading } = useQuery<User | null>({
+  const { data: user, isPending } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
       staleTime: 1000 * 60, // 60s — reduced from 5min (T20)
       refetchOnWindowFocus: true, // T20
-  refetchOnMount: "always", // T-audit: force fresh check on every protected-route mount
-        gcTime: 0, // evict immediately so stale user never lingers in cache
+        gcTime: 30000, // keep for 30s in cache
   });
 
   // T50: clear cache BEFORE redirect so cache is clean regardless of how

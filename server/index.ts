@@ -13,6 +13,7 @@ import {
   seedWelcomeNotifications,
 } from "./seedContent";
 import { startAgentScheduler } from "./lib/agentScheduler";
+import atelierRouter from "./routes/atelier";
 const app = express();
 const httpServer = createServer(app);
 app.use(
@@ -139,7 +140,8 @@ app.get("/api/debug/db", async (req: any, res) => {
 (async () => {
   // Simple health endpoint for uptime checks and keep-warm pings
   app.get("/health", (_req, res) => { res.json({ status: "ok", ts: Date.now() }); });
-  await registerRoutes(httpServer, app);
+app.use("/api/atelier", atelierRouter);
+    await registerRoutes(httpServer, app);
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -214,6 +216,13 @@ app.get("/api/debug/db", async (req: any, res) => {
       "all payment routes (/api/editorial-orders/create-order, /api/editorial-orders/capture-order) " +
       "will throw a 500 error when called. " +
       "Set these in Render environment variables before enabling editorial payment flows."
+    );
+  }
+  if (!process.env.SESSION_SECRET) {
+    console.error(
+      "[startup] CRITICAL: SESSION_SECRET env var is not set — " +
+      "sessions will not be signed securely. " +
+      "Set SESSION_SECRET in Render environment variables immediately."
     );
   }
   // Keep-warm: prevent Render free-tier cold starts by pinging the public URL every 13 minutes.

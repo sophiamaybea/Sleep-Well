@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,6 +28,32 @@ const defaultChapters = [
   { number: 7, title: "Daily Prompts and Practice" },
   { number: 8, title: "Quick Reference Card" },
 ];
+
+function ChapterCard({ chapter }: { chapter: { number: number; title: string } }) {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.2 });
+
+  return (
+    <div
+      ref={ref}
+      data-testid={`chapter-card-${chapter.number}`}
+      className={`border border-[#6b8f71]/30 bg-[#6b8f71]/[0.02] chapter-card-glow ${
+        isVisible ? 'chapter-card-reveal' : 'opacity-0'
+      }`}
+    >
+      <div className="border-b border-[#6b8f71]/20 px-6 md:px-10 py-6">
+        <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#6b8f71]">
+          Chapter {chapter.number}
+        </span>
+        <h1 className="font-display text-3xl md:text-4xl text-white/95 font-light mt-2">
+          {chapter.title}
+        </h1>
+      </div>
+      <div className="px-6 md:px-10 py-8 md:py-10">
+        <ChapterContent />
+      </div>
+    </div>
+  );
+}
 
 function DontWorryBox({ children }: { children: React.ReactNode }) {
   return (
@@ -652,22 +679,7 @@ export default function GardenGuide() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <div
-                    data-testid={`chapter-card-${chapter.number}`}
-                    className="border border-[#6b8f71]/30 bg-[#6b8f71]/[0.02]"
-                  >
-                    <div className="border-b border-[#6b8f71]/20 px-6 md:px-10 py-6">
-                      <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#6b8f71]">
-                        Chapter {chapter.number}
-                      </span>
-                      <h1 className="font-display text-3xl md:text-4xl text-white/95 font-light mt-2">
-                        {chapter.title}
-                      </h1>
-                    </div>
-                    <div className="px-6 md:px-10 py-8 md:py-10">
-                      <ChapterContent />
-                    </div>
-                  </div>
+                  <ChapterCard chapter={chapter} />
                 </motion.article>
               </AnimatePresence>
 

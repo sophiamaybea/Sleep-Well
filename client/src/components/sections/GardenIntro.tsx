@@ -1,6 +1,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link } from "wouter";
+import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap-init";
 
 function SeedDoodle() {
   return (
@@ -61,6 +62,7 @@ const stages = [
 
 function StageRow({ item, index }: { item: typeof stages[0]; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
@@ -72,6 +74,42 @@ function StageRow({ item, index }: { item: typeof stages[0]; index: number }) {
     [springX, springY],
     ([x, y]: number[]) => `radial-gradient(circle at ${(x as number) * 100}% ${(y as number) * 100}%, rgba(255,255,255,0.03) 0%, transparent 60%)`
   );
+
+  // GSAP parallax and float for icon
+  useEffect(() => {
+    if (!iconRef.current || prefersReducedMotion) return;
+
+    const tl = gsap.timeline();
+
+    // Parallax
+    tl.fromTo(
+      iconRef.current,
+      { y: 50 },
+      {
+        y: -50,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ref.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      }
+    );
+
+    // Subtle float
+    tl.to(
+      iconRef.current,
+      {
+        y: "-10px",
+        duration: 3,
+        ease: "power1.inOut",
+        yoyo: true,
+        repeat: -1,
+      },
+      0
+    );
+  }, []);
 
   function handleMouseMove(e: React.MouseEvent) {
     const rect = ref.current?.getBoundingClientRect();
@@ -106,6 +144,7 @@ function StageRow({ item, index }: { item: typeof stages[0]; index: number }) {
 
       {/* Icon */}
       <motion.div
+        ref={iconRef}
         className={`flex-shrink-0 ${item.color} mt-1 relative z-10`}
         animate={{
           scale: hovered ? 1.3 : 1,

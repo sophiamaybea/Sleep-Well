@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense, useEffect } from "react";
+import { MotionConfig, useReducedMotion } from "framer-motion";
 import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
@@ -26,6 +27,8 @@ const Piece = lazy(() => import("@/pages/Piece"));
 const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
 const Drafts = lazy(() => import("@/pages/Drafts"));
+const Atelier = lazy(() => import("@/pages/Atelier"));
+const Weave = lazy(() => import("@/pages/Weave"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const ExerciseAdmin = lazy(() => import("@/pages/ExerciseAdmin"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
@@ -49,7 +52,6 @@ const Saved = lazy(() => import("@/pages/Saved"));
 const V2Dashboard = lazy(() => import("@/pages/V2Dashboard"));
 const V2ReadingRoom = lazy(() => import("@/pages/V2ReadingRoom"));
 const V2Community = lazy(() => import("@/pages/V2Community"));
-const EditorialServices = lazy(() => import("@/pages/EditorialServices"));
 const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
@@ -122,10 +124,14 @@ function Router() {
         <Route path="/collection/:id" component={PublicCollection} />
         <Route path="/writer/:username" component={WriterProfile} />
         <Route path="/garden/:username" component={PublicGarden} />
+        <Route path="/public-garden/:userId">
+          {(params) => <Redirect to={`/garden/${params.userId}`} />}
+        </Route>
         <Route path="/editor-studio">{() => <ProtectedRoute component={EditorStudio} path="/editor-studio" />}</Route>
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={PageGallery} />
         <Route path="/piece/:id" component={Piece} />
+        <Route path="/weave/:id" component={Weave} />
         <Route path="/about" component={About} />
         <Route path="/courses" component={Courses} />
         <Route path="/drafts">{() => <ProtectedRoute component={Drafts} path="/drafts" />}</Route>
@@ -149,11 +155,14 @@ function Router() {
         <Route path="/dashboard">{() => <ProtectedRoute component={V2Dashboard} path="/dashboard" />}</Route>
         <Route path="/reading-room">{() => <ProtectedRoute component={V2ReadingRoom} path="/reading-room" />}</Route>
         <Route path="/community" component={V2Community} />
-        <Route path="/editorial-services" component={EditorialServices} />
         <Route path="/editorial-dashboard">{() => <ProtectedRoute component={EditorialDashboard} path="/editorial-dashboard" />}</Route>
+        <Route path="/eic-dashboard">
+          {() => <Redirect to="/editorial-dashboard" />}
+        </Route>
         <Route path="/editorial-payment">{() => <ProtectedRoute component={EditorialPayment} path="/editorial-payment" />}</Route>
         <Route path="/editorial-room">{() => <ProtectedRoute component={EditorialRoom} path="/editorial-room" />}</Route>
         <Route path="/marketplace" component={Marketplace} />
+                  <Route path="/atelier" component={Atelier} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
@@ -161,21 +170,28 @@ function Router() {
 }
 
 function App() {
+  const shouldReduceMotion = useReducedMotion();
+  if (shouldReduceMotion) {
+    // Ensure reduced motion preference is observed; MotionConfig user setting handles it.
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <SmoothScroll>
-          <StarBackground />
-          <IllustrationLayer />
-          <NoiseOverlay />
-          <AccessibilityToolbar />
-          <OnboardingModal />
-          <PageTitle />
-          <Router />
-          <Toaster />
-        </SmoothScroll>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <MotionConfig reducedMotion="user">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <SmoothScroll>
+            <StarBackground />
+            <IllustrationLayer />
+            <NoiseOverlay />
+            <AccessibilityToolbar />
+            <OnboardingModal />
+            <PageTitle />
+            <Router />
+            <Toaster />
+          </SmoothScroll>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </MotionConfig>
   );
 }
 

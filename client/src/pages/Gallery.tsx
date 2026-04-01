@@ -5,7 +5,6 @@ import { Link } from "wouter";
 import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2, Bookmark, Share2, Check, Heart, Archive, ExternalLink } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
-import NewsletterSignup from "@/components/ui/NewsletterSignup";
 import SectionedGallery from "@/components/SectionedGallery";
 
 const frameImg = "/images/gold-frame.png";
@@ -457,9 +456,6 @@ export default function Gallery() {
           )}
         </div>
 
-          <div className="max-w-3xl mx-auto px-6">
-            <NewsletterSignup variant="inline" heading="Letters from the Garden" subheading="A new piece and a writing prompt, every two weeks." />
-          </div>
         <PlantedInTheGarden />
 
         <footer className="border-t border-white/[0.04] py-12 text-center">

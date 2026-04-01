@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,7 +11,7 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 
-type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged" | "editorial-inbox" | "threads" | "garden-walk" | "tasks";
+type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged" | "editorial-inbox" | "threads" | "garden-walk" | "walkthrough" | "tasks";
 
 function stripHtmlForExcerpt(html: string): string {
   return html.replace(/<[^>]*>/g, "").slice(0, 200);
@@ -78,9 +78,11 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "requests", label: "Requests", icon: <Inbox size={15} /> },
   { id: "issues", label: "Issues", icon: <FileText size={15} /> },
   { id: "flagged", label: "Flagged", icon: <Flag size={15} /> },
-    { id: "editorial-inbox", label: "Inbox", icon: <Inbox size={15} /> },
+  { id: "editorial-inbox", label: "Inbox", icon: <Inbox size={15} /> },
   { id: "threads", label: "Threads", icon: <MessageCircle size={15} /> },
-  { id: "garden-walk", label: "Garden Walk", icon: <Leaf size={15} /> },   { id: "tasks", label: "Tasks", icon: <CheckCircle size={15} /> },
+  { id: "garden-walk", label: "Garden Walk", icon: <Leaf size={15} /> },
+  { id: "walkthrough", label: "Guide", icon: <BookOpen size={15} /> },
+  { id: "tasks", label: "Tasks", icon: <CheckCircle size={15} /> },
 ];
 
 function CuratedOpportunitiesSection() {
@@ -2210,6 +2212,37 @@ function ThreadsTab() {
     </motion.div>
   );
 }
+function WalkthroughTab() {
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <h3 className="font-display text-lg text-amber-200 italic">Garden & Gallery Walkthrough</h3>
+      <p className="font-serif text-sm text-white/70">This guide is your quick orientation within the Editorial Studio for how writing moves through our ecosystem, from writer gardens to public gallery exhibitions.</p>
+      <div className="space-y-4">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <h4 className="font-mono text-xs uppercase tracking-widest text-emerald-300 mb-2">1. Explore the Garden Stream</h4>
+          <p className="font-serif text-sm text-white/60">Start with the <strong>Garden Stream</strong> tab to review new writer entries, view readiness status (raw seed / growing / ready to show / dormant), and make notes. This is the first stage in the editorial journey.</p>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <h4 className="font-mono text-xs uppercase tracking-widest text-emerald-300 mb-2">2. Curate in Greenhouse</h4>
+          <p className="font-serif text-sm text-white/60">Move promising pieces into <strong>Greenhouse</strong> for focused tracking, editorial notes, and issue alignment. Set stage, priority, and request steps from here.</p>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <h4 className="font-mono text-xs uppercase tracking-widest text-emerald-300 mb-2">3. Publish to the Gallery</h4>
+          <p className="font-serif text-sm text-white/60">When a piece is ready, use the “Publish to Gallery” action in the Garden Stream or Greenhouse. This moves it into the public <strong>Gallery</strong> and completes the editorial lifecycle.</p>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <h4 className="font-mono text-xs uppercase tracking-widest text-emerald-300 mb-2">4. Use Editor Walks</h4>
+          <p className="font-serif text-sm text-white/60">Schedule or join <strong>Editors Walk</strong> from the Overview tab. This helps you and other editors collaboratively read and flag work as a group.</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <button onClick={() => window.location.href = "/garden"} className="px-4 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all text-sm">Go to Garden</button>
+        <button onClick={() => window.location.href = "/gallery"} className="px-4 py-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all text-sm">Go to Gallery</button>
+      </div>
+    </motion.div>
+  );
+}
+
 function GardenWalkTab() {
   const queryClient = useQueryClient();
     const { user } = useAuth();
@@ -2646,9 +2679,45 @@ function TasksTab() {
     </motion.div>
   );
 }
+function QuickActionPanel({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
+  return (
+    <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+      <button onClick={() => onNavigate("overview")} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/70 hover:border-amber-500/20 hover:text-white transition-all">
+        Overview<br/><span className="text-xs text-white/40">Dashboard summary + Walk settings</span>
+      </button>
+      <button onClick={() => onNavigate("garden-stream")} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/70 hover:border-amber-500/20 hover:text-white transition-all">
+        Garden Stream<br/><span className="text-xs text-white/40">New submissions & quick review</span>
+      </button>
+      <button onClick={() => onNavigate("greenhouse")} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/70 hover:border-amber-500/20 hover:text-white transition-all">
+        Greenhouse<br/><span className="text-xs text-white/40">Track and curate active pieces</span>
+      </button>
+      <button onClick={() => onNavigate("walkthrough")} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/70 hover:border-amber-500/20 hover:text-white transition-all">
+        Editor Guide<br/><span className="text-xs text-white/40">Step-by-step wayfinding</span>
+      </button>
+    </div>
+  );
+}
+
 export default function EditorStudio() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    if (typeof window === "undefined") return "overview";
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get("tab");
+    const validTabs: Tab[] = ["overview", "garden-stream", "greenhouse", "requests", "issues", "flagged", "editorial-inbox", "threads", "garden-walk", "walkthrough", "tasks"];
+    if (tabParam && validTabs.includes(tabParam as Tab)) return tabParam as Tab;
+    const stored = window.localStorage.getItem("editor-studio-active-tab") as Tab | null;
+    if (stored && validTabs.includes(stored)) return stored;
+    return "overview";
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem("editor-studio-active-tab", activeTab);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", activeTab);
+    const newURL = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, "", newURL);
+  }, [activeTab]);
 
   const { data: user, isLoading: userLoading } = useQuery<any>({
     queryKey: ["/api/auth/user"],
@@ -2761,7 +2830,9 @@ export default function EditorStudio() {
           {activeTab === "flagged" && <FlaggedTab />}
           {activeTab === "editorial-inbox" && <EditorialInboxTab />}
           {activeTab === "threads" && <ThreadsTab />}
-          {activeTab === "garden-walk" && <GardenWalkTab />}             {activeTab === "tasks" && <TasksTab />}
+          {activeTab === "garden-walk" && <GardenWalkTab />}
+          {activeTab === "walkthrough" && <WalkthroughTab />}
+          {activeTab === "tasks" && <TasksTab />}
         </motion.div>
       </AnimatePresence>
     </div>

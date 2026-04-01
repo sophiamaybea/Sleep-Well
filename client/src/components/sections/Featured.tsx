@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap-init";
 
 interface GalleryItem {
   id: string;
@@ -19,6 +21,8 @@ function getExcerpt(content: string | null, maxLen = 120): string {
 }
 
 export default function Featured() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
   const { data: gallery = [], isLoading } = useQuery<GalleryItem[]>({
     queryKey: ["/api/gallery"],
     queryFn: async () => {
@@ -30,13 +34,36 @@ export default function Featured() {
 
   const featured = gallery.slice(0, 3);
 
+  // GSAP scroll animation for dreamy entrance
+  useEffect(() => {
+    if (!sectionRef.current || prefersReducedMotion) return;
+
+    gsap.fromTo(
+      sectionRef.current.children,
+      { opacity: 0, y: 60, filter: "blur(8px)" },
+      {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 1.2,
+        stagger: 0.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 85%",
+          toggleActions: "play none none reverse",
+        },
+      }
+    );
+  }, []);
+
   return (
     <Section id="featured" className="bg-transparent text-primary py-32 relative">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(196,162,77,0.04) 0%, transparent 55%)" }}
       />
-      <div className="max-w-4xl mx-auto w-full px-6 space-y-16 relative z-10">
+      <div ref={sectionRef} className="max-w-4xl mx-auto w-full px-6 space-y-16 relative z-10">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 40, filter: "blur(6px)" }}
