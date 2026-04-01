@@ -21,7 +21,7 @@ function requireAuth(req: any, res: any, next: any) {
 }
 
 function requireEditor(req: any, res: any, next: any) {
-  if (!req.user || !((["editor", "admin"] as string[]).includes(req.user.role))) {
+  if (!req.user || !((["editor", "admin", "editor_in_chief"] as string[]).includes(req.user.role))) {
     return res.status(403).json({ error: "Forbidden" });
   }
   next();
@@ -31,7 +31,7 @@ function isCultivatorOrEditor(user: any): boolean {
   return (
     user?.tier === "cultivator" ||
     user?.role === "editor" ||
-    user?.role === "admin"
+    user?.role === "admin" || user?.role === "editor_in_chief"
   );
 }
 
@@ -179,9 +179,9 @@ router.post("/series/:id/respond", requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/atelier/series/:seriesId/respond/:responseId/save-to-garden
+// POST /api/atelier/series/:seriesId/save-to-garden
 router.post(
-  "/series/:seriesId/respond/:responseId/save-to-garden",
+  "/series/:seriesId/save-to-garden",
   requireAuth,
   async (req, res) => {
     try {
@@ -195,7 +195,7 @@ router.post(
         .from(atelierResponses)
         .where(
           and(
-            eq(atelierResponses.id, req.params.responseId),
+            eq(atelierResponses.id, req.body.responseId),
             eq(atelierResponses.userId, user.id)
           )
         );
