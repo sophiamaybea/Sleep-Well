@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense, useEffect } from "react";
+import { MotionConfig, useReducedMotion } from "framer-motion";
 import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
@@ -154,21 +155,28 @@ function Router() {
 }
 
 function App() {
+  const shouldReduceMotion = useReducedMotion();
+  if (shouldReduceMotion) {
+    // Ensure reduced motion preference is observed; MotionConfig user setting handles it.
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <SmoothScroll>
-          <StarBackground />
-          <IllustrationLayer />
-          <NoiseOverlay />
-          <AccessibilityToolbar />
-          <OnboardingModal />
-          <PageTitle />
-          <Router />
-          <Toaster />
-        </SmoothScroll>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <MotionConfig reducedMotion="user">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <SmoothScroll>
+            <StarBackground />
+            <IllustrationLayer />
+            <NoiseOverlay />
+            <AccessibilityToolbar />
+            <OnboardingModal />
+            <PageTitle />
+            <Router />
+            <Toaster />
+          </SmoothScroll>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </MotionConfig>
   );
 }
 
