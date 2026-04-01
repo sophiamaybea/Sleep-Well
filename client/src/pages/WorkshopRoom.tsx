@@ -3,40 +3,33 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import WorkshopSessionCard from "@/components/WorkshopSessionCard";
 import WorkshopPaywall from "@/components/WorkshopPaywall";
-import { useAuth } from "@/hooks/useAuth";
-
+import { useAuth } from "@/hooks/use-auth";
 export default function WorkshopRoom() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [activeSession, setActiveSession] = useState<string | null>(null);
-
-  const { data: sessions = [], isLoading } = useQuery({
+  const { data: sessions = [] as any[], isLoading } = useQuery({
     queryKey: ["/api/workshop/sessions"],
-    queryFn: () => apiRequest("/api/workshop/sessions"),
+    queryFn: () => apiRequest("GET", "/api/workshop/sessions"),
   });
-
   const { data: sessionDetail } = useQuery({
     queryKey: ["/api/workshop/sessions", activeSession],
     queryFn: () => apiRequest("GET", `/api/workshop/sessions/${activeSession}`),
     enabled: !!activeSession,
   });
-
   const { data: exercises } = useQuery({
     queryKey: ["/api/workshop/sessions", activeSession, "exercises"],
     queryFn: () => apiRequest("GET", `/api/workshop/sessions/${activeSession}/exercises`),
     enabled: !!activeSession,
   });
-
   const joinMutation = useMutation({
     mutationFn: (sessionId: string) =>
-            apiRequest("POST", `/api/workshop/sessions/${sessionId}/join`),
+      apiRequest("POST", `/api/workshop/sessions/${sessionId}/join`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/workshop/sessions", activeSession] });
     },
   });
-
   const isFree = user?.tier === "free";
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -44,7 +37,6 @@ export default function WorkshopRoom() {
       </div>
     );
   }
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       {/* Header */}
@@ -65,14 +57,13 @@ export default function WorkshopRoom() {
           </div>
         )}
       </div>
-
       {/* Session list */}
       {!activeSession && (
         <div className="space-y-4">
-          {sessions.length === 0 && (
+          {(sessions as any[]).length === 0 && (
             <p className="text-muted-foreground italic text-sm">No sessions scheduled yet. Check back soon.</p>
           )}
-          {sessions.map((session: any) => (
+          {(sessions as any[]).map((session: any) => (
             <WorkshopSessionCard
               key={session.id}
               session={session}
@@ -81,7 +72,6 @@ export default function WorkshopRoom() {
           ))}
         </div>
       )}
-
       {/* Session detail */}
       {activeSession && sessionDetail && (
         <div>
@@ -91,20 +81,18 @@ export default function WorkshopRoom() {
           >
             ← All sessions
           </button>
-
           <div className="mb-6">
-            <h2 className="font-serif text-2xl mb-1">{sessionDetail.title}</h2>
-            {sessionDetail.theme && (
+            <h2 className="font-serif text-2xl mb-1">{(sessionDetail as any).title}</h2>
+            {(sessionDetail as any).theme && (
               <p className="text-sm uppercase tracking-widest text-muted-foreground mb-2">
-                {sessionDetail.theme}
+                {(sessionDetail as any).theme}
               </p>
             )}
-            <p className="text-sm text-muted-foreground">{sessionDetail.description}</p>
+            <p className="text-sm text-muted-foreground">{(sessionDetail as any).description}</p>
           </div>
-
           {/* Join / joined status */}
           <div className="mb-8">
-            {sessionDetail.hasJoined ? (
+            {(sessionDetail as any).hasJoined ? (
               <span className="text-sm text-green-600 italic">You're in this session</span>
             ) : (
               <button
@@ -121,13 +109,12 @@ export default function WorkshopRoom() {
               </p>
             )}
           </div>
-
           {/* Exercises */}
           {exercises && (
             <WorkshopExercisePanel
-              exercises={exercises.exercises}
-              gated={exercises.gated}
-              total={exercises.total}
+              exercises={(exercises as any).exercises}
+              gated={(exercises as any).gated}
+              total={(exercises as any).total}
               sessionId={activeSession}
               tier={user?.tier ?? "free"}
             />
@@ -137,8 +124,7 @@ export default function WorkshopRoom() {
     </div>
   );
 }
-
-// ── Exercise panel (inline sub-component) ────────────────────────
+// ── Exercise panel (inline sub-component) ──────────────────────────────────
 function WorkshopExercisePanel({
   exercises,
   gated,
@@ -156,19 +142,14 @@ function WorkshopExercisePanel({
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [saved, setSaved] = useState(false);
-
   const respondMutation = useMutation({
     mutationFn: ({ exerciseId, content }: { exerciseId: string; content: string }) =>
-      apiRequest(`/api/workshop/sessions/${sessionId}/respond`, {
-        method: "POST",
-        body: JSON.stringify({ exerciseId, content }),
-      }),
+      apiRequest("POST", `/api/workshop/sessions/${sessionId}/respond`, { exerciseId, content }),
     onSuccess: () => {
       setSaved(true);
       qc.invalidateQueries({ queryKey: ["/api/workshop/sessions", sessionId, "my-responses"] });
     },
   });
-
   return (
     <div>
       <h3 className="font-serif text-lg mb-4">Exercises</h3>
@@ -196,7 +177,6 @@ function WorkshopExercisePanel({
                 {activeExercise === ex.id ? "Close" : "Open"}
               </button>
             </div>
-
             {activeExercise === ex.id && (
               <div className="mt-4">
                 {tier === "free" ? (
@@ -232,7 +212,6 @@ function WorkshopExercisePanel({
             )}
           </div>
         ))}
-
         {/* Paywall for remaining gated exercises */}
         {gated && (
           <div className="border border-dashed border-gold/40 rounded-md p-6 text-center">
