@@ -13,6 +13,7 @@ import {
   seedWelcomeNotifications,
 } from "./seedContent";
 import { startAgentScheduler } from "./lib/agentScheduler";
+import atelierRouter from "./routes/atelier";
 const app = express();
 const httpServer = createServer(app);
 app.use(
@@ -139,7 +140,8 @@ app.get("/api/debug/db", async (req: any, res) => {
 (async () => {
   // Simple health endpoint for uptime checks and keep-warm pings
   app.get("/health", (_req, res) => { res.json({ status: "ok", ts: Date.now() }); });
-  await registerRoutes(httpServer, app);
+app.use("/api/atelier", atelierRouter);
+    await registerRoutes(httpServer, app);
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
