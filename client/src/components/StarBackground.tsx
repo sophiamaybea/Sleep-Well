@@ -135,13 +135,13 @@ function StarField() {
   return (
     <points>
       <bufferGeometry>
-        <bufferAttribute attach=\"attributes-position\" args={[positions, 3]} />
-        <bufferAttribute attach=\"attributes-aSize\" args={[sizes, 1]} />
-        <bufferAttribute attach=\"attributes-aPhase\" args={[phases, 1]} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-aSize" args={[sizes, 1]} />
+        <bufferAttribute attach="attributes-aPhase" args={[phases, 1]} />
       </bufferGeometry>
       <starMaterial
         ref={matRef}
-        attach=\"material\"
+        attach="material"
         uTime={0}
         uOpacity={0.7}
         transparent
@@ -177,9 +177,9 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
 
   return (
     <div 
-      className=\"fixed inset-0 pointer-events-none overflow-hidden\" 
+      className="fixed inset-0 pointer-events-none overflow-hidden" 
       style={{ zIndex: 2 }}
-      aria-hidden=\"true\"
+      aria-hidden="true"
     >
       {/* ── Rain ── */}
       <div
@@ -267,7 +267,7 @@ function WeatherLayer({ progress }: WeatherLayerProps) {
 function StarDustOverlay({ progress }: { progress: number }) {
   return (
     <div 
-      className=\"fixed inset-0 pointer-events-none\"
+      className="fixed inset-0 pointer-events-none"
       style={{ 
         zIndex: 50, 
         opacity: Math.max(0, 0.4 - progress * 0.3),
@@ -275,7 +275,7 @@ function StarDustOverlay({ progress }: { progress: number }) {
       }}
     >
       <div 
-        className=\"absolute inset-0\"
+        className="absolute inset-0"
         style={{
           backgroundImage: `
             radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
@@ -354,15 +354,15 @@ export default function StarBackground() {
     <>
       {/* Dark sky base — pure black night for delicate stars */}
       <div 
-        className=\"fixed inset-0 pointer-events-none\" 
+        className="fixed inset-0 pointer-events-none" 
         style={{ zIndex: -1, background: '#000000' }} 
-        aria-hidden=\"true\" 
+        aria-hidden="true" 
       />
 
       {/* Three.js star canvas */}
       <div 
         ref={containerRef}
-        className=\"fixed inset-0 pointer-events-none\"
+        className="fixed inset-0 pointer-events-none"
         style={{ 
           zIndex: 0,
           willChange: 'opacity',
@@ -390,7 +390,7 @@ export default function StarBackground() {
         @keyframes pgj-rain-1 { from { background-position: 0 0; } to { background-position: 0 100vh; } }
         @keyframes pgj-rain-2 { from { background-position: 0 0; } to { background-position: 0 100vh; } }
         @media (prefers-reduced-motion: reduce) {
-          [style*=\"pgj-rain\"] { animation: none !important; }
+          [style*="pgj-rain"] { animation: none !important; }
         }
       `}</style>
     </>
