@@ -218,6 +218,13 @@ app.use("/api/atelier", atelierRouter);
       "Set these in Render environment variables before enabling editorial payment flows."
     );
   }
+  if (!process.env.SESSION_SECRET) {
+    console.error(
+      "[startup] CRITICAL: SESSION_SECRET env var is not set — " +
+      "sessions will not be signed securely. " +
+      "Set SESSION_SECRET in Render environment variables immediately."
+    );
+  }
   // Keep-warm: prevent Render free-tier cold starts by pinging the public URL every 13 minutes.
   // IMPORTANT: APP_URL *must* be set in Render environment variables for this to work.
   // Without it, no interval is scheduled and Render will sleep the service after 15 min inactivity.

@@ -109,6 +109,9 @@ function Router() {
         <Route path="/collection/:id" component={PublicCollection} />
         <Route path="/writer/:username" component={WriterProfile} />
         <Route path="/garden/:username" component={PublicGarden} />
+        <Route path="/public-garden/:userId">
+          {(params) => <Redirect to={`/garden/${params.userId}`} />}
+        </Route>
         <Route path="/editor-studio">{() => <ProtectedRoute component={EditorStudio} path="/editor-studio" />}</Route>
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={PageGallery} />
@@ -139,6 +142,9 @@ function Router() {
         <Route path="/community" component={V2Community} />
         <Route path="/editorial-services" component={EditorialServices} />
         <Route path="/editorial-dashboard">{() => <ProtectedRoute component={EditorialDashboard} path="/editorial-dashboard" />}</Route>
+        <Route path="/eic-dashboard">
+          {() => <Redirect to="/editorial-dashboard" />}
+        </Route>
         <Route path="/editorial-payment">{() => <ProtectedRoute component={EditorialPayment} path="/editorial-payment" />}</Route>
         <Route path="/editorial-room">{() => <ProtectedRoute component={EditorialRoom} path="/editorial-room" />}</Route>
         <Route path="/marketplace" component={Marketplace} />
