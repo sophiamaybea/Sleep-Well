@@ -12,7 +12,6 @@ import LoadingScreen from "@/components/garden/LoadingScreen";
 import { useAuth } from "@/hooks/use-auth";
 import StarBackground from "@/components/StarBackground";
 import IllustrationLayer from "@/components/IllustrationLayer";
-import { EICCommandBar } from "@/components/EICCommandBar";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
@@ -27,7 +26,6 @@ const Piece = lazy(() => import("@/pages/Piece"));
 const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
 const Drafts = lazy(() => import("@/pages/Drafts"));
-const EICDashboard = lazy(() => import("@/pages/EICDashboard"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const ExerciseAdmin = lazy(() => import("@/pages/ExerciseAdmin"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
@@ -57,7 +55,7 @@ const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
 
-function ProtectedRoute({ component: Component, path }: { component: React.ComponentType<any>; path: string }) {
+function ProtectedRoute({ component: Component, path }: { component: React.ComponentType; path: string }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
     return <LoadingScreen />;
@@ -103,55 +101,44 @@ function Router() {
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Switch>
-        <Route path="/sign-in" component={SignIn} />
-        <Route path="/garden" component={Garden} />
-        <Route path="/drafts">{() => <ProtectedRoute component={Drafts} path="/drafts" />}</Route>
-        <Route path="/grove">{() => <Redirect to="/garden" />}</Route>
-        <Route path="/garden/collections" component={Collections} />
-        <Route path="/garden/collections/:id" component={Collections} />
-        <Route path="/collections/:slug" component={PublicCollection} />
+        <Route path="/" component={Home} />
+        <Route path="/garden">{() => <ProtectedRoute component={Garden} path="/garden" />}</Route>
+        <Route path="/collections">{() => <ProtectedRoute component={Collections} path="/collections" />}</Route>
+        <Route path="/collection/:id" component={PublicCollection} />
+        <Route path="/writer/:username" component={WriterProfile} />
         <Route path="/garden/:username" component={PublicGarden} />
-        <Route path="/edit-profile">{() => <ProtectedRoute component={EditProfile} path="/edit-profile" />}</Route>
-        <Route path="/writer/:id" component={WriterProfile} />
-        <Route path="/public-garden/:userId" component={PublicGarden} />
-        <Route path="/piece/:id" component={Piece} />
-        <Route path="/in-bloom" component={InBloom} />
-        <Route path="/gallery" component={InBloom} />
-        <Route path="/saved" component={Saved} />
         <Route path="/editor-studio">{() => <ProtectedRoute component={EditorStudio} path="/editor-studio" />}</Route>
+        <Route path="/in-bloom" component={InBloom} />
+        <Route path="/gallery" component={PageGallery} />
+        <Route path="/piece/:id" component={Piece} />
         <Route path="/about" component={About} />
         <Route path="/courses" component={Courses} />
-        <Route path="/eic-dashboard">{() => <ProtectedRoute component={EICDashboard} path="/eic-dashboard" />}</Route>
+        <Route path="/drafts">{() => <ProtectedRoute component={Drafts} path="/drafts" />}</Route>
         <Route path="/editor-onboarding">{() => <ProtectedRoute component={EditorOnboarding} path="/editor-onboarding" />}</Route>
+        <Route path="/exercise-admin">{() => <ProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
+        <Route path="/sign-in" component={SignIn} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
+        <Route path="/accessibility" component={Accessibility} />
         <Route path="/commons" component={Commons} />
         <Route path="/how-it-works" component={HowItWorks} />
         <Route path="/garden-info" component={GardenInfo} />
         <Route path="/field-guide" component={FieldGuide} />
-        <Route path="/accessibility" component={Accessibility} />
+        <Route path="/edit-profile">{() => <ProtectedRoute component={EditProfile} path="/edit-profile" />}</Route>
         <Route path="/garden-guide" component={GardenGuide} />
-        <Route path="/publications" component={InBloom} />
         <Route path="/contact-editors" component={ContactEditors} />
-        <Route path="/v2" component={V2Dashboard} />
-        <Route path="/v2/reading-room" component={V2ReadingRoom} />
-        <Route path="/v2/community" component={V2Community} />
-        <Route path="/editorial-services" component={EditorialServices} />
-        <Route path="/dashboard/editorial">{() => <ProtectedRoute component={EditorialDashboard} path="/dashboard/editorial" />}</Route>
-        <Route path="/editorial-payment" component={EditorialPayment} />
-        <Route path="/settings">{() => <Redirect to="/edit-profile" />}</Route>
-        <Route path="/seasons">{() => <Redirect to="/courses" />}</Route>
-        <Route path="/journal">{() => <Redirect to="/in-bloom" />}</Route>
-        <Route path="/read">{() => <Redirect to="/in-bloom" />}</Route>
-        <Route path="/editorial-room">{() => <ProtectedRoute component={EditorialRoom} path="/editorial-room" />}</Route>
-        <Route path="/submit">{() => <Redirect to="/in-bloom" />}</Route>
         <Route path="/opportunities" component={Opportunities} />
         <Route path="/submissions" component={Submissions} />
         <Route path="/for-journals" component={ForJournals} />
-        <Route path="/exercise-admin">{() => <ProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
+        <Route path="/saved">{() => <ProtectedRoute component={Saved} path="/saved" />}</Route>
+        <Route path="/dashboard">{() => <ProtectedRoute component={V2Dashboard} path="/dashboard" />}</Route>
+        <Route path="/reading-room">{() => <ProtectedRoute component={V2ReadingRoom} path="/reading-room" />}</Route>
+        <Route path="/community" component={V2Community} />
+        <Route path="/editorial-services" component={EditorialServices} />
+        <Route path="/editorial-dashboard">{() => <ProtectedRoute component={EditorialDashboard} path="/editorial-dashboard" />}</Route>
+        <Route path="/editorial-payment">{() => <ProtectedRoute component={EditorialPayment} path="/editorial-payment" />}</Route>
+        <Route path="/editorial-room">{() => <ProtectedRoute component={EditorialRoom} path="/editorial-room" />}</Route>
         <Route path="/marketplace" component={Marketplace} />
-                    <Route path="/page-gallery" component={PageGallery} />
-        <Route path="/" component={Home} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
@@ -159,12 +146,10 @@ function Router() {
 }
 
 function App() {
-  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScroll>
-            <EICCommandBar />
           <StarBackground />
           <IllustrationLayer />
           <NoiseOverlay />
