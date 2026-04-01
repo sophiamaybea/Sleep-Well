@@ -5,7 +5,7 @@ import { apiRequest } from "@/lib/queryClient";
 export function useAtelierSeriesList() {
   return useQuery({
     queryKey: ["/api/atelier/series"],
-    queryFn: () => apiRequest("/api/atelier/series"),
+    queryFn: () => apiRequest("GET", "/api/atelier/series"),
   });
 }
 
@@ -13,7 +13,7 @@ export function useAtelierSeriesList() {
 export function useAtelierSeries(seriesId: string | null) {
   return useQuery({
     queryKey: ["/api/atelier/series", seriesId],
-    queryFn: () => apiRequest(`/api/atelier/series/${seriesId}`),
+    queryFn: () => apiRequest("GET", `/api/atelier/series/${seriesId}`),
     enabled: !!seriesId,
   });
 }
@@ -33,17 +33,14 @@ export function useAtelierRespond(seriesId: string) {
   });
 }
 
-// Plant a saved response into the Garden (Cultivator only)
-export function useAtelierSaveToGarden(seriesId: string) {
+// Admin: create a new series
+export function useAtelierCreateSeries() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (responseId: string) =>
-      apiRequest(`/api/atelier/series/${seriesId}/respond/${responseId}/save-to-garden`, {
-        method: "POST",
-      }),
+    mutationFn: (data: Record<string, unknown>) =>
+      apiRequest("POST", "/api/atelier/series", data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["/api/atelier/series", seriesId] });
-      qc.invalidateQueries({ queryKey: ["/api/writings"] });
+      qc.invalidateQueries({ queryKey: ["/api/atelier/series"] });
     },
   });
 }
