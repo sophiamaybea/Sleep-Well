@@ -178,7 +178,7 @@ export default function EICDashboard() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (activeTab === "agents") {
+    if ((activeTab as string) === "agents") {
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
     }
   }, [chatMessages, activeTab]);
