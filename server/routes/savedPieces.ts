@@ -23,14 +23,12 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { writingId, collection, notes } = req.body;
+    const { writingId } = req.body;
     if (!writingId) return res.status(400).json({ error: "writingId required" });
     const schema = await import("@shared/schema");
     const [saved] = await db.insert(schema.savedPieces).values({
       userId: req.user.id,
       writingId,
-      collection: collection || "default",
-      notes: notes || "",
     }).returning();
     res.status(201).json(saved);
   } catch (error: any) {
