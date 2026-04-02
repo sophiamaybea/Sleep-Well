@@ -42,16 +42,14 @@ router.get("/writing/:writingId", requireAuth, async (req: any, res: any) => {
 // POST create new marginalia note
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { writingId, content, highlight, position, color } = req.body;
+    const { writingId, content, highlightText } = req.body;
     if (!writingId || !content) return res.status(400).json({ error: "writingId and content required" });
     const schema = await import("@shared/schema");
     const [note] = await db.insert(schema.marginalia).values({
       userId: req.user.id,
       writingId,
       content,
-      highlight: highlight || "",
-      position: position || 0,
-      color: color || "yellow",
+      highlightText: highlightText || "",
     }).returning();
     res.status(201).json(note);
   } catch (error: any) {
@@ -69,10 +67,10 @@ router.put("/:id", requireAuth, async (req: any, res: any) => {
     });
     if (!existing) return res.status(404).json({ error: "Note not found" });
     if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
-    const { content, highlight, color } = req.body;
+    const { content, highlightText } = req.body;
     const schema = await import("@shared/schema");
     const [updated] = await db.update(schema.marginalia)
-      .set({ content, highlight, color, updatedAt: new Date() })
+      .set({ content, highlightText })
       .where(eq(schema.marginalia.id, id))
       .returning();
     res.json(updated);
