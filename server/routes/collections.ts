@@ -1,33 +1,32 @@
 import { Router } from 'express';
-import { db } from '../db'; // Assuming you have a db setup with Drizzle
-import { chapbookCollections, users, writings } from '../models'; // Import your models
+import { db } from '../db';
+import { eq, and } from 'drizzle-orm';
 
 const router = Router();
 
-router.get('/api/collections/public/:username/:slug', async (req, res) => {
-    const { username, slug } = req.params;
-    try {
-        const collection = await db.select(chapbookCollections)
-            .innerJoin(users, { 'chapbookCollections.userId': 'users.id' })
-            .where('users.username', '=', username)
-            .where('chapbookCollections.shareSlug', '=', slug)
-            .execute();
+router.get('/api/collections/public/:username/:slug', async (req: any, res: any) => {
+  const { username, slug } = req.params;
+  try {
+    const { chapbookCollections, users } = await import('@shared/schema');
+    // Find user by username
+    const user = await db.query.users.findFirst({
+      where: (u: any, { eq: eqOp }: any) => eqOp(u.username, username),
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-        // Assuming collection returns what you need; mapping to return desired fields
-        const collectionDetails = collection.map(col => ({
-            title: col.title,
-            description: col.description,
-            price: col.price,
-            writings: col.writings.map(writing => ({
-                title: writing.title,
-                excerpt: writing.excerpt
-            }))
-        }));
+    // Find collection by shareSlug and authorId
+    const collection = await db.query.chapbookCollections.findFirst({
+      where: (c: any, { eq: eqOp, and: andOp }: any) =>
+        andOp(eqOp(c.authorId, user.id), eqOp(c.shareSlug, slug)),
+    });
+    if (!collection) return res.status(404).json({ error: 'Collection not found' });
+    if (!collection.isPublic) return res.status(403).json({ error: 'Collection is private' });
 
-        res.status(200).json(collectionDetails);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+    res.status(200).json(collection);
+  } catch (error: any) {
+    console.error('Error fetching collection:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 export default router;
