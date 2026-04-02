@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@shared/models/auth";
+
 async function fetchUser(): Promise<User | null> {
   const response = await fetch("/api/auth/user", {
     credentials: "include",
@@ -12,6 +13,7 @@ async function fetchUser(): Promise<User | null> {
   }
   return response.json();
 }
+
 async function loginWithEmail(data: { email: string; password: string }): Promise<any> {
   const response = await fetch("/api/login", {
     method: "POST",
@@ -25,6 +27,7 @@ async function loginWithEmail(data: { email: string; password: string }): Promis
   }
   return response.json();
 }
+
 async function registerWithEmail(data: { email: string; password: string; firstName: string; lastName: string }): Promise<any> {
   const response = await fetch("/api/register", {
     method: "POST",
@@ -38,18 +41,19 @@ async function registerWithEmail(data: { email: string; password: string; firstN
   }
   return response.json();
 }
+
 export function useAuth() {
   const queryClient = useQueryClient();
+
   const { data: user, isPending: isLoading } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
-    staleTime: 1000 * 60, // 60s — reduced from 5min (T20)
-    refetchOnWindowFocus: true, // T20
-    gcTime: 30000, // keep for 30s in cache
+    staleTime: 1000 * 60, // 60s
+    refetchOnWindowFocus: true,
+    gcTime: 30000,
   });
-  // T50: clear cache BEFORE redirect so cache is clean regardless of how
-  // the redirect is triggered (window.location, wouter, or future changes)
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await fetch("/api/logout", { method: "GET", credentials: "include" });
@@ -60,18 +64,22 @@ export function useAuth() {
       window.location.href = "/";
     },
   });
+
   const loginMutation = useMutation({
-    mutationFn: loginWithEmail,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+fix(use-auth): await refetchQueries on success to ensure warm cache before navigation    onSuccess: async () => {
+      // FIX(Finding 1b): await refetchQueries to ensure the cache is warm
+      // before any components (like SignIn) try to navigate.
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
     },
   });
+
   const registerMutation = useMutation({
     mutationFn: registerWithEmail,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
     },
   });
+
   return {
     user,
     isLoading,
@@ -84,5 +92,7 @@ export function useAuth() {
     registerError: registerMutation.error,
     isLoggingIn: loginMutation.isPending,
     isRegistering: registerMutation.isPending,
+    resetLoginError: () => loginMutation.reset(),
+    resetRegisterError: () => registerMutation.reset(),
   };
 }
