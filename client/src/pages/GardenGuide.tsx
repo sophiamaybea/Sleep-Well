@@ -29,7 +29,7 @@ const defaultChapters = [
   { number: 8, title: "Quick Reference Card" },
 ];
 
-function ChapterCard({ chapter }: { chapter: { number: number; title: string } }) {
+function ChapterCard({ chapter, ContentComponent }: { chapter: { number: number; title: string }; ContentComponent: React.ComponentType }) {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.2 });
 
   return (
@@ -49,7 +49,7 @@ function ChapterCard({ chapter }: { chapter: { number: number; title: string } }
         </h1>
       </div>
       <div className="px-6 md:px-10 py-8 md:py-10">
-        <ChapterContent />
+        <ContentComponent />
       </div>
     </div>
   );
@@ -679,7 +679,7 @@ export default function GardenGuide() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <ChapterCard chapter={chapter} />
+                  <ChapterCard chapter={chapter} ContentComponent={ChapterContent} />
                 </motion.article>
               </AnimatePresence>
 
