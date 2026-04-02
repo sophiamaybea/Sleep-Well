@@ -14,7 +14,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   try {
     const results = await db.query.innerWeather.findMany({
       where: (w: any, { eq: eqOp }: any) => eqOp(w.userId, req.user.id),
-      orderBy: (w: any) => [desc(w.recordedAt)],
+      orderBy: (w: any) => [desc(w.createdAt)],
     });
     res.json(results);
   } catch (error: any) {
@@ -27,7 +27,7 @@ router.get("/latest", requireAuth, async (req: any, res: any) => {
   try {
     const result = await db.query.innerWeather.findFirst({
       where: (w: any, { eq: eqOp }: any) => eqOp(w.userId, req.user.id),
-      orderBy: (w: any) => [desc(w.recordedAt)],
+      orderBy: (w: any) => [desc(w.createdAt)],
     });
     res.json(result || null);
   } catch (error: any) {
@@ -38,18 +38,14 @@ router.get("/latest", requireAuth, async (req: any, res: any) => {
 // POST record new inner weather
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { mood, energy, creativity, clarity, notes, weatherIcon } = req.body;
+    const { mood, energy, note } = req.body;
     if (!mood) return res.status(400).json({ error: "Mood is required" });
     const schema = await import("@shared/schema");
     const [entry] = await db.insert(schema.innerWeather).values({
       userId: req.user.id,
       mood,
       energy: energy || 5,
-      creativity: creativity || 5,
-      clarity: clarity || 5,
-      notes: notes || "",
-      weatherIcon: weatherIcon || "partly-cloudy",
-      recordedAt: new Date(),
+      note: note || null,
     }).returning();
     res.status(201).json(entry);
   } catch (error: any) {
