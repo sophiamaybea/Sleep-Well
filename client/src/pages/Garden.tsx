@@ -3394,7 +3394,7 @@ export default function Garden() {
   function handlePlantingSave(data: { visibility: string; readiness: string; editorialAvailable: boolean }) {
     if (plantingTarget) updateMutation.mutate({ id: plantingTarget.id, ...data });
         if (plantingTarget && (data.visibility === 'gallery' || data.visibility === 'gallery_opt_in')) {      setFeedbackWritingId(plantingTarget.id);
-      const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);(true);
+      const [showGalleryFeedback, setShowGalleryFeedback] = useState(false);       const [showEditorialModal, setShowEditorialModal] = useState(false);
     }
   }
 
