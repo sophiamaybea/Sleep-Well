@@ -3317,3 +3317,29 @@ export const insertInstagramSquareExportSchema = createInsertSchema(instagramSqu
 
 export type InstagramSquareExport = typeof instagramSquareExports.$inferSelect;
 export type InsertInstagramSquareExport = z.infer<typeof insertInstagramSquareExportSchema>;
+
+// === EDITORIAL LETTERS ===
+export const editorialLetters = pgTable("editorial_letters", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  summary: text("summary").notNull().default(""),
+  season: text("season").notNull().default("general"),
+  publishedAt: timestamp("published_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEditorialLetterSchema = createInsertSchema(editorialLetters).omit({
+  id: true,
+  authorId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type EditorialLetter = typeof editorialLetters.$inferSelect;
+export type InsertEditorialLetter = z.infer<typeof insertEditorialLetterSchema>;
