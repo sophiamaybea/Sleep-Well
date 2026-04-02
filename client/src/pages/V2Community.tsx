@@ -1,7 +1,7 @@
 import V2Layout from "@/components/V2Layout";
 import { Users, Calendar, MessageCircle, Feather } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useWeaves, useCreateWeave } from "@/hooks/usePoemWeaving";
 
 interface Circle {
@@ -23,7 +23,7 @@ interface Event {
 }
 
 export default function V2Community() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const [newWeaveTitle, setNewWeaveTitle] = useState("");
   const [showNewWeave, setShowNewWeave] = useState(false);
   const { data: weaves = [], isLoading: weavesLoading } = useWeaves();
@@ -57,7 +57,7 @@ export default function V2Community() {
     const weave = await createWeaveMutation.mutateAsync({ title: newWeaveTitle.trim() });
     setNewWeaveTitle("");
     setShowNewWeave(false);
-    navigate(`/weave/${weave.id}`);
+    setLocation(`/weave/${weave.id}`);
   };
 
   const weaveBadge = (status: string) => {
@@ -126,7 +126,7 @@ export default function V2Community() {
               {weaves.map((weave: any) => (
                 <button
                   key={weave.id}
-                  onClick={() => navigate(`/weave/${weave.id}`)}
+                  onClick={() => setLocation(`/weave/${weave.id}`)}
                   className="text-left bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg p-4 hover:border-[var(--color-accent)] transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
