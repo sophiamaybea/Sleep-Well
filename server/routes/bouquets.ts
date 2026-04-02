@@ -12,8 +12,8 @@ function requireAuth(req: any, res: any, next: any) {
 // GET all bouquets for current user
 router.get("/", requireAuth, async (req: any, res: any) => {
   try {
-    const results = await db.query.bouquets.findMany({
-      where: (b: any, { eq: eqOp }: any) => eqOp(b.userId, req.user.id),
+    const results = await db.query.readingBouquets.findMany({
+      where: (b: any, { eq: eqOp }: any) => eqOp(b.curatorId, req.user.id),
       orderBy: (b: any) => [desc(b.createdAt)],
     });
     res.json(results);
@@ -27,11 +27,11 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const result = await db.query.bouquets.findFirst({
+    const result = await db.query.readingBouquets.findFirst({
       where: (b: any, { eq: eqOp }: any) => eqOp(b.id, id),
     });
     if (!result) return res.status(404).json({ error: "Bouquet not found" });
-    if (result.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
+    if (result.curatorId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
     res.json(result);
   } catch (error: any) {
     console.error("Error fetching bouquet:", error);
@@ -42,15 +42,15 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
 // POST create new bouquet
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { title, description, writingIds, tags } = req.body;
+    const { title, description, theme, isPublic } = req.body;
     if (!title) return res.status(400).json({ error: "Title is required" });
     const schema = await import("@shared/schema");
-    const [bouquet] = await db.insert(schema.bouquets).values({
-      userId: req.user.id,
+    const [bouquet] = await db.insert(schema.readingBouquets).values({
+      curatorId: req.user.id,
       title,
       description: description || "",
-      writingIds: writingIds || [],
-      tags: tags || [],
+      theme: theme || null,
+      isPublic: isPublic ?? true,
     }).returning();
     res.status(201).json(bouquet);
   } catch (error: any) {
@@ -63,16 +63,16 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 router.put("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const existing = await db.query.bouquets.findFirst({
+    const existing = await db.query.readingBouquets.findFirst({
       where: (b: any, { eq: eqOp }: any) => eqOp(b.id, id),
     });
     if (!existing) return res.status(404).json({ error: "Bouquet not found" });
-    if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
-    const { title, description, writingIds, tags } = req.body;
+    if (existing.curatorId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
+    const { title, description, theme, isPublic } = req.body;
     const schema = await import("@shared/schema");
-    const [updated] = await db.update(schema.bouquets)
-      .set({ title, description, writingIds, tags, updatedAt: new Date() })
-      .where(eq(schema.bouquets.id, id))
+    const [updated] = await db.update(schema.readingBouquets)
+      .set({ title, description, theme, isPublic })
+      .where(eq(schema.readingBouquets.id, id))
       .returning();
     res.json(updated);
   } catch (error: any) {
@@ -85,13 +85,13 @@ router.put("/:id", requireAuth, async (req: any, res: any) => {
 router.delete("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const existing = await db.query.bouquets.findFirst({
+    const existing = await db.query.readingBouquets.findFirst({
       where: (b: any, { eq: eqOp }: any) => eqOp(b.id, id),
     });
     if (!existing) return res.status(404).json({ error: "Bouquet not found" });
-    if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
+    if (existing.curatorId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
     const schema = await import("@shared/schema");
-    await db.delete(schema.bouquets).where(eq(schema.bouquets.id, id));
+    await db.delete(schema.readingBouquets).where(eq(schema.readingBouquets.id, id));
     res.status(204).send();
   } catch (error: any) {
     console.error("Error deleting bouquet:", error);
