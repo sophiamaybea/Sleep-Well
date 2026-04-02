@@ -1,5 +1,8 @@
 import V2Layout from "@/components/V2Layout";
-import { Users, Calendar, MessageCircle } from "lucide-react";
+import { Users, Calendar, MessageCircle, Feather } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useWeave, useCreateWeave } from "@/hooks/usePoemWeaving";
 
 interface Circle {
   id: number;
@@ -20,6 +23,12 @@ interface Event {
 }
 
 export default function V2Community() {
+  const navigate = useNavigate();
+  const [newWeaveTitle, setNewWeaveTitle] = useState("");
+  const [showNewWeave, setShowNewWeave] = useState(false);
+  const { data: weaves = [], isLoading: weavesLoading } = useWeave();
+  const createWeaveMutation = useCreateWeave();
+
   const circles: Circle[] = [
     { id: 1, name: "Grief & Growing", description: "A quiet space for writing through loss", members: 24, nextMeeting: "Thursday 7pm", isJoined: true },
     { id: 2, name: "Morning Pages", description: "Daily freewriting practice, no editing", members: 41, nextMeeting: "Daily 8am", isJoined: true },
@@ -43,9 +52,98 @@ export default function V2Community() {
     }
   };
 
+  const handleCreateWeave = async () => {
+    if (!newWeaveTitle.trim()) return;
+    const weave = await createWeaveMutation.mutateAsync({ title: newWeaveTitle.trim() });
+    setNewWeaveTitle("");
+    setShowNewWeave(false);
+    navigate(`/weave/${weave.id}`);
+  };
+
+  const weaveBadge = (status: string) => {
+    switch (status) {
+      case "open": return "bg-emerald-900/40 text-emerald-300";
+      case "in_progress": return "bg-amber-900/40 text-amber-300";
+      case "harvested": return "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]";
+      default: return "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]";
+    }
+  };
+
   return (
     <V2Layout activeTab="community">
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Poem Weaving — full width banner */}
+        <div className="mb-10 bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-xl flex items-center gap-2">
+              <Feather size={20} className="text-[var(--color-accent)]" />
+              Poem Weaving
+            </h2>
+            <button
+              onClick={() => setShowNewWeave((v) => !v)}
+              className="px-4 py-1.5 text-sm bg-[var(--color-accent)] text-[var(--color-accent-foreground)] rounded-full hover:opacity-90 transition-opacity"
+            >
+              + New Weave
+            </button>
+          </div>
+          <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
+            Write a poem together — invite another poet and trade stanzas until the poem is complete.
+          </p>
+
+          {showNewWeave && (
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newWeaveTitle}
+                onChange={(e) => setNewWeaveTitle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateWeave()}
+                placeholder="Give your weave a title…"
+                className="flex-1 px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-accent)]"
+                autoFocus
+              />
+              <button
+                onClick={handleCreateWeave}
+                disabled={createWeaveMutation.isPending || !newWeaveTitle.trim()}
+                className="px-4 py-2 text-sm bg-[var(--color-accent)] text-[var(--color-accent-foreground)] rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity"
+              >
+                {createWeaveMutation.isPending ? "Creating…" : "Create"}
+              </button>
+              <button
+                onClick={() => { setShowNewWeave(false); setNewWeaveTitle(""); }}
+                className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:border-[var(--color-accent)] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {weavesLoading ? (
+            <p className="text-sm text-[var(--color-muted-foreground)]">Loading weaves…</p>
+          ) : weaves.length === 0 ? (
+            <p className="text-sm text-[var(--color-muted-foreground)] italic">No weaves yet. Start one above.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {weaves.map((weave: any) => (
+                <button
+                  key={weave.id}
+                  onClick={() => navigate(`/weave/${weave.id}`)}
+                  className="text-left bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg p-4 hover:border-[var(--color-accent)] transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <span className="font-medium text-sm line-clamp-1">{weave.title}</span>
+                    <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-mono tracking-wider ${weaveBadge(weave.status)}`}>
+                      {weave.status === "in_progress" ? "IN PROGRESS" : weave.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--color-muted-foreground)]">
+                    {weave.stanzaCount ?? 0} stanza{(weave.stanzaCount ?? 0) !== 1 ? "s" : ""}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-3 gap-8">
           {/* Circles - 2 cols */}
           <div className="col-span-2">
@@ -105,7 +203,7 @@ export default function V2Community() {
                   </div>
                   <h3 className="font-medium text-sm mb-1">{event.title}</h3>
                   <div className="text-xs text-[var(--color-muted-foreground)]">
-                    {event.date} at {event.time} &middot; {event.attendees} attending
+                    {event.date} at {event.time} · {event.attendees} attending
                   </div>
                 </div>
               ))}
