@@ -25,15 +25,12 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 // POST add to reading queue
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { writingId, priority, notes } = req.body;
+    const { writingId } = req.body;
     if (!writingId) return res.status(400).json({ error: "writingId required" });
     const schema = await import("@shared/schema");
     const [item] = await db.insert(schema.readingQueue).values({
       userId: req.user.id,
       writingId,
-      priority: priority || "normal",
-      notes: notes || "",
-      isRead: false,
     }).returning();
     res.status(201).json(item);
   } catch (error: any) {
@@ -41,7 +38,7 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-// PUT mark as read / update
+// PUT mark as read/unread
 router.put("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
@@ -50,10 +47,10 @@ router.put("/:id", requireAuth, async (req: any, res: any) => {
     });
     if (!existing) return res.status(404).json({ error: "Item not found" });
     if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
-    const { isRead, priority, notes } = req.body;
+    const { isRead } = req.body;
     const schema = await import("@shared/schema");
     const [updated] = await db.update(schema.readingQueue)
-      .set({ isRead, priority, notes, updatedAt: new Date() })
+      .set({ isRead })
       .where(eq(schema.readingQueue.id, id))
       .returning();
     res.json(updated);
@@ -62,7 +59,7 @@ router.put("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-// DELETE from reading queue
+// DELETE remove from reading queue
 router.delete("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
