@@ -66,7 +66,8 @@ export function useAuth() {
   });
 
   const loginMutation = useMutation({
-fix(use-auth): await refetchQueries on success to ensure warm cache before navigation    onSuccess: async () => {
+    mutationFn: loginWithEmail,
+    onSuccess: async () => {
       // FIX(Finding 1b): await refetchQueries to ensure the cache is warm
       // before any components (like SignIn) try to navigate.
       await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
