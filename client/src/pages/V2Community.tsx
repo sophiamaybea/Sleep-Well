@@ -2,7 +2,7 @@ import V2Layout from "@/components/V2Layout";
 import { Users, Calendar, MessageCircle, Feather } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useWeave, useCreateWeave } from "@/hooks/usePoemWeaving";
+import { useWeaves, useCreateWeave } from "@/hooks/usePoemWeaving";
 
 interface Circle {
   id: number;
@@ -26,7 +26,7 @@ export default function V2Community() {
   const navigate = useNavigate();
   const [newWeaveTitle, setNewWeaveTitle] = useState("");
   const [showNewWeave, setShowNewWeave] = useState(false);
-  const { data: weaves = [], isLoading: weavesLoading } = useWeave();
+  const { data: weaves = [], isLoading: weavesLoading } = useWeaves();
   const createWeaveMutation = useCreateWeave();
 
   const circles: Circle[] = [
