@@ -39,7 +39,7 @@ function useCloseWeave(weaveId: string) {
 
 export function PoemWeaveRoom({ weaveId }: Props) {
   const { data, isPending } = useWeave(weaveId);
-  const { data: user } = useAuth();
+    const { user } = useAuth();
   const addStanza = useAddStanza(weaveId);
   const harvestWeave = useHarvestWeave(weaveId);
   const invitePoet = useInviteToWeave(weaveId);
