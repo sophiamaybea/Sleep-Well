@@ -42,15 +42,13 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
 // POST create new idea drop
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { content, mood, tags, source } = req.body;
+    const { content, status } = req.body;
     if (!content) return res.status(400).json({ error: "Content is required" });
     const schema = await import("@shared/schema");
     const [drop] = await db.insert(schema.ideaDrops).values({
       userId: req.user.id,
       content,
-      mood: mood || "neutral",
-      tags: tags || [],
-      source: source || "manual",
+      status: status || "open",
     }).returning();
     res.status(201).json(drop);
   } catch (error: any) {
@@ -68,10 +66,10 @@ router.put("/:id", requireAuth, async (req: any, res: any) => {
     });
     if (!existing) return res.status(404).json({ error: "Idea drop not found" });
     if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
-    const { content, mood, tags } = req.body;
+    const { content, status } = req.body;
     const schema = await import("@shared/schema");
     const [updated] = await db.update(schema.ideaDrops)
-      .set({ content, mood, tags, updatedAt: new Date() })
+      .set({ content, status })
       .where(eq(schema.ideaDrops.id, id))
       .returning();
     res.json(updated);
