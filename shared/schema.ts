@@ -3299,3 +3299,21 @@ export type InsertAtelierExercise = z.infer<typeof insertAtelierExerciseSchema>;
 export type AtelierResponse = typeof atelierResponses.$inferSelect;
 export type InsertAtelierResponse = z.infer<typeof insertAtelierResponseSchema>;
 
+
+// -- Instagram Square Exports ------------------------------------------
+export const instagramSquareExports = pgTable("instagram_square_exports", {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    writingId: varchar("writing_id").references(() => writings.id, { onDelete: "set null" }),
+    title: text("title"),
+    contentSnippet: text("content_snippet"),
+    theme: varchar("theme", { length: 50 }).default("dark"),
+    fontChoice: varchar("font_choice", { length: 50 }).default("serif"),
+    downloadedAt: timestamp("downloaded_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  });
+
+export const insertInstagramSquareExportSchema = createInsertSchema(instagramSquareExports).omit({ id: true, downloadedAt: true, createdAt: true });
+
+export type InstagramSquareExport = typeof instagramSquareExports.$inferSelect;
+export type InsertInstagramSquareExport = z.infer<typeof insertInstagramSquareExportSchema>;
