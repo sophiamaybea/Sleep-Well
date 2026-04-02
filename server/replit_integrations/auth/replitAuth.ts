@@ -73,11 +73,12 @@ export async function setupAuth(app: Express) {
     app.use(passport.session());
 
     const config = await getOidcConfig();
+
     const verify: VerifyFunction = async (
       tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
       verified: passport.AuthenticateCallback
     ) => {
-          const user = {} as Express.User;
+      const user = {} as Express.User;
       updateUserSession(user, tokens);
       await upsertUser(tokens.claims());
       verified(null, user);
@@ -144,64 +145,83 @@ export async function setupAuth(app: Express) {
   }
 
   // Email/password authentication (works in all environments)
-    app.post("/api/login", async (req, res) => {
-      try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-          return res.status(400).json({ message: "Email and password are required" });
-        }
-        const user = await authStorage.getUserByEmail(email);
-        if (!user || !user.passwordHash) {
-          return res.status(401).json({ message: "Invalid email or password" });
-        }
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) {
-          return res.status(401).json({ message: "Invalid email or password" });
-        }
-        (req.session as any).userId = user.id;
-        (req.session as any).user = {
-          claims: { sub: user.id, email: user.email, first_name: user.firstName, last_name: user.lastName, profile_image_url: user.profileImageUrl },
-          expires_at: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
-        };
-        return res.json({ message: "Login successful", user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: (user as any).role } });
-      } catch (error) {
-        console.error("Login error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
       }
-    });
-
-    app.post("/api/register", async (req, res) => {
-      try {
-        const { email, password, firstName, lastName } = req.body;
-        if (!email || !password) {
-          return res.status(400).json({ message: "Email and password are required" });
+      const user = await authStorage.getUserByEmail(email);
+      if (!user || !user.passwordHash) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      const isValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      (req.session as any).userId = user.id;
+      (req.session as any).user = {
+        claims: { sub: user.id, email: user.email, first_name: user.firstName, last_name: user.lastName, profile_image_url: user.profileImageUrl },
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+      };
+      // FIX(Finding 2): save() ensures the session is persisted to Postgres
+      // before the response is sent, so Set-Cookie is flushed to the client.
+      req.session.save((err) => {
+        if (err) {
+          console.error("[/api/login] session save error:", err);
+          return res.status(500).json({ message: "Session error — please try again" });
         }
-        const existing = await authStorage.getUserByEmail(email);
-        if (existing) {
-          return res.status(409).json({ message: "Email already registered" });
-        }
-        const passwordHash = await bcrypt.hash(password, 12);
-        const userId = crypto.randomUUID();
-        await authStorage.upsertUser({
-          id: userId,
-          email,
-          firstName: firstName || "",
-          lastName: lastName || "",
-          profileImageUrl: "",
+        return res.json({
+          message: "Login successful",
+          user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: (user as any).role },
         });
-        // Update the password hash separately
-        await authStorage.setPasswordHash(userId, passwordHash);
-        (req.session as any).userId = userId;
-        (req.session as any).user = {
-          claims: { sub: userId, email, first_name: firstName, last_name: lastName },
-          expires_at: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
-        };
-        return res.json({ message: "Registration successful" });
-      } catch (error) {
-        console.error("Registration error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/register", async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
       }
-    });
+      const existing = await authStorage.getUserByEmail(email);
+      if (existing) {
+        return res.status(409).json({ message: "Email already registered" });
+      }
+      const passwordHash = await bcrypt.hash(password, 12);
+      const userId = crypto.randomUUID();
+      await authStorage.upsertUser({
+        id: userId,
+        email,
+        firstName: firstName || "",
+        lastName: lastName || "",
+        profileImageUrl: "",
+      });
+      // Update the password hash separately
+      await authStorage.setPasswordHash(userId, passwordHash);
+      (req.session as any).userId = userId;
+      (req.session as any).user = {
+        claims: { sub: userId, email, first_name: firstName, last_name: lastName },
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+      };
+      // FIX(Finding 2b): same as login — save() before responding so the
+      // session cookie reaches the client before the next request fires.
+      req.session.save((err) => {
+        if (err) {
+          console.error("[/api/register] session save error:", err);
+          return res.status(500).json({ message: "Session error — please try again" });
+        }
+        return res.json({ message: "Registration successful" });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
