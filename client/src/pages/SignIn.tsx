@@ -19,7 +19,7 @@ const quotes = [
   { text: "Start writing, no matter what. The water does not flow until the faucet is turned on.", author: "Louis L'Amour" },
   { text: "We write to taste life twice, in the moment and in retrospect.", author: "Anaïs Nin" },
   { text: "If there's a book that you want to read, but it hasn't been written yet, then you must write it.", author: "Toni Morrison" },
-  { text: "Poetry is when an emotion has found its thought and the thought has found words.", author: Robert Frost" },
+  { text: "Poetry is when an emotion has found its thought and the thought has found words.", author: "Robert Frost" },
 ];
 
 function FloatingWord({ word, index }: { word: string; index: number }) {
@@ -108,7 +108,7 @@ function AuthInput({ label, type = "text", value, onChange, testId, placeholder 
 }
 
 function EmailAuthForm() {
-  const { login, register, loginError, registerError, isLoggingIn, isRegistering } = useAuth();
+  const { login, register, loginError, registerError, isLoggingIn, isRegistering, resetLoginError, resetRegisterError } = useAuth();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"signin" | "register">("signin");
   const [email, setEmail] = useState("");
@@ -123,10 +123,8 @@ function EmailAuthForm() {
     setError(null);
     
     // FIX(Finding 6): Clear stale errors from the mutation state
-    // before attempting a new operation.
-    if (mode === "signin") {
-      // login is mutateAsync
-    }
+    if (mode === "signin") resetLoginError();
+    else resetRegisterError();
 
     try {
       if (mode === "signin") {
@@ -135,9 +133,7 @@ function EmailAuthForm() {
         await register({ email, password, firstName, lastName });
       }
       
-      // FIX(Finding 1): We MUST wait for the auth query to refetch
-      // before navigating, otherwise ProtectedRoute will see null/undefined
-      // and redirect us back to sign-in before the cache is warm.
+      // FIX(Finding 1): Wait for refetch to ensure ProtectedRoute doesn't redirect.
       await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
       navigate("/garden");
     } catch (err: any) {
@@ -304,8 +300,7 @@ export default function SignIn() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // FIX(Finding 3): Guard redirect to prevent flash of sign-in page for
-  // already-authenticated users. Render nothing if we're redirecting.
+  // FIX(Finding 3): Guard redirect to prevent flash of sign-in page.
   if (!isLoading && isAuthenticated) {
     navigate("/garden");
     return null;
@@ -439,7 +434,7 @@ export default function SignIn() {
             </AnimatePresence>
           </motion.div>
 
-          {isReplit ? <ReplitAuthButton / : <EmailAuthForm />}
+          {isReplit ? <ReplitAuthButton /> : <EmailAuthForm />}
 
           <motion.div
             initial={{ opacity: 0 }}
