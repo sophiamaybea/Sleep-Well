@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Download, FileText, FileCode, File, FileType, Sparkles } from "lucide-react";
+import { Download, FileText, FileCode, File, FileType, Sparkles , Instagram} from "lucide-react";
 import { stripHtml } from "./RichEditor";
+import { InstagramSquareModal } from "../InstagramSquareModal";
 
 interface ExportMenuProps {
   title: string;
@@ -56,6 +57,7 @@ function sanitizeFilename(title: string): string {
 
 export default function ExportMenu({ title, content, compact = false, writingId, onRequestFeedback }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
+    const [squareOpen, setSquareOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -128,7 +130,7 @@ ${bodyContent}
     : "flex items-center gap-1.5 px-3 py-1.5 border border-white/[0.15] hover:border-white/25 rounded-full font-mono text-[9px] uppercase tracking-widest text-white/50 hover:text-white/70 transition-all";
 
   return (
-    <div className="relative" ref={ref}>
+        <><div className="relative" ref={ref}>
       <button onClick={() => setOpen(!open)} className={btnClass} title="Export as TXT, Markdown, DOCX, or PDF" data-testid="button-export">
         <Download size={compact ? 13 : 11} />
         {!compact && "Export"}
@@ -154,6 +156,10 @@ ${bodyContent}
             <File size={13} className="text-white/40" />
             Print / PDF
           </button>
+                      <button onClick={() => { setOpen(false); setSquareOpen(true); }} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left font-mono text-[10px] uppercase tracking-widest text-pink-300/70 hover:text-pink-200 hover:bg-pink-500/[0.07] transition-all" data-testid="export-instagram-square">
+                                      <Instagram size={13} className="text-pink-400/60" />
+                                      Instagram Square
+                                    </button>
                       <div className="border-t border-white/[0.08] my-1" />
             <button
               onClick={onRequestFeedback}
@@ -166,5 +172,13 @@ ${bodyContent}
         </div>
       )}
     </div>
+        <InstagramSquareModal
+          open={squareOpen}
+        onOpenChange={setSquareOpen}
+        writingId={writingId}
+        title={title}
+        content={content}
+      />
+            </>
   );
 }
