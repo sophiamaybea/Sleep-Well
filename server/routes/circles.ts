@@ -9,10 +9,10 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
-// GET all writing circles
+// GET all circles
 router.get("/", requireAuth, async (req: any, res: any) => {
   try {
-    const results = await db.query.writingCircles.findMany({
+    const results = await db.query.circles.findMany({
       orderBy: (c: any) => [desc(c.createdAt)],
     });
     res.json(results);
@@ -26,7 +26,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const result = await db.query.writingCircles.findFirst({
+    const result = await db.query.circles.findFirst({
       where: (c: any, { eq: eqOp }: any) => eqOp(c.id, id),
     });
     if (!result) return res.status(404).json({ error: "Circle not found" });
@@ -40,15 +40,15 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
 // POST create new circle
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { name, description, isPrivate, maxMembers } = req.body;
+    const { name, description, theme, maxMembers } = req.body;
     if (!name) return res.status(400).json({ error: "Name is required" });
     const schema = await import("@shared/schema");
-    const [circle] = await db.insert(schema.writingCircles).values({
-      creatorId: req.user.id,
+    const [circle] = await db.insert(schema.circles).values({
+      createdById: req.user.id,
       name,
       description: description || "",
-      isPrivate: isPrivate || false,
-      maxMembers: maxMembers || 10,
+      theme: theme || null,
+      maxMembers: maxMembers || 5,
     }).returning();
     res.status(201).json(circle);
   } catch (error: any) {
@@ -61,7 +61,7 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 router.post("/:id/join", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const circle = await db.query.writingCircles.findFirst({
+    const circle = await db.query.circles.findFirst({
       where: (c: any, { eq: eqOp }: any) => eqOp(c.id, id),
     });
     if (!circle) return res.status(404).json({ error: "Circle not found" });
@@ -81,16 +81,16 @@ router.post("/:id/join", requireAuth, async (req: any, res: any) => {
 router.put("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const existing = await db.query.writingCircles.findFirst({
+    const existing = await db.query.circles.findFirst({
       where: (c: any, { eq: eqOp }: any) => eqOp(c.id, id),
     });
     if (!existing) return res.status(404).json({ error: "Circle not found" });
-    if (existing.creatorId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
-    const { name, description, isPrivate, maxMembers } = req.body;
+    if (existing.createdById !== req.user.id) return res.status(403).json({ error: "Forbidden" });
+    const { name, description, theme, maxMembers } = req.body;
     const schema = await import("@shared/schema");
-    const [updated] = await db.update(schema.writingCircles)
-      .set({ name, description, isPrivate, maxMembers, updatedAt: new Date() })
-      .where(eq(schema.writingCircles.id, id))
+    const [updated] = await db.update(schema.circles)
+      .set({ name, description, theme, maxMembers })
+      .where(eq(schema.circles.id, id))
       .returning();
     res.json(updated);
   } catch (error: any) {
@@ -103,13 +103,13 @@ router.put("/:id", requireAuth, async (req: any, res: any) => {
 router.delete("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const existing = await db.query.writingCircles.findFirst({
+    const existing = await db.query.circles.findFirst({
       where: (c: any, { eq: eqOp }: any) => eqOp(c.id, id),
     });
     if (!existing) return res.status(404).json({ error: "Circle not found" });
-    if (existing.creatorId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
+    if (existing.createdById !== req.user.id) return res.status(403).json({ error: "Forbidden" });
     const schema = await import("@shared/schema");
-    await db.delete(schema.writingCircles).where(eq(schema.writingCircles.id, id));
+    await db.delete(schema.circles).where(eq(schema.circles.id, id));
     res.status(204).send();
   } catch (error: any) {
     console.error("Error deleting circle:", error);
