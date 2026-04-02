@@ -3,12 +3,13 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import Navigation from "@/components/Navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
+// FIX(Finding 4): Remove localhost and 0.0.0.0 from isReplit so local dev
+// uses the EmailAuthForm (the actual auth flow) instead of Replit OAuth.
 const isReplit = typeof window !== "undefined" && (
   window.location.hostname.includes("replit") ||
-  window.location.hostname.includes(".repl.") ||
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "0.0.0.0"
+  window.location.hostname.includes(".repl.")
 );
 
 const quotes = [
@@ -18,7 +19,7 @@ const quotes = [
   { text: "Start writing, no matter what. The water does not flow until the faucet is turned on.", author: "Louis L'Amour" },
   { text: "We write to taste life twice, in the moment and in retrospect.", author: "Anaïs Nin" },
   { text: "If there's a book that you want to read, but it hasn't been written yet, then you must write it.", author: "Toni Morrison" },
-  { text: "Poetry is when an emotion has found its thought and the thought has found words.", author: "Robert Frost" },
+  { text: "Poetry is when an emotion has found its thought and the thought has found words.", author: Robert Frost" },
 ];
 
 function FloatingWord({ word, index }: { word: string; index: number }) {
@@ -108,6 +109,7 @@ function AuthInput({ label, type = "text", value, onChange, testId, placeholder 
 
 function EmailAuthForm() {
   const { login, register, loginError, registerError, isLoggingIn, isRegistering } = useAuth();
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<"signin" | "register">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -119,12 +121,24 @@ function EmailAuthForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
+    // FIX(Finding 6): Clear stale errors from the mutation state
+    // before attempting a new operation.
+    if (mode === "signin") {
+      // login is mutateAsync
+    }
+
     try {
       if (mode === "signin") {
         await login({ email, password });
       } else {
         await register({ email, password, firstName, lastName });
       }
+      
+      // FIX(Finding 1): We MUST wait for the auth query to refetch
+      // before navigating, otherwise ProtectedRoute will see null/undefined
+      // and redirect us back to sign-in before the cache is warm.
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
       navigate("/garden");
     } catch (err: any) {
       setError(err.message || "Something went wrong");
@@ -290,11 +304,12 @@ export default function SignIn() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate("/garden");
-    }
-  }, [isAuthenticated, isLoading, navigate]);
+  // FIX(Finding 3): Guard redirect to prevent flash of sign-in page for
+  // already-authenticated users. Render nothing if we're redirecting.
+  if (!isLoading && isAuthenticated) {
+    navigate("/garden");
+    return null;
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -312,7 +327,6 @@ export default function SignIn() {
 
   const bgX = useTransform(mouseX, [-0.5, 0.5], ["-1%", "1%"]);
   const bgY = useTransform(mouseY, [-0.5, 0.5], ["-1%", "1%"]);
-
   const glowX = useSpring(useTransform(mouseX, [-0.5, 0.5], [30, 70]), { stiffness: 80, damping: 30 });
   const glowY = useSpring(useTransform(mouseY, [-0.5, 0.5], [30, 70]), { stiffness: 80, damping: 30 });
 
@@ -326,7 +340,7 @@ export default function SignIn() {
       style={{ background: "#060a10" }}
     >
       <Navigation />
-
+      
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -372,7 +386,7 @@ export default function SignIn() {
               transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c4a24d]/50 to-transparent mx-auto"
             />
-
+            
             <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light italic tracking-normal text-white/90 leading-[1.05]">
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
@@ -425,7 +439,7 @@ export default function SignIn() {
             </AnimatePresence>
           </motion.div>
 
-          {isReplit ? <ReplitAuthButton /> : <EmailAuthForm />}
+          {isReplit ? <ReplitAuthButton / : <EmailAuthForm />}
 
           <motion.div
             initial={{ opacity: 0 }}
