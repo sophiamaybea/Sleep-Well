@@ -11,8 +11,10 @@ function requireAuth(req: any, res: any, next: any) {
 
 router.get("/", requireAuth, async (req: any, res: any) => {
   try {
-    const results = await db.query.snapshots.findMany({
-      where: (s: any, { eq: eqOp }: any) => eqOp(s.userId, req.user.id),
+    const { writingId } = req.query;
+    if (!writingId) return res.status(400).json({ error: "writingId is required" });
+    const results = await db.query.writingSnapshots.findMany({
+      where: (s: any, { eq: eqOp }: any) => eqOp(s.writingId, writingId),
       orderBy: (s: any) => [desc(s.createdAt)],
     });
     res.json(results);
@@ -23,11 +25,10 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const result = await db.query.snapshots.findFirst({
+    const result = await db.query.writingSnapshots.findFirst({
       where: (s: any, { eq: eqOp }: any) => eqOp(s.id, req.params.id),
     });
     if (!result) return res.status(404).json({ error: "Snapshot not found" });
-    if (result.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
     res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: "Failed to fetch snapshot" });
@@ -36,14 +37,16 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
 
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { writingId, content, versionLabel } = req.body;
+    const { writingId, title, content, readiness, snapshotNote, isManual } = req.body;
     if (!writingId || !content) return res.status(400).json({ error: "writingId and content required" });
     const schema = await import("@shared/schema");
-    const [snapshot] = await db.insert(schema.snapshots).values({
-      userId: req.user.id,
+    const [snapshot] = await db.insert(schema.writingSnapshots).values({
       writingId,
+      title: title || "",
       content,
-      versionLabel: versionLabel || "v" + Date.now(),
+      readiness: readiness || "raw_seed",
+      snapshotNote: snapshotNote || null,
+      isManual: isManual ?? false,
     }).returning();
     res.status(201).json(snapshot);
   } catch (error: any) {
@@ -53,13 +56,12 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 
 router.delete("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const existing = await db.query.snapshots.findFirst({
+    const existing = await db.query.writingSnapshots.findFirst({
       where: (s: any, { eq: eqOp }: any) => eqOp(s.id, req.params.id),
     });
     if (!existing) return res.status(404).json({ error: "Not found" });
-    if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
     const schema = await import("@shared/schema");
-    await db.delete(schema.snapshots).where(eq(schema.snapshots.id, req.params.id));
+    await db.delete(schema.writingSnapshots).where(eq(schema.writingSnapshots.id, req.params.id));
     res.status(204).send();
   } catch (error: any) {
     res.status(500).json({ error: "Failed to delete snapshot" });
