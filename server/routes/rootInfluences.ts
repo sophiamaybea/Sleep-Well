@@ -23,16 +23,14 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { name, category, description, impactLevel, works } = req.body;
+    const { name, category, note } = req.body;
     if (!name) return res.status(400).json({ error: "Name is required" });
     const schema = await import("@shared/schema");
     const [influence] = await db.insert(schema.rootInfluences).values({
       userId: req.user.id,
       name,
-      category: category || "author",
-      description: description || "",
-      impactLevel: impactLevel || 5,
-      works: works || [],
+      category: category || "writer",
+      note: note || "",
     }).returning();
     res.status(201).json(influence);
   } catch (error: any) {
@@ -48,9 +46,10 @@ router.put("/:id", requireAuth, async (req: any, res: any) => {
     });
     if (!existing) return res.status(404).json({ error: "Not found" });
     if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
+    const { name, category, note } = req.body;
     const schema = await import("@shared/schema");
     const [updated] = await db.update(schema.rootInfluences)
-      .set({ ...req.body, updatedAt: new Date() })
+      .set({ name, category, note })
       .where(eq(schema.rootInfluences.id, id))
       .returning();
     res.json(updated);
