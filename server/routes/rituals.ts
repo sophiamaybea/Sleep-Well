@@ -9,12 +9,12 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
-// GET all rituals for current user
+// GET all ritual sessions for current user
 router.get("/", requireAuth, async (req: any, res: any) => {
   try {
-    const results = await db.query.rituals.findMany({
+    const results = await db.query.ritualSessions.findMany({
       where: (r: any, { eq: eqOp }: any) => eqOp(r.userId, req.user.id),
-      orderBy: (r: any) => [desc(r.createdAt)],
+      orderBy: (r: any) => [desc(r.completedAt)],
     });
     res.json(results);
   } catch (error: any) {
@@ -22,11 +22,11 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-// GET single ritual
+// GET single ritual session
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const result = await db.query.rituals.findFirst({
+    const result = await db.query.ritualSessions.findFirst({
       where: (r: any, { eq: eqOp }: any) => eqOp(r.id, id),
     });
     if (!result) return res.status(404).json({ error: "Ritual not found" });
@@ -37,63 +37,58 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-// POST create new writing ritual
+// POST create new ritual session
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { name, description, frequency, timeOfDay, duration, steps } = req.body;
-    if (!name) return res.status(400).json({ error: "Name is required" });
+    const { promptId, durationMinutes, output } = req.body;
     const schema = await import("@shared/schema");
-    const [ritual] = await db.insert(schema.rituals).values({
+    const [session] = await db.insert(schema.ritualSessions).values({
       userId: req.user.id,
-      name,
-      description: description || "",
-      frequency: frequency || "daily",
-      timeOfDay: timeOfDay || "morning",
-      duration: duration || 30,
-      steps: steps || [],
-      isActive: true,
+      promptId: promptId || null,
+      durationMinutes: durationMinutes || 10,
+      output: output || "",
     }).returning();
-    res.status(201).json(ritual);
+    res.status(201).json(session);
   } catch (error: any) {
-    res.status(500).json({ error: "Failed to create ritual" });
+    res.status(500).json({ error: "Failed to create ritual session" });
   }
 });
 
-// PUT update ritual
+// PUT update ritual session
 router.put("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const existing = await db.query.rituals.findFirst({
+    const existing = await db.query.ritualSessions.findFirst({
       where: (r: any, { eq: eqOp }: any) => eqOp(r.id, id),
     });
     if (!existing) return res.status(404).json({ error: "Ritual not found" });
     if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
-    const { name, description, frequency, timeOfDay, duration, steps, isActive } = req.body;
+    const { promptId, durationMinutes, output } = req.body;
     const schema = await import("@shared/schema");
-    const [updated] = await db.update(schema.rituals)
-      .set({ name, description, frequency, timeOfDay, duration, steps, isActive, updatedAt: new Date() })
-      .where(eq(schema.rituals.id, id))
+    const [updated] = await db.update(schema.ritualSessions)
+      .set({ promptId, durationMinutes, output })
+      .where(eq(schema.ritualSessions.id, id))
       .returning();
     res.json(updated);
   } catch (error: any) {
-    res.status(500).json({ error: "Failed to update ritual" });
+    res.status(500).json({ error: "Failed to update ritual session" });
   }
 });
 
-// DELETE ritual
+// DELETE ritual session
 router.delete("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const existing = await db.query.rituals.findFirst({
+    const existing = await db.query.ritualSessions.findFirst({
       where: (r: any, { eq: eqOp }: any) => eqOp(r.id, id),
     });
     if (!existing) return res.status(404).json({ error: "Ritual not found" });
     if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
     const schema = await import("@shared/schema");
-    await db.delete(schema.rituals).where(eq(schema.rituals.id, id));
+    await db.delete(schema.ritualSessions).where(eq(schema.ritualSessions.id, id));
     res.status(204).send();
   } catch (error: any) {
-    res.status(500).json({ error: "Failed to delete ritual" });
+    res.status(500).json({ error: "Failed to delete ritual session" });
   }
 });
 
