@@ -197,7 +197,7 @@ app.use("/api/atelier", atelierRouter);
     },
     () => {
       log(`serving on port ${port}`);
-            void startAgentScheduler().catch((err: unknown) => console.error("[agentScheduler] Fatal startup crash:", err));
+            startAgentScheduler().catch((err: unknown) => console.error("[agentScheduler] Fatal startup crash:", err));
     },
   );
     // T45/T42: Startup env-var audit — emit loud warnings for missing SMTP / PayPal credentials
