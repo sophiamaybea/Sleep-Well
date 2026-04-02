@@ -13,7 +13,7 @@ function requireAuth(req: any, res: any, next: any) {
 router.get("/", requireAuth, async (req: any, res: any) => {
   try {
     const results = await db.query.pollinations.findMany({
-      where: (p: any, { eq: eqOp }: any) => eqOp(p.userId, req.user.id),
+      where: (p: any, { eq: eqOp }: any) => eqOp(p.fromUserId, req.user.id),
       orderBy: (p: any) => [desc(p.createdAt)],
     });
     res.json(results);
@@ -38,20 +38,19 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-// POST create new pollination (cross-reference between writings)
+// POST create new pollination
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
-    const { sourceWritingId, targetWritingId, connectionType, notes } = req.body;
-    if (!sourceWritingId || !targetWritingId) {
-      return res.status(400).json({ error: "Source and target writing IDs required" });
+    const { writingId, highlightText, affirmation } = req.body;
+    if (!writingId || !affirmation) {
+      return res.status(400).json({ error: "writingId and affirmation required" });
     }
     const schema = await import("@shared/schema");
     const [pollination] = await db.insert(schema.pollinations).values({
-      userId: req.user.id,
-      sourceWritingId,
-      targetWritingId,
-      connectionType: connectionType || "thematic",
-      notes: notes || "",
+      fromUserId: req.user.id,
+      writingId,
+      highlightText: highlightText || "",
+      affirmation,
     }).returning();
     res.status(201).json(pollination);
   } catch (error: any) {
@@ -68,7 +67,7 @@ router.delete("/:id", requireAuth, async (req: any, res: any) => {
       where: (p: any, { eq: eqOp }: any) => eqOp(p.id, id),
     });
     if (!existing) return res.status(404).json({ error: "Pollination not found" });
-    if (existing.userId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
+    if (existing.fromUserId !== req.user.id) return res.status(403).json({ error: "Forbidden" });
     const schema = await import("@shared/schema");
     await db.delete(schema.pollinations).where(eq(schema.pollinations.id, id));
     res.status(204).send();
