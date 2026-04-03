@@ -18,14 +18,8 @@ export const rooms = [
 ];
 
 export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
-  const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
-    { id: "desk", label: "Write", desc: "Private soil for your seeds", icon: <Sprout size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
-    { id: "reading-room", label: "Read", desc: "The public garden — what blooms here, others can tend", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
-    { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
-    { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
-    { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" },
-    { id: "collections", label: "Beds", desc: "Curate your work into chapbook collections", icon: <BookOpen size={14} />, activeColor: "border-violet-500/25 bg-violet-900/20 text-violet-200/90" },
-  ];
+  const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [];
+
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="inline-flex gap-1 p-1.5 rounded-full border border-emerald-800/20 bg-emerald-950/20 backdrop-blur-xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-hide">
