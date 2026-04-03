@@ -122,7 +122,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
               ? "border-white/20 bg-white/[0.06] text-white/90"
               : "border-emerald-800/12 text-white/90 hover:text-white/90 hover:border-emerald-700/20"
           }`}
-          data-testid="button-discover-rooms"
+          data-testid="button-discover-rooms" hidden
         >
           <Compass size={12} />
           Discover
@@ -133,7 +133,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
       <AnimatePresence>
         {true && (
           <motion.div
-            initial={{ opacity: 0, y: -4, height: 0 }}
+            initial={{ opacity: 1, y: 0, height: "auto" }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -4, height: 0 }}
             transition={{ duration: 0.2 }}
