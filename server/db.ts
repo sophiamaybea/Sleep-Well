@@ -1276,6 +1276,117 @@ export async function runMigrations() {
       }
     }
 
+    // --- Auto-migration: atelier_series new columns ---
+    try {
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS created_by_id varchar NOT NULL DEFAULT '';
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS facilitator text NOT NULL DEFAULT 'The Editors';
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS free_exercise_limit integer NOT NULL DEFAULT 2;
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS genre text NOT NULL DEFAULT 'any';
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS is_published boolean NOT NULL DEFAULT false;
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0;
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS subtitle text;
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS theme text;
+      `);
+      await pool.query(`
+        ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS total_exercises integer NOT NULL DEFAULT 0;
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER atelier_series failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // --- Auto-migration: editorial_briefs new columns ---
+    try {
+      await pool.query(`
+        ALTER TABLE editorial_briefs ADD COLUMN IF NOT EXISTS display_intro text NOT NULL DEFAULT '';
+      `);
+      await pool.query(`
+        ALTER TABLE editorial_briefs ADD COLUMN IF NOT EXISTS draft_by_agent text;
+      `);
+      await pool.query(`
+        ALTER TABLE editorial_briefs ADD COLUMN IF NOT EXISTS issue_id varchar;
+      `);
+      await pool.query(`
+        ALTER TABLE editorial_briefs ADD COLUMN IF NOT EXISTS seo_excerpt text NOT NULL DEFAULT '';
+      `);
+      await pool.query(`
+        ALTER TABLE editorial_briefs ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT now();
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER editorial_briefs failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // --- Auto-migration: editorial_threads new column ---
+    try {
+      await pool.query(`
+        ALTER TABLE editorial_threads ADD COLUMN IF NOT EXISTS issue_id varchar;
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER editorial_threads failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // --- Auto-migration: exercise_submissions new column ---
+    try {
+      await pool.query(`
+        ALTER TABLE exercise_submissions ADD COLUMN IF NOT EXISTS garden_writing_id varchar REFERENCES writings(id);
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER exercise_submissions failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // --- Auto-migration: service_bookings new columns ---
+    try {
+      await pool.query(`
+        ALTER TABLE service_bookings ADD COLUMN IF NOT EXISTS delivered_at timestamp;
+      `);
+      await pool.query(`
+        ALTER TABLE service_bookings ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT now();
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER service_bookings failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
+    // --- Auto-migration: tip_jars new column ---
+    try {
+      await pool.query(`
+        ALTER TABLE tip_jars ADD COLUMN IF NOT EXISTS stripe_product_id text;
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER tip_jars failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
         // T19: Final migration summary
     if (migrationErrors > 0) {
       console.error(
