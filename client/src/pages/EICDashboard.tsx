@@ -158,7 +158,7 @@ interface ChatMessage {
   timestamp: number;
 }
 
-type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries" | "silent-agents";
+type Tab = "overview" | "writings" | "users" | "team" | "raw-seeds" | "unsaved" | "activity" | "feed" | "enquiries" | "silent-agents" | "open-calls";
 
 export default function EICDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -493,7 +493,7 @@ export default function EICDashboard() {
     { key: "users", label: "All Users" },
     { key: "team", label: "Editorial Team" },
     { key: "enquiries", label: "Enquiries" },
-    { key: "silent-agents", label: "Silent AI Agents" },
+    { key: "silent-agents", label: "Silent AI Agents" },   { key: "open-calls", label: "Open Calls" },
     ];
 
   const timeAgo = (date: string) => {
@@ -915,7 +915,11 @@ export default function EICDashboard() {
             </div>
           </motion.div>
         )}
-
+      {activeTab === "open-calls" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          <OpenCallsPanel isEIC={roleData?.role === "editor_in_chief"} />
+        </motion.div>
+      )}
       </div>
     </div>
   );
@@ -992,6 +996,90 @@ function InvitationCard({ invitation, onCopy, copiedToken, getLink }: { invitati
         </div>
       </div>
       {isPending && <div className="mt-2"><code className="text-[#f0eeea]/20 font-['Space_Mono',monospace] text-[10px] break-all select-all">{getLink(invitation.token)}</code></div>}
+    </div>
+  );
+}
+
+function OpenCallsPanel({ isEIC }: { isEIC: boolean }) {
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [selectedCall, setSelectedCall] = useState<string | null>(null);
+
+  const { data: openCalls = [], isLoading } = useQuery<Array<{id: string; title: string; description: string; deadline: string; createdAt: string}>>({ queryKey: ["/api/open-calls"], queryFn: async () => { const res = await fetch("/api/open-calls", { credentials: "include" }); if (!res.ok) throw new Error("Failed to fetch open calls"); return res.json(); } });
+
+  const { data: submissions = [] } = useQuery<Array<{id: string; callId: string; respondentName: string; respondentEmail: string; content: string; status: string; createdAt: string}>>({ queryKey: ["/api/open-calls/submissions"], queryFn: async () => { const res = await fetch("/api/open-calls/submissions", { credentials: "include" }); if (!res.ok) throw new Error("Failed to fetch submissions"); return res.json(); }, enabled: !!selectedCall });
+
+  const createMutation = useMutation({ mutationFn: async (data: { title: string; description: string; deadline: string }) => { const res = await fetch("/api/open-calls", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify(data) }); if (!res.ok) throw new Error("Failed to create call"); return res.json(); }, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/open-calls"] }); setTitle(""); setDescription(""); setDeadline(""); } });
+
+  const reviewMutation = useMutation({ mutationFn: async ({ submissionId, status }: { submissionId: string; status: string }) => { const res = await fetch(`/api/open-calls/submissions/${submissionId}/review`, { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ status }) }); if (!res.ok) throw new Error("Failed to review"); return res.json(); }, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/open-calls/submissions"] }); } });
+
+  return (
+    <div>
+      <h2 className="font-['Cormorant_Garamond',serif] text-2xl text-[#f0eeea]/90 font-light mb-2">Open Calls for Submissions</h2>
+      <p className="text-[#f0eeea]/40 font-['Lora',serif] text-xs mb-8">{isEIC ? "Create and manage open calls for submissions from writers and the public" : "View open calls and review submissions"}</p>
+      
+      {isEIC && (
+        <div className="mb-8 p-6 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+          <h3 className="font-['Cormorant_Garamond',serif] text-xl text-[#f0eeea]/80 font-light mb-4">Create New Call</h3>
+          <div className="space-y-3">
+            <input type="text" placeholder="Call Title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-[#f0eeea]/5 border border-[#f0eeea]/10 rounded px-4 py-3 text-[#f0eeea] font-['Lora',serif] text-sm placeholder:text-[#f0eeea]/30 focus:outline-none focus:border-[#c4a24d]/40 transition-colors" />
+            <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="w-full bg-[#f0eeea]/5 border border-[#f0eeea]/10 rounded px-4 py-3 text-[#f0eeea] font-['Lora',serif] text-sm placeholder:text-[#f0eeea]/30 focus:outline-none focus:border-[#c4a24d]/40 transition-colors" />
+            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="w-full bg-[#f0eeea]/5 border border-[#f0eeea]/10 rounded px-4 py-3 text-[#f0eeea] font-['Lora',serif] text-sm placeholder:text-[#f0eeea]/30 focus:outline-none focus:border-[#c4a24d]/40 transition-colors" />
+            <button onClick={() => title.trim() && description.trim() && deadline && createMutation.mutate({ title, description, deadline })} disabled={createMutation.isPending || !title.trim() || !description.trim() || !deadline} className="px-6 py-3 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-lg rounded hover:bg-[#c4a24d]/30 transition-colors disabled:opacity-40">{createMutation.isPending ? "Creating..." : "Create Call"}</button>
+          </div>
+        </div>
+      )}
+      
+      <div>
+        <h3 className="font-['Cormorant_Garamond',serif] text-xl text-[#f0eeea]/80 font-light mb-4">Active Calls</h3>
+        {isLoading ? (
+          <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-[#f0eeea]/5 rounded animate-pulse" />)}</div>
+        ) : openCalls.length === 0 ? (
+          <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm italic">No open calls yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {openCalls.map((call) => (
+              <div key={call.id} className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded cursor-pointer hover:bg-[#f0eeea]/[0.05] transition-colors" onClick={() => setSelectedCall(call.id)}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-['Cormorant_Garamond',serif] text-lg text-[#f0eeea]/90">{call.title}</h4>
+                    <p className="text-[#f0eeea]/60 font-['Lora',serif] text-sm mt-1">{call.description}</p>
+                    <span className="text-[#c4a24d]/70 font-['Space_Mono',monospace] text-xs mt-2 inline-block">Deadline: {new Date(call.deadline).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {selectedCall && submissions.length > 0 && (
+        <div className="mt-8">
+          <h3 className="font-['Cormorant_Garamond',serif] text-xl text-[#f0eeea]/80 font-light mb-4">Submissions</h3>
+          <div className="space-y-3">
+            {submissions.filter((s) => s.callId === selectedCall).map((sub) => (
+              <div key={sub.id} className="px-5 py-4 bg-[#f0eeea]/[0.03] border border-[#f0eeea]/[0.06] rounded">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-[#f0eeea]/90 font-['Cormorant_Garamond',serif] text-lg">{sub.respondentName}</span>
+                      <span className="text-[#f0eeea]/30 font-['Lora',serif] text-xs">{sub.respondentEmail}</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-['Space_Mono',monospace] rounded ${sub.status === "approved" ? "bg-[#5eb5a0]/10 text-[#5eb5a0]" : sub.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-[#f0eeea]/5 text-[#f0eeea]/40"}`}>{sub.status}</span>
+                    </div>
+                    <p className="text-[#f0eeea]/60 font-['Lora',serif] text-sm">{sub.content}</p>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button onClick={() => reviewMutation.mutate({ submissionId: sub.id, status: "approved" })} disabled={reviewMutation.isPending} className="px-3 py-1.5 bg-[#5eb5a0]/10 border border-[#5eb5a0]/20 text-[#5eb5a0] font-['Space_Mono',monospace] text-xs rounded hover:bg-[#5eb5a0]/20 transition-colors disabled:opacity-40">Approve</button>
+                    <button onClick={() => reviewMutation.mutate({ submissionId: sub.id, status: "rejected" })} disabled={reviewMutation.isPending} className="px-3 py-1.5 bg-red-400/10 border border-red-400/20 text-red-400 font-['Space_Mono',monospace] text-xs rounded hover:bg-red-400/20 transition-colors disabled:opacity-40">Reject</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
