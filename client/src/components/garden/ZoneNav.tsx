@@ -19,7 +19,14 @@ export const rooms = [
 ] as const;
 
 export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
-  const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [];
+  const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
+    { id: "desk", label: "Desk", desc: "Your writing space", icon: <PenLine size={14} />, activeColor: "bg-emerald-900/60" },
+    { id: "reading-room", label: "Reading Room", desc: "Read and discover", icon: <Glasses size={14} />, activeColor: "bg-sky-900/60" },
+    { id: "greenhouse", label: "Greenhouse", desc: "Grow your practice", icon: <Sprout size={14} />, activeColor: "bg-green-900/60" },
+    { id: "submissions", label: "Submissions", desc: "Submit your work", icon: <Send size={14} />, activeColor: "bg-violet-900/60" },
+    { id: "garden-gate", label: "Garden Gate", desc: "Explore the garden", icon: <TreePine size={14} />, activeColor: "bg-teal-900/60" },
+    { id: "collections", label: "Collections", desc: "Your saved collections", icon: <BookMarked size={14} />, activeColor: "bg-amber-900/60" },
+  ];
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="inline-flex gap-1 p-1.5 rounded-full border border-emerald-800/20 bg-emerald-950/20 backdrop-blur-xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-hide">
@@ -64,7 +71,6 @@ export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone
 
 export function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSelectRoom: (room: ActiveRoom) => void }) {
   const activeRoomData = rooms.find(r => r.id === activeRoom);
-
   return (
     <div className="relative">
       {/* Always-visible social room pills */}
