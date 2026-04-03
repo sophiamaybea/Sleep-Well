@@ -3343,3 +3343,88 @@ export const insertEditorialLetterSchema = createInsertSchema(editorialLetters).
 });
 export type EditorialLetter = typeof editorialLetters.$inferSelect;
 export type InsertEditorialLetter = z.infer<typeof insertEditorialLetterSchema>;
+
+
+// === POET MONETISATION SYSTEM ===
+export const poetEarnings = pgTable("poet_earnings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique().references(() => users.id),
+  lifetimeEarningsPence: integer("lifetime_earnings_pence").notNull().default(0),
+  thresholdReached: boolean("threshold_reached").notNull().default(false),
+  thresholdReachedAt: timestamp("threshold_reached_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+export const insertPoetEarningsSchema = createInsertSchema(poetEarnings).omit({ id: true, userId: true, createdAt: true, updatedAt: true });
+export type PoetEarnings = typeof poetEarnings.$inferSelect;
+export type InsertPoetEarnings = z.infer<typeof insertPoetEarningsSchema>;
+
+export const patronSubscriptions = pgTable("patron_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id").notNull().unique().references(() => users.id),
+  isActive: boolean("is_active").notNull().default(false),
+  message: text("message").notNull().default(""),
+  pricePence: integer("price_pence").notNull().default(300),
+  stripeProductId: text("stripe_product_id"),
+  stripePriceId: text("stripe_price_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+export const insertPatronSubscriptionSchema = createInsertSchema(patronSubscriptions).omit({ id: true, authorId: true, stripeProductId: true, stripePriceId: true, createdAt: true, updatedAt: true });
+export type PatronSubscription = typeof patronSubscriptions.$inferSelect;
+export type InsertPatronSubscription = z.infer<typeof insertPatronSubscriptionSchema>;
+
+export const patronSubscribers = pgTable("patron_subscribers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  subscriptionId: varchar("subscription_id").notNull().references(() => patronSubscriptions.id),
+  subscriberId: varchar("subscriber_id").notNull().references(() => users.id),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  stripeCustomerId: text("stripe_customer_id"),
+  status: text("status").notNull().default("active"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+export const insertPatronSubscriberSchema = createInsertSchema(patronSubscribers).omit({ id: true, createdAt: true, updatedAt: true });
+export type PatronSubscriber = typeof patronSubscribers.$inferSelect;
+export type InsertPatronSubscriber = z.infer<typeof insertPatronSubscriberSchema>;
+
+export const patronPayments = pgTable("patron_payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  subscriberRowId: varchar("subscriber_row_id").notNull().references(() => patronSubscribers.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  amountPence: integer("amount_pence").notNull(),
+  platformFeePence: integer("platform_fee_pence").notNull().default(0),
+  authorEarningsPence: integer("author_earnings_pence").notNull().default(0),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertPatronPaymentSchema = createInsertSchema(patronPayments).omit({ id: true, createdAt: true });
+export type PatronPayment = typeof patronPayments.$inferSelect;
+export type InsertPatronPayment = z.infer<typeof insertPatronPaymentSchema>;
+
+export const affiliateSlugs = pgTable("affiliate_slugs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique().references(() => users.id),
+  slug: varchar("slug").notNull().unique(),
+  clickCount: integer("click_count").notNull().default(0),
+  conversionCount: integer("conversion_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertAffiliateSlugSchema = createInsertSchema(affiliateSlugs).omit({ id: true, userId: true, clickCount: true, conversionCount: true, createdAt: true });
+export type AffiliateSlug = typeof affiliateSlugs.$inferSelect;
+export type InsertAffiliateSlug = z.infer<typeof insertAffiliateSlugSchema>;
+
+export const platformTips = pgTable("platform_tips", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tipperId: varchar("tipper_id").references(() => users.id),
+  amountPence: integer("amount_pence").notNull(),
+  currency: text("currency").notNull().default("gbp"),
+  stripeSessionId: text("stripe_session_id"),
+  paypalOrderId: text("paypal_order_id"),
+  paymentConfirmed: boolean("payment_confirmed").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertPlatformTipSchema = createInsertSchema(platformTips).omit({ id: true, createdAt: true });
+export type PlatformTip = typeof platformTips.$inferSelect;
+export type InsertPlatformTip = z.infer<typeof insertPlatformTipSchema>;
