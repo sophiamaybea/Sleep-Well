@@ -2369,7 +2369,7 @@ export const chapbookCollections = pgTable("chapbook_collections", {
   allowTip: boolean("allow_tip").notNull().default(false),
   tipAmountPence: integer("tip_amount_pence").notNull().default(0),
   paypalLink: text("paypal_link"),
-  shareSlug: varchar("share_slug").unique(),
+  isPaid: boolean("is_paid").notNull().default(false),   pricePence: integer("price_pence").notNull().default(0),   shareSlug: varchar("share_slug").unique(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
