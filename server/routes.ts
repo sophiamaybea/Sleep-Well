@@ -20,6 +20,7 @@ import { registerTakeoverScreenRoutes } from "./routes/takeoverScreens";
 import { registerGalleryDiscoverRoutes } from "./routes/galleryDiscover";
 import { registerInstagramSquaresRoutes } from "./routes/instagramSquares";
 import { registerOpenCallsRoutes } from "./routes/openCalls";
+import { registerPoetMonetisationRoutes } from "./routes/poetMonetisation";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import {
@@ -8563,6 +8564,7 @@ const sharedPieces = await db.select({
   registerEicCommandCentreRoutes(app);
     registerGalleryDiscoverRoutes(app);
   registerOpenCallsRoutes(app);
+    registerPoetMonetisationRoutes(app);
     registerInstagramSquaresRoutes(app);
   registerTakeoverScreenRoutes(app);return httpServer;  registerMarketplaceRoutes(app);
 }
