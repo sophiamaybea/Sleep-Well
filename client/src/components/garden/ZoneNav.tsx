@@ -16,7 +16,7 @@ export const rooms = [
   { id: "swap", label: "Swap", icon: <Repeat2 size={13} />, desc: "Beta reading exchange", comingSoon: false },
   { id: "first-reader", label: "First Reader", icon: <Eye size={13} />, desc: "Drop fresh writing, get honest first impressions", comingSoon: false },
   { id: "shelf", label: "Reading Shelf", icon: <BookMarked size={13} />, desc: "What the community is reading", comingSoon: false },
-] as const;
+];
 
 export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
   const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
