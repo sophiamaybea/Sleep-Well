@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Sprout, Glasses, TreePine, Send, BookOpen,
   Users, Compass, ChevronDown, Eye, PenLine, X,
+  MessageCircle, Repeat2, BookMarked,
 } from "lucide-react";
 
 export type Zone = "desk" | "reading-room" | "greenhouse" | "submissions" | "garden-gate" | "collections";
@@ -12,14 +13,13 @@ export const rooms = [
   { id: "tables", label: "Tables", icon: <Users size={13} />, desc: "Community discussions", comingSoon: false },
   { id: "workshop", label: "Workshop", icon: <BookOpen size={13} />, desc: "Writing exercises", comingSoon: false },
   { id: "the-desk", label: "The Desk", icon: <PenLine size={13} />, desc: "Shared writing space", comingSoon: false },
-  { id: "swap", label: "Swap", icon: <Eye size={13} />, desc: "Beta reading exchange", comingSoon: false },
+  { id: "swap", label: "Swap", icon: <Repeat2 size={13} />, desc: "Beta reading exchange", comingSoon: false },
   { id: "first-reader", label: "First Reader", icon: <Eye size={13} />, desc: "Drop fresh writing, get honest first impressions", comingSoon: false },
-  { id: "shelf", label: "Reading Shelf", icon: <BookOpen size={13} />, desc: "What the community is reading", comingSoon: false },
-];
+  { id: "shelf", label: "Reading Shelf", icon: <BookMarked size={13} />, desc: "What the community is reading", comingSoon: false },
+] as const;
 
 export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => void }) {
   const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [];
-
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="inline-flex gap-1 p-1.5 rounded-full border border-emerald-800/20 bg-emerald-950/20 backdrop-blur-xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-hide">
@@ -63,69 +63,50 @@ export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone
 }
 
 export function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSelectRoom: (room: ActiveRoom) => void }) {
-  const [showRooms, setShowRooms] = useState(false);
   const activeRoomData = rooms.find(r => r.id === activeRoom);
+
   return (
     <div className="relative">
-      <div className="flex items-center gap-2">
-        {activeRoomData && (
-          <button
-            onClick={() => onSelectRoom(null)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80 font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all"
-            data-testid={`room-${activeRoomData.id}`}
-          >
-            {activeRoomData.icon}
-            {activeRoomData.label}
-            <X size={10} className="ml-1 opacity-60" />
-          </button>
-        )}
-        <button
-          onClick={() => setShowRooms(!showRooms)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
-            showRooms
-              ? "border-white/20 bg-white/[0.06] text-white/90"
-              : "border-emerald-800/12 text-white/90 hover:text-white/90 hover:border-emerald-700/20"
-          }`}
-          data-testid="button-discover-rooms"
-        >
-          <Compass size={12} />
-          Discover
-          <ChevronDown size={10} className={`transition-transform ${showRooms ? "rotate-180" : ""}`} />
-        </button>
+      {/* Always-visible social room pills */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {rooms.map((room) => {
+          const isActive = activeRoom === room.id;
+          return (
+            <motion.button
+              key={room.id}
+              onClick={() => onSelectRoom(isActive ? null : room.id as ActiveRoom)}
+              title={room.desc}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
+                isActive
+                  ? "border-emerald-500/40 bg-emerald-900/35 text-emerald-200/90 shadow-[0_0_10px_rgba(52,211,153,0.15)]"
+                  : "border-white/10 text-white/60 hover:text-white/85 hover:border-emerald-700/30 hover:bg-emerald-950/30"
+              }`}
+              data-testid={`room-${room.id}`}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="activeRoom"
+                  className="absolute inset-0 rounded-full bg-emerald-900/40"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                {room.icon}
+                <span>{room.label}</span>
+              </span>
+              {isActive && (
+                <X
+                  size={9}
+                  className="relative z-10 ml-0.5 opacity-50"
+                  onClick={(e) => { e.stopPropagation(); onSelectRoom(null); }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
       </div>
-      <AnimatePresence>
-        {showRooms && (
-          <motion.div
-            initial={{ opacity: 0, y: -4, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -4, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-2">
-              {rooms.map((room) => {
-                const isActive = activeRoom === room.id;
-                return (
-                  <button
-                    key={room.id}
-                    onClick={() => { onSelectRoom(isActive ? null : room.id as ActiveRoom); setShowRooms(false); }}
-                    title={room.desc}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
-                      isActive
-                        ? "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80"
-                        : "border-white/[0.06] text-white/90 hover:text-white/90 hover:border-white/15 hover:bg-white/[0.03]"
-                    }`}
-                    data-testid={`room-${room.id}`}
-                  >
-                    {room.icon}
-                    <span className="truncate">{room.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
