@@ -3833,7 +3833,7 @@ export default function Garden() {
   );
 }
 
-function CollectionsRedirect() {   useEffect(() => { window.location.href = "/garden/collections"; }, []);   return <div className="flex items-center justify-center py-20"><p className="font-mono text-[10px] uppercase tracking-widest text-white/40">Opening your beds...</p></div>; } function GardenGateZone() {
+function CollectionsRedirect() {   const [, navigate] = useLocation(); useEffect(() => { navigate("/collections"); }, []);   return <div className="flex items-center justify-center py-20"><p className="font-mono text-[10px] uppercase tracking-widest text-white/40">Opening your beds...</p></div>; } function GardenGateZone() {
   const { user } = useAuth();
   const { data: writings = [] } = useQuery({
     queryKey: ["/api/writings"],
