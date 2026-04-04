@@ -3428,3 +3428,58 @@ export const platformTips = pgTable("platform_tips", {
 export const insertPlatformTipSchema = createInsertSchema(platformTips).omit({ id: true, createdAt: true });
 export type PlatformTip = typeof platformTips.$inferSelect;
 export type InsertPlatformTip = z.infer<typeof insertPlatformTipSchema>;
+
+// === AUTHOR ↔ EDITOR CONVERSATIONS ===
+// Centralised, persistent two-way channel between an author and the editorial team,
+// optionally anchored to a specific piece of writing.
+export const authorEditorConversations = pgTable("author_editor_conversations", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  // The writer who owns this conversation
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  // Optional: which piece of writing this conversation is about
+  writingId: varchar("writing_id").references(() => writings.id),
+  // Short descriptor shown in thread lists
+  subject: text("subject").notNull().default("General"),
+  // 'open' | 'resolved' | 'archived'
+  status: text("status").notNull().default("open"),
+  // Who last sent a message (for unread badging)
+  lastSenderId: varchar("last_sender_id").references(() => users.id),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const authorEditorMessages = pgTable("author_editor_messages", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id")
+    .notNull()
+    .references(() => authorEditorConversations.id),
+  senderId: varchar("sender_id")
+    .notNull()
+    .references(() => users.id),
+  // 'author' | 'editor' | 'editor_in_chief'
+  senderRole: text("sender_role").notNull().default("author"),
+  body: text("body").notNull(),
+  // true once the OTHER party has seen this message
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAuthorEditorConversationSchema = createInsertSchema(
+  authorEditorConversations
+).omit({ id: true, lastSenderId: true, lastMessageAt: true, createdAt: true, updatedAt: true });
+
+export const insertAuthorEditorMessageSchema = createInsertSchema(
+  authorEditorMessages
+).omit({ id: true, isRead: true, createdAt: true });
+
+export type AuthorEditorConversation = typeof authorEditorConversations.$inferSelect;
+export type InsertAuthorEditorConversation = z.infer<typeof insertAuthorEditorConversationSchema>;
+export type AuthorEditorMessage = typeof authorEditorMessages.$inferSelect;
+export type InsertAuthorEditorMessage = z.infer<typeof insertAuthorEditorMessageSchema>;
