@@ -10,6 +10,7 @@ import {
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import AuthorEditorConversation from "@/components/AuthorEditorConversation";
 
 type Tab = "overview" | "garden-stream" | "greenhouse" | "requests" | "issues" | "flagged" | "editorial-inbox" | "threads" | "garden-walk" | "walkthrough" | "tasks";
 
@@ -835,6 +836,7 @@ function GardenStreamTab() {
   const [showNotes, setShowNotes] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   const [showWriterProfile, setShowWriterProfile] = useState<string | null>(null);
+    const [convEntry, setConvEntry] = useState<any | null>(null);
 
   const { data: stream = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/editor/garden-stream", genre, readiness, search, quiet],
@@ -1116,6 +1118,16 @@ function GardenStreamTab() {
       {showWriterProfile && (
         <WriterProfileModal authorId={showWriterProfile} onClose={() => setShowWriterProfile(null)} />
       )}
+            {convEntry && (
+              <AuthorEditorConversation
+                          writingId={convEntry.writingId}
+                          writingTitle={convEntry.writingTitle}
+                          peerId={convEntry.authorId}
+                          peerName={convEntry.authorName}
+                          isOpen={!!convEntry}
+                          onClose={() => setConvEntry(null)}
+                        />
+            )}
     </motion.div>
   );
 }
@@ -1311,6 +1323,14 @@ function GreenhouseTab() {
                       >
                         <Send size={12} className="rotate-45" />
                       </button>
+                              <button
+                                          onClick={() => setConvEntry(entry)}
+                                          className="p-1.5 rounded-lg border border-white/10 text-white/30 hover:text-teal-300 hover:border-teal-500/30 transition-colors"
+                                          title="Message author"
+                                          data-testid="btn-message-author"
+                                        >
+                                          <MessageCircle size={12} />
+                                        </button>
                     </div>
                   </div>
                 </div>
