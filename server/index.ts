@@ -134,14 +134,14 @@ app.get("/api/debug/db", async (req: any, res) => {
     const siteContent = await pool.query(`SELECT count(*) FROM site_content`);
     res.json({ tables: tables.rows.map((r: any) => r.tablename), writings: writings.rows[0], siteContent: siteContent.rows[0] });
   } catch (error) {
-          res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 (async () => {
   // Simple health endpoint for uptime checks and keep-warm pings
   app.get("/health", (_req, res) => { res.json({ status: "ok", ts: Date.now() }); });
 app.use("/api/atelier", atelierRouter);
-    await registerRoutes(httpServer, app);
+  await registerRoutes(httpServer, app);
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -197,10 +197,10 @@ app.use("/api/atelier", atelierRouter);
     },
     () => {
       log(`serving on port ${port}`);
-                    startAgentScheduler();
+      startAgentScheduler();
     },
   );
-    // T45/T42: Startup env-var audit — emit loud warnings for missing SMTP / PayPal credentials
+  // T45/T42: Startup env-var audit — emit loud warnings for missing SMTP / PayPal credentials
   // These vars must be set in Render environment variables before production launch.
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.warn(
@@ -218,11 +218,13 @@ app.use("/api/atelier", atelierRouter);
       "Set these in Render environment variables before enabling editorial payment flows."
     );
   }
+  // FIX(Finding 3): SESSION_SECRET must be set — unsigned sessions are a security risk.
+  // Throw hard so Render surfaces this as a failed deploy, not a silent vulnerability.
   if (!process.env.SESSION_SECRET) {
-    console.error(
-      "[startup] CRITICAL: SESSION_SECRET env var is not set — " +
-      "sessions will not be signed securely. " +
-      "Set SESSION_SECRET in Render environment variables immediately."
+    throw new Error(
+      "[CRITICAL] SESSION_SECRET env var is not set. " +
+      "Sessions cannot be signed securely. " +
+      "Set SESSION_SECRET in Render environment variables and redeploy."
     );
   }
   // Keep-warm: prevent Render free-tier cold starts by pinging the public URL every 13 minutes.
@@ -230,7 +232,6 @@ app.use("/api/atelier", atelierRouter);
   // Without it, no interval is scheduled and Render will sleep the service after 15 min inactivity.
   if (process.env.NODE_ENV === "production") {
     const appUrl = process.env.APP_URL;
-
     if (!appUrl) {
       // T41: Emit a loud startup warning — do NOT fall back to localhost
       console.warn(
@@ -243,7 +244,6 @@ app.use("/api/atelier", atelierRouter);
       // T41: Only schedule the keep-warm interval when APP_URL is actually set
       const KEEP_WARM_URL = `${appUrl}/health`;
       const KEEP_WARM_INTERVAL = 13 * 60 * 1000; // 13 minutes — under Render's 15-min sleep threshold
-
       const doWarmPing = async () => {
         try {
           const res = await fetch(KEEP_WARM_URL);
@@ -252,7 +252,6 @@ app.use("/api/atelier", atelierRouter);
           log(`Keep-warm ping FAILED → ${KEEP_WARM_URL} — ${err}`, "keep-warm");
         }
       };
-
       // Fire once on boot (after 10s delay) to confirm URL is reachable
       setTimeout(doWarmPing, 10_000);
       setInterval(doWarmPing, KEEP_WARM_INTERVAL);
