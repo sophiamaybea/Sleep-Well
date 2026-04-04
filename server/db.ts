@@ -1387,6 +1387,39 @@ export async function runMigrations() {
       }
     }
 
+        // --- T20: author_editor_conversations & author_editor_messages ---
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS author_editor_conversations (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          author_id varchar NOT NULL REFERENCES users(id),
+          writing_id varchar REFERENCES writings(id),
+          subject text NOT NULL DEFAULT 'General',
+          status text NOT NULL DEFAULT 'open',
+          last_sender_id varchar REFERENCES users(id),
+          last_message_at timestamp DEFAULT now(),
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        )
+      `);
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS author_editor_messages (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          conversation_id varchar NOT NULL REFERENCES author_editor_conversations(id),
+          sender_id varchar NOT NULL REFERENCES users(id),
+          sender_role text NOT NULL DEFAULT 'author',
+          body text NOT NULL,
+          is_read boolean NOT NULL DEFAULT false,
+          created_at timestamp DEFAULT now()
+        )
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: T20 author_editor_conversations failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
         // T19: Final migration summary
     if (migrationErrors > 0) {
       console.error(
