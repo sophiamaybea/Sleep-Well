@@ -2,10 +2,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2, Bookmark, Share2, Check, Heart, Archive, ExternalLink } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, X, ChevronRight, ChevronLeft, Sun, Moon, Users, Flower2, Bookmark, Share2, Check, Heart, Archive, ExternalLink, MessageCircle } from "lucide-react";
 import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
 import StarBackground from "@/components/StarBackground";
+import { useAuth } from "@/hooks/use-auth";
 import SectionedGallery from "@/components/SectionedGallery";
+import AuthorEditorConversation from "@/components/AuthorEditorConversation";
 
 const frameImg = "/images/gold-frame.png";
 
@@ -145,6 +147,8 @@ export default function Gallery() {
       return false;
     }
   });
+    const [convItem, setConvItem] = useState<GalleryItem | null>(null);
+    const { user } = useAuth();
 
   useEffect(() => {
     try {
@@ -465,6 +469,16 @@ export default function Gallery() {
         </footer>
       </div>
 
+      {selectedPiece && user && (
+              <button
+                          onClick={() => setConvItem(selectedPiece)}
+                          className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 px-4 py-2.5 bg-[#080d15]/90 border border-teal-500/30 rounded-full text-teal-300 text-[12px] font-mono hover:bg-teal-500/10 transition-all backdrop-blur-md shadow-lg"
+                          data-testid="btn-message-editorial-team"
+                        >
+                          <MessageCircle size={14} />
+                          Message editorial team
+                        </button>
+            )}
       <AnimatePresence>
         {selectedPiece && (
           <ReadingView
@@ -478,6 +492,14 @@ export default function Gallery() {
           />
         )}
       </AnimatePresence>
+            {convItem && (
+              <AuthorEditorConversation
+                          writingId={Number(convItem.id)}
+                          writingTitle={convItem.title}
+                          isOpen={!!convItem}
+                          onClose={() => setConvItem(null)}
+                        />
+            )}
     </div>
   );
 }
