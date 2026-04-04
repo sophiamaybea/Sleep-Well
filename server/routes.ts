@@ -1,3 +1,4 @@
+import { registerAuthorEditorConversationRoutes } from "./routes/authorEditorConversations";
 import { registerCopyAgentRoutes } from "./routes/copyAgent";
 import { registerEditorialBriefRoutes } from "./routes/editorialBriefs";
 import { registerSocialFeedRoutes } from "./routes/socialFeed";
@@ -8566,5 +8567,6 @@ const sharedPieces = await db.select({
   registerOpenCallsRoutes(app);
     registerPoetMonetisationRoutes(app);
     registerInstagramSquaresRoutes(app);
+    registerAuthorEditorConversationRoutes(app);
   registerTakeoverScreenRoutes(app);return httpServer;  registerMarketplaceRoutes(app);
 }
