@@ -397,6 +397,25 @@ export async function runMigrations() {
       }
     }
 
+    // FIX(Finding 13): Create editor_notes table if it doesn't exist (fresh DB safety)
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS editor_notes (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          writing_id varchar NOT NULL REFERENCES writings(id),
+          editor_id varchar NOT NULL REFERENCES users(id),
+          content text NOT NULL,
+          created_at timestamp DEFAULT now(),
+          updated_at timestamp DEFAULT now()
+        );
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: CREATE editor_notes failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
     try {
       await pool.query(`
         ALTER TABLE editor_notes ADD COLUMN IF NOT EXISTS note_type text NOT NULL DEFAULT 'general_feedback';
@@ -1092,15 +1111,34 @@ export async function runMigrations() {
 
         // T24b: Add missing columns to agent_pattern_insights for scheduler compatibility
     try {
-      await pool.query(`
-        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS summary text;
-        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS source_writing_ids text[];
-        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS pattern_data jsonb;
-        ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS dismissed_at timestamp;
-      `);
+      await pool.query(`ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS summary text;`);
     } catch (e) {
       if (!isBenignMigrationError(e)) {
-        console.error('[MIGRATION CRITICAL]: ALTER agent_pattern_insights failed:', (e as Error).message);
+        console.error('[MIGRATION CRITICAL]: ALTER agent_pattern_insights summary failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+    try {
+      await pool.query(`ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS source_writing_ids text[];`);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER agent_pattern_insights source_writing_ids failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+    try {
+      await pool.query(`ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS pattern_data jsonb;`);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER agent_pattern_insights pattern_data failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+    try {
+      await pool.query(`ALTER TABLE agent_pattern_insights ADD COLUMN IF NOT EXISTS dismissed_at timestamp;`);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER agent_pattern_insights dismissed_at failed:', (e as Error).message);
         migrationErrors++;
       }
     }
