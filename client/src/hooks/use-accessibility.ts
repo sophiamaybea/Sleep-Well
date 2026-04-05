@@ -17,7 +17,7 @@ const defaultSettings: AccessibilitySettings = {
   dyslexiaFont: false,
   widerSpacing: false,
   focusMode: false,
-  gardenLight: false,
+  gardenLight: true,
 };
 
 const STORAGE_KEY = "page-gallery-a11y";

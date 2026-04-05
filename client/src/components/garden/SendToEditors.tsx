@@ -12,22 +12,22 @@ interface SendToEditorsProps {
 const TIERS = [
   {
     id: "priority",
-    label: "Priority",
-    desc: "Goes to the top of the pile",
+    label: "Priority review",
+    desc: "Moves your piece to the front of the queue",
     price: 5,
     priceLabel: "$5",
   },
   {
     id: "feedback",
-    label: "Feedback",
-    desc: "Receive written editorial feedback",
+    label: "Written feedback",
+    desc: "Receive editorial notes on the piece",
     price: 7,
     priceLabel: "$7",
   },
   {
     id: "bundle",
-    label: "Bundle",
-    desc: "Top of the pile + written feedback",
+    label: "Priority + feedback",
+    desc: "Front of queue plus written editorial notes",
     price: 10,
     priceLabel: "$10",
   },
@@ -88,7 +88,7 @@ export default function SendToEditors({ writingId, writingTitle, onClose }: Send
     return (
       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-300/80">
         <Send size={10} />
-        Sent to editors
+        Review requested
       </div>
     );
   }
@@ -101,7 +101,7 @@ export default function SendToEditors({ writingId, writingTitle, onClose }: Send
         data-testid={`button-send-editors-${writingId}`}
       >
         <Send size={10} />
-        Send to our editors
+        Editorial review
         <ChevronDown size={8} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
@@ -118,14 +118,14 @@ export default function SendToEditors({ writingId, writingTitle, onClose }: Send
           >
             <div className="flex items-center justify-between mb-3">
               <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-amber-400/60">
-                Send to our editors
+                Editorial review
               </span>
               <button onClick={() => setOpen(false)} className="text-white/30 hover:text-white/60 transition-colors">
                 <X size={12} />
               </button>
             </div>
             <p className="font-serif text-[11px] text-white/40 italic mb-3 leading-relaxed">
-              Choose how your piece reaches the editorial team.
+              Choose the review option you want for this piece.
             </p>
             <div className="space-y-2">
               {TIERS.map((tier) => (
@@ -163,7 +163,7 @@ export default function SendToEditors({ writingId, writingTitle, onClose }: Send
               ) : (
                 <>
                   <Send size={11} />
-                  Checkout with PayPal
+                  Continue to PayPal
                 </>
               )}
             </button>

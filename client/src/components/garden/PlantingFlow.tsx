@@ -53,22 +53,22 @@ function ReadyIcon({ className }: { className?: string }) {
 const visibilityOptions: { id: Visibility; label: string; description: string; icon: React.ReactNode; color: string }[] = [
   {
     id: "personal",
-    label: "Personal Garden",
-    description: "Just for you. A private space to grow your words without any eyes on them.",
+    label: "Private",
+    description: "Only you can see this piece.",
     icon: <Lock size={20} />,
     color: "amber",
   },
   {
     id: "circle",
-    label: "Share with Circle",
-    description: "Visible to your trusted circle members. A small, safe audience.",
+    label: "Circle only",
+    description: "Shared with the people in your circle.",
     icon: <Users size={20} />,
     color: "violet",
   },
   {
     id: "garden",
-    label: "The Garden Gallery",
-    description: "Visible to all Garden members. Your work enters the shared landscape.",
+    label: "Public in Garden",
+    description: "Visible to other members in the Garden.",
     icon: <Globe size={20} />,
     color: "emerald",
   },
@@ -77,29 +77,29 @@ const visibilityOptions: { id: Visibility; label: string; description: string; i
 const readinessOptions: { id: Readiness; label: string; description: string; icon: React.ReactNode; color: string }[] = [
   {
     id: "raw_seed",
-    label: "Raw Seed",
-    description: "A fragment, a beginning, an unfinished thought. No expectations.",
+    label: "Early draft",
+    description: "A rough start or fragment.",
     icon: <RawSeedIcon className="w-6 h-6" />,
     color: "amber",
   },
   {
     id: "growing",
-    label: "Growing",
-    description: "Taking shape, but still finding its form. Tender and in-progress.",
+    label: "In progress",
+    description: "Actively being revised.",
     icon: <GrowingIcon className="w-6 h-6" />,
     color: "emerald",
   },
   {
     id: "ready_to_show",
-    label: "Ready to Show",
-    description: "You feel complete with this piece. It's ready for eyes.",
+    label: "Ready",
+    description: "Ready to share or submit.",
     icon: <ReadyIcon className="w-6 h-6" />,
     color: "pink",
   },
   {
     id: "dormant",
-    label: "Sleeping",
-    description: "Not abandoned, just waiting. This piece needs time.",
+    label: "On hold",
+    description: "Set aside for now.",
     icon: <Moon className="w-6 h-6" />,
     color: "violet",
   },
@@ -180,7 +180,7 @@ export default function PlantingFlow({
                     {step === "visibility" ? "Step 1 of 3 — Where" : step === "readiness" ? "Step 2 of 3 — How Ready" : "Step 3 of 3 — Confirm"}
                   </p>
                   <h2 className="text-xl font-display font-light italic text-white/85">
-                    {step === "visibility" ? "Where should this live?" : step === "readiness" ? "How does it feel?" : "Plant this piece"}
+                    {step === "visibility" ? "Who can see this?" : step === "readiness" ? "What stage is it in?" : "Review settings"}
                   </h2>
                   {title && (
                     <p className="text-sm font-serif text-white/30 mt-1 truncate">{title}</p>
@@ -352,9 +352,9 @@ export default function PlantingFlow({
                                 {editorialAvailable ? <Eye size={16} /> : <EyeOff size={16} />}
                               </div>
                               <div>
-                                <p className="text-sm font-serif text-white/70">Available for editorial consideration</p>
+                                <p className="text-sm font-serif text-white/70">Available for journal review</p>
                                 <p className="text-xs font-serif text-white/30 mt-0.5">
-                                  Let editors know this piece is open to being featured on The Page
+                                  Let the journal team know this piece is open for review
                                 </p>
                               </div>
                             </div>
@@ -382,7 +382,7 @@ export default function PlantingFlow({
                       {visibility === "personal" && (
                         <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-4">
                           <p className="text-xs font-serif text-white/25 italic leading-relaxed text-center">
-                            This piece will stay in your private garden. You can always change where it lives later.
+                            This piece will stay private. You can change this later.
                           </p>
                         </div>
                       )}
@@ -414,7 +414,7 @@ export default function PlantingFlow({
                       data-testid="button-plant-confirm"
                     >
                       <Sparkles size={14} className="group-hover:rotate-12 transition-transform" />
-                      {visibility === "personal" ? "Save to Garden" : visibility === "circle" ? "Share with Circle" : "Plant in Gallery"}
+                      {visibility === "personal" ? "Save settings" : visibility === "circle" ? "Share to circle" : "Make public"}
                     </motion.button>
                   ) : (
                     <motion.button
@@ -455,16 +455,16 @@ export function VisibilityBadge({ visibility, readiness, editorialAvailable, com
   compact?: boolean;
 }) {
   const visConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-    personal: { label: "Personal", icon: <Lock size={compact ? 10 : 12} />, color: "amber" },
+    personal: { label: "Private", icon: <Lock size={compact ? 10 : 12} />, color: "amber" },
     circle: { label: "Circle", icon: <Users size={compact ? 10 : 12} />, color: "violet" },
-    garden: { label: "Gallery", icon: <Globe size={compact ? 10 : 12} />, color: "emerald" },
+    garden: { label: "Public", icon: <Globe size={compact ? 10 : 12} />, color: "emerald" },
   };
 
   const readConfig: Record<string, { label: string; color: string }> = {
-    raw_seed: { label: "Raw Seed", color: "amber" },
-    growing: { label: "Growing", color: "emerald" },
+    raw_seed: { label: "Early Draft", color: "amber" },
+    growing: { label: "In Progress", color: "emerald" },
     ready_to_show: { label: "Ready", color: "pink" },
-    dormant: { label: "Sleeping", color: "violet" },
+    dormant: { label: "On Hold", color: "violet" },
   };
 
   const vis = visConfig[visibility] || visConfig.personal;

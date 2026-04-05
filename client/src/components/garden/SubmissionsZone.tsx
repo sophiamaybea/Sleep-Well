@@ -1756,8 +1756,8 @@ export default function SubmissionsZone({ userTier }: { userTier: "free" | "paid
   return (
     <div className="max-w-3xl mx-auto overflow-x-hidden" data-testid="submissions-zone">
       <div className="text-center mb-6">
-        <h2 className="font-display text-xl font-light italic text-white/80 mb-1">Career Tools</h2>
-        <p className="font-serif text-xs text-white/40">Track submissions, manage credits, and stay organized.</p>
+        <h2 className="font-display text-xl font-light italic text-white/80 mb-1">Journal Tools</h2>
+        <p className="font-serif text-xs text-white/40">Track submissions, credits, bios, and cover letters in one place.</p>
       </div>
 
       <TabNav active={activeTab} onChange={setActiveTab} />

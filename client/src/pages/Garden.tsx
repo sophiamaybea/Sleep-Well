@@ -31,7 +31,6 @@ import SendToEditors from "@/components/garden/SendToEditors";
 import { WhosHereStrip } from "@/components/garden/WhosHereStrip";
 import SubmissionsZone from "@/components/garden/SubmissionsZone";
 import { GalleryFeedbackModal } from "@/components/GalleryFeedbackModal";
-import { NightGardenAtmosphere } from "@/components/garden/NightGardenAtmosphere";
 import { BloomCelebration } from "@/components/garden/BloomCelebration";
 import { SeedIcon, SproutIcon, BloomIcon, stageIcons } from "@/components/garden/GardenIcons";
 import { Skeleton, DeskSkeleton, ReadingRoomSkeleton, CommunityRoomSkeleton } from "@/components/garden/GardenSkeletons";
@@ -52,48 +51,39 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
     { id: "reading-room", label: "Read", desc: "The public garden — what blooms here, others can tend", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
     { id: "studio", label: "Studio", desc: "Editorial triage, revision planning, and publication flow", icon: <FileCheck size={14} />, activeColor: "border-sky-600/25 bg-sky-900/20 text-sky-200/90" },
     { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
-    { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
+    { id: "submissions", label: "Journal", desc: "Submissions, credits, and cover letters", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
       { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" }, 
       ];
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="inline-flex gap-1 p-1.5 rounded-full border border-emerald-800/20 bg-emerald-950/20 backdrop-blur-xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-hide">
+    <div className="w-full max-w-3xl">
+      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-2 sm:grid-cols-5">
         {zones.map((z) => (
           <button
             key={z.id}
             onClick={() => onChange(z.id)}
-            className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-mono text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all whitespace-nowrap ${
-              active === z.id ? "text-white/90" : "text-white/90 hover:text-white/90"
+            className={`relative flex min-h-[4rem] flex-col items-start justify-center gap-1 rounded-xl border px-3 py-2 text-left transition-all ${
+              active === z.id
+                ? "border-emerald-500/30 bg-white/[0.08] text-white/90"
+                : "border-white/[0.06] bg-transparent text-white/65 hover:border-white/[0.14] hover:text-white/85"
             }`}
             data-testid={`zone-tab-${z.id}`}
           >
             {active === z.id && (
               <motion.div
                 layoutId="activeZone"
-                className={`absolute inset-0 rounded-full ${z.activeColor}`}
+                className={`absolute inset-0 rounded-xl ${z.activeColor}`}
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
             )}
-            <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
+            <span className="relative z-10 flex items-center gap-2 font-sans text-xs font-medium">
               {z.icon}
-              <span className="text-[8px] sm:text-[10px]">{z.label}</span>
+              <span>{z.label}</span>
             </span>
+            <span className="relative z-10 text-xs leading-4 text-white/60">{z.desc}</span>
           </button>
         ))}
       </div>
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={active}
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 4 }}
-          transition={{ duration: 0.15 }}
-          className="font-serif text-[12px] text-white/45 text-center italic"
-        >
-          {zones.find(z => z.id === active)?.desc}
-        </motion.p>
-      </AnimatePresence>
     </div>
   );
 }
@@ -203,12 +193,12 @@ function PublishInvitations() {
     <div className="mb-6 space-y-3">
       <h3 className="font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/60 flex items-center gap-2">
         <Sparkles size={12} />
-        Publishing Invitations
+        Journal Invitations
       </h3>
       {pending.map((r: any) => (
         <div key={r.id} className="rounded-xl border border-amber-400/20 bg-amber-400/[0.03] p-4" data-testid={`invite-${r.id}`}>
           <p className="font-serif text-sm text-white/80 mb-1">
-            We'd like to invite your piece <span className="font-display italic text-amber-200/90">"{r.writingTitle}"</span> into The Page.
+            The journal would like to publish <span className="font-display italic text-amber-200/90">"{r.writingTitle}"</span>.
           </p>
           {r.editorNote && <p className="font-serif text-xs text-white/90 italic mb-2">"{r.editorNote}"</p>}
           {r.proposedDate && <p className="font-mono text-[8px] text-white/90 mb-2">Proposed: {r.proposedDate}</p>}
@@ -268,18 +258,18 @@ function DailyPromptCard({ onWriteFromPrompt }: { onWriteFromPrompt: (prompt: st
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-6 p-5 rounded-2xl border border-amber-500/10 bg-gradient-to-br from-amber-950/15 via-transparent to-emerald-950/10"
+      className="mb-6 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5"
       data-testid="card-daily-prompt"
     >
       <div className="flex items-center gap-2 mb-3">
         <Sparkles size={14} className="text-amber-400/60" />
-        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-amber-400/50">Today's Prompt</span>
-        <span className="ml-auto font-mono text-[8px] uppercase tracking-widest text-white/90">{prompt.category}</span>
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/55">Today's Prompt</span>
+        <span className="ml-auto rounded-full border border-white/[0.08] px-2 py-0.5 font-mono text-[8px] uppercase tracking-widest text-white/60">{prompt.category}</span>
       </div>
-      <p className="font-display text-lg text-white/75 italic leading-relaxed mb-4">{prompt.text}</p>
+      <p className="text-base text-white/80 leading-7 mb-4">{prompt.text}</p>
       <button
         onClick={() => onWriteFromPrompt(prompt.text)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-amber-500/20 text-amber-400/60 hover:text-amber-400/80 hover:border-amber-500/30 transition-all"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-white/75 hover:bg-white/[0.08] hover:text-white transition-all"
         data-testid="button-write-from-prompt"
       >
         <PenLine size={11} />
@@ -379,29 +369,10 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="hidden mb-6 p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]" data-testid="layer-system">
-        <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90 block mb-2">Your Creative Layers</span>
-        <div className="flex items-center gap-1 text-[9px] font-mono overflow-x-auto scrollbar-hide">
-          {[
-            { label: "Soil", color: "text-amber-400/80 bg-amber-500/10 border-amber-500/20", active: true },
-            { label: "Garden", color: "text-emerald-400/50 bg-emerald-500/5 border-emerald-500/10", active: false },
-                        { label: "Gallery", color: "text-white/90 bg-white/[0.03] border-white/10", active: false },
-            ].map((layer, i) => (
-            <span key={layer.label} className="flex items-center gap-1 whitespace-nowrap">
-              {i > 0 && <span className="text-white/90 mx-0.5">&rarr;</span>}
-              <span className={`px-2 py-0.5 rounded-full border ${layer.color} ${layer.active ? "ring-1 ring-amber-500/20" : ""}`}>
-                {layer.label}
-              </span>
-            </span>
-          ))}
-        </div>
-        <p className="hidden font-serif text-[10px] text-white/90 mt-1.5 italic">The Soil is your private foundation. Nothing here is seen by editors.</p>
+      <div className="mb-6 space-y-4">
+        <PublishInvitations />
+        <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} />
       </div>
-                <button onClick={() => setShowDeskHeader(s => !s)} className="hidden flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"><ChevronDown size={10} className={showDeskHeader ? "rotate-180 transition-transform" : "transition-transform"} /> Invitations & prompts</button>
-                {showDeskHeader && (<>
-      <PublishInvitations />
-
-      <DailyPromptCard onWriteFromPrompt={onWriteFromPrompt} /></>)}<button           onClick={() => setShowDeskStats(s => !s)}           className="hidden flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors mb-2"         >           <ChevronDown size={10} className={showDeskStats ? "rotate-180 transition-transform" : "transition-transform"} />           Writing stats         </button>
 
       {writings.length > 0 && showDeskStats && (() => {
         const totalWords = writings.reduce((a, w) => a + wordCount(w.content), 0);
@@ -444,68 +415,71 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         );
       })()}
 
-      <div className="flex items-end justify-between gap-4 mb-8">
+      <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="mb-2 flex items-center gap-2">
             <Feather size={16} className="text-amber-400/50" />
-            <h2 className="font-display text-xl font-light italic text-white/90">Your Desk</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-white/90">Your Desk</h2>
           </div>
-          <div className="flex items-center hidden gap-3 ml-6">
-            <p className="text-xs font-serif text-white/90">
-              {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
-            </p>
-            {emptyDraftCount > 0 && (
-              <button
-                onClick={() => cleanupMutation.mutate()}
-                disabled={cleanupMutation.isPending}
-                className="flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/90 hover:text-red-300/60 border border-white/[0.06] hover:border-red-400/20 bg-white/[0.02] hover:bg-red-950/10 transition-all"
-                data-testid="button-cleanup-drafts"
-                title={`Remove ${emptyDraftCount} untitled ${emptyDraftCount === 1 ? "draft" : "drafts"}`}
-              >
-                <Trash2 size={9} />
-                {cleanupMutation.isPending ? "Cleaning..." : `${emptyDraftCount} untitled`}
-              </button>
-            )}
-          </div>
+          <p className="text-sm text-white/65">A clearer list of your drafts, works in progress, and pieces ready to share.</p>
+          <p className="mt-2 text-xs text-white/55">
+            {writings.length} {writings.length === 1 ? "piece" : "pieces"} · {writings.reduce((a, w) => a + wordCount(w.content), 0).toLocaleString()} words
+          </p>
         </div>
-        <motion.button
-          onClick={onCreateNew}
-          disabled={isCreating}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-5 py-2.5 border border-emerald-600/20 hover:border-emerald-500/35 rounded-full font-mono text-[10px] uppercase tracking-widest text-emerald-200/60 hover:text-emerald-100/80 bg-emerald-900/15 hover:bg-emerald-900/25 transition-all group"
-          data-testid="button-new-piece"
-        >
-          <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
-          New Piece
-        </motion.button>
+        <div className="flex items-center gap-2">
+          {emptyDraftCount > 0 && (
+            <button
+              onClick={() => cleanupMutation.mutate()}
+              disabled={cleanupMutation.isPending}
+              className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-white/60 hover:border-red-400/25 hover:text-red-300/75 transition-all"
+              data-testid="button-cleanup-drafts"
+              title={`Remove ${emptyDraftCount} untitled ${emptyDraftCount === 1 ? "draft" : "drafts"}`}
+            >
+              <Trash2 size={10} />
+              {cleanupMutation.isPending ? "Cleaning" : `Clear ${emptyDraftCount} empty`}
+            </button>
+          )}
+          <motion.button
+            onClick={onCreateNew}
+            disabled={isCreating}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-white/[0.06] px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-white/85 hover:bg-white/[0.1] transition-all"
+            data-testid="button-new-piece"
+          >
+            <Plus size={14} />
+            New Piece
+          </motion.button>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-grow">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/90" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/45" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search your pieces..."
-            className="w-full pl-10 pr-4 py-2.5 bg-emerald-950/15 border border-emerald-800/15 rounded-2xl text-sm font-serif text-white/75 placeholder:text-white/90 focus:outline-none focus:border-emerald-700/25 transition-colors"
+            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] py-3 pl-10 pr-4 text-sm text-white/80 placeholder:text-white/40 focus:outline-none focus:border-white/[0.16] transition-colors"
             data-testid="input-search"
           />
         </div>
-        <div className="flex gap-0.5 p-0.5 bg-emerald-950/15 rounded-2xl border border-emerald-800/10">
+        <div className="flex flex-wrap gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-2">
           {filters.map((f) => (
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
               title={f.tip}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-mono text-[9px] uppercase tracking-widest transition-all ${
-                activeFilter === f.id ? "bg-white/[0.08] text-white/80" : "text-white/90 hover:text-white/90"
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-all ${
+                activeFilter === f.id
+                  ? "border-emerald-500/25 bg-white/[0.08] text-white/90"
+                  : "border-transparent text-white/60 hover:border-white/[0.08] hover:text-white/85"
               }`}
               data-testid={`filter-${f.id}`}
             >
               {f.label}
-              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/90" : "text-white/45"}`}>{f.count}</span>
+              <span className={`text-[8px] ${activeFilter === f.id ? "text-white/70" : "text-white/40"}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -562,9 +536,9 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
             <BloomIcon className="w-8 h-8 text-pink-400/20" />
           </div>
           <div className="relative space-y-2">
-            <h3 className="text-2xl font-display font-light italic text-white/90">Your garden awaits its first seed</h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-white/90">Your desk is empty</h3>
             <p className="font-serif text-sm text-white/90 max-w-md mx-auto leading-relaxed">
-              A line, a fragment, a whole draft — whatever wants to come out.
+              Start with a note, a fragment, or a full draft. You can organize and share it later.
             </p>
           </div>
           <motion.button
@@ -622,7 +596,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                     <div className="flex-grow min-w-0">
                       <div className="flex items-center gap-2">
                         {(w as any).isPinned && <Pin size={10} className="text-amber-400/50 flex-shrink-0" />}
-                        <h3 className="text-base font-display font-light truncate text-white/80 italic">
+                        <h3 className="text-base font-semibold truncate text-white/90">
                           {w.title || "Untitled"}
                         </h3>
                         {(w as any).isPublished && (
@@ -763,7 +737,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                             const existingFlag = myFlags.find((f: any) => f.writingId === w.id);
                             if (existingFlag) {
                               const stepIndex = existingFlag.status === "flagged" ? 0 : existingFlag.status === "seen" ? 1 : 2;
-                              const steps = ["Flagged", "Seen", "Responded"];
+                              const steps = ["Requested", "In review", "Received"];
                               if (existingFlag.isPaidFlag) {
                                 return (
                                   <motion.div
@@ -775,9 +749,9 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                     <div className="flex items-center justify-between mb-2">
                                       <div className="flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-widest text-violet-300/70">
                                         <Flag size={10} />
-                                        {existingFlag.status === "flagged" ? "Flagged for editors" :
-                                         existingFlag.status === "seen" ? "An editor paused here" :
-                                         "Editor responded"}
+                                         {existingFlag.status === "flagged" ? "Review requested" :
+                                          existingFlag.status === "seen" ? "In review" :
+                                          "Review received"}
                                       </div>
                                       <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
                                         <Crown size={8} className="text-amber-400/80" />
@@ -808,9 +782,9 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                       ))}
                                     </div>
                                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                                      <span className="font-mono text-[7px] text-white/90">Flagged {timeAgo(existingFlag.createdAt)}</span>
+                                      <span className="font-mono text-[7px] text-white/90">Requested {timeAgo(existingFlag.createdAt)}</span>
                                       {existingFlag.seenAt && (
-                                        <span className="font-mono text-[7px] text-white/90">Seen {timeAgo(existingFlag.seenAt)}</span>
+                                        <span className="font-mono text-[7px] text-white/90">In review {timeAgo(existingFlag.seenAt)}</span>
                                       )}
                                     </div>
                                     {existingFlag.editorResponse && (
@@ -826,9 +800,9 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                               return (
                                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest border border-violet-500/20 bg-violet-500/5 text-violet-300/70">
                                   <Flag size={10} />
-                                  {existingFlag.status === "flagged" ? "Flagged for editors" : 
-                                   existingFlag.status === "seen" ? "An editor paused here" : 
-                                   "Editor responded"}
+                                  {existingFlag.status === "flagged" ? "Review requested" : 
+                                   existingFlag.status === "seen" ? "In review" : 
+                                   "Review received"}
                                   <span className="text-[7px] text-white/90 normal-case tracking-normal ml-1">{timeAgo(existingFlag.createdAt)}</span>
                                 </div>
                               );
@@ -840,7 +814,7 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
                                 data-testid={`button-flag-${w.id}`}
                               >
                                 <Flag size={10} />
-                                Ready for eyes
+                                Request review
                               </button>
                             );
                           })()}
@@ -864,12 +838,12 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
         >
           <h3 className="font-mono text-[9px] uppercase tracking-[0.3em] text-violet-300/50 mb-3 flex items-center gap-2">
             <Flag size={12} />
-            Your Editorial Flags
+            Journal Review
           </h3>
           <div className="space-y-3">
             {myFlags.map((flag: any) => {
               const stepIndex = flag.status === "flagged" ? 0 : flag.status === "seen" ? 1 : 2;
-              const steps = ["Flagged", "Seen", "Responded"];
+              const steps = ["Requested", "In review", "Received"];
               return (
                 <div key={flag.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-violet-500/10 bg-violet-500/[0.02]" data-testid={`flag-summary-${flag.id}`}>
                   <div className="flex-1 min-w-0">
@@ -1775,10 +1749,10 @@ function CuratedOpportunitiesBanner() {
 
   return (
     <div className="mb-6 relative" data-testid="curated-opportunities-banner">
-      <div className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04] p-4">
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-amber-400/50">From the editors</span>
-          <button onClick={() => setDismissed(true)} className="text-white/90 hover:text-white/90 transition-colors" data-testid="btn-dismiss-opps">
+          <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/55">From the editors</span>
+          <button onClick={() => setDismissed(true)} className="text-white/50 hover:text-white/80 transition-colors" data-testid="btn-dismiss-opps">
             <X size={12} />
           </button>
         </div>
@@ -1787,13 +1761,13 @@ function CuratedOpportunitiesBanner() {
             <div key={opp.id} className="flex items-baseline justify-between gap-3" data-testid={`garden-opp-${opp.id}`}>
               <div className="min-w-0">
                 {opp.link ? (
-                  <a href={opp.link} target="_blank" rel="noopener noreferrer" className="font-serif text-sm text-amber-200/80 hover:text-amber-200 underline underline-offset-2 decoration-amber-500/20 hover:decoration-amber-500/40 transition-colors">{opp.title}</a>
+                  <a href={opp.link} target="_blank" rel="noopener noreferrer" className="text-sm text-white/85 hover:text-white underline underline-offset-2 decoration-white/20 hover:decoration-white/40 transition-colors">{opp.title}</a>
                 ) : (
-                  <span className="font-serif text-sm text-amber-200/80">{opp.title}</span>
+                  <span className="text-sm text-white/85">{opp.title}</span>
                 )}
-                {opp.outlet && <span className="font-mono text-[8px] uppercase tracking-widest text-white/90 ml-2">{opp.outlet}</span>}
+                {opp.outlet && <span className="ml-2 font-mono text-[8px] uppercase tracking-widest text-white/50">{opp.outlet}</span>}
               </div>
-              {opp.deadline && <span className="font-mono text-[8px] text-white/90 whitespace-nowrap flex-shrink-0">{opp.deadline}</span>}
+              {opp.deadline && <span className="font-mono text-[8px] text-white/55 whitespace-nowrap flex-shrink-0">{opp.deadline}</span>}
             </div>
           ))}
         </div>
@@ -1973,13 +1947,15 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 mb-2">
+      <div className="mb-8 border-b border-white/[0.06] pb-5">
+        <div className="mb-2 flex items-center gap-2">
           <BookOpen size={16} className="text-emerald-400/50" />
-          <h2 className="font-display text-xl font-light italic text-white/90">Reading Room</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-white/90">Reading Room</h2>
         </div>
-        <p className="font-serif text-xs text-white/90 italic">Letters from gardens you tend, and new voices growing nearby</p>
-                    <WhosHereStrip />
+        <p className="text-sm text-white/60">Recent writing from gardens you follow, plus new pieces worth reading.</p>
+        <div className="mt-3">
+          <WhosHereStrip />
+        </div>
       </div>
 
               <DailyNudge
@@ -2010,7 +1986,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               <span className="font-mono text-[8px] text-white/90">{timeAgo(dailyLetter.createdAt)}</span>
             </div>
 
-            <h3 className="text-2xl md:text-3xl font-display font-light text-white/85 italic leading-snug" data-testid="daily-letter-title">
+            <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-white/90 leading-snug" data-testid="daily-letter-title">
               {dailyLetter.title || "Untitled"}
             </h3>
 
@@ -2018,7 +1994,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               <ContentRenderer
                 content={dailyLetter.content}
                 maxLength={shouldTruncateDailyLetter ? 2500 : undefined}
-                className="font-serif text-white/55 leading-[2] text-[15px]"
+                className="text-[15px] leading-8 text-white/75"
               />
               {shouldTruncateDailyLetter && (
                 <button
@@ -2051,14 +2027,14 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
           {(allPieces.length > 1 || (allPieces.length === 1 && allPieces[0].id !== dailyLetter.id)) && (
             <div className="flex items-center gap-4 mt-10 mb-2">
               <div className="flex-1 border-t border-white/[0.04]" />
-              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/90">More from the Garden</span>
+              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/55">More from the Garden</span>
               <div className="flex-1 border-t border-white/[0.04]" />
             </div>
           )}
         </div>
       )}
 
-      <div className="relative mb-4"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" /><input type="text" value={readingRoomSearch} onChange={(e) => { setReadingRoomSearch(e.target.value); setPage(1); }} placeholder="Search by title, author, or keyword..." className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] focus:bg-white/[0.04] focus:border-white/[0.12] text-white/60 placeholder-white/20 font-serif text-sm outline-none transition-all" data-testid="input-reading-room-search" /></div><CuratedOpportunitiesBanner />
+      <div className="relative mb-4"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35" /><input type="text" value={readingRoomSearch} onChange={(e) => { setReadingRoomSearch(e.target.value); setPage(1); }} placeholder="Search by title, author, or keyword..." className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] py-3 pl-9 pr-4 text-sm text-white/80 placeholder:text-white/35 outline-none transition-all focus:border-white/[0.16]" data-testid="input-reading-room-search" /></div><CuratedOpportunitiesBanner />
 
       <div className="flex flex-col items-center gap-3 mb-8">
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
@@ -2069,7 +2045,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               className={`px-3 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                 activeSort === s.id
                   ? "border-amber-500/30 bg-amber-500/10 text-amber-300/90"
-                  : "border-white/[0.06] text-white/90 hover:text-white/55 hover:border-white/15"
+                  : "border-white/[0.06] text-white/60 hover:text-white/85 hover:border-white/15"
               }`}
               data-testid={`sort-${s.id}`}
             >
@@ -2085,7 +2061,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
               className={`px-2.5 py-1 rounded-full font-mono text-[9px] uppercase tracking-widest transition-all border ${
                 genreFilter === g
                   ? "border-amber-500/30 bg-amber-500/10 text-amber-300/90"
-                  : "border-transparent text-white/90 hover:text-white/45"
+                  : "border-transparent text-white/55 hover:text-white/85"
               }`}
               data-testid={`genre-filter-${g}`}
             >
@@ -2099,7 +2075,7 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
         <div className="relative border border-dashed border-emerald-700/15 rounded-3xl p-16 text-center space-y-4 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(6,78,59,0.06) 0%, transparent 60%)" }} />
           <Feather size={32} className="relative mx-auto text-emerald-500/25" />
-          <h3 className="relative text-xl font-display font-light italic text-white/90">No letters yet</h3>
+          <h3 className="relative text-xl font-semibold tracking-tight text-white/90">No letters yet</h3>
           <p className="relative font-serif text-sm text-white/90 max-w-sm mx-auto leading-relaxed">
             When writers share their work to the garden, or you tend someone's garden, their pieces will appear here like letters slid under your door.
           </p>
@@ -2160,14 +2136,14 @@ function ReadingRoomZone({ onViewProfile, onGoToRoom }: { onViewProfile?: (userI
                     <span className="font-mono text-[8px] text-white/90">{timeAgo(piece.updatedAt)}</span>
                   </div>
 
-                  <h3 className="text-lg md:text-xl font-display font-light text-white/80 italic mb-2 leading-snug">
+                  <h3 className="mb-2 text-lg md:text-xl font-semibold tracking-tight text-white/90 leading-snug">
                     {piece.title || "Untitled"}
                   </h3>
 
                   {isExpanded ? (
-                    <ContentRenderer content={piece.content} maxLength={2000} className="font-serif text-white/55 leading-[1.9]" />
+                    <ContentRenderer content={piece.content} maxLength={2000} className="text-white/75 leading-8" />
                   ) : (
-                    <ContentRenderer content={piece.content} maxLength={250} className="font-serif text-white/55 leading-[1.9] line-clamp-3" />
+                    <ContentRenderer content={piece.content} maxLength={250} className="text-white/70 leading-7 line-clamp-3" />
                   )}
 
                   {!isExpanded && (
@@ -2269,12 +2245,12 @@ function GreenhouseZone() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 mb-3">
+      <div className="mb-8 border-b border-white/[0.06] pb-5">
+        <div className="mb-2 flex items-center gap-2">
           <TreePine size={18} className="text-teal-400/60" />
-          <h2 className="font-display text-2xl font-light italic text-white/90">Your Greenhouse</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-white/90">Practice</h2>
         </div>
-        <p className="font-serif text-sm text-white/45 max-w-md mx-auto leading-relaxed">
+        <p className="max-w-2xl text-sm text-white/60 leading-relaxed">
           A private space just for you. Tend your practice, track your energy, and nurture your creative life. No one else can see what's here.
         </p>
       </div>
@@ -2289,7 +2265,7 @@ function GreenhouseZone() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06, duration: 0.35 }}
               onClick={() => setActiveTool(tool.id)}
-              className={`relative text-left p-6 rounded-3xl border ${colors.border} bg-emerald-950/15 transition-all duration-300 group overflow-hidden`}
+              className={`relative overflow-hidden rounded-2xl border bg-white/[0.03] p-6 text-left transition-all duration-300 group ${colors.border}`}
               data-testid={`tool-${tool.id}`}
             >
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
@@ -2302,10 +2278,10 @@ function GreenhouseZone() {
                 <div className={`${colors.text} mb-3 w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center group-hover:scale-110 group-hover:bg-white/[0.08] transition-all`}>
                   {tool.icon}
                 </div>
-                <h3 className="font-display text-lg font-light italic text-white/75 group-hover:text-white/90 transition-colors mb-1.5">
+                <h3 className="mb-1.5 text-lg font-semibold tracking-tight text-white/85 group-hover:text-white transition-colors">
                   {tool.label}
                 </h3>
-                <p className="font-serif text-xs text-white/45 leading-relaxed group-hover:text-white/55 transition-colors">{tool.desc}</p>
+                <p className="text-sm text-white/60 leading-relaxed group-hover:text-white/75 transition-colors">{tool.desc}</p>
               </div>
             </motion.button>
           );
@@ -3605,7 +3581,7 @@ export default function Garden() {
 
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-transparent text-foreground relative">
+      <div className="min-h-screen garden-bg text-foreground relative overflow-x-hidden">
         <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -3645,7 +3621,7 @@ export default function Garden() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-transparent text-foreground relative">
+      <div className="min-h-screen garden-bg text-foreground relative overflow-x-hidden">
           <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 mx-auto border border-white/20 rounded-full flex items-center justify-center">
@@ -3660,7 +3636,7 @@ export default function Garden() {
 
   if (showNotifications) {
     return (
-      <div className="min-h-screen bg-transparent text-foreground relative">
+      <div className="min-h-screen garden-bg text-foreground relative overflow-x-hidden">
         <div className="relative z-10 pt-20 pb-24 px-6 max-w-2xl mx-auto">
           <button
             onClick={() => setShowNotifications(false)}
@@ -3676,15 +3652,13 @@ export default function Garden() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-foreground relative">
-      <NightGardenAtmosphere />
-
+    <div className="min-h-screen garden-bg text-foreground relative overflow-x-hidden">
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-emerald-900/25 garden-header-bg">
+        <header className="sticky top-0 z-50 border-b border-white/[0.08] garden-header-bg">
           <div className="max-w-5xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-4">
-              <a href="/" className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.3em] text-white/45 hover:text-white/90 transition-colors group" data-testid="link-home">
-                <Home size={14} className="text-emerald-400 group-hover:text-emerald-400/60 transition-colors" />
+              <a href="/" className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group" data-testid="link-home">
+                <Home size={14} className="text-white/65 group-hover:text-white transition-colors" />
                 <span className="hidden sm:inline">Home</span>
               </a>
 
@@ -3937,12 +3911,12 @@ export default function Garden() {
             <div className="mb-6 rounded-2xl border border-violet-500/15 bg-violet-950/[0.08] p-5 text-center max-w-5xl mx-auto" data-testid="editors-walk-banner">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-violet-400/60 animate-pulse" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-violet-300/70">The Editors Walk</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-violet-300/70">Open Review Window</span>
               </div>
               <p className="font-display text-lg font-light italic text-white/90">{activeWalk.title}</p>
               {activeWalk.description && <p className="font-serif text-xs text-white/45 mt-1">{activeWalk.description}</p>}
               <p className="font-mono text-[9px] text-violet-300/50 mt-3">
-                Editors are walking through the gardens. Flag up to {activeWalk.flagLimit} pieces during this window.
+                Editors are reviewing requested pieces. You can submit up to {activeWalk.flagLimit} pieces during this window.
               </p>
               <p className="font-mono text-[8px] text-white/90 mt-1">
                 Ends {new Date(activeWalk.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}

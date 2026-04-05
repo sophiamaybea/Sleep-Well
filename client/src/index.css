@@ -589,19 +589,19 @@
 
 /* ─── Legacy accessibility classes removed — all a11y modes now in bottom of file ─── */
 
-/* ─── Garden Background Classes — teal-indigo watercolor night ─── */
+/* ─── Garden Background Classes — cleaner functional dark ─── */
 .garden-bg {
-  background: linear-gradient(180deg, #0d1e2d 0%, #0e2428 30%, #0d2030 60%, #0d1e2d 100%);
+  background: #111317;
 
 }
 .garden-header-bg {
-  background: linear-gradient(135deg, rgba(13,30,45,0.93) 0%, rgba(14,36,40,0.93) 100%);
+  background: rgba(17, 19, 23, 0.96);
 }
 .garden-dropdown-bg {
-  background: linear-gradient(180deg, rgba(14,36,40,0.98) 0%, rgba(13,30,45,0.98) 100%);
+  background: rgba(20, 23, 28, 0.98);
 }
 .a11y-panel-bg {
-  background: linear-gradient(135deg, rgba(13,30,45,0.95) 0%, rgba(14,36,40,0.95) 100%);
+  background: rgba(20, 23, 28, 0.98);
 }
 
 /* ─── Dark Mode: Tailwind accent remapping (emerald→teal, amber→gold-leaf) ─── */
@@ -961,6 +961,29 @@
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Easier scrolling for dense panels and nested scroll areas */
+.easy-scroll {
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+  touch-action: pan-y;
+}
+.easy-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.easy-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.easy-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+.easy-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 /* ═══════════════════════════════════════════════════════════════
