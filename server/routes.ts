@@ -3379,7 +3379,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     }
   });
 
-  app.post("/api/opportunities", async (req: any, res) => {
+  app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = insertOpportunitySchema.safeParse(req.body);
       if (!parsed.success)
@@ -7375,7 +7375,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
   });
 
   // === EDITOR BIO MANAGEMENT ===
-  app.get("/api/admin/users", async (req: any, res) => {
+  app.get("/api/admin/users", isAuthenticated, isEditorInChief, async (req: any, res) => {
     try {
       const allUsers = await storage.getAllUsers();
       res.json(allUsers);
@@ -7384,7 +7384,7 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
     }
   });
 
-  app.patch("/api/admin/users/:userId/bio", async (req: any, res) => {
+  app.patch("/api/admin/users/:userId/bio", isAuthenticated, isEditorInChief, async (req: any, res) => {
     try {
       const { bio } = req.body;
       const user = await storage.updateUserBio(req.params.userId, bio);
