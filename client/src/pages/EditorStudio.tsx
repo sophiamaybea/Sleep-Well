@@ -25,12 +25,7 @@ export default function EditorStudio() {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editorNotes, setEditorNotes] = useState<Record<string, string>>({});
-  const [checks, setChecks] = useState<Record<string, boolean>>({
-    intention: false,
-    language: false,
-    shape: false,
-    ending: false,
-  });
+  const [checks, setChecks] = useState<Record<string, Record<string, boolean>>>({});
 
   const { data: writings = [], isFetching } = useQuery<Writing[]>({
     queryKey: ["/api/writings"],
