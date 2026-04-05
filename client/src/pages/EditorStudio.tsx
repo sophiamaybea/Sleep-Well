@@ -1037,6 +1037,13 @@ function GardenStreamTab() {
                     >
                       <BookOpen size={12} /> {publishToGallery.isPending ? "Publishing..." : piece.isPublished ? "Published" : "Publish to Gallery"}
                     </button>
+                                              <button
+                        onClick={(e) => { e.stopPropagation(); setConvEntry({ writingId: piece.id, writingTitle: piece.title, authorId: piece.authorId || (piece as any).author_id, authorName: piece.authorName || piece.author?.username }); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-widest border border-teal-500/20 text-teal-300/60 hover:text-teal-300 hover:bg-teal-500/10 transition-all"
+                        data-testid={`btn-message-author-${piece.id}`}
+                      >
+                        <MessageCircle size={12} /> Message
+                      </button>
                       </div>
                       {showNotes === piece.id && (
                         <NotesPanel writingId={piece.id} />
