@@ -494,7 +494,7 @@ export default function Gallery() {
       </AnimatePresence>
             {convItem && (
               <AuthorEditorConversation
-                          writingId={Number(convItem.id)}
+                          writingId={convItem.id}
                           writingTitle={convItem.title}
                           isOpen={!!convItem}
                           onClose={() => setConvItem(null)}
