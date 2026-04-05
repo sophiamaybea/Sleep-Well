@@ -44,11 +44,26 @@ export function registerAuthorEditorConversationRoutes(app: Express) {
   app.get("/api/author-editor-conversations/writing/:writingId", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.user?.id;
-      const { rows } = await pool.query(
-        `SELECT * FROM author_editor_conversations 
-         WHERE writing_id = $1 AND author_id = $2`,
-        [req.params.writingId, userId]
-      );
+      const role = req.user?.role || req.user?.claims?.role || "writer";
+      const isEditor = ["editor", "editor_in_chief"].includes(role);
+
+      let rows;
+      if (isEditor) {
+        // Editors can find any conversation for a writing
+        const result = await pool.query(
+          `SELECT * FROM author_editor_conversations WHERE writing_id = $1 ORDER BY last_message_at DESC LIMIT 1`,
+          [req.params.writingId]
+        );
+        rows = result.rows;
+      } else {
+        // Writers only see their own conversations
+        const result = await pool.query(
+          `SELECT * FROM author_editor_conversations WHERE writing_id = $1 AND author_id = $2`,
+          [req.params.writingId, userId]
+        );
+        rows = result.rows;
+      }
+
       if (rows.length === 0) return res.json(null);
       res.json(rows[0]);
     } catch (err) {
@@ -63,26 +78,22 @@ export function registerAuthorEditorConversationRoutes(app: Express) {
       const role = req.user?.role || req.user?.claims?.role || "writer";
       const isEditor = ["editor", "editor_in_chief"].includes(role);
       const { subject, writingId, authorId, body } = req.body;
-
       const resolvedAuthorId = isEditor ? (authorId || userId) : userId;
       const convId = randomUUID();
-
       await pool.query(
         `INSERT INTO author_editor_conversations
-        (id, author_id, writing_id, subject, status, last_sender_id, last_message_at)
-        VALUES ($1, $2, $3, $4, 'open', $5, NOW())`,
+          (id, author_id, writing_id, subject, status, last_sender_id, last_message_at)
+          VALUES ($1, $2, $3, $4, 'open', $5, NOW())`,
         [convId, resolvedAuthorId, writingId || null, (subject || "General").trim(), userId]
       );
-
       if (body?.trim()) {
         await pool.query(
           `INSERT INTO author_editor_messages
-          (id, conversation_id, sender_id, sender_role, body)
-          VALUES ($1, $2, $3, $4, $5)`,
+            (id, conversation_id, sender_id, sender_role, body)
+            VALUES ($1, $2, $3, $4, $5)`,
           [randomUUID(), convId, userId, role, body.trim()]
         );
       }
-
       const { rows } = await pool.query(
         `SELECT * FROM author_editor_conversations WHERE id = $1`,
         [convId]
@@ -100,7 +111,6 @@ export function registerAuthorEditorConversationRoutes(app: Express) {
       const userId = req.user?.claims?.sub || req.user?.id;
       const role = req.user?.role || req.user?.claims?.role || "writer";
       const isEditor = ["editor", "editor_in_chief"].includes(role);
-
       if (!isEditor) {
         const { rows: guard } = await pool.query(
           `SELECT id FROM author_editor_conversations WHERE id = $1 AND author_id = $2`,
@@ -108,7 +118,6 @@ export function registerAuthorEditorConversationRoutes(app: Express) {
         );
         if (guard.length === 0) return res.status(403).json({ error: "Forbidden" });
       }
-
       const { rows } = await pool.query(
         `SELECT m.*, u.first_name || ' ' || u.last_name AS sender_name
         FROM author_editor_messages m
@@ -130,9 +139,7 @@ export function registerAuthorEditorConversationRoutes(app: Express) {
       const role = req.user?.role || req.user?.claims?.role || "writer";
       const isEditor = ["editor", "editor_in_chief"].includes(role);
       const { body } = req.body;
-
       if (!body?.trim()) return res.status(400).json({ error: "body is required" });
-
       if (!isEditor) {
         const { rows: guard } = await pool.query(
           `SELECT id FROM author_editor_conversations WHERE id = $1 AND author_id = $2`,
@@ -140,22 +147,19 @@ export function registerAuthorEditorConversationRoutes(app: Express) {
         );
         if (guard.length === 0) return res.status(403).json({ error: "Forbidden" });
       }
-
       const msgId = randomUUID();
       await pool.query(
         `INSERT INTO author_editor_messages
-        (id, conversation_id, sender_id, sender_role, body)
-        VALUES ($1, $2, $3, $4, $5)`,
+          (id, conversation_id, sender_id, sender_role, body)
+          VALUES ($1, $2, $3, $4, $5)`,
         [msgId, req.params.id, userId, role, body.trim()]
       );
-
       await pool.query(
         `UPDATE author_editor_conversations
         SET last_message_at = NOW(), last_sender_id = $1, updated_at = NOW()
         WHERE id = $2`,
         [userId, req.params.id]
       );
-
       const { rows } = await pool.query(
         `SELECT m.*, u.first_name || ' ' || u.last_name AS sender_name
         FROM author_editor_messages m
