@@ -1148,6 +1148,7 @@ function GreenhouseTab() {
   const [handoffEditorId, setHandoffEditorId] = useState("");
   const [handoffNote, setHandoffNote] = useState("");
   const [expandedNotes, setExpandedNotes] = useState<string | null>(null);
+    const [convEntry, setConvEntry] = useState<any | null>(null);
 
   const { data: issuesList = [] } = useQuery<any[]>({
     queryKey: ["/api/editor/issues"],
@@ -1457,6 +1458,16 @@ function GreenhouseTab() {
           </div>
         );
       })()}
+            {convEntry && (
+        <AuthorEditorConversation
+          writingId={convEntry.writingId}
+          writingTitle={convEntry.writingTitle}
+          peerId={convEntry.authorId}
+          peerName={convEntry.authorName}
+          isOpen={!!convEntry}
+          onClose={() => setConvEntry(null)}
+        />
+      )}
     </motion.div>
   );
 }
