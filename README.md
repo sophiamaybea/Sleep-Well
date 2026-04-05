@@ -6,7 +6,7 @@
 
 ## What is this project?
 
-Sleep-Well is a full-stack TypeScript web app (React frontend + Node/Express backend). It runs on Replit and deploys via Render.
+Sleep-Well is a full-stack TypeScript web app (React frontend + Node/Express backend). It deploys via Render.
 
 ---
 
@@ -49,7 +49,6 @@ Sleep-Well is a full-stack TypeScript web app (React frontend + Node/Express bac
 | `nixpacks.toml` | Tells Render how to build the app (Node 20) |
 | `DEPLOYMENT.md` | Step-by-step deploy instructions for Render |
 | `.gitignore` | Files Git ignores (env vars, node_modules, etc.) |
-| `.replit` | Replit-specific run config |
 
 ---
 
@@ -60,10 +59,10 @@ Sleep-Well is a full-stack TypeScript web app (React frontend + Node/Express bac
 - **Add a new page** → `client/src/pages/` + register it in `client/src/App.tsx`
 - **Add a new API endpoint** → `server/routes/` + register in `server/routes.ts`
 - **Change the database structure** → `shared/` (schema) + add a file in `server/migrations/`
-- **Add a new npm package** → `npm install <package>` then check `package.json`
+- **Add a new npm package** → `npm install ` then check `package.json`
 - **Fix a broken build** → check `vite.config.ts`, `tsconfig.json`, `nixpacks.toml`
 - **Fix a deploy issue** → read `DEPLOYMENT.md`
-- **Edit environment variables** → NOT in the code — set them in Render dashboard or Replit secrets
+- **Edit environment variables** → NOT in the code — set them in Render dashboard
 
 ---
 
@@ -94,6 +93,6 @@ Sleep-Well is a full-stack TypeScript web app (React frontend + Node/Express bac
 - **Frontend:** React + TypeScript + Vite + Tailwind CSS
 - **Backend:** Node.js + Express + TypeScript
 - **Database:** PostgreSQL via Supabase, managed with Drizzle ORM
-- **Auth:** Replit OIDC (session-based)
-- **Hosting:** Render (production), Replit (development)
+- **Auth:** Session-based auth
+- **Hosting:** Render
 - **CI/CD:** GitHub Actions (see `.github/` folder)
