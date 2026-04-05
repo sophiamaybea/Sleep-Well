@@ -1386,6 +1386,18 @@ export async function runMigrations() {
       }
     }
 
+    // --- Auto-migration: editorial_threads status column ---
+    try {
+      await pool.query(`
+        ALTER TABLE editorial_threads ADD COLUMN IF NOT EXISTS status varchar(32) NOT NULL DEFAULT 'open';
+      `);
+    } catch (e) {
+      if (!isBenignMigrationError(e)) {
+        console.error('[MIGRATION CRITICAL]: ALTER editorial_threads status failed:', (e as Error).message);
+        migrationErrors++;
+      }
+    }
+
     // --- Auto-migration: exercise_submissions new column ---
     try {
       await pool.query(`
