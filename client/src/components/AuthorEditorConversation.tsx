@@ -88,7 +88,9 @@ export default function AuthorEditorConversation({
     mutationFn: async (firstMsg: string) => {
       const res = await apiRequest("POST", "/api/author-editor-conversations", {
         writingId,
-        authorId: user?.id,
+        // When editor opens panel, peerId is the author. When writer opens, peerId is the editor.
+        // The backend resolves authorId correctly for editors; for writers userId is used automatically.
+        authorId: peerId,
         subject: writingTitle ? `Re: ${writingTitle}` : "General",
         body: firstMsg,
       });
@@ -173,7 +175,6 @@ export default function AuthorEditorConversation({
                 <X size={16} />
               </button>
             </div>
-
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               {loading && (
                 <div className="flex justify-center pt-8">
@@ -205,7 +206,6 @@ export default function AuthorEditorConversation({
               })}
               <div ref={bottomRef} />
             </div>
-
             <div className="px-4 pb-4 pt-2 border-t border-white/[0.06]">
               <div className="flex items-end gap-2">
                 <textarea
