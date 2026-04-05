@@ -28,6 +28,7 @@ Key vars to set in Render:
 
 | Variable | Description |
 |----------|-------------|
+| `PORT` | Port the Express server listens on (default `5000`) |
 | `DATABASE_URL` | PostgreSQL connection string (Render Postgres add-on) |
 | `APP_URL` | Full public URL, e.g. `https://your-service.onrender.com` |
 | `CONTACT_EMAIL` | Email address for inquiry notifications |

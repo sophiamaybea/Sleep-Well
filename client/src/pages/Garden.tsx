@@ -50,6 +50,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
   const zones: { id: Zone; label: string; desc: string; icon: React.ReactNode; activeColor: string }[] = [
     { id: "desk", label: "Write", desc: "Private soil for your seeds", icon: <Sprout size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
     { id: "reading-room", label: "Read", desc: "The public garden — what blooms here, others can tend", icon: <Glasses size={14} />, activeColor: "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/90" },
+    { id: "studio", label: "Studio", desc: "Editorial triage, revision planning, and publication flow", icon: <FileCheck size={14} />, activeColor: "border-sky-600/25 bg-sky-900/20 text-sky-200/90" },
     { id: "greenhouse", label: "Practice", desc: "A sheltered bed for practice and growth", icon: <TreePine size={14} />, activeColor: "border-teal-600/25 bg-teal-900/20 text-teal-200/90" },
     { id: "submissions", label: "Publish", desc: "Where your harvest reaches the world", icon: <Send size={14} />, activeColor: "border-amber-600/25 bg-amber-900/20 text-amber-200/90" },
       { id: "garden-gate", label: "Gate", desc: "Your public garden — writing you've opened to the world", icon: <TreePine size={14} />, activeColor: "border-emerald-500/25 bg-emerald-900/20 text-emerald-200/90" }, 
@@ -912,6 +913,210 @@ function DeskZone({ writings, onOpenWriting, onCreateNew, onOpenPlanting, onQuic
           </div>
         </motion.div>
       )}
+    </div>
+  );
+}
+
+function StudioZone({ writings, onOpenWriting }: { writings: Writing[]; onOpenWriting: (w: Writing) => void }) {
+  const [activeBucket, setActiveBucket] = useState<"triage" | "development" | "ready">("triage");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [sessionNotes, setSessionNotes] = useState("");
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({
+    voice: false,
+    structure: false,
+    clarity: false,
+    pacing: false,
+  });
+
+  const now = Date.now();
+  const withMeta = writings.map((w) => {
+    const plain = w.content.includes("<") ? stripHtml(w.content) : w.content;
+    const words = wordCount(plain || "");
+    const updatedMs = new Date(w.updatedAt || 0).getTime();
+    const staleDays = Math.floor((now - updatedMs) / (1000 * 60 * 60 * 24));
+    return {
+      writing: w,
+      words,
+      staleDays,
+      readiness: w.readiness || "raw_seed",
+      hasTitle: Boolean((w.title || "").trim() && (w.title || "").trim().toLowerCase() !== "untitled"),
+    };
+  });
+
+  const queue = withMeta
+    .filter((item) => {
+      if (activeBucket === "triage") return item.readiness === "raw_seed" || !item.hasTitle;
+      if (activeBucket === "development") return item.readiness === "growing" || item.staleDays > 10;
+      return item.readiness === "ready_to_show";
+    })
+    .sort((a, b) => {
+      if (activeBucket === "triage") return a.words - b.words;
+      if (activeBucket === "development") return b.staleDays - a.staleDays;
+      return new Date(b.writing.updatedAt || 0).getTime() - new Date(a.writing.updatedAt || 0).getTime();
+    });
+
+  const selected = queue.find((item) => item.writing.id === selectedId) || queue[0] || null;
+  const completedChecks = Object.values(checklist).filter(Boolean).length;
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6" data-testid="studio-zone">
+      <section className="rounded-2xl border border-sky-800/20 bg-sky-950/10 p-5">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-sky-300/60">Editing Studio</p>
+            <h2 className="font-display text-2xl italic text-white/85">Functional editorial workflow for the garden</h2>
+            <p className="font-serif text-xs text-white/50 mt-1">Triage drafts, shape revisions, and move strong pieces toward publication.</p>
+          </div>
+          <a
+            href="/editor-studio"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-200/80 hover:text-sky-100 hover:bg-sky-500/15 transition-all font-mono text-[9px] uppercase tracking-widest"
+            data-testid="open-full-editor-studio"
+          >
+            <ExternalLink size={12} />
+            Open full studio
+          </a>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-3" data-testid="studio-stat-triage">
+          <p className="font-mono text-[8px] uppercase tracking-widest text-amber-300/60">Needs triage</p>
+          <p className="font-display text-2xl italic text-amber-100/80 mt-1">{withMeta.filter((x) => x.readiness === "raw_seed" || !x.hasTitle).length}</p>
+        </div>
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3" data-testid="studio-stat-development">
+          <p className="font-mono text-[8px] uppercase tracking-widest text-emerald-300/60">In development</p>
+          <p className="font-display text-2xl italic text-emerald-100/80 mt-1">{withMeta.filter((x) => x.readiness === "growing").length}</p>
+        </div>
+        <div className="rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/[0.05] p-3" data-testid="studio-stat-ready">
+          <p className="font-mono text-[8px] uppercase tracking-widest text-fuchsia-300/60">Ready to show</p>
+          <p className="font-display text-2xl italic text-fuchsia-100/80 mt-1">{withMeta.filter((x) => x.readiness === "ready_to_show").length}</p>
+        </div>
+        <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.05] p-3" data-testid="studio-stat-stale">
+          <p className="font-mono text-[8px] uppercase tracking-widest text-violet-300/60">Stale drafts</p>
+          <p className="font-display text-2xl italic text-violet-100/80 mt-1">{withMeta.filter((x) => x.staleDays > 14).length}</p>
+        </div>
+      </section>
+
+      <section className="grid lg:grid-cols-[1.1fr,1fr] gap-4">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/55">Editing Queue</p>
+            <div className="flex items-center gap-1 bg-white/[0.03] border border-white/[0.08] rounded-full p-1">
+              {[
+                { id: "triage", label: "Triage" },
+                { id: "development", label: "Develop" },
+                { id: "ready", label: "Ready" },
+              ].map((bucket) => (
+                <button
+                  key={bucket.id}
+                  onClick={() => setActiveBucket(bucket.id as "triage" | "development" | "ready")}
+                  className={`px-2.5 py-1 rounded-full font-mono text-[8px] uppercase tracking-widest transition-colors ${
+                    activeBucket === bucket.id ? "bg-white/[0.12] text-white/80" : "text-white/50 hover:text-white/75"
+                  }`}
+                  data-testid={`studio-bucket-${bucket.id}`}
+                >
+                  {bucket.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2 max-h-[28rem] overflow-auto pr-1">
+            {queue.length === 0 && (
+              <div className="rounded-xl border border-dashed border-white/[0.12] p-6 text-center">
+                <p className="font-serif text-sm text-white/45 italic">No pieces in this bucket yet.</p>
+              </div>
+            )}
+            {queue.map((item) => {
+              const isSelected = selected?.writing.id === item.writing.id;
+              return (
+                <button
+                  key={item.writing.id}
+                  onClick={() => setSelectedId(item.writing.id)}
+                  className={`w-full text-left rounded-xl border p-3 transition-all ${
+                    isSelected
+                      ? "border-sky-400/35 bg-sky-500/[0.08]"
+                      : "border-white/[0.08] bg-white/[0.01] hover:border-white/[0.15]"
+                  }`}
+                  data-testid={`studio-item-${item.writing.id}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-serif text-sm text-white/80 truncate italic">{item.writing.title || "Untitled"}</h3>
+                    <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">{item.words}w</span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 text-[10px] font-mono text-white/35 uppercase tracking-widest">
+                    <span>{item.readiness.replaceAll("_", " ")}</span>
+                    <span>•</span>
+                    <span>{Math.max(0, item.staleDays)}d quiet</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4">
+          <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/55 mb-3">Revision Plan</p>
+          {!selected ? (
+            <p className="font-serif text-sm text-white/45 italic">Pick a piece from the queue to start planning edits.</p>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-display text-xl italic text-white/85">{selected.writing.title || "Untitled"}</h3>
+                <p className="font-mono text-[9px] uppercase tracking-widest text-white/45 mt-1">
+                  {selected.readiness.replaceAll("_", " ")} • {selected.words} words
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { key: "voice", label: "Voice" },
+                  { key: "structure", label: "Structure" },
+                  { key: "clarity", label: "Clarity" },
+                  { key: "pacing", label: "Pacing" },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => setChecklist((prev) => ({ ...prev, [item.key]: !prev[item.key] }))}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg border text-left ${
+                      checklist[item.key]
+                        ? "border-emerald-500/30 bg-emerald-500/[0.08]"
+                        : "border-white/[0.08] bg-white/[0.01]"
+                    }`}
+                    data-testid={`studio-check-${item.key}`}
+                  >
+                    <span className="font-serif text-sm text-white/75">{item.label}</span>
+                    {checklist[item.key] ? <Check size={13} className="text-emerald-300/80" /> : <div className="w-3 h-3 rounded-full border border-white/25" />}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/45 block mb-2">Session Notes</label>
+                <textarea
+                  value={sessionNotes}
+                  onChange={(e) => setSessionNotes(e.target.value)}
+                  placeholder="Outline the next editorial pass: cuts, rewrites, focus questions..."
+                  className="w-full min-h-[120px] rounded-xl border border-white/[0.10] bg-black/20 px-3 py-2 font-serif text-sm text-white/80 placeholder:text-white/35 focus:outline-none focus:border-sky-400/35"
+                  data-testid="studio-session-notes"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[8px] uppercase tracking-widest text-white/45">Checklist {completedChecks}/4 complete</span>
+                <button
+                  onClick={() => onOpenWriting(selected.writing)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-200/80 hover:text-sky-100 transition-all font-mono text-[9px] uppercase tracking-widest"
+                  data-testid="studio-open-piece"
+                >
+                  <PenLine size={11} />
+                  Open in editor
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
@@ -3801,6 +4006,8 @@ export default function Garden() {
                     toast({ title: "Writing from prompt", description: "Start writing!", duration: 2000 });
                   }}
                 />
+              ) : activeZone === "studio" ? (
+                <StudioZone writings={writings} onOpenWriting={openWriting} />
               ) : activeZone === "reading-room" ? (
                 <ReadingRoomZone onViewProfile={(id) => setProfileUserId(id)} onGoToRoom={(room) => setActiveRoom(room)} />
               ) : activeZone === "submissions" ? (
