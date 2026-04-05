@@ -24,7 +24,7 @@ export default function EditorStudio() {
   const [bucket, setBucket] = useState<StudioBucket>("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editorNotes, setEditorNotes] = useState("");
+  const [editorNotes, setEditorNotes] = useState<Record<string, string>>({});
   const [checks, setChecks] = useState<Record<string, boolean>>({
     intention: false,
     language: false,
@@ -82,7 +82,7 @@ export default function EditorStudio() {
   }, [writings, bucket, search]);
 
   const selected = enriched.find((item) => item.writing.id === selectedId) || enriched[0] || null;
-  const doneCount = Object.values(checks).filter(Boolean).length;
+  const doneCount = selected ? Object.values(checks[selected.writing.id] || {}).filter(Boolean).length : 0;
 
   return (
     <main className="min-h-screen bg-[#f7f4ee] px-4 py-6 text-[#1f1d18] md:px-6">
@@ -115,12 +115,12 @@ export default function EditorStudio() {
 
         <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
           {[
-            { key: "triage", label: "Needs triage", color: "amber", value: writings.filter((w) => getBucketForWriting(w) === "triage").length },
-            { key: "development", label: "In development", color: "emerald", value: writings.filter((w) => getBucketForWriting(w) === "development").length },
-            { key: "ready", label: "Ready queue", color: "fuchsia", value: writings.filter((w) => getBucketForWriting(w) === "ready").length },
-            { key: "loaded", label: "Loaded now", color: "sky", value: enriched.length },
+            { key: "triage", label: "Needs triage", color: "#d97706", value: writings.filter((w) => getBucketForWriting(w) === "triage").length },
+            { key: "development", label: "In development", color: "#059669", value: writings.filter((w) => getBucketForWriting(w) === "development").length },
+            { key: "ready", label: "Ready queue", color: "#a21caf", value: writings.filter((w) => getBucketForWriting(w) === "ready").length },
+            { key: "loaded", label: "Loaded now", color: "#0284c7", value: enriched.length },
           ].map((stat) => (
-            <div key={stat.key} className="rounded-xl border border-black/8 bg-white p-3 shadow-[0_6px_18px_rgba(0,0,0,0.03)]">
+            <div key={stat.key} className="rounded-xl border border-black/10 bg-white p-3 shadow-[0_6px_18px_rgba(0,0,0,0.04)] overflow-hidden relative">
               <p className="font-mono text-[8px] uppercase tracking-widest text-black/70">{stat.label}</p>
               <p className="mt-1 text-2xl font-semibold text-black/85">{stat.value}</p>
             </div>
@@ -176,11 +176,11 @@ export default function EditorStudio() {
                     className={`w-full text-left rounded-xl border p-3 transition-all ${
                       isActive
                         ? "border-[#29493d]/25 bg-[#f1f6f4]"
-                        : "border-black/8 bg-[#fcfbf8] hover:border-black/15"
+                        : "border-black/12 bg-[#fcfbf8] hover:border-black/20 hover:bg-white"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="line-clamp-1 text-sm font-semibold text-black/85">{item.writing.title || "Untitled"}</h3>
+                      <h3 className="line-clamp-1 text-sm font-semibold text-black/85">{item.writing.title && item.writing.title.toLowerCase() !== "untitled" ? item.writing.title : item.plain.trim().slice(0, 60) || "Untitled"}</h3>
                       <span className="font-mono text-[8px] uppercase tracking-widest text-black/70">{item.words}w</span>
                     </div>
                     <p className="mt-1 font-mono text-[8px] uppercase tracking-widest text-black/65">
@@ -214,15 +214,15 @@ export default function EditorStudio() {
                   ].map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => setChecks((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                      onClick={() => setChecks((prev) => { const pid = selected?.writing.id || ""; const curr = prev[pid] || {}; return {...prev, [pid]: {...curr, [item.id]: !curr[item.id]}}; })}
                       className={`flex items-center justify-between gap-2 rounded-lg border p-2.5 text-left ${
-                        checks[item.id]
+                        (checks[selected?.writing.id || ""] || {})[item.id]
                           ? "border-[#29493d]/25 bg-[#eef5f2]"
                           : "border-black/10 bg-[#fcfbf8]"
                       }`}
                     >
                       <span className="text-sm text-black/75">{item.label}</span>
-                      {checks[item.id] ? <Check size={13} className="text-[#29493d]" /> : <FileCheck2 size={13} className="text-black/25" />}
+                      {(checks[selected?.writing.id || ""] || {})[item.id] ? <Check size={13} className="text-[#29493d]" /> : <FileCheck2 size={13} className="text-black/40" />}
                     </button>
                   ))}
                 </div>
@@ -230,8 +230,8 @@ export default function EditorStudio() {
                 <div>
                   <label className="mb-2 block font-mono text-[8px] uppercase tracking-[0.25em] text-black/70">Editorial Notes</label>
                   <textarea
-                    value={editorNotes}
-                    onChange={(e) => setEditorNotes(e.target.value)}
+                    value={selected ? (editorNotes[selected.writing.id] || "") : ""}
+                    onChange={(e) => { if (selected) setEditorNotes(prev => ({...prev, [selected.writing.id]: e.target.value})); }}
                     placeholder="Capture your revision brief, strongest line, and next action for the writer..."
                     className="min-h-[170px] w-full rounded-xl border border-black/10 bg-[#fcfbf8] px-3 py-2 text-sm text-black/80 placeholder:text-black/65 focus:outline-none focus:border-[#29493d]/35"
                   />
