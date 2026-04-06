@@ -56,6 +56,13 @@ const EditorialDashboard = lazy(() => import("@/pages/EditorialDashboard"));
 const EditorialPayment = lazy(() => import("@/pages/EditorialPayment"));
 const EditorialRoom = lazy(() => import("@/pages/EditorialRoom"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
+const Challenges = lazy(() => import("@/pages/Challenges"));
+const Publications = lazy(() => import("@/pages/Publications"));
+const Exhibits = lazy(() => import("@/pages/Exhibits"));
+const Exhibit = lazy(() => import("@/pages/Exhibit"));
+const WorkshopRoom = lazy(() => import("@/pages/WorkshopRoom"));
+const Cultivator = lazy(() => import("@/pages/Cultivator"));
+const Grove = lazy(() => import("@/pages/Grove"));
 
 function ProtectedRoute({ component: Component, path }: { component: React.ComponentType; path: string }) {
   const { user, isLoading } = useAuth();
@@ -162,6 +169,13 @@ function Router() {
         <Route path="/editorial-payment">{() => <ProtectedRoute component={EditorialPayment} path="/editorial-payment" />}</Route>
         <Route path="/editorial-room">{() => <ProtectedRoute component={EditorialRoom} path="/editorial-room" />}</Route>
         <Route path="/marketplace" component={Marketplace} />
+        <Route path="/challenges" component={Challenges} />
+        <Route path="/publications" component={Publications} />
+        <Route path="/exhibits" component={Exhibits} />
+        <Route path="/exhibits/:slug" component={Exhibit} />
+        <Route path="/workshop-room">{() => <ProtectedRoute component={WorkshopRoom} path="/workshop-room" />}</Route>
+        <Route path="/cultivator" component={Cultivator} />
+        <Route path="/grove">{() => <ProtectedRoute component={Grove} path="/grove" />}</Route>
                   <Route path="/atelier" component={Atelier} />
         <Route component={NotFound} />
       </Switch>
