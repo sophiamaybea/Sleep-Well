@@ -42,7 +42,7 @@ const FieldGuide = lazy(() => import("@/pages/FieldGuide"));
 const EditProfile = lazy(() => import("@/pages/EditProfile"));
 const GardenGuide = lazy(() => import("@/pages/GardenGuide"));
 const ContactEditors = lazy(() => import("@/pages/ContactEditors"));
-const NotFound = lazy(() => import("@/pages/not-found"));
+const NotFound = lazy(() => import("@/pages/not-found")); const Publications = lazy(() => import("@/pages/Publications"));
 const Opportunities = lazy(() => import("@/pages/Opportunities"));
 const Submissions = lazy(() => import("@/pages/Submissions"));
 const ForJournals = lazy(() => import("@/pages/ForJournals"));
@@ -132,7 +132,7 @@ function Router() {
         <Route path="/gallery" component={PageGallery} />
         <Route path="/piece/:id" component={Piece} />
         <Route path="/weave/:id" component={Weave} />
-        <Route path="/about" component={About} />
+        <Route path="/about" component={About} />           <Route path="/publications" component={Publications} />
         <Route path="/courses" component={Courses} />
         <Route path="/drafts">{() => <ProtectedRoute component={Drafts} path="/drafts" />}</Route>
         <Route path="/editor-onboarding">{() => <ProtectedRoute component={EditorOnboarding} path="/editor-onboarding" />}</Route>
