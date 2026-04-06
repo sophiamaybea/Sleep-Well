@@ -511,7 +511,8 @@ export default function EICDashboard() {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const activeAgentMeta = AGENTS.find((a) => a.key === selectedAgent);
+  const activeAgentMeta = selectedAgent !== "collaborative" ? AGENTS.find((a) => a.key === selectedAgent) : null;
+  const activeAgentLabel = selectedAgent === "collaborative" ? "all agents" : (activeAgentMeta?.label ?? selectedAgent);
 
   return (
     <div className="min-h-screen bg-background relative z-10">
@@ -930,8 +931,8 @@ export default function EICDashboard() {
                       <><span className="text-accent-ornament">✦✿◈</span> Collaborative Chat</>
                     ) : (
                       <>
-                        <span style={{ color: AGENTS.find(a => a.key === selectedAgent)?.colour }}>{AGENTS.find(a => a.key === selectedAgent)?.emoji}</span>
-                        {AGENTS.find(a => a.key === selectedAgent)?.label} Agent
+                        <span style={{ color: activeAgentMeta?.colour }}>{activeAgentMeta?.emoji}</span>
+                        {activeAgentMeta?.label} Agent
                       </>
                     )}
                   </SheetTitle>
@@ -970,7 +971,7 @@ export default function EICDashboard() {
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
                   {chatMessages.length === 0 && (
                     <p className="text-foreground/25 font-serif text-sm italic text-center py-12">
-                      Ask the {selectedAgent === "collaborative" ? "agents" : (AGENTS.find(a => a.key === selectedAgent)?.label ?? selectedAgent)} agent anything about the journal…
+                      Ask the {activeAgentLabel} agent anything about the journal…
                     </p>
                   )}
                   {chatMessages

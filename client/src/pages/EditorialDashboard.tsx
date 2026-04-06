@@ -35,7 +35,8 @@ export default function EditorialDashboard() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/editorial-waitlist"] }),
   });
 
-  if (authLoading || isLoading) return <LoadingScreen />;
+  // Show loading screen while auth or data is resolving
+  if (authLoading) return <LoadingScreen />;
 
   if (user?.email !== "sophiamaybea@gmail.com") {
     return (
@@ -44,6 +45,9 @@ export default function EditorialDashboard() {
       </div>
     );
   }
+
+  // Data is loading after auth confirms the user is authorized
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
