@@ -1,5 +1,5 @@
-import { usePageMeta } from "@/hooks/usePageMeta";
-import { useSiteContent } from "@/hooks/useSiteContent";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import { useSiteContent } from "@/hooks/use-site-content";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import StarBackground from "@/components/StarBackground";

@@ -53,7 +53,7 @@ function greetingForHour(): string {
 
 // ── component ─────────────────────────────────────────────────────────────────
 
-export default function V2Dashboard() {
+export default function Dashboard() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 

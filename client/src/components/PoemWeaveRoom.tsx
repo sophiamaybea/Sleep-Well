@@ -5,7 +5,7 @@ import {
   useHarvestWeave,
   useInviteToWeave,
   useRespondToInvitation,
-} from "@/hooks/usePoemWeaving";
+} from "@/hooks/use-poem-weaving";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 

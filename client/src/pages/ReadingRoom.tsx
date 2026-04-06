@@ -32,7 +32,7 @@ const CAT_BADGE: Record<string, string> = {
   MEMOIR: "bg-rose-900/40 text-rose-300",
 };
 
-export default function V2ReadingRoom() {
+export default function ReadingRoom() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
