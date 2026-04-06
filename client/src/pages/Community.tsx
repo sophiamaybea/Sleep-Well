@@ -22,7 +22,7 @@ interface Event {
   attendees: number;
 }
 
-export default function V2Community() {
+export default function Community() {
   const [, setLocation] = useLocation();
   const [newWeaveTitle, setNewWeaveTitle] = useState("");
   const [showNewWeave, setShowNewWeave] = useState(false);
