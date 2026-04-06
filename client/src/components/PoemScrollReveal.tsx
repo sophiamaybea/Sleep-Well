@@ -158,9 +158,9 @@ export default function PoemScrollReveal({ content, theme, title }: PoemScrollRe
   const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
   const triggersRef = useRef<ScrollTrigger[]>([]);
 
-  const textBase = theme === "light" ? "text-[#4a3728]" : "text-white/85";
-  const textMuted = theme === "light" ? "text-[#8B7355]" : "text-white/50";
-  const bg = theme === "light" ? "bg-[#faf8f5]" : "bg-[#0b101a]";
+  const textBase = theme === "light" ? "text-foreground" : "text-white/85";
+  const textMuted = theme === "light" ? "text-muted-foreground" : "text-white/50";
+  const bg = theme === "light" ? "bg-background" : "bg-popover";
   const moodLabel = {
     love: "Love & Longing",
     loss: "Grief & Memory",

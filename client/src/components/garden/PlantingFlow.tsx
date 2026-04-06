@@ -173,7 +173,7 @@ export default function PlantingFlow({
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg z-[101] max-h-[80vh] flex flex-col"
           >
-            <div className="bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl shadow-black/40 flex flex-col max-h-[80vh]">
+            <div className="bg-popover/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl shadow-black/40 flex flex-col max-h-[80vh]">
               <div className="p-5 pb-3 border-b border-white/[0.06] flex items-center justify-between flex-shrink-0">
                 <div>
                   <p className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/25 mb-1">

@@ -112,7 +112,7 @@ export default function SendToEditors({ writingId, writingTitle, onClose }: Send
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 bottom-full mb-2 z-50 min-w-[260px] rounded-2xl border border-amber-500/15 bg-[#0a0f1a]/98 backdrop-blur-xl p-4 shadow-2xl"
+            className="absolute left-0 bottom-full mb-2 z-50 min-w-[260px] rounded-2xl border border-amber-500/15 bg-popover/95 backdrop-blur-xl p-4 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             data-testid={`send-editors-menu-${writingId}`}
           >

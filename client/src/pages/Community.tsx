@@ -2,7 +2,7 @@ import V2Layout from "@/components/V2Layout";
 import { Users, Calendar, MessageCircle, Feather } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useWeaves, useCreateWeave } from "@/hooks/usePoemWeaving";
+import { useWeaves, useCreateWeave } from "@/hooks/use-poem-weaving";
 
 interface Circle {
   id: number;
@@ -22,7 +22,7 @@ interface Event {
   attendees: number;
 }
 
-export default function V2Community() {
+export default function Community() {
   const [, setLocation] = useLocation();
   const [newWeaveTitle, setNewWeaveTitle] = useState("");
   const [showNewWeave, setShowNewWeave] = useState(false);

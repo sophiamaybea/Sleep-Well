@@ -1,13 +1,15 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Menu, X, Sun, Moon, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [location] = useLocation();
+  const shouldReduceMotion = useReducedMotion();
   const { user, isLoading, isAuthenticated } = useAuth();
   const [isLight, setIsLight] = useState(() => {
     if (typeof window !== "undefined") {
@@ -96,17 +98,18 @@ export default function Navigation() {
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
 
-          <div className={`hidden lg:flex items-center gap-4 font-mono text-[11px] tracking-[0.15em] transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
+          <div className={`hidden lg:flex items-center gap-4 font-mono text-[length:var(--text-label)] tracking-[0.15em] transition-all duration-500 ${scrolled ? 'bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10' : ''}`}>
             {activeMenuItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`transition-colors relative group ${item.label === "Editor Studio" ? "text-[#c4a24d]/70 hover:text-[#c4a24d]" : "text-white/90 hover:text-white"}`}
+                className={`transition-colors relative group ${item.label === "Editor Studio" ? "text-accent-ornament/70 hover:text-accent-ornament" : "text-white/90 hover:text-white"}`}
                 data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
                 title={(item as any).tooltip}
+                aria-current={location === item.href ? "page" : undefined}
               >
                 {item.label}
-                <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Editor Studio" ? "bg-[#c4a24d]" : "bg-white"}`} />
+                <span className={`absolute -bottom-1 left-1/2 w-0 h-[1px] transition-all duration-300 group-hover:w-full group-hover:left-0 ${item.label === "Editor Studio" ? "bg-accent-ornament" : "bg-white"}`} />
               </Link>
             ))}
             
@@ -124,20 +127,20 @@ export default function Navigation() {
                 <button
                   onClick={() => setShowNotifs(!showNotifs)}
                   className="p-2 text-white/90 hover:text-white/80 transition-colors relative"
-                  aria-label="Notifications"               data-testid="button-notifications"
+                  aria-label={`Notifications${(notifData?.unread || 0) > 0 ? `, ${notifData!.unread} unread` : ''}`}               data-testid="button-notifications"
                 >
                   <Bell size={16} />
                   {(notifData?.unread || 0) > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 text-[8px] font-mono text-black flex items-center justify-center">
+                    <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 text-[8px] font-mono text-black flex items-center justify-center">
                       {notifData!.unread > 9 ? "9+" : notifData!.unread}
                     </span>
                   )}
                 </button>
                 {showNotifs && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 max-h-80 overflow-y-auto">
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-popover/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 max-h-80 overflow-y-auto">
                     <div className="p-3 border-b border-white/[0.06]">
                       <h3 className="font-display text-sm text-white/90 italic">Notifications</h3>
-                      <p className="font-serif text-[10px] text-white/90 italic mt-0.5">Recent activity on your work.</p>
+                      <p className="font-serif text-[length:var(--text-label)] text-white/90 italic mt-0.5">Recent activity on your work.</p>
                     </div>
                     <div className="p-2">
                       {(notifData?.notifications || []).length === 0 ? (
@@ -146,7 +149,7 @@ export default function Navigation() {
                         (notifData?.notifications || []).map((n: any) => (
                           <div key={n.id} className={`p-3 rounded-lg mb-1 ${n.isRead ? "opacity-60" : "bg-white/[0.03]"}`} data-testid={`notification-${n.id}`}>
                             <p className="font-serif text-xs text-white/90">{n.message}</p>
-                            <span className="font-mono text-[8px] text-white/90 mt-1 block">
+                            <span className="font-mono text-[length:var(--text-label)] text-white/90 mt-1 block">
                               {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}
                             </span>
                           </div>
@@ -164,29 +167,29 @@ export default function Navigation() {
               isAuthenticated && user ? (
                 <div className="relative group/user">
                   <button className="flex items-center gap-2 p-1 pl-3 rounded-full border border-white/10 hover:border-white/20 transition-all bg-white/5" data-testid="nav-user-dropdown">
-                    <span className="font-mono text-[9px] tracking-[0.15em] text-white/90">
+                    <span className="font-mono text-[length:var(--text-label)] tracking-[0.15em] text-white/90">
                       {(user as any).username?.slice(0, 1) || (user as any).email?.slice(0, 1) || "U"}
                     </span>
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500/20 to-teal-500/20 border border-white/10 flex items-center justify-center overflow-hidden">
-                      <span className="text-[10px] text-white/90">{(user as any).username?.slice(0, 1).toUpperCase() || (user as any).email?.slice(0, 1).toUpperCase() || "U"}</span>
+                      <span className="text-[length:var(--text-label)] text-white/90">{(user as any).username?.slice(0, 1).toUpperCase() || (user as any).email?.slice(0, 1).toUpperCase() || "U"}</span>
                     </div>
                   </button>
                   
-                  <div className="absolute right-0 top-full mt-0 pt-2 w-48 bg-[#0a0f18]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 py-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300">
-                    <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]">
+                  <div className="absolute right-0 top-full mt-0 pt-2 w-48 bg-popover/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 py-2 opacity-0 translate-y-2 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:pointer-events-auto transition-all duration-300">
+                    <Link href={`/writer/${user.id}`} className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[length:var(--text-label)] tracking-[0.15em]">
                       Profile
                     </Link>
-                    <Link href="/settings" className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]">
+                    <Link href="/settings" className="block px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 transition-colors font-mono text-[length:var(--text-label)] tracking-[0.15em]">
                       Settings
                     </Link>
                     <div className="h-[1px] bg-white/5 my-1" />
-                    <a href="/api/logout" className="block px-4 py-2 text-white/90 hover:text-white/90 hover:bg-white/5 transition-colors font-mono text-[11px] tracking-[0.15em]" data-testid="nav-logout">
+                    <a href="/api/logout" className="block px-4 py-2 text-white/90 hover:text-white/90 hover:bg-white/5 transition-colors font-mono text-[length:var(--text-label)] tracking-[0.15em]" data-testid="nav-logout">
                       Sign Out
                     </a>
                   </div>
                 </div>
               ) : (
-                <Link href="/sign-in" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all font-mono text-[11px] tracking-[0.15em]" data-testid="nav-login">
+                <Link href="/sign-in" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all font-mono text-[length:var(--text-label)] tracking-[0.15em]" data-testid="nav-login">
                   Sign In
                 </Link>
               )
@@ -208,7 +211,8 @@ export default function Navigation() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-[#0b101a]/95 backdrop-blur-xl flex flex-col items-center justify-center"
+            transition={shouldReduceMotion ? { duration: 0 } : undefined}
+            className="fixed inset-0 z-[60] bg-popover/95 backdrop-blur-xl flex flex-col items-center justify-center"
           >
             <button 
               onClick={() => setIsOpen(false)}
@@ -221,14 +225,15 @@ export default function Navigation() {
               {activeMenuItems.map((item, i) => (
                 <motion.div
                   key={item.label}
-                  initial={{ y: 20, opacity: 0 }}
+                  initial={shouldReduceMotion ? {} : { y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.1 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { delay: i * 0.1 }}
                 >
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`font-display text-4xl italic hover:scale-105 transition-transform ${item.label === "Editor Studio" ? "text-[#c4a24d]/80 hover:text-[#c4a24d]" : "text-white/80 hover:text-white"}`}
+                    className={`font-display text-4xl italic hover:scale-105 transition-transform ${item.label === "Editor Studio" ? "text-accent-ornament/80 hover:text-accent-ornament" : "text-white/80 hover:text-white"}`}
+                    aria-current={location === item.href ? "page" : undefined}
                   >
                     {item.label}
                   </Link>
@@ -240,28 +245,28 @@ export default function Navigation() {
               {!isLoading && (
                 isAuthenticated && user ? (
                   <>
-                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                    <motion.div initial={shouldReduceMotion ? {} : { y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.5 }}>
                       <Link href={`/writer/${user.id}`} onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/90 hover:text-white italic hover:scale-105 transition-transform">
                         Profile
                       </Link>
                     </motion.div>
-                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.55 }}>
+                    <motion.div initial={shouldReduceMotion ? {} : { y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.55 }}>
                       <Link href="/settings" onClick={() => setIsOpen(false)} className="font-display text-3xl text-white/90 hover:text-white italic hover:scale-105 transition-transform">
                         Settings
                       </Link>
                     </motion.div>
                     <motion.a 
                       href="/api/logout"
-                      initial={{ y: 20, opacity: 0 }} 
+                      initial={shouldReduceMotion ? {} : { y: 20, opacity: 0 }} 
                       animate={{ y: 0, opacity: 1 }} 
-                      transition={{ delay: 0.6 }}
-                      className="font-mono text-[11px] text-white/90 hover:text-white/90 lowercase tracking-[0.15em] transition-colors"
+                      transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.6 }}
+                      className="font-mono text-[length:var(--text-label)] text-white/90 hover:text-white/90 lowercase tracking-[0.15em] transition-colors"
                     >
                       Sign Out
                     </motion.a>
                   </>
                 ) : (
-                  <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                  <motion.div initial={shouldReduceMotion ? {} : { y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.5 }}>
                     <Link
                       href="/sign-in"
                       onClick={() => setIsOpen(false)}

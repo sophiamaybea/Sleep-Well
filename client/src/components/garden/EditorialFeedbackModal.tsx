@@ -56,7 +56,7 @@ export function EditorialFeedbackModal({ writingId, writingTitle, onClose }: Pro
       style={{ background: "rgba(0,0,0,0.75)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full max-w-sm rounded-2xl border border-amber-500/20 bg-[#0d1118] p-6 shadow-2xl">
+      <div className="relative w-full max-w-sm rounded-2xl border border-amber-500/20 bg-card p-6 shadow-2xl">
         {/* Close */}
         <button
           onClick={onClose}

@@ -54,10 +54,10 @@ export default function EditorOnboarding() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-[#0d1e2d] flex items-center justify-center">
+      <div className="min-h-screen bg-popover flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md px-6">
-          <p className="text-[#f0eeea]/60 font-['Lora',serif] text-lg">No invitation token provided.</p>
-          <button onClick={() => navigate("/")} className="px-6 py-3 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-lg rounded hover:bg-[#c4a24d]/30 transition-colors" data-testid="button-go-home">
+          <p className="text-foreground/60 font-serif text-lg">No invitation token provided.</p>
+          <button onClick={() => navigate("/")} className="px-6 py-3 bg-accent-ornament/20 border border-accent-ornament/30 text-accent-ornament font-display text-lg rounded hover:bg-accent-ornament/30 transition-colors" data-testid="button-go-home">
             Return Home
           </button>
         </div>
@@ -65,20 +65,20 @@ export default function EditorOnboarding() {
     );
   }
 
-  // T35: replace raw border-t-[#c4a24d] animate-spin div with branded LoadingScreen (dark variant)
+  // T35: replace raw border-t-accent-ornament animate-spin div with branded LoadingScreen (dark variant)
   if (validating || authLoading) {
     return <LoadingScreen />;
   }
 
   if (validation && !validation.valid) {
     return (
-      <div className="min-h-screen bg-[#0d1e2d] flex items-center justify-center">
+      <div className="min-h-screen bg-popover flex items-center justify-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease }} className="text-center space-y-4 max-w-md px-6">
           <div className="w-16 h-16 mx-auto rounded-full border border-red-400/20 flex items-center justify-center mb-6">
             <span className="text-red-400/60 text-2xl">×</span>
           </div>
-          <p className="text-[#f0eeea]/80 font-['Cormorant_Garamond',serif] text-2xl">{validation.reason}</p>
-          <button onClick={() => navigate("/")} className="px-6 py-3 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-lg rounded hover:bg-[#c4a24d]/30 transition-colors" data-testid="button-go-home">
+          <p className="text-foreground/80 font-display text-2xl">{validation.reason}</p>
+          <button onClick={() => navigate("/")} className="px-6 py-3 bg-accent-ornament/20 border border-accent-ornament/30 text-accent-ornament font-display text-lg rounded hover:bg-accent-ornament/30 transition-colors" data-testid="button-go-home">
             Return Home
           </button>
         </motion.div>
@@ -88,16 +88,16 @@ export default function EditorOnboarding() {
 
   if (accepted) {
     return (
-      <div className="min-h-screen bg-[#0d1e2d] flex items-center justify-center">
+      <div className="min-h-screen bg-popover flex items-center justify-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease }} className="text-center space-y-6 max-w-lg px-6">
           <div className="w-16 h-16 mx-auto rounded-full border border-[#5eb5a0]/30 flex items-center justify-center mb-4">
             <span className="text-[#5eb5a0] text-2xl">✓</span>
           </div>
-          <h1 className="font-['Cormorant_Garamond',serif] text-3xl text-[#f0eeea] font-light" data-testid="text-welcome">Welcome to the Editorial Studio</h1>
-          <p className="text-[#f0eeea]/50 font-['Lora',serif] text-sm leading-relaxed">
+          <h1 className="font-display text-3xl text-foreground font-light" data-testid="text-welcome">Welcome to the Editorial Studio</h1>
+          <p className="text-foreground/50 font-serif text-sm leading-relaxed">
             Your role has been upgraded. You now have access to the Editorial Studio where you can discover, curate, and publish literary works.
           </p>
-          <button onClick={() => navigate("/editor-studio")} className="px-8 py-3 bg-[#c4a24d]/20 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-lg rounded hover:bg-[#c4a24d]/30 transition-colors" data-testid="button-go-studio">
+          <button onClick={() => navigate("/editor-studio")} className="px-8 py-3 bg-accent-ornament/20 border border-accent-ornament/30 text-accent-ornament font-display text-lg rounded hover:bg-accent-ornament/30 transition-colors" data-testid="button-go-studio">
             Enter the Studio
           </button>
         </motion.div>
@@ -106,25 +106,25 @@ export default function EditorOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1e2d]">
+    <div className="min-h-screen bg-popover">
       <div className="max-w-2xl mx-auto px-6 py-20">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease }}>
           <div className="text-center mb-16">
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2, ease }} className="w-20 h-20 mx-auto mb-8 rounded-full border border-[#c4a24d]/20 flex items-center justify-center">
-              <span className="text-[#c4a24d]/60 text-3xl font-['Cormorant_Garamond',serif] italic">e</span>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2, ease }} className="w-20 h-20 mx-auto mb-8 rounded-full border border-accent-ornament/20 flex items-center justify-center">
+              <span className="text-accent-ornament/60 text-3xl font-display italic">e</span>
             </motion.div>
-            <h1 className="font-['Cormorant_Garamond',serif] text-4xl md:text-5xl text-[#f0eeea] font-light tracking-wide mb-4" data-testid="text-onboarding-title">
+            <h1 className="font-display text-4xl md:text-5xl text-foreground font-light tracking-wide mb-4" data-testid="text-onboarding-title">
               You've Been Invited
             </h1>
-            <p className="text-[#f0eeea]/50 font-['Lora',serif] text-sm mb-2">
+            <p className="text-foreground/50 font-serif text-sm mb-2">
               to join The Page Gallery Journal as an Editor
             </p>
-            <p className="text-[#f0eeea]/30 font-['Lora',serif] text-xs max-w-sm mx-auto leading-relaxed mt-4">
+            <p className="text-foreground/30 font-serif text-xs max-w-sm mx-auto leading-relaxed mt-4">
               We don't accept traditional submissions. Instead, we ask editors to walk through the gardens — to discover what blooms naturally, and to tend what deserves a wider audience.
             </p>
           </div>
 
-          <div className="w-16 h-[1px] bg-[#c4a24d]/20 mx-auto mb-14" />
+          <div className="w-16 h-[1px] bg-accent-ornament/20 mx-auto mb-14" />
 
           <div className="space-y-12 mb-16">
             <OnboardingSection
@@ -161,7 +161,7 @@ export default function EditorOnboarding() {
             />
           </div>
 
-          <div className="w-16 h-[1px] bg-[#c4a24d]/20 mx-auto mb-14" />
+          <div className="w-16 h-[1px] bg-accent-ornament/20 mx-auto mb-14" />
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease, delay: 0.7 }} className="text-center">
             {user ? (
@@ -171,18 +171,18 @@ export default function EditorOnboarding() {
               <div className="space-y-4">
                 <button
                   onClick={() => window.location.href = "/sign-in"}
-                  className="inline-block px-12 py-4 bg-[#c4a24d]/15 border border-[#c4a24d]/30 text-[#c4a24d] font-['Cormorant_Garamond',serif] text-xl rounded hover:bg-[#c4a24d]/25 transition-all duration-500 hover:border-[#c4a24d]/50"
+                  className="inline-block px-12 py-4 bg-accent-ornament/15 border border-accent-ornament/30 text-accent-ornament font-display text-xl rounded hover:bg-accent-ornament/25 transition-all duration-500 hover:border-accent-ornament/50"
                   data-testid="link-sign-in"
                 >
                   Accept Invitation & Sign In
                 </button>
-                <p className="text-[#f0eeea]/20 font-['Lora',serif] text-xs">
+                <p className="text-foreground/20 font-serif text-xs">
                   Sign in and your editor role will be activated
                 </p>
               </div>
             )}
             {acceptMutation.isError && (
-              <p className="text-red-400/80 text-sm mt-4 font-['Lora',serif]">
+              <p className="text-red-400/80 text-sm mt-4 font-serif">
                 {acceptMutation.error?.message || "Something went wrong. Please try again."}
               </p>
             )}
@@ -196,11 +196,11 @@ export default function EditorOnboarding() {
 function OnboardingSection({ number, title, description, detail, delay }: { number: string; title: string; description: string; detail?: string; delay: number }) {
   return (
     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, ease, delay }} className="flex gap-6">
-      <span className="text-[#c4a24d]/30 font-['Space_Mono',monospace] text-xs mt-1 shrink-0">{number}</span>
+      <span className="text-accent-ornament/30 font-['Space_Mono',monospace] text-xs mt-1 shrink-0">{number}</span>
       <div>
-        <h3 className="font-['Cormorant_Garamond',serif] text-xl text-[#f0eeea]/90 font-light mb-2">{title}</h3>
-        <p className="text-[#f0eeea]/40 font-['Lora',serif] text-sm leading-relaxed">{description}</p>
-        {detail && <p className="text-[#c4a24d]/40 font-['Lora',serif] text-xs leading-relaxed mt-2 italic">{detail}</p>}
+        <h3 className="font-display text-xl text-foreground/90 font-light mb-2">{title}</h3>
+        <p className="text-foreground/40 font-serif text-sm leading-relaxed">{description}</p>
+        {detail && <p className="text-accent-ornament/40 font-serif text-xs leading-relaxed mt-2 italic">{detail}</p>}
       </div>
     </motion.div>
   );

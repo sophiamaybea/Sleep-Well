@@ -87,7 +87,7 @@ export default function OnboardingModal() {
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="w-full max-w-md rounded-2xl border border-white/10 overflow-hidden"
-            style={{ backgroundColor: "#0b101a" }}
+            style={{ backgroundColor: "var(--color-popover)" }}
           >
             <AnimatePresence mode="wait">
               {step < 3 ? (
@@ -123,7 +123,7 @@ export default function OnboardingModal() {
                     {WALKTHROUGH_STEPS.map((_, i) => (
                       <div
                         key={i}
-                        className={`w-2 h-2 rounded-full transition-all ${i === step ? "bg-[#c4a24d] w-6" : "bg-white/20"}`}
+                        className={`w-2 h-2 rounded-full transition-all ${i === step ? "bg-accent-ornament w-6" : "bg-white/20"}`}
                       />
                     ))}
                   </div>
@@ -137,7 +137,7 @@ export default function OnboardingModal() {
                     </button>
                     <button
                       onClick={() => setStep(step + 1)}
-                      className="flex-1 px-4 py-3 rounded-full border border-[#c4a24d]/30 bg-[#c4a24d]/10 text-[#c4a24d] font-mono text-xs tracking-widest uppercase hover:bg-[#c4a24d]/20 transition-all flex items-center justify-center gap-1"
+                      className="flex-1 px-4 py-3 rounded-full border border-accent-ornament/30 bg-accent-ornament/10 text-accent-ornament font-mono text-xs tracking-widest uppercase hover:bg-accent-ornament/20 transition-all flex items-center justify-center gap-1"
                     >
                       {step < 2 ? "Next" : "Get Started"}
                       <ChevronRight className="w-3 h-3" />
@@ -155,8 +155,8 @@ export default function OnboardingModal() {
                 >
                   <div className="text-center space-y-3">
                     <div className="flex justify-center">
-                      <div className="w-12 h-12 rounded-full bg-[#c4a24d]/10 border border-[#c4a24d]/20 flex items-center justify-center">
-                        <Sprout className="w-6 h-6 text-[#c4a24d]" />
+                      <div className="w-12 h-12 rounded-full bg-accent-ornament/10 border border-accent-ornament/20 flex items-center justify-center">
+                        <Sprout className="w-6 h-6 text-accent-ornament" />
                       </div>
                     </div>
                     <h2 className="font-display text-2xl italic text-white/95">
@@ -170,7 +170,7 @@ export default function OnboardingModal() {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
                       <label className="block font-mono text-xs tracking-widest uppercase text-white/50">
-                        Username <span className="text-[#c4a24d]">*</span>
+                        Username <span className="text-accent-ornament">*</span>
                       </label>
                       <input
                         data-testid="input-onboarding-username"
@@ -179,7 +179,7 @@ export default function OnboardingModal() {
                         onChange={(e) => setDisplayName(e.target.value)}
                         placeholder="Your pen name or display name"
                         maxLength={100}
-                        className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-3 text-white/90 placeholder-white/25 font-serif text-base focus:border-[#c4a24d]/50 focus:outline-none focus:ring-1 focus:ring-[#c4a24d]/20 transition-all"
+                        className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-3 text-white/90 placeholder-white/25 font-serif text-base focus:border-accent-ornament/50 focus:outline-none focus:ring-1 focus:ring-accent-ornament/20 transition-all"
                       />
                     </div>
 
@@ -196,7 +196,7 @@ export default function OnboardingModal() {
                           placeholder="A few words about yourself (optional)"
                           maxLength={500}
                           rows={3}
-                          className="w-full bg-white/[0.04] border border-white/10 rounded-lg pl-10 pr-4 py-3 text-white/90 placeholder-white/25 font-serif text-base focus:border-[#c4a24d]/50 focus:outline-none focus:ring-1 focus:ring-[#c4a24d]/20 transition-all resize-none"
+                          className="w-full bg-white/[0.04] border border-white/10 rounded-lg pl-10 pr-4 py-3 text-white/90 placeholder-white/25 font-serif text-base focus:border-accent-ornament/50 focus:outline-none focus:ring-1 focus:ring-accent-ornament/20 transition-all resize-none"
                         />
                       </div>
                       <p className="font-mono text-[10px] text-white/25 text-right">
@@ -214,7 +214,7 @@ export default function OnboardingModal() {
                       type="submit"
                       disabled={isSubmitting || !displayName.trim()}
                       data-testid="button-onboarding-submit"
-                      className="w-full px-6 py-3.5 rounded-full border border-[#c4a24d]/30 bg-[#c4a24d]/10 text-[#c4a24d] font-mono text-sm tracking-widest uppercase hover:bg-[#c4a24d]/20 hover:border-[#c4a24d]/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="w-full px-6 py-3.5 rounded-full border border-accent-ornament/30 bg-accent-ornament/10 text-accent-ornament font-mono text-sm tracking-widest uppercase hover:bg-accent-ornament/20 hover:border-accent-ornament/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? "Planting..." : "Begin Writing"}
                     </button>

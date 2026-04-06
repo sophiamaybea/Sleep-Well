@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { useGalleryFeedback } from "@/hooks/useGalleryFeedback";
+import { useGalleryFeedback } from "@/hooks/use-gallery-feedback";
 
 interface Props {
   writingId: string;

@@ -137,7 +137,7 @@ ${bodyContent}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-52 bg-[#0f1520] border border-white/[0.15] rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 w-52 bg-card border border-white/[0.15] rounded-lg shadow-xl z-50 py-1 overflow-hidden">
           <button onClick={exportTxt} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all" data-testid="export-txt">
             <FileText size={13} className="text-white/40" />
             Plain Text (.txt)

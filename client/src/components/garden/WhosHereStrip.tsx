@@ -47,7 +47,7 @@ export function WhosHereStrip() {
               <div className="w-6 h-6 rounded-full bg-emerald-900/40 border border-emerald-700/20 flex items-center justify-center font-mono text-[9px] text-emerald-300/60 uppercase">
                 {p.userName?.[0] || "?"}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400/60 border border-[#0b101a]" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400/60 border border-popover" />
             </div>
             <div className="min-w-0">
               <span className="font-serif text-xs text-white/60 block truncate max-w-[80px]">

@@ -8,7 +8,7 @@ import {
   useDeleteExercise,
   useExerciseSubmissions,
   useAddEditorNote,
-} from "@/hooks/useWritingExercises";
+} from "@/hooks/use-writing-exercises";
 
 export default function ExerciseAdmin() {
   const { user } = useAuth();

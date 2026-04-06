@@ -81,7 +81,7 @@ function ProgressBar() {
     <div className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-black/50">
       <div
         className="h-full transition-[width] duration-100 ease-linear"
-        style={{ width: `${progress}%`, background: "linear-gradient(90deg, #9c27b0, #c4a24d)" }}
+        style={{ width: `${progress}%`, background: "linear-gradient(90deg, #9c27b0, var(--color-accent-ornament))" }}
       />
     </div>
   );
@@ -125,9 +125,9 @@ function PoemTransition() {
     <div className="py-16 md:py-24 flex items-center justify-center">
       <RevealLine>
         <div className="flex items-center gap-6">
-          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[#c4a24d]/20" />
-          <div className="w-1.5 h-1.5 rounded-full bg-[#c4a24d]/30" />
-          <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[#c4a24d]/20" />
+          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-accent-ornament/20" />
+          <div className="w-1.5 h-1.5 rounded-full bg-accent-ornament/30" />
+          <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-accent-ornament/20" />
         </div>
       </RevealLine>
     </div>
@@ -156,7 +156,7 @@ function PoemSection({ poem, index }: { poem: Poem; index: number }) {
           <h2
             className="text-2xl md:text-4xl lg:text-5xl font-light mb-4 uppercase"
             style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontFamily: "var(--font-display)",
               color: "#2d8f2d",
               letterSpacing: "0.15em",
               lineHeight: 1.2,
@@ -170,7 +170,7 @@ function PoemSection({ poem, index }: { poem: Poem; index: number }) {
           <RevealLine delay={0.2}>
             <p
               className="text-base md:text-lg italic mb-12"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", color: "#00bcd4" }}
+              style={{ fontFamily: "var(--font-display)", color: "#00bcd4" }}
             >
               {poem.author}
             </p>
@@ -197,7 +197,7 @@ function PoemSection({ poem, index }: { poem: Poem; index: number }) {
                 <RevealLine key={li} delay={Math.min(0.3 + li * 0.04, 1.5)}>
                   <p
                     style={{
-                      fontFamily: "'Georgia', 'Cormorant Garamond', serif",
+                      fontFamily: "var(--font-display)",
                       fontSize: poem.type === "prose" ? "1.05rem" : "1.1rem",
                       lineHeight: poem.type === "prose" ? "2.0" : "1.9",
                       color: "#e0e0e0",
@@ -229,7 +229,7 @@ function Entrance({ onEnter }: { onEnter: () => void }) {
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0 border-[12px] md:border-[20px] pointer-events-none z-10"
         style={{
-          borderImage: "linear-gradient(135deg, #c4a24d 0%, #8b6914 25%, #c4a24d 50%, #8b6914 75%, #c4a24d 100%) 1",
+          borderImage: "linear-gradient(135deg, var(--color-accent-ornament) 0%, #8b6914 25%, var(--color-accent-ornament) 50%, #8b6914 75%, var(--color-accent-ornament) 100%) 1",
         }}
       />
 
@@ -263,7 +263,7 @@ function Entrance({ onEnter }: { onEnter: () => void }) {
         <h1
           className="text-4xl md:text-6xl lg:text-7xl font-light"
           style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontFamily: "var(--font-display)",
             color: "#e0e0e0",
             letterSpacing: "0.08em",
           }}
@@ -310,13 +310,13 @@ function CuratorLetter() {
     <section className="min-h-screen flex flex-col justify-center py-24 md:py-32 px-6" data-testid="section-curator-letter">
       <div className="max-w-[640px] mx-auto w-full">
         <RevealLine>
-          <div className="w-16 h-[1px] bg-[#c4a24d]/30 mb-12" />
+          <div className="w-16 h-[1px] bg-accent-ornament/30 mb-12" />
         </RevealLine>
 
         <RevealLine delay={0.1}>
           <h2
             className="text-2xl md:text-3xl font-light italic mb-12"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", color: "#c4a24d" }}
+            style={{ fontFamily: "var(--font-display)", color: "var(--color-accent-ornament)" }}
           >
             {curatorLetter.title}
           </h2>
@@ -342,7 +342,7 @@ function CuratorLetter() {
 
         <RevealLine delay={0.5}>
           <div className="mt-16 pt-8 border-t border-white/[0.06]">
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.1rem", color: "#c4a24d", fontStyle: "italic" }}>
+            <p style={{ fontFamily: "var(--font-display)", fontSize: "1.1rem", color: "var(--color-accent-ornament)", fontStyle: "italic" }}>
               {curatorLetter.signedBy}
             </p>
           </div>
@@ -389,7 +389,7 @@ function TableOfContents({ onSelect }: { onSelect: (id: string) => void }) {
         <RevealLine delay={0.1}>
           <h2
             className="text-2xl md:text-3xl font-light mb-16"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", color: "#e0e0e0", letterSpacing: "0.05em" }}
+            style={{ fontFamily: "var(--font-display)", color: "#e0e0e0", letterSpacing: "0.05em" }}
           >
             July Issue
           </h2>
@@ -408,7 +408,7 @@ function TableOfContents({ onSelect }: { onSelect: (id: string) => void }) {
                 </span>
                 <span
                   className="text-sm md:text-base group-hover:text-[#2d8f2d] transition-colors duration-300 flex-1"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", color: "#e0e0e0", opacity: 0.6 }}
+                  style={{ fontFamily: "var(--font-display)", color: "#e0e0e0", opacity: 0.6 }}
                 >
                   {poem.title}
                 </span>

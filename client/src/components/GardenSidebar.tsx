@@ -90,7 +90,7 @@ export default function GardenSidebar({ currentView, onNavigate, isOpen, onToggl
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-0 left-0 z-[50] w-[240px] h-screen bg-[#080d15]/95 backdrop-blur-xl border-r border-white/[0.06] flex flex-col overflow-hidden"
+              className="fixed top-0 left-0 z-[50] w-[240px] h-screen bg-popover/95 backdrop-blur-xl border-r border-white/[0.06] flex flex-col overflow-hidden"
             >
               {/* writer identity */}
               <div className="pt-6 pb-4 px-5 border-b border-white/[0.06]">

@@ -45,15 +45,15 @@ function getMirrorResponse(text: string): string {
 }
 
 const PROSE_STYLE: React.CSSProperties = {
-  fontFamily: "'Cormorant Garamond', serif",
+  fontFamily: "var(--font-display)",
   fontSize: "clamp(1.1rem, 2.8vw, 1.75rem)",
   lineHeight: "2.0",
   color: "#e8e4df",
 };
 
 const HEADING_STYLE: React.CSSProperties = {
-  color: "#c4a24d",
-  fontFamily: "'Cormorant Garamond', serif",
+  color: "var(--color-accent-ornament)",
+  fontFamily: "var(--font-display)",
   letterSpacing: "0.3em",
   fontSize: "0.75rem",
   textTransform: "uppercase" as const,
@@ -65,8 +65,8 @@ function ExhibitInput({ label, placeholder, value, onChange, maxRows }: { label?
       {label && <label className="block text-sm tracking-[0.2em] uppercase mb-3" style={{ color: "#8a8278" }}>{label}</label>}
       <textarea
         data-testid={`input-${label?.toLowerCase().replace(/\s+/g, "-") || "response"}`}
-        className="w-full bg-transparent border border-[#2a2520] rounded-none p-5 text-[#e8e4df] placeholder-[#4a4540] focus:border-[#c4a24d] focus:outline-none transition-colors resize-none"
-        style={{ fontFamily: "'Lora', serif", fontSize: "1.15rem", lineHeight: "1.9", minHeight: maxRows ? `${maxRows * 2.2}rem` : "7rem" }}
+        className="w-full bg-transparent border border-[#2a2520] rounded-none p-5 text-[#e8e4df] placeholder-[#4a4540] focus:border-accent-ornament focus:outline-none transition-colors resize-none"
+        style={{ fontFamily: "var(--font-serif)", fontSize: "1.15rem", lineHeight: "1.9", minHeight: maxRows ? `${maxRows * 2.2}rem` : "7rem" }}
         placeholder={placeholder || "Write here..."}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -81,7 +81,7 @@ function SubmitButton({ onClick, disabled, label = "Submit", testId }: { onClick
       data-testid={testId}
       onClick={onClick}
       disabled={disabled}
-      className="mt-6 px-10 py-4 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+      className="mt-6 px-10 py-4 border border-accent-ornament text-accent-ornament tracking-[0.15em] uppercase text-sm hover:bg-accent-ornament hover:text-[#0a0a0a] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
     >
       {label}
     </button>
@@ -90,8 +90,8 @@ function SubmitButton({ onClick, disabled, label = "Submit", testId }: { onClick
 
 function MirrorResponse({ text }: { text: string }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="mt-10 pl-6 border-l-2 border-[#c4a24d]">
-      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.3rem", lineHeight: "1.9", color: "#c4a24d", fontStyle: "italic" }}>{text}</p>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="mt-10 pl-6 border-l-2 border-accent-ornament">
+      <p style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", lineHeight: "1.9", color: "var(--color-accent-ornament)", fontStyle: "italic" }}>{text}</p>
     </motion.div>
   );
 }
@@ -99,7 +99,7 @@ function MirrorResponse({ text }: { text: string }) {
 function Divider() {
   return (
     <ScrollReveal className="py-24 flex justify-center">
-      <div className="w-16 h-[1px] bg-[#c4a24d]/30" />
+      <div className="w-16 h-[1px] bg-accent-ornament/30" />
     </ScrollReveal>
   );
 }
@@ -123,7 +123,7 @@ function SectionThreshold({ onSubmit }: { onSubmit: (text: string) => void }) {
       <ScrollReveal><p className="mt-8" style={PROSE_STYLE}>Below is a stem. You will finish it. Don{"\u2019"}t think. Don{"\u2019"}t polish. The sentence is already true {"\u2014"} you{"\u2019"}re just finding out what it says.</p></ScrollReveal>
       <ScrollReveal>
         <div className="mt-14">
-          <p className="mb-4 italic" style={{ color: "#8a8278", fontFamily: "'Cormorant Garamond', serif", fontSize: "1.3rem" }}>My writing reaches for metaphor when...</p>
+          <p className="mb-4 italic" style={{ color: "#8a8278", fontFamily: "var(--font-display)", fontSize: "1.3rem" }}>My writing reaches for metaphor when...</p>
           <ExhibitInput value={value} onChange={setValue} placeholder="...finish the thought" />
           {!submitted && <SubmitButton onClick={handleSubmit} disabled={!value.trim()} testId="button-submit-threshold" />}
           {mirror && <MirrorResponse text={mirror} />}
@@ -239,7 +239,7 @@ function SectionReflections({ onSubmit }: { onSubmit: (responses: string[]) => v
       <div className="mt-14 space-y-12">
         {CHALLENGES.map((challenge, i) => (
           <ScrollReveal key={i}>
-            <p className="mb-4 italic" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.3rem", lineHeight: "1.9", color: "#e8e4df" }}>
+            <p className="mb-4 italic" style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", lineHeight: "1.9", color: "#e8e4df" }}>
               {i + 1}. {"\u201C"}{challenge}{"\u201D"}
             </p>
             <ExhibitInput label={`Challenge ${i + 1}`} value={values[i]} onChange={(v) => update(i, v)} maxRows={3} />
@@ -326,8 +326,8 @@ export default function Exhibit() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0a0a" }}>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-          <div className="w-8 h-[1px] bg-[#c4a24d] mx-auto mb-6 animate-pulse" />
-          <p style={{ fontFamily: "'Cormorant Garamond', serif", color: "#8a8278", fontSize: "1rem", letterSpacing: "0.1em" }}>Preparing the exhibit...</p>
+          <div className="w-8 h-[1px] bg-accent-ornament mx-auto mb-6 animate-pulse" />
+          <p style={{ fontFamily: "var(--font-display)", color: "#8a8278", fontSize: "1rem", letterSpacing: "0.1em" }}>Preparing the exhibit...</p>
         </motion.div>
       </div>
     );
@@ -337,8 +337,8 @@ export default function Exhibit() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0a0a" }}>
         <div className="text-center max-w-md px-6">
-          <p style={{ fontFamily: "'Cormorant Garamond', serif", color: "#e8e4df", fontSize: "1.3rem" }}>This exhibit could not be found.</p>
-          <p className="mt-4" style={{ fontFamily: "'Lora', serif", color: "#8a8278", fontSize: "0.9rem" }}>It may have been removed, or it hasn{"\u2019"}t opened yet.</p>
+          <p style={{ fontFamily: "var(--font-display)", color: "#e8e4df", fontSize: "1.3rem" }}>This exhibit could not be found.</p>
+          <p className="mt-4" style={{ fontFamily: "var(--font-serif)", color: "#8a8278", fontSize: "0.9rem" }}>It may have been removed, or it hasn{"\u2019"}t opened yet.</p>
         </div>
       </div>
     );
@@ -350,7 +350,7 @@ export default function Exhibit() {
     <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-4" style={{ background: "linear-gradient(to bottom, #0a0a0a 60%, transparent)" }}>
         <span className="text-xs tracking-[0.2em] uppercase" style={{ color: "#4a4540" }}>{exhibit.title}</span>
-        <button onClick={() => navigate("/exhibits")} className="text-xs tracking-[0.2em] uppercase text-[#4a4540] hover:text-[#c4a24d] transition-colors" data-testid="button-back-exhibits">Back</button>
+        <button onClick={() => navigate("/exhibits")} className="text-xs tracking-[0.2em] uppercase text-[#4a4540] hover:text-accent-ornament transition-colors" data-testid="button-back-exhibits">Back</button>
       </div>
 
       <div className="max-w-[720px] mx-auto px-8 md:px-6">
@@ -433,14 +433,14 @@ export default function Exhibit() {
               <button
                 data-testid="button-return-garden"
                 onClick={() => navigate("/garden")}
-                className="px-10 py-4 border border-[#c4a24d] text-[#c4a24d] tracking-[0.15em] uppercase text-sm hover:bg-[#c4a24d] hover:text-[#0a0a0a] transition-all duration-300"
+                className="px-10 py-4 border border-accent-ornament text-accent-ornament tracking-[0.15em] uppercase text-sm hover:bg-accent-ornament hover:text-[#0a0a0a] transition-all duration-300"
               >
                 Return to Garden
               </button>
               <button
                 data-testid="button-share-gallery"
                 onClick={() => navigate("/gallery")}
-                className="px-10 py-4 bg-[#c4a24d] text-[#0a0a0a] tracking-[0.15em] uppercase text-sm hover:bg-[#d4b25d] transition-all duration-300"
+                className="px-10 py-4 bg-accent-ornament text-[#0a0a0a] tracking-[0.15em] uppercase text-sm hover:brightness-110 transition-all duration-300"
               >
                 Share to Gallery
               </button>
@@ -450,7 +450,7 @@ export default function Exhibit() {
             <ScrollReveal>
               <div className="mt-24 pt-16 border-t border-[#1a1815]">
                 <p className="mb-10" style={HEADING_STYLE}>A Blessing for the Returning Writer</p>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(1.3rem, 2.8vw, 1.5rem)", lineHeight: "2.4", color: "#8a8278", fontStyle: "italic" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.3rem, 2.8vw, 1.5rem)", lineHeight: "2.4", color: "#8a8278", fontStyle: "italic" }}>
                   <p>May your metaphors be unruly.</p>
                   <p>May they refuse your first intentions.</p>
                   <p>May they lead you somewhere inconvenient and true.</p>
