@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { usePageMeta } from "@/hooks/usePageMeta";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import StarBackground from "@/components/StarBackground";

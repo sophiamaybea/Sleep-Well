@@ -1,4 +1,21 @@
+import { useReducedMotion } from "framer-motion";
+
 export function NightGardenAtmosphere() {
+  const prefersReducedMotion = useReducedMotion();
+
+  // When the user prefers reduced motion, skip all particle/ambient animations
+  if (prefersReducedMotion) {
+    return (
+      <div className="night-garden-atmosphere fixed inset-0 z-[1] pointer-events-none overflow-hidden">
+        {/* Static moon glow — no animation */}
+        <div
+          className="absolute top-[-5%] right-[15%] w-[500px] h-[500px] rounded-full opacity-[0.10]"
+          style={{ background: "radial-gradient(circle, rgba(140, 200, 210, 0.1) 0%, rgba(42, 107, 110, 0.04) 40%, transparent 70%)" }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="night-garden-atmosphere fixed inset-0 z-[1] pointer-events-none overflow-hidden">
       <div className="absolute top-[-5%] right-[15%] w-[500px] h-[500px] rounded-full animate-moonpulse"

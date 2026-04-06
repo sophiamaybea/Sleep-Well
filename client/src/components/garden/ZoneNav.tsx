@@ -34,7 +34,7 @@ export function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone
           <button
             key={z.id}
             onClick={() => onChange(z.id)}
-            className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-mono text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all whitespace-nowrap ${
+            className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-mono text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
               active === z.id ? "text-white/90" : "text-white/90 hover:text-white/90"
             }`}
             data-testid={`zone-tab-${z.id}`}
@@ -84,7 +84,7 @@ export function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoo
               title={room.desc}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
                 isActive
                   ? "border-emerald-500/40 bg-emerald-900/35 text-emerald-200/90 shadow-[0_0_10px_rgba(52,211,153,0.15)]"
                   : "border-white/10 text-white/60 hover:text-white/85 hover:border-emerald-700/30 hover:bg-emerald-950/30"
@@ -107,6 +107,7 @@ export function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoo
                   size={9}
                   className="relative z-10 ml-0.5 opacity-50"
                   onClick={(e) => { e.stopPropagation(); onSelectRoom(null); }}
+                  aria-label={`Close ${room.label} room`}
                 />
               )}
             </motion.button>

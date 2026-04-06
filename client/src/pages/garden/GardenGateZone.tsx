@@ -2,15 +2,21 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { TreePine } from "lucide-react";
 
-export function GardenGateZone() {
+/**
+ * GardenGateZone — the writer's public garden: writing they've opened to the world.
+ * Extracted from Garden.tsx to allow independent iteration and testing.
+ */
+export default function GardenGateZone() {
   const { user } = useAuth();
   const { data: writings = [] } = useQuery({
     queryKey: ["/api/writings"],
     enabled: !!user,
   });
+
   const publicWritings = (writings as any[]).filter(
     (w: any) => w.visibility === "public" || w.visibility === "garden_gate"
   );
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="mb-8">
@@ -22,6 +28,7 @@ export function GardenGateZone() {
           Writing you've opened to the world. Quiet, shared, unhurried.
         </p>
       </div>
+
       {publicWritings.length === 0 ? (
         <div className="text-center py-16">
           <TreePine size={32} className="mx-auto mb-4 text-emerald-900/50" />
@@ -49,14 +56,6 @@ export function GardenGateZone() {
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-export function CollectionsRedirect() {
-  return (
-    <div className="flex items-center justify-center py-20">
-      <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">Opening your beds...</p>
     </div>
   );
 }

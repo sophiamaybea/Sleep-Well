@@ -1,4 +1,4 @@
-import { usePageMeta } from "@/hooks/usePageMeta";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

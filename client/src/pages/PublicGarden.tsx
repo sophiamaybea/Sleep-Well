@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Feather, ChevronDown, Home, Sparkles, Copy, Check, Pin } from "lucide-react";
 import StarBackground from "@/components/StarBackground";
 import { TendButton } from "@/components/garden/SocialFeatures";
-import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor"; import { usePageMeta } from "@/hooks/usePageMeta";
+import { ContentRenderer, stripHtml } from "@/components/garden/RichEditor";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 type PublicWriting = {
   id: string;

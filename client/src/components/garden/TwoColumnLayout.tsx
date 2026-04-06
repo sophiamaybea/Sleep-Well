@@ -1,5 +1,5 @@
 import { Columns2, AlignJustify } from "lucide-react";
-import { useWritingLayout } from "@/hooks/useWritingLayout";
+import { useWritingLayout } from "@/hooks/use-writing-layout";
 
 interface LayoutToggleProps {
   writingId: string;

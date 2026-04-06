@@ -106,7 +106,7 @@ export default function Navigation() {
             <button
               onClick={() => setIsLight(!isLight)}
               className="p-2 text-white/90 hover:text-white/80 transition-colors"
-              data-testid="button-theme-toggle"
+              aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}               data-testid="button-theme-toggle"
               title={isLight ? "Switch to dark mode" : "Switch to light mode"}
             >
               {isLight ? <Moon size={16} /> : <Sun size={16} />}
@@ -117,7 +117,7 @@ export default function Navigation() {
                 <button
                   onClick={() => setShowNotifs(!showNotifs)}
                   className="p-2 text-white/90 hover:text-white/80 transition-colors relative"
-                  data-testid="button-notifications"
+                  aria-label="Notifications"               data-testid="button-notifications"
                 >
                   <Bell size={16} />
                   {(notifData?.unread || 0) > 0 && (
@@ -188,7 +188,7 @@ export default function Navigation() {
 
           <button 
             onClick={() => setIsOpen(true)}
-            className="lg:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors mix-blend-difference"
+            className="lg:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors mix-blend-difference"           aria-label="Open menu"
           >
             <Menu />
           </button>
@@ -205,7 +205,7 @@ export default function Navigation() {
           >
             <button 
               onClick={() => setIsOpen(false)}
-              className="absolute top-8 right-8 p-2 text-white/90 hover:text-white transition-colors"
+              className="absolute top-8 right-8 p-2 text-white/90 hover:text-white transition-colors"             aria-label="Close menu"
             >
               <X size={32} />
             </button>

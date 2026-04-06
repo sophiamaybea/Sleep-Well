@@ -54,6 +54,10 @@
     --color-accent-ornament: #c4a24d;
     --color-accent: #335B3B;
   --color-accent-foreground: #ffffff;
+
+  /* Extended semantic tokens */
+  --color-garden-bloom: #5eb5a0;   /* teal — published / bloom state */
+  --color-agent-lavender: #8b7ec8; /* lavender — AI agent UI */
   
   --color-destructive: hsl(0 60% 50%);
   --color-destructive-foreground: hsl(0 0% 98%);
@@ -2261,4 +2265,23 @@ html.a11y-light-mode div {
 @keyframes ill-fadein {
   from { opacity: 0; }
   to { opacity: 0.8; }
+}
+
+
+/* ── Reduced-motion: disable all particle and ambient animations ── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-firefly,
+  .animate-firefly-1,
+  .animate-firefly-2,
+  .animate-firefly-3,
+  .animate-firefly-4,
+  .animate-firefly-5,
+  .animate-firefly-6,
+  .animate-sway,
+  .animate-sway-slow,
+  .animate-sway-fast,
+  .animate-moonpulse,
+  .animate-noise {
+    animation: none !important;
+  }
 }

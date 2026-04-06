@@ -5,7 +5,7 @@ import {
   useAtelierSeries,
   useAtelierRespond,
   useAtelierSaveToGarden,
-} from "@/hooks/useAtelier";
+} from "@/hooks/use-atelier";
 
 const FREE_LIMIT = 2;
 
