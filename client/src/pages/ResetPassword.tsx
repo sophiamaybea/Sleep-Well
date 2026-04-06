@@ -1,23 +1,28 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect, useRef } from "react";
+import { useLocation, useSearch } from "wouter";
 import Navigation from "@/components/Navigation";
 
 /**
  * ResetPassword — consumed via the link emailed by /api/forgot-password.
- * URL: /reset-password?token=<uuid>
+ * URL: /reset-password?token=<hex>
  */
 export default function ResetPassword() {
   const [, navigate] = useLocation();
-  const [token, setToken] = useState<string | null>(null);
+  const searchString = useSearch();
+  const token = new URLSearchParams(searchString).get("token");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setToken(params.get("token"));
+    return () => {
+      if (redirectTimerRef.current !== null) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
   }, []);
 
   if (!token) {
@@ -58,7 +63,7 @@ export default function ResetPassword() {
         return;
       }
       setSuccess(true);
-      setTimeout(() => navigate("/sign-in"), 3000);
+      redirectTimerRef.current = setTimeout(() => navigate("/sign-in"), 3000);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

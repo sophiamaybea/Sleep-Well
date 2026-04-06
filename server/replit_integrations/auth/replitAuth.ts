@@ -8,6 +8,7 @@ import connectPg from "connect-pg-simple";
 // @ts-expect-error — bcryptjs has no bundled types; @types/bcryptjs resolves this
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
+import { randomBytes } from "crypto";
 import { authStorage } from "./storage";
 
 /**
@@ -248,8 +249,8 @@ export async function setupAuth(app: Express) {
         return res.status(200).json({ message: "If that email is registered, a reset link has been sent." });
       }
 
-      // Generate a secure token and store it in the in-memory map
-      const token = crypto.randomUUID();
+      // Generate a cryptographically secure token (32 bytes = 64 hex chars) and store it
+      const token = randomBytes(32).toString("hex");
       resetTokens.set(token, { userId: user.id, expiry: Date.now() + RESET_TOKEN_TTL_MS });
 
       const resetUrl = `${process.env.APP_URL || "http://localhost:5000"}/reset-password?token=${token}`;
