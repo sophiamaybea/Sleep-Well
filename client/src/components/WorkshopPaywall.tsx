@@ -34,7 +34,7 @@ export default function WorkshopPaywall({ inline = false }: Props) {
       </a>
       <p className="text-xs text-muted-foreground mt-3">
         Already subscribed?{" "}
-        <a href="/account" className="underline">
+        <a href="/edit-profile" className="underline">
           Check your account
         </a>
         .
