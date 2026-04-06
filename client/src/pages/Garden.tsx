@@ -18,6 +18,8 @@ import type { Writing, WritingSnapshot } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useAccessibility } from "@/hooks/use-accessibility";
+import GardenGateZoneComponent from "@/pages/garden/GardenGateZone";
+import CollectionsRedirectComponent from "@/pages/garden/CollectionsRedirect";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import PlantingFlow, { VisibilityBadge } from "@/components/garden/PlantingFlow";
 import { NotificationBell } from "@/components/garden/NotificationPanel";
@@ -62,7 +64,7 @@ function ZoneNav({ active, onChange }: { active: Zone; onChange: (z: Zone) => vo
           <button
             key={z.id}
             onClick={() => onChange(z.id)}
-            className={`relative flex min-h-[4rem] flex-col items-start justify-center gap-1 rounded-xl border px-3 py-2 text-left transition-all ${
+            className={`relative flex min-h-[4rem] flex-col items-start justify-center gap-1 rounded-xl border px-3 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
               active === z.id
                 ? "border-emerald-500/30 bg-white/[0.08] text-white/90"
                 : "border-white/[0.06] bg-transparent text-white/65 hover:border-white/[0.14] hover:text-white/85"
@@ -138,7 +140,7 @@ function RoomsStrip({ activeRoom, onSelectRoom }: { activeRoom: ActiveRoom; onSe
                     key={room.id}
                     onClick={() => { onSelectRoom(isActive ? null : room.id as ActiveRoom); ; }}
                     title={room.desc}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-[9px] uppercase tracking-widest whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
                       isActive
                         ? "border-emerald-600/25 bg-emerald-900/20 text-emerald-200/80"
                         : "border-emerald-800/20 text-white/70 hover:text-white/90 hover:border-emerald-600/40 hover:bg-emerald-900/20"
@@ -3987,9 +3989,9 @@ export default function Garden() {
               ) : activeZone === "submissions" ? (
                 <SubmissionsZone userTier={userTier as "free" | "paid"} />
                     ) : activeZone === "garden-gate" ? (
-                        <GardenGateZone />
+                        <GardenGateZoneComponent />
                   ) : activeZone === "collections" ? (
-                          <CollectionsRedirect />
+                          <CollectionsRedirectComponent />
                           ) : (<GreenhouseZone />)}
             </motion.div>
           </AnimatePresence>
