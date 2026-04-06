@@ -2267,10 +2267,14 @@ html.a11y-light-mode div {
   to { opacity: 0.8; }
 }
 
+.animate-ill-fadein {
+  animation: ill-fadein 1.2s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  [style*="ill-fadein"] {
-    animation: none !important;
-    opacity: 0.8 !important;
+  .animate-ill-fadein {
+    animation: none;
+    opacity: 0.8;
   }
 }
 
