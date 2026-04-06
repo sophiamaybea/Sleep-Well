@@ -110,17 +110,40 @@ function AuthInput({ label, type = "text", value, onChange, testId, placeholder 
 function EmailAuthForm() {
   const { login, register, loginError, registerError, isLoggingIn, isRegistering, resetLoginError, resetRegisterError } = useAuth();
   const queryClient = useQueryClient();
-  const [mode, setMode] = useState<"signin" | "register">("signin");
+  const [mode, setMode] = useState<"signin" | "register" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isForgotPending, setIsForgotPending] = useState(false);
   const [, navigate] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
+
+    if (mode === "forgot") {
+      if (!email) { setError("Please enter your email address"); return; }
+      setIsForgotPending(true);
+      try {
+        const res = await fetch("/api/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json().catch(() => ({}));
+        setSuccessMessage(data.message || "If that email is registered, a reset link has been sent.");
+      } catch {
+        setError("Something went wrong. Please try again.");
+      } finally {
+        setIsForgotPending(false);
+      }
+      return;
+    }
     
     // FIX(Finding 6): Clear stale errors from the mutation state
     if (mode === "signin") resetLoginError();
@@ -141,8 +164,8 @@ function EmailAuthForm() {
     }
   };
 
-  const isSubmitting = isLoggingIn || isRegistering;
-  const displayError = error || (mode === "signin" ? loginError?.message : registerError?.message) || null;
+  const isSubmitting = isLoggingIn || isRegistering || isForgotPending;
+  const displayError = error || (mode === "signin" ? loginError?.message : mode === "register" ? registerError?.message : null) || null;
 
   return (
     <motion.form
@@ -157,7 +180,7 @@ function EmailAuthForm() {
           <button
             type="button"
             data-testid="button-mode-signin"
-            onClick={() => { setMode("signin"); setError(null); }}
+            onClick={() => { setMode("signin"); setError(null); setSuccessMessage(null); }}
             className={`px-5 py-1.5 rounded-full font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 ${
               mode === "signin" ? "bg-[#c4a24d]/20 text-[#c4a24d] border border-[#c4a24d]/30" : "text-white/40 hover:text-white/60 border border-transparent"
             }`}
@@ -167,7 +190,7 @@ function EmailAuthForm() {
           <button
             type="button"
             data-testid="button-mode-register"
-            onClick={() => { setMode("register"); setError(null); }}
+            onClick={() => { setMode("register"); setError(null); setSuccessMessage(null); }}
             className={`px-5 py-1.5 rounded-full font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 ${
               mode === "register" ? "bg-[#c4a24d]/20 text-[#c4a24d] border border-[#c4a24d]/30" : "text-white/40 hover:text-white/60 border border-transparent"
             }`}
@@ -186,14 +209,25 @@ function EmailAuthForm() {
           transition={{ duration: 0.3 }}
           className="space-y-4"
         >
-          {mode === "register" && (
-            <div className="grid grid-cols-2 gap-3">
-              <AuthInput label="First Name" value={firstName} onChange={setFirstName} testId="input-first-name" placeholder="Ada" />
-              <AuthInput label="Last Name" value={lastName} onChange={setLastName} testId="input-last-name" placeholder="Lovelace" />
-            </div>
+          {mode === "forgot" ? (
+            <>
+              <p className="font-mono text-[10px] tracking-[0.15em] text-white/40 text-center uppercase">
+                Enter your email and we&apos;ll send a reset link
+              </p>
+              <AuthInput label="Email" type="email" value={email} onChange={setEmail} testId="input-forgot-email" placeholder="writer@garden.ink" />
+            </>
+          ) : (
+            <>
+              {mode === "register" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <AuthInput label="First Name" value={firstName} onChange={setFirstName} testId="input-first-name" placeholder="Ada" />
+                  <AuthInput label="Last Name" value={lastName} onChange={setLastName} testId="input-last-name" placeholder="Lovelace" />
+                </div>
+              )}
+              <AuthInput label="Email" type="email" value={email} onChange={setEmail} testId="input-email" placeholder="writer@garden.ink" />
+              <AuthInput label="Password" type="password" value={password} onChange={setPassword} testId="input-password" placeholder="••••••••" />
+            </>
           )}
-          <AuthInput label="Email" type="email" value={email} onChange={setEmail} testId="input-email" placeholder="writer@garden.ink" />
-          <AuthInput label="Password" type="password" value={password} onChange={setPassword} testId="input-password" placeholder="••••••••" />
         </motion.div>
       </AnimatePresence>
 
@@ -209,18 +243,56 @@ function EmailAuthForm() {
             {displayError}
           </motion.p>
         )}
+        {successMessage && (
+          <motion.p
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="text-emerald-400/80 text-xs font-mono tracking-wide text-center"
+            data-testid="text-auth-success"
+          >
+            {successMessage}
+          </motion.p>
+        )}
       </AnimatePresence>
 
       <button
         type="submit"
-        disabled={isSubmitting || !email || !password}
+        disabled={isSubmitting || !email || (mode !== "forgot" && !password)}
         data-testid="button-submit-auth"
         className="w-full relative group px-8 py-3.5 rounded-full border border-white/15 hover:border-[#c4a24d]/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-[#c4a24d] transition-colors duration-500">
-          {isSubmitting ? (mode === "signin" ? "Entering..." : "Planting seeds...") : (mode === "signin" ? "Enter the Garden" : "Plant Your First Seed")}
+          {isSubmitting
+            ? mode === "forgot" ? "Sending..." : mode === "signin" ? "Entering..." : "Planting seeds..."
+            : mode === "forgot" ? "Send reset link" : mode === "signin" ? "Enter the Garden" : "Plant Your First Seed"}
         </span>
       </button>
+
+      {mode === "signin" && (
+        <div className="text-center">
+          <button
+            type="button"
+            data-testid="button-forgot-password"
+            onClick={() => { setMode("forgot"); setError(null); setSuccessMessage(null); }}
+            className="font-mono text-[10px] tracking-[0.15em] text-white/25 hover:text-white/50 transition-colors uppercase"
+          >
+            Forgot password?
+          </button>
+        </div>
+      )}
+
+      {mode === "forgot" && (
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => { setMode("signin"); setError(null); setSuccessMessage(null); }}
+            className="font-mono text-[10px] tracking-[0.15em] text-white/25 hover:text-white/50 transition-colors uppercase"
+          >
+            ← Back to sign in
+          </button>
+        </div>
+      )}
 
       <motion.p
         initial={{ opacity: 0 }}
@@ -228,7 +300,7 @@ function EmailAuthForm() {
         transition={{ delay: 1.6, duration: 0.8 }}
         className="font-mono text-[10px] tracking-[0.15em] text-white/20 text-center"
       >
-        {mode === "signin" ? "Your private writing space awaits" : "Every garden begins with a single seed"}
+        {mode === "signin" ? "Your private writing space awaits" : mode === "register" ? "Every garden begins with a single seed" : "We'll send you a link to reset your password"}
       </motion.p>
     </motion.form>
   );

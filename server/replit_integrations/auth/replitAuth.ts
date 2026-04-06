@@ -7,7 +7,18 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 // @ts-expect-error — bcryptjs has no bundled types; @types/bcryptjs resolves this
 import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
 import { authStorage } from "./storage";
+
+/**
+ * In-memory store for password-reset tokens.
+ * Each entry maps a secure token → { userId, expiry }.
+ * NOTE: tokens are lost on server restart. A future improvement is to persist
+ * them in the database (add a passwordResetToken + passwordResetExpiry column
+ * to the users table and run drizzle-kit push).
+ */
+const resetTokens = new Map<string, { userId: string; expiry: number }>();
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 const isReplit = !!process.env.REPL_ID;
 
@@ -219,6 +230,92 @@ export async function setupAuth(app: Express) {
       });
     } catch (error) {
       console.error("Registration error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/forgot-password — request a password reset email
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Always return 200 to prevent email enumeration
+      const user = await authStorage.getUserByEmail(email);
+      if (!user || !user.passwordHash) {
+        return res.status(200).json({ message: "If that email is registered, a reset link has been sent." });
+      }
+
+      // Generate a secure token and store it in the in-memory map
+      const token = crypto.randomUUID();
+      resetTokens.set(token, { userId: user.id, expiry: Date.now() + RESET_TOKEN_TTL_MS });
+
+      const resetUrl = `${process.env.APP_URL || "http://localhost:5000"}/reset-password?token=${token}`;
+
+      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+          const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+          });
+          await transporter.sendMail({
+            from: `"The Page Gallery" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: "Reset your password — The Page Gallery",
+            html: `
+              <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2d2d2d;">Reset your password</h2>
+                <p>We received a request to reset the password for your Page Gallery account.</p>
+                <p>
+                  <a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#335B3B;color:#fff;border-radius:6px;text-decoration:none;font-family:monospace;">
+                    Reset password
+                  </a>
+                </p>
+                <p style="color:#888;font-size:13px;">This link expires in 1 hour. If you didn't request a reset, you can safely ignore this email.</p>
+              </div>
+            `,
+          });
+        } catch (emailErr) {
+          console.error("[forgot-password] Email send failed:", emailErr);
+        }
+      } else {
+        // SMTP not configured — log token to server for local dev debugging only
+        console.info(`[forgot-password] SMTP not configured. Reset URL (dev only): ${resetUrl}`);
+      }
+
+      return res.status(200).json({ message: "If that email is registered, a reset link has been sent." });
+    } catch (error) {
+      console.error("[forgot-password] Error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/reset-password — consume token and set new password
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      }
+
+      const entry = resetTokens.get(token);
+      if (!entry || Date.now() > entry.expiry) {
+        resetTokens.delete(token);
+        return res.status(400).json({ message: "Reset link is invalid or has expired" });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 12);
+      await authStorage.setPasswordHash(entry.userId, passwordHash);
+      resetTokens.delete(token);
+
+      return res.status(200).json({ message: "Password updated successfully. You can now sign in." });
+    } catch (error) {
+      console.error("[reset-password] Error:", error);
       return res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -62,6 +62,8 @@ const authLimiter = rateLimit({
 app.use("/api", apiLimiter);
 app.use("/api/login", authLimiter);
 app.use("/api/register", authLimiter);
+app.use("/api/forgot-password", authLimiter);
+app.use("/api/reset-password", authLimiter);
 app.use("/api/editor-onboarding", authLimiter);
 declare module "http" {
   interface IncomingMessage {

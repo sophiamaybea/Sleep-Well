@@ -7497,6 +7497,9 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   // PayPal create order
   app.post("/api/paypal/create-order", async (req: any, res) => {
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return res.status(503).json({ error: "Payment service is not configured. Please try again later." });
+    }
     try {
       const { waitlistId, writingId, tier, amount } = req.body; const TIER_PRICES: Record<string, number> = { priority: 5, feedback: 7, bundle: 10 }; if (writingId && tier) { if (!TIER_PRICES[tier] || Number(amount) !== TIER_PRICES[tier]) { return res.status(400).json({ message: "Invalid tier or amount" }); } const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64"); const response = await fetch("https://api-m.paypal.com/v2/checkout/orders", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` }, body: JSON.stringify({ intent: "CAPTURE", purchase_units: [{ amount: { currency_code: "GBP", value: String(amount) }, description: `Page Gallery Editorial: ${tier}` }], }), }); const order = await response.json(); const approvalUrl = order.links?.find((l: any) => l.rel === "approve")?.href; return res.json({ ...order, approvalUrl }); }
       const [entry] = await db.select().from(editorialWaitlist).where(eq(editorialWaitlist.id, waitlistId));
@@ -7522,6 +7525,9 @@ app.get("/api/garden/last-draft", isAuthenticated, async (req: any, res) => {
 
   // PayPal capture order
   app.post("/api/paypal/capture-order", async (req: any, res) => {
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return res.status(503).json({ error: "Payment service is not configured. Please try again later." });
+    }
     try {
       const { orderId, waitlistId, writingId, tier, userId } = req.body;
       const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
