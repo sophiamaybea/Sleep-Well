@@ -77,7 +77,7 @@ export default function EditorStudio() {
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-all ${activeTab === tab.id ? "bg-white shadow-sm text-black" : "text-black/40 hover:text-black/60"}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-all ${activeTab === tab.id ? "bg-white shadow-sm text-black" : "text-black/60 hover:text-black/80"}`}
               >
                 <tab.icon size={12} />
                 {tab.label}
@@ -151,13 +151,72 @@ export default function EditorStudio() {
                 </div>
               </div>
             )}
+
+            {activeTab === "requests" && (
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-semibold">Publish Requests</h2>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-black/40">{requests.length} total</span>
+                </div>
+                {requests.length === 0 ? (
+                  <div className="text-center py-20 text-black/30 font-mono text-[10px] uppercase tracking-widest">No publish requests yet</div>
+                ) : (
+                  <div className="space-y-3">
+                    {requests.map(req => (
+                      <div key={req.id} className="flex items-center justify-between p-4 bg-[#f9f8f4] rounded-2xl border border-black/5">
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-medium">{req.writingId}</p>
+                          {req.proposedDate && (
+                            <p className="text-[10px] font-mono text-black/40">Proposed: {req.proposedDate}</p>
+                          )}
+                        </div>
+                        <span className={`px-3 py-1 rounded-full font-mono text-[9px] uppercase tracking-widest border ${req.status === "approved" ? "bg-green-50 border-green-200 text-green-700" : req.status === "rejected" ? "bg-red-50 border-red-200 text-red-700" : "border-black/10 text-black/50"}`}>
+                          {req.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "issues" && (
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-semibold">Issues</h2>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-black/40">{issues.length} total</span>
+                </div>
+                {issues.length === 0 ? (
+                  <div className="text-center py-20 text-black/30 font-mono text-[10px] uppercase tracking-widest">No issues created yet</div>
+                ) : (
+                  <div className="space-y-3">
+                    {issues.map(issue => (
+                      <div key={issue.id} className="flex items-center justify-between p-4 bg-[#f9f8f4] rounded-2xl border border-black/5">
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-medium">{issue.title}</p>
+                          {issue.subtitle && (
+                            <p className="text-xs text-black/50">{issue.subtitle}</p>
+                          )}
+                          {issue.publishDate && (
+                            <p className="text-[10px] font-mono text-black/40">{format(new Date(issue.publishDate), "MMM d, yyyy")}</p>
+                          )}
+                        </div>
+                        <span className={`px-3 py-1 rounded-full font-mono text-[9px] uppercase tracking-widest border ${issue.status === "published" ? "bg-green-50 border-green-200 text-green-700" : issue.status === "archived" ? "bg-black/5 border-black/10 text-black/40" : "border-black/10 text-black/50"}`}>
+                          {issue.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
         {/* Action Sidebar */}
         <aside className="space-y-6">
           <div className="bg-black text-white rounded-3xl p-6 space-y-4">
-             <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] opacity-50">Quick Actions</h3>
+             <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/70">Quick Actions</h3>
              <div className="grid grid-cols-2 gap-2">
                 <button className="flex flex-col items-center gap-2 p-4 bg-white/10 rounded-2xl hover:bg-white/20 transition-all">
                   <Plus size={20} />
