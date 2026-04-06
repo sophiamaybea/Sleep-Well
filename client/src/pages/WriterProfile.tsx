@@ -57,7 +57,7 @@ export default function WriterProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0b101a] relative flex items-center justify-center">
+      <div className="min-h-screen bg-popover relative flex items-center justify-center">
         <StarBackground />
         <motion.div
           animate={{ rotate: [0, 10, -10, 0], opacity: [0.3, 0.7, 0.3] }}
@@ -72,7 +72,7 @@ export default function WriterProfile() {
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen bg-[#0b101a] relative flex items-center justify-center">
+      <div className="min-h-screen bg-popover relative flex items-center justify-center">
         <StarBackground />
         <div className="text-center space-y-6 relative z-10" data-testid="writer-not-found">
           <Feather size={28} className="text-white/30 mx-auto" />
@@ -103,7 +103,7 @@ export default function WriterProfile() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0b101a] relative">
+    <div className="min-h-screen bg-popover relative">
       <StarBackground />
 
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-16 md:py-24">

@@ -19,7 +19,7 @@ interface ExhibitItem {
 
 const STATUS_CONFIG = {
   locked: { label: "Locked", color: "#e8e4df", border: "#e8e4df/20", opacity: "opacity-50" },
-  available: { label: "Free", color: "#c4a24d", border: "#c4a24d" },
+  available: { label: "Free", color: "var(--color-accent-ornament)", border: "var(--color-accent-ornament)" },
   in_progress: { label: "In Progress", color: "#6ba5a5", border: "#6ba5a5" },
   completed: { label: "Completed", color: "#4a7c59", border: "#4a7c59" },
 } as const;
@@ -56,14 +56,14 @@ function ExhibitCard({ exhibit }: { exhibit: ExhibitItem }) {
     <Link href={isLocked ? "#" : `/exhibits/${exhibit.slug}`}>
       <motion.div
         data-testid={`card-exhibit-${exhibit.slug}`}
-        className={`group cursor-pointer border transition-all duration-500 p-8 md:p-10 ${isLocked ? "border-[#1a1815] opacity-60" : "border-[#1a1815] hover:border-[#c4a24d]/30"}`}
+        className={`group cursor-pointer border transition-all duration-500 p-8 md:p-10 ${isLocked ? "border-[#1a1815] opacity-60" : "border-[#1a1815] hover:border-accent-ornament/30"}`}
         whileHover={isLocked ? {} : { y: -4 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="flex items-start justify-between mb-6">
           <ExhibitBadges exhibit={exhibit} />
           {!isLocked && (
-            <svg className="w-4 h-4 text-[#4a4540] group-hover:text-[#c4a24d] transition-colors duration-300 group-hover:translate-x-1 transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-4 h-4 text-[#4a4540] group-hover:text-accent-ornament transition-colors duration-300 group-hover:translate-x-1 transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>
           )}
@@ -74,15 +74,15 @@ function ExhibitCard({ exhibit }: { exhibit: ExhibitItem }) {
           )}
         </div>
         <h3
-          className={`text-2xl md:text-3xl mb-3 transition-colors duration-300 ${!isLocked ? "group-hover:text-[#c4a24d]" : ""}`}
-          style={{ fontFamily: "'Cormorant Garamond', serif", color: "#e8e4df", fontWeight: 500 }}
+          className={`text-2xl md:text-3xl mb-3 transition-colors duration-300 ${!isLocked ? "group-hover:text-accent-ornament" : ""}`}
+          style={{ fontFamily: "var(--font-display)", color: "#e8e4df", fontWeight: 500 }}
         >
           {exhibit.title}
         </h3>
         {exhibit.subtitle && (
           <p
             className="leading-relaxed"
-            style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", color: "#8a8278", lineHeight: "1.7" }}
+            style={{ fontFamily: "var(--font-serif)", fontSize: "0.95rem", color: "#8a8278", lineHeight: "1.7" }}
           >
             {exhibit.subtitle}
           </p>
@@ -106,7 +106,7 @@ function ExhibitCard({ exhibit }: { exhibit: ExhibitItem }) {
             <span>Journey complete</span>
           </div>
         )}
-        <div className={`mt-8 flex items-center gap-2 text-[10px] tracking-[0.15em] uppercase transition-colors duration-300 ${isLocked ? "text-[#3a3530]" : "text-[#4a4540] group-hover:text-[#c4a24d]/60"}`}>
+        <div className={`mt-8 flex items-center gap-2 text-[length:var(--text-label)] tracking-[0.15em] uppercase transition-colors duration-300 ${isLocked ? "text-[#3a3530]" : "text-[#4a4540] group-hover:text-accent-ornament/60"}`}>
           <span>{isLocked ? "Purchase to enter" : exhibit.status === "in_progress" ? "Continue journey" : exhibit.status === "completed" ? "Revisit exhibit" : "Enter exhibit"}</span>
           <span className="inline-block w-4 h-[1px] bg-current" />
         </div>
@@ -136,13 +136,13 @@ export default function Exhibits() {
           <h1
             data-testid="text-exhibits-title"
             className="text-4xl md:text-5xl mb-8"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: "#e8e4df", fontWeight: 400, letterSpacing: "0.08em" }}
+            style={{ fontFamily: "var(--font-display)", color: "#e8e4df", fontWeight: 400, letterSpacing: "0.08em" }}
           >
             The Exhibits
           </h1>
-          <div className="w-12 h-[1px] bg-[#c4a24d] mx-auto mb-8" />
+          <div className="w-12 h-[1px] bg-accent-ornament mx-auto mb-8" />
           <p
-            style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", color: "#8a8278", lineHeight: "1.8", maxWidth: "480px", margin: "0 auto" }}
+            style={{ fontFamily: "var(--font-serif)", fontSize: "1.05rem", color: "#8a8278", lineHeight: "1.8", maxWidth: "480px", margin: "0 auto" }}
           >
             Each exhibit is a self-contained journey. Enter at your own pace. Leave changed.
           </p>
@@ -177,10 +177,10 @@ export default function Exhibits() {
           </motion.div>
         ) : (
           <div className="text-center py-20">
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.3rem", color: "#4a4540" }}>
+            <p style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", color: "#4a4540" }}>
               No exhibits are currently on display.
             </p>
-            <p className="mt-3" style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "#3a3530" }}>
+            <p className="mt-3" style={{ fontFamily: "var(--font-serif)", fontSize: "0.9rem", color: "#3a3530" }}>
               New exhibits open throughout the season.
             </p>
           </div>

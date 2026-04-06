@@ -705,7 +705,7 @@ function ExerciseWriter({ courseId, lessonId, writingPrompt }: {
             onChange={handleChange}
             placeholder="Begin writing here... your work saves automatically."
             className="w-full bg-transparent border-0 text-white/70 text-[15px] resize-none focus:outline-none placeholder:text-white/15 min-h-[200px]"
-            style={{ fontFamily: "Georgia, 'Cormorant Garamond', serif", whiteSpace: "pre-wrap", lineHeight: 1.6, tabSize: 4 }}
+            style={{ fontFamily: "var(--font-display)", whiteSpace: "pre-wrap", lineHeight: 1.6, tabSize: 4 }}
             rows={12}
             data-testid="textarea-exercise"
           />

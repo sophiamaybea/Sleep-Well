@@ -218,7 +218,7 @@ export default function Gallery() {
   const selectedContributorData = selectedContributor ? contributors.find(c => c.authorId === selectedContributor) : null;
 
   return (
-    <div className="min-h-screen bg-[#0b101a] text-white selection:bg-secondary selection:text-background relative">
+    <div className="min-h-screen bg-popover text-white selection:bg-secondary selection:text-background relative">
       <StarBackground />
 
       <div className="relative z-10">
@@ -472,7 +472,7 @@ export default function Gallery() {
       {selectedPiece && user && (
               <button
                           onClick={() => setConvItem(selectedPiece)}
-                          className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 px-4 py-2.5 bg-[#080d15]/90 border border-teal-500/30 rounded-full text-teal-300 text-[12px] font-mono hover:bg-teal-500/10 transition-all backdrop-blur-md shadow-lg"
+                          className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 px-4 py-2.5 bg-popover/90 border border-teal-500/30 rounded-full text-teal-300 text-[12px] font-mono hover:bg-teal-500/10 transition-all backdrop-blur-md shadow-lg"
                           data-testid="btn-message-editorial-team"
                         >
                           <MessageCircle size={14} />
@@ -613,7 +613,7 @@ function ReadingView({ piece, lightMode, setLightMode, onClose, prevPiece, nextP
       className="fixed inset-0 z-[100]"
     >
       <div
-        className={`absolute inset-0 ${lightMode ? "bg-[#faf8f5]" : "bg-[#0b101a]"} transition-colors duration-500`}
+        className={`absolute inset-0 ${lightMode ? "bg-background" : "bg-popover"} transition-colors duration-500`}
         onClick={onClose}
       />
 

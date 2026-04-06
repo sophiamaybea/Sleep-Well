@@ -155,7 +155,7 @@ export default function AuthorEditorConversation({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="fixed top-0 right-0 z-[80] w-full max-w-sm h-screen bg-[#080d15]/97 backdrop-blur-xl border-l border-white/[0.07] flex flex-col"
+            className="fixed top-0 right-0 z-[80] w-full max-w-sm h-screen bg-popover/95 backdrop-blur-xl border-l border-white/[0.07] flex flex-col"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
               <div className="flex items-center gap-2.5">

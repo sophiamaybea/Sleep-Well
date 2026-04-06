@@ -173,7 +173,7 @@ function UpgradeGate({ children }: { children: React.ReactNode }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-2xl border border-amber-500/15 bg-gradient-to-b from-[#0b101a] via-[#0d1420] to-[#0b101a] overflow-hidden"
+          className="rounded-2xl border border-amber-500/15 bg-gradient-to-b from-popover via-card to-popover overflow-hidden"
           style={{ boxShadow: "0 0 80px rgba(245, 158, 11, 0.06), 0 0 160px rgba(245, 158, 11, 0.03)" }}
         >
           <div className="text-center pt-10 pb-6 px-6">
