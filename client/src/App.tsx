@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense, useEffect } from "react";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { MotionConfig, useReducedMotion } from "framer-motion";
 import SmoothScroll from "@/components/SmoothScroll";
 import NoiseOverlay from "@/components/NoiseOverlay";
@@ -32,6 +33,7 @@ const Weave = lazy(() => import("@/pages/Weave"));
 const EditorOnboarding = lazy(() => import("@/pages/EditorOnboarding"));
 const ExerciseAdmin = lazy(() => import("@/pages/ExerciseAdmin"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const Accessibility = lazy(() => import("@/pages/Accessibility"));
@@ -123,6 +125,7 @@ function PageTitle() {
 
 function Router() {
   return (
+    <main id="main-content">
     <Suspense fallback={<LoadingScreen />}>
       <Switch>
         <Route path="/" component={Home} />
@@ -146,6 +149,7 @@ function Router() {
         <Route path="/editor-onboarding">{() => <EditorProtectedRoute component={EditorOnboarding} path="/editor-onboarding" />}</Route>
         <Route path="/exercise-admin">{() => <EditorProtectedRoute component={ExerciseAdmin} path="/exercise-admin" />}</Route>
         <Route path="/sign-in" component={SignIn} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/accessibility" component={Accessibility} />
@@ -182,6 +186,7 @@ function Router() {
         <Route component={NotFound} />
       </Switch>
     </Suspense>
+    </main>
   );
 }
 
@@ -202,7 +207,9 @@ function App() {
             <AccessibilityToolbar />
             <OnboardingModal />
             <PageTitle />
-            <Router />
+            <ErrorBoundary>
+              <Router />
+            </ErrorBoundary>
             <Toaster />
           </SmoothScroll>
         </TooltipProvider>

@@ -41,6 +41,9 @@ export function registerEditorialOrderRoutes(app: Express) {
   // POST /api/editorial-orders/create-order
   // Validates scope, creates PayPal order, inserts pending row
   app.post("/api/editorial-orders/create-order", async (req, res) => {
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return res.status(503).json({ error: "Payment service is not configured. Please try again later." });
+    }
     const { name, email, genre, manuscriptType, estimatedWordCount, brief, serviceScope } =
       req.body;
 
@@ -109,6 +112,9 @@ export function registerEditorialOrderRoutes(app: Express) {
   // POST /api/editorial-orders/capture-order
   // Captures PayPal payment and marks order as paid
   app.post("/api/editorial-orders/capture-order", async (req, res) => {
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return res.status(503).json({ error: "Payment service is not configured. Please try again later." });
+    }
     const { orderId } = req.body;
     if (!orderId) return res.status(400).json({ error: "orderId required" });
 

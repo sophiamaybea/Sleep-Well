@@ -84,6 +84,13 @@ export default function Navigation() {
 
   return (
     <>
+      {/* Skip-to-content link — visible on keyboard focus for screen reader / keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-[#060a10] focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:tracking-widest focus:text-white focus:ring-2 focus:ring-[#c4a24d]/50 focus:outline-none"
+      >
+        Skip to main content
+      </a>
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-4' : 'py-8'}`}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           <Link href="/" className="relative group">
