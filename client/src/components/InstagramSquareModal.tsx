@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLogInstagramSquare } from "@/hooks/useInstagramSquare";
+import { useLogInstagramSquare } from "@/hooks/use-instagram-square";
 import { Download, Instagram } from "lucide-react";
 
 const CANVAS_SIZE = 1080;

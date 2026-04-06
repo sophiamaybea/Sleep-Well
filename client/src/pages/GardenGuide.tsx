@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { usePageMeta } from "@/hooks/usePageMeta";
-import { useSiteContent } from "@/hooks/useSiteContent";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {

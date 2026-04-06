@@ -11,7 +11,7 @@ import {
   useCaptureBooking,
   useCaptureTip,
   useSendTip
-} from "../hooks/useMarketplace";
+} from "../hooks/use-marketplace";
 import { useAuth } from "../hooks/use-auth";
 import { useSearch } from "wouter";
 
