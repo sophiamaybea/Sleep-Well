@@ -24,22 +24,22 @@ export default function EditorStudio() {
 
   // Core Data Queries
   const { data: writings = [], isFetching: isFetchingWritings } = useQuery<Writing[]>({
-    queryKey: ["/api/writings"],
+    queryKey: ["/api/editor/garden-stream"],
     enabled: !!user,
   });
 
   const { data: issues = [] } = useQuery<Issue[]>({
-    queryKey: ["/api/issues"],
+    queryKey: ["/api/editor/issues"],
     enabled: !!user,
   });
 
   const { data: greenhouse = [] } = useQuery<GreenhouseEntry[]>({
-    queryKey: ["/api/greenhouse"],
+    queryKey: ["/api/editor/greenhouse"],
     enabled: !!user,
   });
 
   const { data: requests = [] } = useQuery<PublishRequest[]>({
-    queryKey: ["/api/publish-requests"],
+    queryKey: ["/api/editor/requests"],
     enabled: !!user,
   });
 
