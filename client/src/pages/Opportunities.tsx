@@ -232,7 +232,7 @@ export default function Opportunities() {
   const getOpportunityById = (id: string) => allOpportunities.find((op) => op.id === id);
 
   return (
-    <div className="min-h-screen bg-[#0b101a] text-white selection:bg-secondary selection:text-background relative">
+    <div className="min-h-screen bg-popover text-white selection:bg-secondary selection:text-background relative">
       <StarBackground />
       <Navigation />
 

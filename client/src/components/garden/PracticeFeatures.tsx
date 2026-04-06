@@ -675,7 +675,7 @@ export function GrowthJournalPage() {
                   opacity: formFocused ? 0 : 1,
                 }}
               />
-              <div className="relative rounded-2xl border border-transparent bg-[#0a0a0f] p-6 space-y-4" style={{
+              <div className="relative rounded-2xl border border-transparent bg-background p-6 space-y-4" style={{
                 background: "linear-gradient(135deg, rgba(10,10,15,0.98) 0%, rgba(15,15,22,0.98) 100%)",
               }}>
                 <FormField label="Link to a piece (optional)">

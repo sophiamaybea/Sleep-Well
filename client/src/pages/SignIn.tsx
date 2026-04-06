@@ -101,7 +101,7 @@ function AuthInput({ label, type = "text", value, onChange, testId, placeholder 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-3 text-white/90 placeholder-white/20 font-serif text-sm focus:border-[#c4a24d]/50 focus:outline-none focus:ring-1 focus:ring-[#c4a24d]/20 transition-all duration-300 backdrop-blur-sm"
+        className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-3 text-white/90 placeholder-white/20 font-serif text-sm focus:border-accent-ornament/50 focus:outline-none focus:ring-1 focus:ring-accent-ornament/20 transition-all duration-300 backdrop-blur-sm"
       />
     </div>
   );
@@ -159,7 +159,7 @@ function EmailAuthForm() {
             data-testid="button-mode-signin"
             onClick={() => { setMode("signin"); setError(null); }}
             className={`px-5 py-1.5 rounded-full font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 ${
-              mode === "signin" ? "bg-[#c4a24d]/20 text-[#c4a24d] border border-[#c4a24d]/30" : "text-white/40 hover:text-white/60 border border-transparent"
+              mode === "signin" ? "bg-accent-ornament/20 text-accent-ornament border border-accent-ornament/30" : "text-white/40 hover:text-white/60 border border-transparent"
             }`}
           >
             Sign In
@@ -169,7 +169,7 @@ function EmailAuthForm() {
             data-testid="button-mode-register"
             onClick={() => { setMode("register"); setError(null); }}
             className={`px-5 py-1.5 rounded-full font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 ${
-              mode === "register" ? "bg-[#c4a24d]/20 text-[#c4a24d] border border-[#c4a24d]/30" : "text-white/40 hover:text-white/60 border border-transparent"
+              mode === "register" ? "bg-accent-ornament/20 text-accent-ornament border border-accent-ornament/30" : "text-white/40 hover:text-white/60 border border-transparent"
             }`}
           >
             Register
@@ -215,9 +215,9 @@ function EmailAuthForm() {
         type="submit"
         disabled={isSubmitting || !email || !password}
         data-testid="button-submit-auth"
-        className="w-full relative group px-8 py-3.5 rounded-full border border-white/15 hover:border-[#c4a24d]/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="w-full relative group px-8 py-3.5 rounded-full border border-white/15 hover:border-accent-ornament/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500 disabled:opacity-30 disabled:cursor-not-allowed"
       >
-        <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-[#c4a24d] transition-colors duration-500">
+        <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-accent-ornament transition-colors duration-500">
           {isSubmitting ? (mode === "signin" ? "Entering..." : "Planting seeds...") : (mode === "signin" ? "Enter the Garden" : "Plant Your First Seed")}
         </span>
       </button>
@@ -264,8 +264,8 @@ function ReplitAuthButton() {
             transform: "scale(1.5)",
           }}
         />
-        <div className="relative px-12 py-4 rounded-full border border-white/15 hover:border-[#c4a24d]/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500">
-          <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-[#c4a24d] transition-colors duration-500">
+        <div className="relative px-12 py-4 rounded-full border border-white/15 hover:border-accent-ornament/40 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm transition-all duration-500">
+          <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 group-hover:text-accent-ornament transition-colors duration-500">
             Sign in with Replit
           </span>
         </div>
@@ -274,7 +274,7 @@ function ReplitAuthButton() {
           animate={{ x: isHovering ? 4 : 0, opacity: isHovering ? 1 : 0 }}
           transition={{ duration: 0.3 }}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-[#c4a24d]">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-accent-ornament">
             <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </motion.div>
@@ -379,7 +379,7 @@ export default function SignIn() {
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c4a24d]/50 to-transparent mx-auto"
+              className="w-16 h-[1px] bg-gradient-to-r from-transparent via-accent-ornament/50 to-transparent mx-auto"
             />
             
             <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light italic tracking-normal text-white/90 leading-[1.05]">
@@ -405,7 +405,7 @@ export default function SignIn() {
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ delay: 0.8, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c4a24d]/50 to-transparent mx-auto"
+              className="w-16 h-[1px] bg-gradient-to-r from-transparent via-accent-ornament/50 to-transparent mx-auto"
             />
           </motion.div>
 
@@ -451,7 +451,7 @@ export default function SignIn() {
                   transition={{ delay: 2.2 + i * 0.15, duration: 0.6 }}
                   className="flex items-center gap-2"
                 >
-                  <span className="w-1 h-1 rounded-full bg-[#c4a24d]/40" />
+                  <span className="w-1 h-1 rounded-full bg-accent-ornament/40" />
                   <span className="font-mono text-[10px] tracking-wide text-white/25">
                     {step}
                   </span>

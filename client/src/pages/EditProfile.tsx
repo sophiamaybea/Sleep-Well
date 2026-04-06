@@ -44,7 +44,7 @@ export default function EditProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0b101a] relative flex items-center justify-center">
+      <div className="min-h-screen bg-popover relative flex items-center justify-center">
         <StarBackground />
         <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 2, repeat: Infinity }} data-testid="loading-indicator">
           <User size={32} className="text-white/50" />
@@ -55,7 +55,7 @@ export default function EditProfile() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-[#0b101a] relative flex items-center justify-center">
+      <div className="min-h-screen bg-popover relative flex items-center justify-center">
         <StarBackground />
         <div className="text-center space-y-4 relative z-10">
           <p className="font-serif text-white/60">Please sign in to edit your profile.</p>
@@ -68,7 +68,7 @@ export default function EditProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b101a] relative">
+    <div className="min-h-screen bg-popover relative">
       <StarBackground />
       <div className="relative z-10 max-w-xl mx-auto px-6 py-16 md:py-24">
         <Link

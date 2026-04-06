@@ -1451,7 +1451,7 @@ function WriteEditor({ writing, onBack, onSave, onDelete, onOpenPlanting, onRequ
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#0b101a] border border-white/[0.08] rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+                className="bg-popover border border-white/[0.08] rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
               >
                 <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
                   <div className="flex items-center gap-3">

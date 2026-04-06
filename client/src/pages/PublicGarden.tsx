@@ -94,7 +94,7 @@ export default function PublicGarden() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0b101a] relative flex items-center justify-center">
+      <div className="min-h-screen bg-popover relative flex items-center justify-center">
         <StarBackground />
         <motion.div
           animate={{ rotate: [0, 10, -10, 0], opacity: [0.3, 0.7, 0.3] }}
@@ -109,7 +109,7 @@ export default function PublicGarden() {
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen bg-[#0b101a] relative flex items-center justify-center">
+      <div className="min-h-screen bg-popover relative flex items-center justify-center">
         <StarBackground />
         <div className="text-center space-y-6 relative z-10">
           <Feather size={28} className="text-white/30 mx-auto" />
@@ -141,7 +141,7 @@ export default function PublicGarden() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0b101a] relative" data-testid="public-garden-page">
+    <div className="min-h-screen bg-popover relative" data-testid="public-garden-page">
       <StarBackground />
 
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-16 md:py-24">

@@ -54,16 +54,16 @@ export default function LoadingScreen({ variant = "dark" }: LoadingScreenProps) 
   }, []);
 
   // Palette tokens — swapped based on variant
-  const bg = isLight ? "bg-[#faf8f5]" : "bg-transparent";
-  const wordmarkColor = isLight ? "text-[#4a3728]/70" : "text-white/60";
-  const journalColor = isLight ? "text-[#8B7355]/50" : "text-white/30";
-  const phraseColor = isLight ? "text-[#8B7355]/60" : "text-white/35";
-  const groundColor = isLight ? "bg-[#8B7355]/25" : "bg-emerald-700/30";
-  const seedColor = isLight ? "bg-[#b09070]/50 border-[#8B7355]/30" : "bg-amber-700/40 border-amber-600/30";
-  const stemColor = isLight ? "bg-[#8B7355]/40" : "bg-emerald-600/50";
-  const leafColor = isLight ? "bg-[#8B7355]/30 border-[#8B7355]/25" : "bg-emerald-500/40 border-emerald-500/30";
-  const bloomColor = isLight ? "bg-[#c4a24d]/25 border-[#c4a24d]/35" : "bg-amber-400/30 border-amber-400/40";
-  const dotColor = isLight ? "bg-[#8B7355]/30" : "bg-emerald-500/30";
+  const bg = isLight ? "bg-background" : "bg-transparent";
+  const wordmarkColor = isLight ? "text-foreground/70" : "text-white/60";
+  const journalColor = isLight ? "text-muted-foreground/50" : "text-white/30";
+  const phraseColor = isLight ? "text-muted-foreground/60" : "text-white/35";
+  const groundColor = isLight ? "bg-muted-foreground/25" : "bg-emerald-700/30";
+  const seedColor = isLight ? "bg-muted/50 border-muted-foreground/30" : "bg-amber-700/40 border-amber-600/30";
+  const stemColor = isLight ? "bg-muted-foreground/40" : "bg-emerald-600/50";
+  const leafColor = isLight ? "bg-muted-foreground/30 border-muted-foreground/25" : "bg-emerald-500/40 border-emerald-500/30";
+  const bloomColor = isLight ? "bg-accent-ornament/25 border-accent-ornament/35" : "bg-amber-400/30 border-amber-400/40";
+  const dotColor = isLight ? "bg-muted-foreground/30" : "bg-emerald-500/30";
 
   return (
     <div className={`min-h-screen ${bg} text-foreground relative flex items-center justify-center`}>

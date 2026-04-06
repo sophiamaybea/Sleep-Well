@@ -221,7 +221,7 @@
     right: 20px;
     width: 4px;
     height: 4px;
-    background: #6b8f71;
+    background: var(--color-accent-cta);
     border-radius: 50%;
     animation: star-sparkle 2s ease-in-out 0.5s infinite;
     opacity: 0;
@@ -234,7 +234,7 @@
     left: 20px;
     width: 2px;
     height: 2px;
-    background: #c9a84c;
+    background: var(--color-accent-ornament);
     border-radius: 50%;
     animation: star-sparkle 2.5s ease-in-out 1s infinite;
     opacity: 0;
@@ -475,7 +475,7 @@
   line-height: 2;
 }
 .prose-editor .tiptap h2 {
-  font-family: 'Libre Baskerville', serif;
+  font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.85);
@@ -483,7 +483,7 @@
   font-style: italic;
 }
 .prose-editor .tiptap h3 {
-  font-family: 'Libre Baskerville', serif;
+  font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.8);
@@ -533,7 +533,7 @@
   line-height: 2;
 }
 .prose-content h2 {
-  font-family: 'Libre Baskerville', serif;
+  font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.8);
@@ -541,7 +541,7 @@
   font-style: italic;
 }
 .prose-content h3 {
-  font-family: 'Libre Baskerville', serif;
+  font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.75);
@@ -578,7 +578,7 @@
   margin: 1.5em 0;
 }
 .prose-content pre {
-  font-family: 'Libre Baskerville', serif;
+  font-family: var(--font-display);
   white-space: pre;
   line-height: 2;
   font-size: inherit;
@@ -942,7 +942,7 @@
   border: 1px solid rgba(6, 78, 59, 0.15);
   color: rgba(52, 211, 153, 0.5);
   font-size: 10px;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2265,6 +2265,13 @@ html.a11y-light-mode div {
 @keyframes ill-fadein {
   from { opacity: 0; }
   to { opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="ill-fadein"] {
+    animation: none !important;
+    opacity: 0.8 !important;
+  }
 }
 
 

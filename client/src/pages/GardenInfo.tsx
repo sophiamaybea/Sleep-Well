@@ -43,8 +43,8 @@ export default function GardenInfo() {
               className="space-y-8 mb-20"
             >
               <div className="flex items-center gap-3">
-                <div className="h-px w-8 bg-[#6b8f71]" />
-                <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#6b8f71]">Submitting</span>
+                <div className="h-px w-8 bg-accent-cta" />
+                <span className="font-mono text-[length:var(--text-label)] tracking-[0.3em] uppercase text-accent-cta">Submitting</span>
               </div>
               <h2 className="text-2xl md:text-3xl font-display font-light tracking-normal italic text-white/90" data-testid="text-submitting-heading">
                 {getContent("submitting-title", "Submitting")}
