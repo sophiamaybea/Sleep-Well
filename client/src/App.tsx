@@ -127,7 +127,7 @@ function Router() {
         <Route path="/public-garden/:userId">
           {(params) => <Redirect to={`/garden/${params.userId}`} />}
         </Route>
-        <Route path="/editor-studio">{() => <ProtectedRoute component={EditorStudio} path="/editor-studio" />}</Route>
+        <Route path="/editor-studio">{() => <EditorProtectedRoute component={EditorStudio} path="/editor-studio" />}</Route>
         <Route path="/in-bloom" component={InBloom} />
         <Route path="/gallery" component={PageGallery} />
         <Route path="/piece/:id" component={Piece} />
