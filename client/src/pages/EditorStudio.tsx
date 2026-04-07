@@ -83,6 +83,17 @@ export default function EditorStudio() {
   // Selected issue
   const selectedIssue = useMemo(() => issues.find(i => i.id === selectedIssueId) ?? null, [issues, selectedIssueId]);
 
+  // Greenhouse entries grouped by themeFolder (memoised for performance)
+  const greenhouseByFolder = useMemo(() => {
+    const folderMap = new Map<string, typeof greenhouse>();
+    for (const entry of greenhouse) {
+      const folder = entry.themeFolder ?? "Unsorted";
+      if (!folderMap.has(folder)) folderMap.set(folder, []);
+      folderMap.get(folder)!.push(entry);
+    }
+    return folderMap;
+  }, [greenhouse]);
+
   // Mutations
   const publishIssueMutation = useMutation({
     mutationFn: async (issueId: string) => {
@@ -246,22 +257,22 @@ export default function EditorStudio() {
                   <div className="text-center py-20 text-black/30 font-mono text-[10px] uppercase tracking-widest">No greenhouse entries yet</div>
                 ) : (
                   <div className="grid sm:grid-cols-2 gap-4">
-                    {Array.from(new Set(greenhouse.map(e => e.themeFolder ?? "Unsorted"))).map(folder => {
-                      const entries = greenhouse.filter(e => (e.themeFolder ?? "Unsorted") === folder);
-                      return (
-                        <div key={folder} className="bg-[#f9f8f4] p-5 rounded-2xl border border-black/5">
-                          <h3 className="font-mono text-[10px] uppercase tracking-widest text-black/40 mb-4">{folder}</h3>
-                          <div className="space-y-2">
-                            {entries.map(entry => (
-                              <div key={entry.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-black/5">
-                                <span className="text-sm font-mono text-black/70 truncate">{entry.writingId}</span>
-                                <span className="text-[9px] font-mono uppercase tracking-widest text-black/30 ml-2 shrink-0">{entry.stage}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
+                {Array.from(greenhouseByFolder.entries()).map(([folder, entries]) => (
+                    <div key={folder} className="bg-[#f9f8f4] p-5 rounded-2xl border border-black/5">
+                      <h3 className="font-mono text-[10px] uppercase tracking-widest text-black/40 mb-4">{folder}</h3>
+                      <div className="space-y-2">
+                        {entries.map(entry => {
+                          const writing = writings.find(w => w.id === entry.writingId);
+                          return (
+                            <div key={entry.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-black/5">
+                              <span className="text-sm font-mono text-black/70 truncate">{writing?.title ?? entry.writingId}</span>
+                              <span className="text-[9px] font-mono uppercase tracking-widest text-black/30 ml-2 shrink-0">{entry.stage}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                   </div>
                 )}
               </div>
