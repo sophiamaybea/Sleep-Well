@@ -167,6 +167,8 @@ function Router() {
         <Route path="/reading-room">{() => <ProtectedRoute component={ReadingRoom} path="/reading-room" />}</Route>
         <Route path="/community" component={Community} />
         <Route path="/editorial-dashboard">{() => <EditorProtectedRoute component={EditorialDashboard} path="/editorial-dashboard" />}</Route>
+        {/* /eic-dashboard is a legacy alias — redirect to the canonical route which is
+            itself wrapped in EditorProtectedRoute, so auth is still enforced. */}
         <Route path="/eic-dashboard">
           {() => <Redirect to="/editorial-dashboard" />}
         </Route>
