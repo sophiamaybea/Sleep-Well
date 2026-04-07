@@ -35,8 +35,7 @@ export default function EditorStudio() {
   const queryClient = useQueryClient();
   const [bucket, setBucket] = useState<StudioBucket>("all");
   const [search, setSearch] = useState("");
-  // Bug 2 fix: separate selection state per tab so selections don't bleed across tabs
-  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
+  const [selectedWritingId, setSelectedWritingId] = useState<string | null>(null);
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"pipeline" | "greenhouse" | "requests" | "issues">("pipeline");
   const [showNewIssueForm, setShowNewIssueForm] = useState(false);
@@ -119,10 +118,14 @@ export default function EditorStudio() {
   });
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return (
+      <main className="min-h-screen bg-[#f7f4ee] flex items-center justify-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-black/40">Loading…</p>
+      </main>
+    );
   }
 
-  if (!user || (user.role !== "editor" && user.role !== "editor_in_chief")) {
+  if (!isLoading && (!user || (user.role !== "editor" && user.role !== "editor_in_chief"))) {
     return (
       <main className="min-h-screen bg-[#f7f4ee] flex items-center justify-center p-6 text-center">
         <div className="max-w-md space-y-4">
@@ -168,7 +171,7 @@ export default function EditorStudio() {
 
       <div className="flex-1 max-w-7xl mx-auto w-full p-6 grid lg:grid-cols-[1fr,400px] gap-6">
         <section className="space-y-6">
-          {/* Search/Filter — only functional on the Pipeline tab */}
+          {/* View Search/Filter — only relevant for Pipeline */}
           {activeTab === "pipeline" && (
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
@@ -210,24 +213,24 @@ export default function EditorStudio() {
                     filteredWritings.map(w => (
                       <div
                         key={w.id}
-                        onClick={() => { setSelectedPipelineId(w.id); setActiveTab("pipeline"); }}
-                        className={`flex items-start justify-between p-4 rounded-2xl border cursor-pointer transition-all ${selectedPipelineId === w.id ? "bg-black text-white border-black" : "bg-[#f9f8f4] border-black/5 hover:border-black/20"}`}
+                        onClick={() => { setSelectedWritingId(w.id); setActiveTab("pipeline"); }}
+                        className={`flex items-start justify-between p-4 rounded-2xl border cursor-pointer transition-all ${selectedWritingId === w.id ? "bg-black text-white border-black" : "bg-[#f9f8f4] border-black/5 hover:border-black/20"}`}
                       >
                         <div className="space-y-1 flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${selectedPipelineId === w.id ? "text-white" : "text-black"}`}>{w.title}</p>
+                          <p className={`text-sm font-medium truncate ${selectedWritingId === w.id ? "text-white" : "text-black"}`}>{w.title}</p>
                           {w.authorName && (
-                            <p className={`text-[10px] font-mono ${selectedPipelineId === w.id ? "text-white/60" : "text-black/40"}`}>{w.authorName}</p>
+                            <p className={`text-[10px] font-mono ${selectedWritingId === w.id ? "text-white/60" : "text-black/40"}`}>{w.authorName}</p>
                           )}
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest border ${selectedPipelineId === w.id ? "border-white/20 text-white/70" : "border-black/10 text-black/40"}`}>{w.genre}</span>
-                            <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest border ${selectedPipelineId === w.id ? "border-white/20 text-white/70" : "border-black/10 text-black/40"}`}>{w.readiness.replace(/_/g, " ")}</span>
+                            <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest border ${selectedWritingId === w.id ? "border-white/20 text-white/70" : "border-black/10 text-black/40"}`}>{w.genre}</span>
+                            <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest border ${selectedWritingId === w.id ? "border-white/20 text-white/70" : "border-black/10 text-black/40"}`}>{w.readiness.replace(/_/g, " ")}</span>
                             {w.editorialAvailable && (
-                              <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest ${selectedPipelineId === w.id ? "bg-white/20 text-white" : "bg-green-50 border border-green-200 text-green-700"}`}>editorial open</span>
+                              <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest ${selectedWritingId === w.id ? "bg-white/20 text-white" : "bg-green-50 border border-green-200 text-green-700"}`}>editorial open</span>
                             )}
                           </div>
                         </div>
-                        <div className={`text-[10px] font-mono ml-4 shrink-0 ${selectedPipelineId === w.id ? "text-white/50" : "text-black/30"}`}>
-                          {w.createdAt ? format(new Date(w.createdAt), "MMM d") : ""}
+                        <div className={`text-[10px] font-mono ml-4 shrink-0 ${selectedWritingId === w.id ? "text-white/50" : "text-black/30"}`}>
+                          {w.createdAt && !isNaN(w.createdAt.getTime()) ? format(w.createdAt, "MMM d") : ""}
                         </div>
                       </div>
                     ))

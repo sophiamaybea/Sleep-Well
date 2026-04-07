@@ -108,6 +108,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/sign-in": "Sign In — The Page Gallery",
   "/for-journals": "For Journals — The Page Gallery",
   "/saved": "Saved Pieces — The Page Gallery",
+    "/exhibits": "Exhibits — The Page Gallery",
 };
 
 function PageTitle() {
