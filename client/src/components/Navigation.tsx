@@ -169,9 +169,6 @@ export default function Navigation() {
               isAuthenticated && user ? (
                 <div className="relative group/user">
                   <button className="flex items-center gap-2 p-1 pl-3 rounded-full border border-white/10 hover:border-white/20 transition-all bg-white/5" data-testid="nav-user-dropdown">
-                    <span className="font-mono text-[length:var(--text-label)] tracking-[0.15em] text-white/90">
-                      {(user as any).username?.slice(0, 1) || (user as any).email?.slice(0, 1) || "U"}
-                    </span>
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500/20 to-teal-500/20 border border-white/10 flex items-center justify-center overflow-hidden">
                       <span className="text-[length:var(--text-label)] text-white/90">{(user as any).username?.slice(0, 1).toUpperCase() || (user as any).email?.slice(0, 1).toUpperCase() || "U"}</span>
                     </div>
