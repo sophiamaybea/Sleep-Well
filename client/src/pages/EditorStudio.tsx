@@ -230,7 +230,7 @@ export default function EditorStudio() {
                           </div>
                         </div>
                         <div className={`text-[10px] font-mono ml-4 shrink-0 ${selectedWritingId === w.id ? "text-white/50" : "text-black/30"}`}>
-                          {w.createdAt && !isNaN(w.createdAt.getTime()) ? format(w.createdAt, "MMM d") : ""}
+                          {w.createdAt && !isNaN(new Date(w.createdAt).getTime()) ? format(new Date(w.createdAt), "MMM d") : ""}
                         </div>
                       </div>
                     ))
