@@ -13,6 +13,7 @@ import { stripHtml, wordCountFromContent } from "@/components/garden/RichEditor"
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
+import LoadingScreen from "@/components/garden/LoadingScreen";
 
 type StudioBucket = "all" | "triage" | "development" | "ready" | "published";
 
@@ -82,17 +83,6 @@ export default function EditorStudio() {
 
   // Selected issue
   const selectedIssue = useMemo(() => issues.find(i => i.id === selectedIssueId) ?? null, [issues, selectedIssueId]);
-
-  // Greenhouse entries grouped by themeFolder (memoised for performance)
-  const greenhouseByFolder = useMemo(() => {
-    const folderMap = new Map<string, typeof greenhouse>();
-    for (const entry of greenhouse) {
-      const folder = entry.themeFolder ?? "Unsorted";
-      if (!folderMap.has(folder)) folderMap.set(folder, []);
-      folderMap.get(folder)!.push(entry);
-    }
-    return folderMap;
-  }, [greenhouse]);
 
   // Mutations
   const publishIssueMutation = useMutation({
@@ -254,25 +244,35 @@ export default function EditorStudio() {
                 <h2 className="text-2xl font-semibold mb-2">The Greenhouse</h2>
                 <p className="text-sm text-black/50 mb-8">Your private editorial shortlist. No authors are notified of activity here.</p>
                 {greenhouse.length === 0 ? (
-                  <div className="text-center py-20 text-black/30 font-mono text-[10px] uppercase tracking-widest">No greenhouse entries yet</div>
+                  <div className="text-center py-20 text-black/30 font-mono text-[10px] uppercase tracking-widest">No pieces in the greenhouse yet</div>
                 ) : (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                {Array.from(greenhouseByFolder.entries()).map(([folder, entries]) => (
-                    <div key={folder} className="bg-[#f9f8f4] p-5 rounded-2xl border border-black/5">
-                      <h3 className="font-mono text-[10px] uppercase tracking-widest text-black/40 mb-4">{folder}</h3>
-                      <div className="space-y-2">
-                        {entries.map(entry => {
-                          const writing = writings.find(w => w.id === entry.writingId);
-                          return (
-                            <div key={entry.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-black/5">
-                              <span className="text-sm font-mono text-black/70 truncate">{writing?.title ?? entry.writingId}</span>
-                              <span className="text-[9px] font-mono uppercase tracking-widest text-black/30 ml-2 shrink-0">{entry.stage}</span>
+                  <div className="space-y-3">
+                    {greenhouse.map(entry => {
+                      const writing = writings.find(w => w.id === entry.writingId);
+                      return (
+                        <div key={entry.id} className="flex items-start justify-between p-4 bg-[#f9f8f4] rounded-2xl border border-black/5">
+                          <div className="space-y-1 flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{writing?.title ?? entry.writingId}</p>
+                            {writing?.authorName && (
+                              <p className="text-[10px] font-mono text-black/40">{writing.authorName}</p>
+                            )}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-black/10 text-black/40">{entry.stage}</span>
+                              <span className="px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-black/10 text-black/40">{entry.priority}</span>
+                              {entry.themeFolder && (
+                                <span className="px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-widest border border-black/10 text-black/40">{entry.themeFolder}</span>
+                              )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                            {entry.internalNote && (
+                              <p className="text-xs text-black/50 italic mt-1">{entry.internalNote}</p>
+                            )}
+                          </div>
+                          <div className="text-[10px] font-mono ml-4 shrink-0 text-black/30">
+                            {entry.createdAt ? format(new Date(entry.createdAt), "MMM d") : ""}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
