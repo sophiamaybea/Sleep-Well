@@ -64,6 +64,7 @@ export default function Navigation() {
     { label: "Home", href: "/", isPage: true },
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
     { label: "About", href: "/about", isPage: true },
+        { label: "Exhibits", href: "/exhibits", isPage: true, tooltip: "Digital Exhibits" },
   ];
 
   const writerMenuItems = [
@@ -71,6 +72,7 @@ export default function Navigation() {
     { label: "The Journal", href: "/in-bloom", isPage: true, tooltip: "Published Work" },
     { label: "My Garden", href: "/garden", isPage: true, tooltip: "Write & Grow Your Work" },
       { label: "Marketplace", href: "/marketplace", isPage: true, tooltip: "Services & Tip Jars" },
+        { label: "Exhibits", href: "/exhibits", isPage: true, tooltip: "Digital Exhibits" },
   ];
 
   const editorMenuItems = [
