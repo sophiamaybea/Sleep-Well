@@ -1315,8 +1315,8 @@ export async function runMigrations() {
     }
 
     // --- Auto-migration: atelier_series new columns ---
-    // Each ALTER is wrapped in its own try/catch to match the established migration pattern
-    // and ensure a failure on one column doesn't silently skip the remaining columns.
+    // Each ALTER has its own try/catch (consistent with the rest of runMigrations) so a
+    // failure on one column doesn't silently skip the remaining columns.
     try {
       await pool.query(`ALTER TABLE atelier_series ADD COLUMN IF NOT EXISTS created_by_id varchar NOT NULL DEFAULT '';`);
     } catch (e) {
@@ -1391,7 +1391,6 @@ export async function runMigrations() {
     }
 
     // --- Auto-migration: editorial_briefs new columns ---
-    // Each ALTER is wrapped in its own try/catch to match the established migration pattern.
     try {
       await pool.query(`ALTER TABLE editorial_briefs ADD COLUMN IF NOT EXISTS display_intro text NOT NULL DEFAULT '';`);
     } catch (e) {
