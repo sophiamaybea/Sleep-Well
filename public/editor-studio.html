@@ -3,302 +3,1819 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Collective Studio - The Page Gallery</title>
+<title>The Studio — Journal Boards</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..400&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+DW+Pica:ital@0;1&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
 <style>
-:root,[data-theme="light"]{
---bg:#f4efe9;--sur:#f8f4ef;--sur2:#ffffff;--sur3:#ece6df;--sur4:#e4ddd5;--sur5:#d9d1c8;
---div:#c9c2b8;--brd:#bcb4a8;--txt:#1b1a16;--mut:#6a6158;--fnt:#a69d91;--inv:#f4efe9;
---pri:#29493d;--prih:#1d3730;--pria:#122420;--pril:#e3ecea;--prih2:#c5d8d2;
---acc:#7a5b1e;--accl:#efe3c7;--err:#8a2533;--errl:#f1d8db;--suc:#295d34;--sucl:#d1e7d5;
---wrn:#784e14;--wrnl:#eedfc0;--grd:#4d6d4d;--grdl:#d7e4d7;--inv2:#4d4d78;--invl:#dcdced;
---ext:#6d4d29;--extl:#e7d7be;
---r1:.25rem;--r2:.5rem;--r3:.75rem;--r4:1rem;--rF:9999px;
---sh1:0 1px 3px oklch(.14 .02 58/.07),0 1px 2px oklch(.14 .02 58/.05);
---sh2:0 4px 12px oklch(.14 .02 58/.09),0 2px 4px oklch(.14 .02 58/.05);
---sh3:0 12px 32px oklch(.14 .02 58/.13),0 4px 8px oklch(.14 .02 58/.05);
---sh4:0 24px 48px oklch(.14 .02 58/.17),0 8px 16px oklch(.14 .02 58/.07);
---tr:160ms cubic-bezier(.16,1,.3,1);--trs:300ms cubic-bezier(.16,1,.3,1);
---fd:"Instrument Serif",Georgia,serif;--fb:"DM Sans",-apple-system,sans-serif;
---xs:clamp(.75rem,.7rem + .2vw,.8125rem);--sm:clamp(.8125rem,.78rem + .2vw,.875rem);
---bs:clamp(.875rem,.85rem + .15vw,.9375rem);--lg:clamp(1rem,.95rem + .3vw,1.125rem);
---xl:clamp(1.125rem,1rem + .5vw,1.375rem);--2x:clamp(1.375rem,1.2rem + .75vw,1.75rem);
---sw:222px;--th:52px;
+/* ─────────── ART DIRECTION ───────────
+   Concept: editor's studio / typographer's blotter / literary pins
+   Tone: warm ivory, printer's red, dense serif type, messy-minimal
+   Palette: bone/cream surfaces, vermilion accent, near-black ink
+   Typography: IM Fell (display, editorial) + Courier Prime (metadata, UI)
+   Density: open with moments of typographic density
+──────────────────────────────────────── */
+
+:root {
+  --font-display: 'IM Fell English', 'Georgia', serif;
+  --font-body: 'IM Fell DW Pica', 'Georgia', serif;
+  --font-mono: 'Courier Prime', 'Courier New', monospace;
+  --font-ref: 'Libre Baskerville', 'Georgia', serif;
+
+  /* Type scale */
+  --text-xs:   clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+  --text-sm:   clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-base: clamp(0.9rem, 0.85rem + 0.2vw, 1rem);
+  --text-lg:   clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  --text-xl:   clamp(1.2rem, 1rem + 0.8vw, 1.75rem);
+  --text-2xl:  clamp(1.6rem, 1rem + 2vw, 2.5rem);
+  --text-hero: clamp(2rem, 0.5rem + 4.5vw, 4rem);
+
+  /* Spacing */
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
+  --space-4: 1rem;    --space-5: 1.25rem; --space-6: 1.5rem;
+  --space-8: 2rem;    --space-10: 2.5rem; --space-12: 3rem;
+  --space-16: 4rem;   --space-20: 5rem;   --space-24: 6rem;
+
+  /* Palette — Printer's Study */
+  --color-bg:              #f5f2ec;
+  --color-surface:         #f8f6f0;
+  --color-surface-2:       #fbf9f5;
+  --color-surface-offset:  #ede9e0;
+  --color-surface-dynamic: #e5e0d5;
+  --color-divider:         #d8d3c8;
+  --color-border:          #ccc7bb;
+
+  --color-text:            #1a1714;
+  --color-text-muted:      #5a5650;
+  --color-text-faint:      #9c9790;
+  --color-text-inverse:    #f5f2ec;
+
+  /* Printer's red */
+  --color-primary:         #b83220;
+  --color-primary-hover:   #8f2718;
+  --color-primary-active:  #6b1d10;
+  --color-primary-highlight: #e8d4cf;
+
+  /* Gold */
+  --color-gold:            #8a6f2e;
+  --color-gold-light:      #c4a85c;
+
+  /* Radius — more angular/editorial */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 9999px;
+
+  --transition: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  --shadow-sm: 0 1px 3px oklch(0.15 0.02 60 / 0.1);
+  --shadow-md: 0 4px 16px oklch(0.15 0.02 60 / 0.12);
+  --shadow-lg: 0 12px 40px oklch(0.15 0.02 60 / 0.15);
+  --shadow-pin: 2px 3px 8px oklch(0.15 0.02 60 / 0.2);
+
+  --content-narrow: 620px;
+  --content-default: 940px;
+  --content-wide: 1280px;
 }
-[data-theme="dark"]{
---bg:#0e0d0b;--sur:#151310;--sur2:#1b1916;--sur3:#201e1b;--sur4:#252320;--sur5:#2b2925;
---div:#353330;--brd:#403d39;--txt:#d2cdc5;--mut:#787269;--fnt:#46433e;--inv:#151310;
---pri:#578577;--prih:#477165;--pria:#375e53;--pril:#18231e;--prih2:#1d2d27;
---acc:#b68a3a;--accl:#28200e;--err:#be4f5e;--errl:#281114;--suc:#578462;--sucl:#131d15;
---wrn:#b68a3a;--wrnl:#241c0c;--grd:#679267;--grdl:#162116;--inv2:#7878a8;--invl:#191928;
---ext:#987852;--extl:#221a0e;
---sh1:0 1px 3px oklch(0 0 0/.27);--sh2:0 4px 12px oklch(0 0 0/.37);
---sh3:0 12px 32px oklch(0 0 0/.47);--sh4:0 24px 48px oklch(0 0 0/.57);
+
+[data-theme="dark"] {
+  --color-bg:              #131210;
+  --color-surface:         #181612;
+  --color-surface-2:       #1c1a16;
+  --color-surface-offset:  #151310;
+  --color-surface-dynamic: #211f1a;
+  --color-divider:         #1e1c18;
+  --color-border:          #2a2822;
+  --color-text:            #ddd9d0;
+  --color-text-muted:      #7a7670;
+  --color-text-faint:      #4a4844;
+  --color-text-inverse:    #131210;
+  --color-primary:         #d4503c;
+  --color-primary-hover:   #e06050;
+  --color-primary-active:  #ec7060;
+  --color-primary-highlight: #3a2018;
+  --color-gold:            #c4a85c;
+  --color-gold-light:      #d4bc7a;
+  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 4px 16px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 40px oklch(0 0 0 / 0.5);
+  --shadow-pin: 2px 3px 8px oklch(0 0 0 / 0.5);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
-body{font-family:var(--fb);font-size:var(--bs);color:var(--txt);background:var(--bg);min-height:100dvh;line-height:1.55;transition:background var(--trs),color var(--trs)}
-img,svg{display:block;max-width:100%}
-button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
-input,textarea,select{font:inherit;color:inherit}
-ul,ol{list-style:none}
-h1,h2,h3,h4,h5{text-wrap:balance;line-height:1.2}
-p{text-wrap:pretty;max-width:72ch}
-::selection{background:oklch(from var(--pri) l c h/.2)}
-:focus-visible{outline:2px solid var(--pri);outline-offset:2px;border-radius:var(--r1)}
-a,button,input,select,textarea{transition:color var(--tr),background var(--tr),border-color var(--tr),box-shadow var(--tr),opacity var(--tr)}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-.shell{display:grid;grid-template-columns:var(--sw) 1fr;grid-template-rows:var(--th) 1fr;grid-template-areas:"sb tb""sb mn";height:100dvh;overflow:hidden}
-.shell.col{--sw:56px}
-#ob{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1.5rem;overflow-y:auto}
-#ob.hidden{display:none}
-.sb{grid-area:sb;background:var(--sur);border-right:1px solid var(--div);display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:10;transition:width var(--trs)}
-.sb-logo{display:flex;align-items:center;gap:.5rem;padding:.875rem 1rem .75rem;border-bottom:1px solid var(--div);min-height:var(--th);overflow:hidden;white-space:nowrap}
-.sb-logo .lt{font-family:var(--fd);font-size:var(--sm);color:var(--txt);line-height:1.1}
-.sb-logo .ls{font-size:10px;color:var(--mut);display:block;margin-top:2px;font-family:var(--fb);letter-spacing:.04em;text-transform:uppercase}
-.sb-nav{flex:1;padding:.75rem .5rem;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
-.nav-lbl{font-size:10px;color:var(--fnt);font-weight:500;letter-spacing:.07em;text-transform:uppercase;padding:.75rem .5rem .25rem;white-space:nowrap;overflow:hidden}
-.shell.col .nav-lbl{opacity:0;height:0;padding:0}
-.ni{display:flex;align-items:center;gap:.5rem;padding:.5rem;border-radius:var(--r2);font-size:var(--sm);color:var(--mut);cursor:pointer;white-space:nowrap;overflow:hidden;user-select:none}
-.ni:hover{background:var(--sur3);color:var(--txt)}
-.ni.act{background:var(--pril);color:var(--pri);font-weight:500}
-[data-theme="dark"] .ni.act{background:var(--prih2)}
-.ni svg{width:16px;height:16px;flex-shrink:0}
-.ni .bdg{margin-left:auto;background:var(--err);color:#fff;font-size:10px;font-weight:600;border-radius:var(--rF);padding:0 5px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center}
-.ni .bdg.gn{background:var(--grd)}
-.shell.col .ni span,.shell.col .ni .bdg{display:none}
-.shell.col .ni{justify-content:center}
-.sb-foot{padding:.75rem .5rem;border-top:1px solid var(--div);display:flex;align-items:center;gap:.5rem;overflow:hidden}
-.av{width:28px;height:28px;border-radius:var(--rF);background:var(--pri);color:#fff;font-size:var(--xs);font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ui{overflow:hidden;flex:1}.un{font-size:var(--sm);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ur{font-size:var(--xs);color:var(--mut)}
-.shell.col .ui{display:none}
-.tb{grid-area:tb;background:var(--sur);border-bottom:1px solid var(--div);display:flex;align-items:center;gap:1rem;padding:0 1.25rem;position:sticky;top:0;z-index:9}
-.tb-ttl{font-family:var(--fd);font-size:var(--xl);color:var(--txt);flex:1}
-.tb-acts{display:flex;align-items:center;gap:.375rem}
-.ico{width:32px;height:32px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;color:var(--mut)}
-.ico:hover{background:var(--sur3);color:var(--txt)}
-.ico svg{width:16px;height:16px}
-.col-btn{color:var(--mut);padding:.25rem;border-radius:var(--r1)}
-.col-btn:hover{background:var(--sur3);color:var(--txt)}
-.mn{grid-area:mn;overflow:hidden;position:relative}
-.view{display:none;width:100%;height:100%;overflow-y:auto;overflow-x:hidden}
-.view.act{display:flex;flex-direction:column}
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem .75rem;border-radius:var(--r2);font-size:var(--sm);font-weight:500;cursor:pointer;white-space:nowrap;user-select:none;border:none}
-.btn svg{width:14px;height:14px}
-.btn-p{background:var(--pri);color:#fff}.btn-p:hover{background:var(--prih)}.btn-p:active{background:var(--pria)}
-.btn-s{background:var(--sur3);color:var(--txt);border:1px solid var(--brd)}.btn-s:hover{background:var(--sur5)}
-.btn-g{background:transparent;color:var(--mut)}.btn-g:hover{background:var(--sur3);color:var(--txt)}
-.btn-sm{padding:calc(.25rem + 1px) .5rem;font-size:var(--xs)}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--rF);font-size:var(--xs);font-weight:500}
-.b-grd{background:var(--grdl);color:var(--grd)}.b-inv{background:var(--invl);color:var(--inv2)}
-.b-ext{background:var(--extl);color:var(--ext)}.b-suc{background:var(--sucl);color:var(--suc)}
-.b-err{background:var(--errl);color:var(--err)}.b-wrn{background:var(--wrnl);color:var(--wrn)}
-.b-neu{background:var(--sur3);color:var(--mut)}.b-acc{background:var(--accl);color:var(--acc)}
-.tag{display:inline-flex;padding:2px 6px;border-radius:var(--r1);font-size:var(--xs);background:var(--sur3);color:var(--mut);border:1px solid var(--brd)}
-.avs{display:flex}
-.avs .a{width:22px;height:22px;border-radius:var(--rF);border:2px solid var(--sur2);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff;margin-left:-6px;flex-shrink:0}
-.avs .a:first-child{margin-left:0}
-#view-board{overflow:hidden}
-.brd-tb{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;border-bottom:1px solid var(--div);flex-shrink:0;flex-wrap:wrap;background:var(--sur)}
-.brd-f{display:flex;align-items:center;gap:.5rem;flex:1;flex-wrap:wrap}
-.fchip{display:inline-flex;align-items:center;gap:.25rem;padding:4px .5rem;border-radius:var(--rF);font-size:var(--xs);background:var(--sur3);color:var(--mut);border:1px solid var(--brd);cursor:pointer}
-.fchip:hover{background:var(--sur5);color:var(--txt)}.fchip.on{background:var(--pril);color:var(--pri);border-color:var(--prih2)}
-[data-theme="dark"] .fchip.on{background:var(--prih2)}
-.brd-cols{display:flex;overflow-x:auto;overflow-y:hidden;height:100%;padding:1rem;gap:.75rem;align-items:flex-start}
-.brd-cols::-webkit-scrollbar{height:6px}.brd-cols::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px}
-.bcol{width:272px;flex-shrink:0;display:flex;flex-direction:column;max-height:100%;border-radius:var(--r3);background:var(--sur3);border:1px solid var(--div)}
-.ch{display:flex;align-items:center;gap:.5rem;padding:.75rem .75rem .5rem;flex-shrink:0}
-.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.ctit{font-size:var(--sm);font-weight:600;flex:1}
-.ccnt{font-size:var(--xs);color:var(--fnt);background:var(--sur5);border-radius:var(--rF);padding:1px 7px}
-.clist{flex:1;overflow-y:auto;padding:.5rem .5rem .75rem;display:flex;flex-direction:column;gap:.5rem;min-height:40px}
-.clist::-webkit-scrollbar{width:4px}.clist::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
-.sortable-ghost{opacity:.4}.sortable-chosen{box-shadow:var(--sh3)!important}.sortable-drag{opacity:.95;transform:rotate(1deg)}
-.kcard{background:var(--sur2);border-radius:var(--r2);border:1px solid var(--brd);padding:.75rem;cursor:pointer;box-shadow:var(--sh1);transition:box-shadow var(--tr),transform var(--tr),border-color var(--tr)}
-.kcard:hover{box-shadow:var(--sh2);border-color:var(--fnt);transform:translateY(-1px)}
-.kt{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem}
-.ktt{font-size:var(--sm);font-weight:500;line-height:1.3;color:var(--txt)}
-.kex{font-family:var(--fd);font-style:italic;font-size:var(--xs);color:var(--mut);line-height:1.55;margin-bottom:.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.km{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
-.kf{display:flex;align-items:center;justify-content:space-between}
-.kd{font-size:var(--xs);color:var(--fnt);display:flex;align-items:center;gap:3px}
-.kd.urg{color:var(--err)}.kd svg{width:10px;height:10px}
-.dc{padding:1.5rem 2rem;max-width:1100px}
-.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:1rem;margin-bottom:2rem}
-.sc{background:var(--sur2);border-radius:var(--r3);border:1px solid var(--brd);padding:1rem;box-shadow:var(--sh1)}
-.sl{font-size:var(--xs);color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:500;margin-bottom:.5rem}
-.sv{font-family:var(--fd);font-size:var(--2x);color:var(--txt);line-height:1}
-.sd{font-size:var(--xs);color:var(--fnt);margin-top:.25rem}.sd.up{color:var(--suc)}
-.sh{font-family:var(--fd);font-size:var(--lg);color:var(--txt);margin-bottom:1rem;display:flex;align-items:baseline;gap:.5rem}
-.shc{font-family:var(--fb);font-size:var(--xs);color:var(--fnt)}
-.al{display:flex;flex-direction:column}
-.ai{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 0;border-bottom:1px solid var(--div)}
-.ai:last-child{border-bottom:none}
-.adot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
-.at{font-size:var(--sm);color:var(--txt)}.at strong{font-weight:500}
-.atime{font-size:var(--xs);color:var(--fnt);margin-top:2px}
-.dg{display:grid;grid-template-columns:1fr 320px;gap:1.5rem}
-.sub-tb{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;border-bottom:1px solid var(--div);background:var(--sur);flex-shrink:0;flex-wrap:wrap}
-.si{position:relative;flex:1;max-width:340px}
-.si svg{position:absolute;left:.5rem;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--fnt);pointer-events:none}
-.si input{width:100%;padding:.5rem .5rem .5rem 1.75rem;background:var(--sur3);border:1px solid var(--brd);border-radius:var(--r2);font-size:var(--sm);color:var(--txt)}
-.si input::placeholder{color:var(--fnt)}
-.si input:focus{outline:2px solid var(--pri);outline-offset:-1px;background:var(--sur2)}
-.sub-t{overflow-y:auto;flex:1}
-table{width:100%;border-collapse:collapse}
-thead th{text-align:left;font-size:var(--xs);font-weight:600;color:var(--fnt);text-transform:uppercase;letter-spacing:.05em;padding:.5rem 1rem;border-bottom:1px solid var(--div);background:var(--sur);position:sticky;top:0;z-index:2;white-space:nowrap}
-tbody tr{border-bottom:1px solid var(--div);cursor:pointer;transition:background var(--tr)}
-tbody tr:hover{background:var(--sur3)}
-tbody td{padding:.75rem 1rem;font-size:var(--sm);vertical-align:middle}
-tbody td.tc{font-weight:500;color:var(--txt);max-width:240px}
-tbody td.tc .au{font-size:var(--xs);color:var(--mut);font-weight:400;margin-top:1px}
-.iss-l{display:grid;grid-template-columns:1fr 296px;height:100%;overflow:hidden}
-.iss-c{overflow-y:auto;padding:1.5rem}
-.iss-sp{border-left:1px solid var(--div);background:var(--sur);overflow-y:auto;padding:1rem}
-.dz{min-height:88px;border:2px dashed var(--brd);border-radius:var(--r3);padding:1rem;margin-bottom:1rem;display:flex;flex-direction:column;gap:.5rem}
-.dz.ov{border-color:var(--pri);background:var(--pril)}
-.ip{display:flex;align-items:center;gap:.75rem;background:var(--sur2);border:1px solid var(--brd);border-radius:var(--r2);padding:.75rem;cursor:grab}
-.ip:active{cursor:grabbing}
-.inum{font-family:var(--fd);font-size:var(--xl);color:var(--fnt);min-width:22px}
-.iinf{flex:1}.iti{font-size:var(--sm);font-weight:500}.iau{font-size:var(--xs);color:var(--mut)}
-.wg{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:1rem;padding:1.5rem 1.25rem}
-.wc{background:var(--sur2);border-radius:var(--r3);border:1px solid var(--brd);padding:1rem;box-shadow:var(--sh1);cursor:pointer;transition:box-shadow var(--tr),transform var(--tr)}
-.wc:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
-.wa{width:44px;height:44px;border-radius:var(--rF);font-size:var(--bs);font-weight:600;color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
-.wn{font-size:var(--bs);font-weight:500;margin-bottom:2px}.wp{font-size:var(--xs);color:var(--mut);margin-bottom:.75rem}
-.wts{display:flex;flex-wrap:wrap;gap:.25rem}
-.grd-tb{display:flex;align-items:center;gap:.75rem;padding:.875rem 1.25rem;border-bottom:1px solid var(--div);flex-shrink:0;background:var(--sur);flex-wrap:wrap}
-.grd-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(296px,1fr));gap:1rem;padding:1.5rem}
-.gc{background:var(--sur2);border-radius:var(--r3);border:1px solid var(--brd);padding:1.25rem;box-shadow:var(--sh1);cursor:pointer;transition:box-shadow var(--tr),transform var(--tr)}
-.gc:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
-.gc-stage{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem}
-.gc-title{font-family:var(--fd);font-size:var(--lg);margin-bottom:.375rem;line-height:1.25}
-.gc-author{font-size:var(--xs);color:var(--mut);margin-bottom:.75rem}
-.gc-ex{font-family:var(--fd);font-style:italic;font-size:var(--sm);color:var(--mut);line-height:1.65;margin-bottom:.875rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.gc-ft{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
-.gc-tags{display:flex;flex-wrap:wrap;gap:.25rem}
-.set-l{display:grid;grid-template-columns:196px 1fr;height:100%;overflow:hidden}
-.set-n{border-right:1px solid var(--div);padding:1rem .75rem;display:flex;flex-direction:column;gap:2px;overflow-y:auto;background:var(--sur)}
-.sni{padding:.5rem;border-radius:var(--r2);font-size:var(--sm);color:var(--mut);cursor:pointer}
-.sni:hover{background:var(--sur3);color:var(--txt)}.sni.act{background:var(--pril);color:var(--pri);font-weight:500}
-[data-theme="dark"] .sni.act{background:var(--prih2)}
-.set-c{overflow-y:auto;padding:1.5rem 2rem;max-width:680px}
-.ss{margin-bottom:2rem}.ss-t{font-size:var(--bs);font-weight:600;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--div)}
-.fr{margin-bottom:1rem}.fl{display:block;font-size:var(--sm);font-weight:500;margin-bottom:.5rem;color:var(--txt)}
-.fh{font-size:var(--xs);color:var(--mut);margin-top:4px}
-.fi{width:100%;padding:.5rem .75rem;background:var(--sur2);border:1px solid var(--brd);border-radius:var(--r2);font-size:var(--sm);color:var(--txt)}
-.fi:focus{outline:2px solid var(--pri);outline-offset:-1px}
-.fi::placeholder{color:var(--fnt)}
-.tl{display:flex;flex-direction:column;gap:.5rem}
-.tm{display:flex;align-items:center;gap:.75rem;padding:.75rem;background:var(--sur2);border:1px solid var(--brd);border-radius:var(--r2)}
-.mi{flex:1}.mn2{font-size:var(--sm);font-weight:500}.me{font-size:var(--xs);color:var(--mut)}
-.rs{font-size:var(--xs);background:var(--sur3);border:1px solid var(--brd);border-radius:var(--r1);padding:2px .5rem;color:var(--txt)}
-.mov{position:fixed;inset:0;z-index:100;background:oklch(.1 .02 58/.4);display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity var(--trs)}
-.mov.op{opacity:1;pointer-events:all}
-.mo{background:var(--sur2);border-radius:var(--r4);border:1px solid var(--brd);box-shadow:var(--sh4);width:100%;max-width:700px;transform:translateY(8px) scale(.99);transition:transform var(--trs)}
-.mov.op .mo{transform:translateY(0) scale(1)}
-.mh{padding:1.25rem 1.5rem 1rem;border-bottom:1px solid var(--div);display:flex;gap:1rem}
-.mhc{flex:1}
-.mt{font-family:var(--fd);font-size:var(--xl);color:var(--txt);margin-bottom:.5rem;font-weight:400}
-.mau{font-size:var(--sm);color:var(--mut)}
-.mcl{color:var(--fnt);padding:.25rem;align-self:flex-start;border-radius:var(--r1);flex-shrink:0}
-.mcl:hover{background:var(--sur3);color:var(--txt)}
-.mb{display:grid;grid-template-columns:1fr 216px;gap:0}
-.mm{padding:1.25rem 1.5rem;border-right:1px solid var(--div)}
-.ms{padding:1.25rem 1rem}
-.mex{font-family:var(--fd);font-size:var(--bs);line-height:1.75;color:var(--txt);margin-bottom:1.25rem;font-style:italic;border-left:3px solid var(--pri);padding-left:1rem}
-.macts{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
-.cl{display:flex;flex-direction:column;gap:.75rem}
-.cm{background:var(--sur3);border-radius:var(--r2);padding:.75rem}
-.cmm{display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem}
-.cma{font-size:var(--xs);font-weight:600}.cmt{font-size:var(--xs);color:var(--fnt)}.cmb{font-size:var(--sm);color:var(--txt)}
-.cw{display:flex;gap:.5rem;align-items:flex-end;margin-top:.75rem}
-.ci{flex:1;padding:.5rem .75rem;background:var(--sur3);border:1px solid var(--brd);border-radius:var(--r2);font-size:var(--sm);resize:none;color:var(--txt);min-height:36px;max-height:80px}
-.ci:focus{outline:2px solid var(--pri);outline-offset:-1px}
-.mr{margin-bottom:.75rem}.mrl{font-size:var(--xs);color:var(--fnt);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
-.mrv{font-size:var(--sm);color:var(--txt)}
-.ssel{width:100%;font-size:var(--sm);background:var(--sur3);border:1px solid var(--brd);border-radius:var(--r2);padding:.5rem;color:var(--txt)}
-.divL{height:1px;background:var(--div);margin:.75rem 0}
-.cp{position:fixed;inset:0;z-index:200;background:oklch(.1 .02 58/.28);display:flex;align-items:flex-start;justify-content:center;padding-top:100px;backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity var(--tr)}
-.cp.op{opacity:1;pointer-events:all}
-.cpb{background:var(--sur2);border-radius:var(--r4);border:1px solid var(--brd);box-shadow:var(--sh4);width:100%;max-width:520px;overflow:hidden;transform:translateY(-8px);transition:transform var(--trs)}
-.cp.op .cpb{transform:translateY(0)}
-.cpi{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;border-bottom:1px solid var(--div)}
-.cpi svg{width:16px;height:16px;color:var(--fnt)}
-.cpi input{flex:1;background:none;border:none;outline:none;font-size:var(--bs);color:var(--txt)}
-.cpi input::placeholder{color:var(--fnt)}
-.cpr{max-height:320px;overflow-y:auto;padding:.5rem}
-.cpit{display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;border-radius:var(--r2);font-size:var(--sm);color:var(--mut);cursor:pointer}
-.cpit:hover,.cpit.sel{background:var(--sur3);color:var(--txt)}
-.cpit svg{width:14px;height:14px;flex-shrink:0}
-.cps{font-size:var(--xs);color:var(--fnt);font-weight:500;text-transform:uppercase;letter-spacing:.05em;padding:.5rem .75rem .25rem}
-.np{position:fixed;top:var(--th);right:0;width:340px;background:var(--sur2);border-left:1px solid var(--brd);border-bottom:1px solid var(--brd);box-shadow:var(--sh3);z-index:50;max-height:80vh;overflow-y:auto;transform:translateX(100%);transition:transform var(--trs);border-radius:0 0 0 var(--r3)}
-.np.op{transform:translateX(0)}
-.nh{padding:1rem;border-bottom:1px solid var(--div);display:flex;align-items:center;justify-content:space-between}
-.nh h3{font-size:var(--bs);font-weight:600}
-.nl2{padding:.5rem}
-.ni2{padding:.75rem;border-radius:var(--r2);cursor:pointer;display:flex;gap:.75rem;align-items:flex-start}
-.ni2:hover{background:var(--sur3)}.ni2.ur{background:var(--pril)}
-[data-theme="dark"] .ni2.ur{background:var(--prih2)}
-.nd{width:8px;height:8px;border-radius:50%;background:var(--pri);flex-shrink:0;margin-top:5px}
-.nd.rd{background:transparent}
-.nt{font-size:var(--sm);color:var(--txt);line-height:1.4}
-.ntm{font-size:var(--xs);color:var(--fnt);margin-top:2px}
-.shm{position:fixed;inset:0;z-index:200;background:oklch(.1 .02 58/.38);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--tr)}
-.shm.op{opacity:1;pointer-events:all}
-.shb{background:var(--sur2);border-radius:var(--r4);border:1px solid var(--brd);box-shadow:var(--sh4);padding:1.5rem;max-width:460px;width:100%}
-.shtit{font-family:var(--fd);font-size:var(--lg);margin-bottom:1rem}
-.skgr{display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1.5rem}
-.skr{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
-.skl{font-size:var(--sm);color:var(--mut)}
-.sks{display:flex;gap:4px}
-.sks kbd{font-family:var(--fb);font-size:11px;font-weight:500;background:var(--sur3);border:1px solid var(--brd);border-radius:4px;padding:1px 5px;color:var(--mut)}
-.obc{background:var(--sur2);border-radius:var(--r4);border:1px solid var(--brd);box-shadow:var(--sh4);width:100%;max-width:480px;overflow:hidden}
-.obh{background:var(--pri);padding:2rem 1.5rem;text-align:center}
-.obt{font-family:var(--fd);font-size:var(--2x);color:#fff;margin-bottom:.25rem}
-.obs{font-size:var(--sm);color:rgba(255,255,255,.7)}
-.obb{padding:1.5rem}
-.obst{display:none}.obst.act{display:flex;flex-direction:column;gap:1rem}
-.obpr{display:flex;gap:.5rem;margin-bottom:.5rem}
-.pd{height:3px;border-radius:2px;flex:1;background:var(--brd);transition:background var(--tr)}
-.pd.dn{background:rgba(255,255,255,.5)}
-.obft{padding:1rem 1.5rem;border-top:1px solid var(--div);display:flex;justify-content:space-between;align-items:center}
-.ics{display:flex;flex-wrap:wrap;gap:.5rem;padding:.5rem;background:var(--sur3);border:1px solid var(--brd);border-radius:var(--r2);min-height:44px}
-.ic{display:flex;align-items:center;gap:4px;background:var(--pril);border:1px solid var(--prih2);color:var(--pri);border-radius:var(--rF);font-size:var(--xs);padding:2px 8px}
-[data-theme="dark"] .ic{background:var(--prih2)}
-.ic button{color:var(--pri);opacity:.6;font-size:14px;line-height:1}.ic button:hover{opacity:1}
-.ici{border:none;background:none;outline:none;font-size:var(--sm);color:var(--txt);flex:1;min-width:160px}
-.ici::placeholder{color:var(--fnt)}
-.chl{background:var(--sur2);border:1px solid var(--brd);border-radius:var(--r3);padding:1.25rem}
-.chi{display:flex;align-items:flex-start;gap:.75rem}
-.chic{width:36px;height:36px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.tc2{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
-.tst{background:var(--txt);color:var(--bg);padding:.75rem 1rem;border-radius:var(--r2);font-size:var(--sm);box-shadow:var(--sh3);display:flex;align-items:center;gap:.5rem;animation:tsin .3s cubic-bezier(.16,1,.3,1) forwards;max-width:300px}
-.tst svg{width:14px;height:14px;flex-shrink:0}
-@keyframes tsin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes tsout{from{opacity:1}to{opacity:0;transform:translateY(4px)}}
-.divr{height:1px;background:var(--div);margin:1rem 0}
-.wf{width:100%}.mr-auto{margin-right:auto}.ml-auto{margin-left:auto}
-.f{display:flex}.ic2{align-items:center}.g2{gap:.5rem}
-@media(max-width:768px){
-.shell{grid-template-columns:1fr;grid-template-areas:"tb""mn"}
-.sb{position:fixed;left:-222px;top:0;bottom:0;z-index:20;transition:left var(--trs);width:var(--sw)}
-.shell.mob .sb{left:0}
-.dg,.mb,.iss-l,.set-l{grid-template-columns:1fr}
-.dc{padding:1rem}.grd-cards{padding:1rem}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg: #131210; --color-surface: #181612; --color-surface-2: #1c1a16;
+    --color-surface-offset: #151310; --color-surface-dynamic: #211f1a;
+    --color-divider: #1e1c18; --color-border: #2a2822;
+    --color-text: #ddd9d0; --color-text-muted: #7a7670; --color-text-faint: #4a4844;
+    --color-text-inverse: #131210; --color-primary: #d4503c;
+    --color-primary-hover: #e06050; --color-primary-active: #ec7060;
+    --color-primary-highlight: #3a2018; --color-gold: #c4a85c;
+    --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.3);
+    --shadow-md: 0 4px 16px oklch(0 0 0 / 0.4);
+    --shadow-lg: 0 12px 40px oklch(0 0 0 / 0.5);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  hanging-punctuation: first last;
+}
+body {
+  min-height: 100dvh;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.65;
+}
+img { display: block; max-width: 100%; height: auto; }
+button { cursor: pointer; background: none; border: none; font: inherit; color: inherit; }
+a { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── GRAIN OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+
+/* ─── HEADER ─── */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-divider);
+  padding: var(--space-3) var(--space-6);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-logo {
+  display: flex; align-items: baseline; gap: var(--space-3);
+}
+.logo-mark {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-text);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  line-height: 1;
+}
+.logo-mark span {
+  color: var(--color-primary);
+}
+.logo-sub {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-left: 1px solid var(--color-border);
+  padding-left: var(--space-3);
+}
+.header-actions {
+  display: flex; align-items: center; gap: var(--space-4);
+}
+.btn-ghost {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.btn-ghost:hover {
+  color: var(--color-text);
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+.btn-primary {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), border-color var(--transition);
+}
+.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.theme-toggle {
+  color: var(--color-text-muted);
+  display: flex; align-items: center;
+  transition: color var(--transition);
+}
+.theme-toggle:hover { color: var(--color-text); }
+
+/* ─── PAGE HEADER ─── */
+.page-header {
+  padding: var(--space-16) var(--space-6) var(--space-10);
+  max-width: var(--content-wide);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: var(--space-6);
+}
+.page-title-block {}
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: var(--space-3);
+}
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  line-height: 1.05;
+  color: var(--color-text);
+  font-weight: normal;
+  font-style: italic;
+}
+.page-desc {
+  font-family: var(--font-ref);
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  max-width: 55ch;
+  margin-top: var(--space-4);
+  line-height: 1.75;
+}
+.page-desc em { color: var(--color-text); font-style: italic; }
+.page-actions { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); }
+
+/* ─── DIVIDER ─── */
+.ornamental-rule {
+  max-width: var(--content-wide);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  display: flex; align-items: center; gap: var(--space-4);
+  margin-bottom: var(--space-10);
+}
+.ornamental-rule hr {
+  flex: 1; height: 1px; background: var(--color-border); border: none;
+}
+.ornamental-rule .ornament {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+/* ─── FILTERS / JOURNAL SWITCHER ─── */
+.studio-nav {
+  max-width: var(--content-wide);
+  margin: 0 auto var(--space-10);
+  padding: 0 var(--space-6);
+  display: flex; align-items: center; gap: var(--space-2);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-divider);
+  padding-bottom: var(--space-5);
+}
+.studio-tab {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+  position: relative;
+}
+.studio-tab:hover { color: var(--color-text); border-color: var(--color-border); background: var(--color-surface); }
+.studio-tab.active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-highlight);
+}
+.tab-count {
+  display: inline-block;
+  width: 16px; height: 16px;
+  font-size: 9px;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-full);
+  text-align: center; line-height: 16px;
+  margin-left: var(--space-1);
+  font-style: normal;
+}
+[data-theme="dark"] .studio-tab.active .tab-count,
+.studio-tab.active .tab-count {
+  background: var(--color-primary);
+}
+
+/* ─── BOARD HEADER ─── */
+.board-header {
+  max-width: var(--content-wide);
+  margin: 0 auto var(--space-8);
+  padding: 0 var(--space-6);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-6);
+}
+.journal-identity {
+  display: flex; align-items: center; gap: var(--space-5);
+}
+.journal-sigil {
+  width: 52px; height: 52px;
+  border: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-surface);
+}
+.journal-sigil svg { width: 28px; height: 28px; }
+.journal-name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: normal;
+  line-height: 1.1;
+}
+.journal-tagline {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+  margin-top: var(--space-1);
+}
+.board-meta {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  letter-spacing: 0.06em;
+}
+.board-meta strong { color: var(--color-text-muted); display: block; font-size: 1.3em; }
+
+/* ─── BOARD STATEMENT ─── */
+.board-statement {
+  max-width: var(--content-wide);
+  margin: 0 auto var(--space-10);
+  padding: 0 var(--space-6);
+}
+.statement-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: var(--space-8) var(--space-10);
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+.statement-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--color-primary);
+}
+.statement-number {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-primary);
+  opacity: 0.3;
+  line-height: 1;
+  font-style: italic;
+}
+.statement-text {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-style: italic;
+  line-height: 1.65;
+  color: var(--color-text);
+  text-align: justify;
+}
+.statement-text em { color: var(--color-primary); font-style: normal; }
+.statement-byline {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: var(--space-4);
+  grid-column: 2;
+}
+
+/* ─── BOARD GRID ─── */
+.board-grid {
+  max-width: var(--content-wide);
+  margin: 0 auto;
+  padding: 0 var(--space-6) var(--space-16);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .board-grid { grid-template-columns: repeat(2, 1fr); }
+  .page-header { grid-template-columns: 1fr; }
+  .page-actions { align-items: flex-start; }
+  .board-header { grid-template-columns: 1fr; }
+  .board-meta { text-align: left; }
+}
+
+@media (max-width: 600px) {
+  .board-grid { grid-template-columns: 1fr; }
+  .studio-nav { gap: var(--space-1); }
+  .page-title { font-size: clamp(1.8rem, 6vw, 3rem); }
+  .statement-card { padding: var(--space-5); grid-template-columns: 1fr; }
+  .statement-number { display: none; }
+  .statement-byline { grid-column: 1; }
+}
+
+/* ─── PIN CARD — core card type ─── */
+.pin-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  position: relative;
+  transition: box-shadow var(--transition), transform var(--transition);
+  cursor: pointer;
+  break-inside: avoid;
+}
+.pin-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.pin-card:active { transform: translateY(0); }
+
+/* Card types */
+.pin-card.type-prose { }
+.pin-card.type-poem { }
+.pin-card.type-fragment { border-style: dashed; }
+.pin-card.type-reference { }
+.pin-card.type-visual { }
+
+/* Pin indicator — top right */
+.pin-indicator {
+  position: absolute;
+  top: -6px; right: 16px;
+  width: 10px; height: 24px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.pin-indicator::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-bg), var(--shadow-sm);
+}
+.pin-indicator::after {
+  content: '';
+  flex: 1;
+  width: 1px;
+  background: var(--color-primary);
+  opacity: 0.4;
+}
+
+/* Card header */
+.card-header {
+  padding: var(--space-5) var(--space-5) var(--space-3);
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: var(--space-3);
+}
+.card-form-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  line-height: 1;
+}
+.card-type-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-inverse);
+  background: var(--color-text-faint);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+.card-type-badge.badge-poem { background: var(--color-primary); }
+.card-type-badge.badge-prose { background: var(--color-text-muted); }
+.card-type-badge.badge-fragment { background: var(--color-gold); }
+.card-type-badge.badge-essay { background: var(--color-gold); }
+.card-type-badge.badge-reference { background: var(--color-text); }
+
+/* Card title — editorial style */
+.card-title {
+  padding: 0 var(--space-5) var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: normal;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+.card-title em { font-style: italic; }
+
+/* Card rule */
+.card-rule {
+  height: 1px;
+  background: var(--color-divider);
+  margin: var(--space-1) var(--space-5);
+}
+
+/* Card body — the actual text excerpt */
+.card-excerpt {
+  padding: var(--space-3) var(--space-5);
+  font-family: var(--font-ref);
+  font-size: var(--text-sm);
+  line-height: 1.75;
+  color: var(--color-text-muted);
+  text-align: justify;
+  hyphens: auto;
+}
+.card-excerpt.style-poem {
+  text-align: left;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  line-height: 1.85;
+}
+.card-excerpt.style-fragment {
+  text-align: left;
+  font-style: italic;
+  font-size: var(--text-base);
+  color: var(--color-text);
+  border-left: 2px solid var(--color-primary);
+  margin-left: var(--space-5);
+  padding-left: var(--space-4);
+  padding-right: var(--space-3);
+}
+
+/* Circled word — hand annotation effect */
+.circled {
+  display: inline;
+  position: relative;
+  color: var(--color-primary);
+  font-style: italic;
+}
+.circled::after {
+  content: '';
+  position: absolute;
+  inset: -3px -6px;
+  border: 1.5px solid var(--color-primary);
+  border-radius: 50% 48% 52% 50% / 48% 52% 50% 54%;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Underline — single annotation */
+.underlined {
+  text-decoration: underline;
+  text-decoration-color: var(--color-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Card annotation */
+.card-annotation {
+  padding: var(--space-2) var(--space-5) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Card footer */
+.card-footer {
+  padding: var(--space-3) var(--space-5) var(--space-4);
+  border-top: 1px solid var(--color-divider);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-2);
+}
+.card-author {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+}
+.card-author span {
+  color: var(--color-text-faint);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-right: var(--space-1);
+}
+.card-source {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  text-align: right;
+  line-height: 1.4;
+}
+
+/* Card actions */
+.card-actions {
+  padding: var(--space-1) var(--space-4) var(--space-3);
+  display: flex; gap: var(--space-2); align-items: center;
+}
+.card-action-btn {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+.card-action-btn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary-highlight);
+  background: var(--color-primary-highlight);
+}
+.card-action-btn.active {
+  color: var(--color-primary);
+  border-color: var(--color-primary-highlight);
+}
+
+/* Card with full-width visual */
+.card-visual {
+  width: 100%;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+  display: block;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-offset);
+}
+.card-visual-caption {
+  padding: var(--space-2) var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  letter-spacing: 0.06em;
+  font-style: italic;
+}
+
+/* Wide card — spans 2 columns */
+.pin-card.wide {
+  grid-column: span 2;
+}
+.wide .card-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.wide .card-text-col {
+  border-right: 1px solid var(--color-border);
+}
+.wide .card-meta-col {
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: var(--space-6);
+}
+.wide-secondary-text {
+  font-family: var(--font-ref);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.75;
+  font-style: italic;
+}
+.wide-secondary-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+
+/* Note card */
+.note-card {
+  background: oklch(from var(--color-primary) l c h / 0.06);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+}
+.note-card .card-excerpt {
+  font-family: var(--font-mono);
+  text-align: left;
+  font-style: italic;
+}
+
+/* ─── ADD PIN PROMPT ─── */
+.add-pin-card {
+  border: 1px dashed var(--color-border);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+  gap: var(--space-3);
+  transition: all var(--transition);
+  cursor: pointer;
+  min-height: 180px;
+}
+.add-pin-card:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-highlight);
+}
+.add-pin-icon {
+  width: 32px; height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-faint);
+  transition: all var(--transition);
+}
+.add-pin-card:hover .add-pin-icon {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.add-pin-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  transition: color var(--transition);
+}
+.add-pin-card:hover .add-pin-label { color: var(--color-primary); }
+
+/* ─── BOARD ABOUT SECTION ─── */
+.board-about {
+  max-width: var(--content-wide);
+  margin: 0 auto var(--space-16);
+  padding: 0 var(--space-6);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-5);
+}
+.about-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: var(--space-6);
+}
+.about-card-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.about-card-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-divider);
+}
+.about-card-body {
+  font-family: var(--font-ref);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.75;
+}
+.about-stat {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-text);
+  font-style: italic;
+  line-height: 1;
+  margin-bottom: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .board-about { grid-template-columns: 1fr 1fr; }
+  .pin-card.wide { grid-column: span 1; }
+  .wide .card-inner { grid-template-columns: 1fr; }
+  .wide .card-text-col { border-right: none; border-bottom: 1px solid var(--color-border); }
+}
+
+@media (max-width: 560px) {
+  .board-about { grid-template-columns: 1fr; }
+}
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: oklch(0.1 0.01 60 / 0.7);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-6);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--transition);
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  max-width: 520px; width: 100%;
+  max-height: 80dvh;
+  overflow-y: auto;
+  transform: scale(0.97);
+  transition: transform var(--transition);
+}
+.modal-overlay.open .modal-box { transform: scale(1); }
+.modal-header {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-divider);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.modal-close {
+  color: var(--color-text-faint);
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+.modal-close:hover { color: var(--color-text); border-color: var(--color-border); background: var(--color-surface-offset); }
+.modal-body { padding: var(--space-6); }
+.form-field { margin-bottom: var(--space-5); }
+.form-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-ref);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  transition: border-color var(--transition);
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.form-textarea { min-height: 100px; resize: vertical; }
+.modal-footer {
+  padding: var(--space-4) var(--space-6) var(--space-5);
+  border-top: 1px solid var(--color-divider);
+  display: flex; justify-content: flex-end; gap: var(--space-3);
+}
+
+/* ─── SCROLL ANIMATIONS ─── */
+@supports (animation-timeline: scroll()) {
+  .pin-card {
+    opacity: 0;
+    animation: fade-pin linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+  @keyframes fade-pin { to { opacity: 1; } }
+}
+
+/* ─── EMPTY STATE ─── */
+.empty-board {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  padding: var(--space-20) var(--space-8);
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border);
+}
+.empty-board-glyph {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  color: var(--color-text-faint);
+  line-height: 1;
+  margin-bottom: var(--space-4);
+  font-style: italic;
+}
+.empty-board h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: normal;
+  font-style: italic;
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+}
+.empty-board p {
+  font-family: var(--font-ref);
+  font-size: var(--text-sm);
+  max-width: 42ch;
+  line-height: 1.75;
+}
+
+/* ─── FOOTER ─── */
+.site-footer {
+  border-top: 1px solid var(--color-divider);
+  padding: var(--space-8) var(--space-6);
+  max-width: var(--content-wide);
+  margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: var(--space-6);
+}
+.footer-mark {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+  font-style: italic;
+}
+.footer-mark span { color: var(--color-primary); }
+.footer-note {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  letter-spacing: 0.08em;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .site-footer { flex-direction: column; text-align: center; }
+  .footer-note { text-align: center; }
 }
 </style>
 </head>
 <body>
-<div style="height:100dvh;display:grid;place-items:center;color:#6a6158;background:#f4efe9;font-family:'DM Sans',sans-serif;">
-  Loading studio...
+
+<!-- SKIP LINK -->
+<a href="#main-content" class="sr-only">Skip to content</a>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-logo">
+    <a href="#" class="logo-mark">The Page Gallery <span>Journal</span></a>
+    <span class="logo-sub">The Studio</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-ghost">My Board</button>
+    <button class="btn-primary" onclick="document.getElementById('addPinModal').classList.add('open')">+ Pin</button>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main id="main-content">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-title-block">
+      <p class="page-eyebrow">The Studio — Reading Boards</p>
+      <h1 class="page-title">What editors<br>are pinning</h1>
+      <p class="page-desc">
+        Journals pin the writing they love, can't stop thinking about, or want to publish more of.
+        Not a submission call. Not a theme. A <em>sensibility</em> — rendered in excerpts.
+      </p>
+    </div>
+    <div class="page-actions">
+      <button class="btn-primary" onclick="document.getElementById('addPinModal').classList.add('open')">Pin something</button>
+      <button class="btn-ghost">Browse all boards</button>
+    </div>
+  </div>
+
+  <!-- ORNAMENTAL RULE -->
+  <div class="ornamental-rule">
+    <hr>
+    <span class="ornament">❧</span>
+    <hr>
+    <span class="ornament">❧</span>
+    <hr>
+  </div>
+
+  <!-- JOURNAL TABS -->
+  <nav class="studio-nav" aria-label="Journal boards">
+    <button class="studio-tab active" onclick="switchTab(this, 'board-granta')">
+      Granta <em class="tab-count">7</em>
+    </button>
+    <button class="studio-tab" onclick="switchTab(this, 'board-ploughshares')">
+      Ploughshares <em class="tab-count">4</em>
+    </button>
+    <button class="studio-tab" onclick="switchTab(this, 'board-tin-house')">
+      Tin House <em class="tab-count">6</em>
+    </button>
+    <button class="studio-tab" onclick="switchTab(this, 'board-page-gallery')">
+      The Page Gallery <em class="tab-count">5</em>
+    </button>
+    <button class="studio-tab" onclick="switchTab(this, 'board-empty')">
+      Your Board
+    </button>
+  </nav>
+
+  <!-- ══════════════════════ BOARD: GRANTA ══════════════════════ -->
+  <section id="board-granta" class="board-section" aria-labelledby="granta-title">
+
+    <div class="board-header">
+      <div class="journal-identity">
+        <div class="journal-sigil" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="4" width="20" height="20" stroke="currentColor" stroke-width="1"/>
+            <text x="14" y="19" font-family="Georgia, serif" font-size="13" fill="currentColor" text-anchor="middle" font-style="italic">G</text>
+          </svg>
+        </div>
+        <div>
+          <h2 class="journal-name" id="granta-title">Granta</h2>
+          <p class="journal-tagline">The Magazine of New Writing — London</p>
+        </div>
+      </div>
+      <div class="board-meta">
+        <strong>7</strong>
+        pins this season
+      </div>
+    </div>
+
+    <div class="board-statement">
+      <div class="statement-card">
+        <span class="statement-number" aria-hidden="true">"</span>
+        <div>
+          <p class="statement-text">We are drawn to writing that understands <em>restraint as a form of pressure</em> — the sentence that knows what it is not saying, and makes that absence felt. Paragraph length as a moral decision. Syntax as weather.</p>
+          <p class="statement-byline">— Editorial Board, Spring 2025</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-grid">
+
+      <!-- CARD 1: Wide poem excerpt -->
+      <article class="pin-card wide type-poem" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-inner">
+          <div class="card-text-col">
+            <div class="card-header">
+              <span class="card-form-label">Poem</span>
+              <span class="card-type-badge badge-poem">Verse</span>
+            </div>
+            <h3 class="card-title"><em>After the Diagnosis, My Mother Cooks</em></h3>
+            <div class="card-rule"></div>
+            <p class="card-excerpt style-poem">
+              She fries onions until they<br>
+              <span class="underlined">disappear into the oil</span>, the way<br>
+              a name disappears<br>
+              from a hospital form.<br>
+              <br>
+              The kitchen fills with something<br>
+              close to <span class="circled">ordinary</span>.
+            </p>
+            <div class="card-annotation">pinned: "the word 'ordinary' doing immense work"</div>
+          </div>
+          <div class="card-meta-col">
+            <div>
+              <p class="wide-secondary-label">Why we pinned this</p>
+              <p class="wide-secondary-text">The restraint. The cooking as displaced grief. Every line earns what it withholds. We want more poems where the wound is structural, not announced.</p>
+            </div>
+            <div class="card-footer" style="border-top:none;padding:0;">
+              <div>
+                <div class="card-author"><span>by</span> R. Adeyemi</div>
+                <div class="card-source">Unpublished manuscript · 2024</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+          <button class="card-action-btn">Share excerpt</button>
+          <button class="card-action-btn">Request submission</button>
+        </div>
+      </article>
+
+      <!-- CARD 2: Prose fragment -->
+      <article class="pin-card type-prose" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Essay</span>
+          <span class="card-type-badge badge-essay">Essay</span>
+        </div>
+        <h3 class="card-title">On Slowness, or the Problem with the Well-Made Sentence</h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt">
+          What we call <span class="underlined">style</span> is almost always the writer's relationship to <span class="circled">time</span>. The sentence that takes the long way around is not being difficult. It is staging the difficulty of the thing it describes. Syntax enacts. Grammar is not neutral.
+        </p>
+        <div class="card-annotation">← we have been thinking about this for months</div>
+        <div class="card-footer">
+          <div class="card-author"><span>by</span> M. Oyedele</div>
+          <div class="card-source">The Kenyon Review<br>Vol. 45, 2023</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+          <button class="card-action-btn">Share</button>
+        </div>
+      </article>
+
+      <!-- CARD 3: Note from editor -->
+      <article class="pin-card note-card" tabindex="0">
+        <div class="card-header">
+          <span class="card-form-label">Editor's note</span>
+          <span class="card-type-badge" style="background:var(--color-text-faint)">Note</span>
+        </div>
+        <div class="card-rule"></div>
+        <p class="card-excerpt" style="text-align:left;font-style:italic;color:var(--color-text);font-size:var(--text-base);">
+          Looking for: the essay that circles its subject the way a grieving person circles the objects of the dead. Not a meditation. A circumnavigation.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>note by</span> Senior Editor</div>
+          <div class="card-source">Added Apr 2025</div>
+        </div>
+      </article>
+
+      <!-- CARD 4: Short prose -->
+      <article class="pin-card type-prose" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Short fiction</span>
+          <span class="card-type-badge badge-prose">Fiction</span>
+        </div>
+        <h3 class="card-title"><em>The Translator's Daughter</em></h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt">
+          Her mother had a second language and a first silence. Between the two, she had grown up listening for what was left untranslated — the word that stalls in the throat, the pause before the English arrives.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>by</span> Z. Hristova</div>
+          <div class="card-source">Submission · Winter 2024<br>Under consideration</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+          <button class="card-action-btn">Add to issue</button>
+        </div>
+      </article>
+
+      <!-- CARD 5: Fragment -->
+      <article class="pin-card type-fragment" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Fragment</span>
+          <span class="card-type-badge badge-fragment">Frag.</span>
+        </div>
+        <div class="card-rule"></div>
+        <p class="card-excerpt style-fragment">
+          "All accurate description is an act of mourning. You are capturing something as it is because it will not be this exactly again."
+        </p>
+        <div class="card-annotation">source unclear — possibly B. Lacey lecture notes 2019</div>
+        <div class="card-footer">
+          <div class="card-author"><span>pinned by</span> Asst. Editor</div>
+        </div>
+      </article>
+
+      <!-- CARD 6: Reference -->
+      <article class="pin-card type-reference" tabindex="0">
+        <div class="card-header">
+          <span class="card-form-label">Reference</span>
+          <span class="card-type-badge badge-reference">Ref</span>
+        </div>
+        <h3 class="card-title">Marilynne Robinson — <em>When I Was a Child I Read Books</em></h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt" style="font-size:var(--text-xs);letter-spacing:0.02em;">
+          Returning to this. The idea that beauty is a form of attention, not aesthetics. That to describe a thing carefully is already a moral act. We want essays that have read this and understood it.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>pinned by</span> Editors</div>
+          <div class="card-source">Recurring reference<br>Since Issue 141</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn">View on shelf</button>
+        </div>
+      </article>
+
+      <!-- ADD PIN CARD -->
+      <button class="pin-card add-pin-card" onclick="document.getElementById('addPinModal').classList.add('open')" aria-label="Add a new pin">
+        <div class="add-pin-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <span class="add-pin-label">Add a pin</span>
+      </button>
+
+    </div>
+
+  </section>
+
+  <!-- ══════════════════════ BOARD: PLOUGHSHARES ══════════════════════ -->
+  <section id="board-ploughshares" class="board-section" style="display:none" aria-labelledby="plough-title">
+
+    <div class="board-header">
+      <div class="journal-identity">
+        <div class="journal-sigil" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 20 L14 6 L23 20" stroke="currentColor" stroke-width="1"/>
+            <line x1="8" y1="15" x2="20" y2="15" stroke="currentColor" stroke-width="1"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="journal-name" id="plough-title">Ploughshares</h2>
+          <p class="journal-tagline">Emerson College — Boston, Mass.</p>
+        </div>
+      </div>
+      <div class="board-meta">
+        <strong>4</strong>
+        pins this season
+      </div>
+    </div>
+
+    <div class="board-statement">
+      <div class="statement-card">
+        <span class="statement-number" aria-hidden="true">"</span>
+        <div>
+          <p class="statement-text">This season's guest editors are asking: <em>what does the body know that the mind refuses?</em> Writing that moves between register — clinical and lyric, documentary and dream — without apology.</p>
+          <p class="statement-byline">— Guest Editor's Note, Fall 2025</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-grid">
+      <article class="pin-card type-prose" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Lyric essay</span>
+          <span class="card-type-badge badge-essay">Essay</span>
+        </div>
+        <h3 class="card-title"><em>Bone Scan, with Commentary</em></h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt">
+          The radiologist describes the scan the way a librarian might describe a rare book: <span class="underlined">with precision and without feeling</span>. But the image — the white-hot joints, the clouded spine — reads like a map of every year I was afraid to slow down.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>by</span> L. Vasquez</div>
+          <div class="card-source">Submitted · March 2025</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+          <button class="card-action-btn">Add to issue</button>
+        </div>
+      </article>
+
+      <article class="pin-card type-fragment" tabindex="0">
+        <div class="card-header">
+          <span class="card-form-label">Fragment</span>
+          <span class="card-type-badge badge-fragment">Frag.</span>
+        </div>
+        <div class="card-rule"></div>
+        <p class="card-excerpt style-fragment">
+          "I want prose that knows it is being spoken aloud even when read in silence."
+        </p>
+        <div class="card-annotation">something we keep returning to</div>
+        <div class="card-footer">
+          <div class="card-author"><span>pinned by</span> Guest Editor</div>
+        </div>
+      </article>
+
+      <article class="pin-card note-card" tabindex="0">
+        <div class="card-header">
+          <span class="card-form-label">Looking for</span>
+          <span class="card-type-badge" style="background:var(--color-text-faint)">Note</span>
+        </div>
+        <div class="card-rule"></div>
+        <p class="card-excerpt" style="text-align:left;font-style:italic;color:var(--color-text);font-size:var(--text-base);">
+          The clinical report that breaks. The prescription that becomes a love letter by accident. Forms that carry emotional weight they were not designed to hold.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>note by</span> Editors</div>
+          <div class="card-source">Fall 2025 brief</div>
+        </div>
+      </article>
+
+      <article class="pin-card type-poem" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Poem</span>
+          <span class="card-type-badge badge-poem">Verse</span>
+        </div>
+        <h3 class="card-title"><em>Waiting Room, Oncology</em></h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt style-poem">
+          The magazines are from 2021.<br>
+          Everybody is performing <span class="circled">calm</span>.<br>
+          The fish tank has three fish<br>
+          and they have no idea.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>by</span> T. Okafor</div>
+          <div class="card-source">Submission · Jan 2025</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+        </div>
+      </article>
+
+      <button class="pin-card add-pin-card" onclick="document.getElementById('addPinModal').classList.add('open')" aria-label="Add a new pin">
+        <div class="add-pin-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <span class="add-pin-label">Add a pin</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ BOARD: TIN HOUSE ══════════════════════ -->
+  <section id="board-tin-house" class="board-section" style="display:none" aria-labelledby="tin-title">
+
+    <div class="board-header">
+      <div class="journal-identity">
+        <div class="journal-sigil" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 18 L14 8 L24 18 L24 24 L4 24 Z" stroke="currentColor" stroke-width="1" fill="none"/>
+            <rect x="10" y="18" width="8" height="6" stroke="currentColor" stroke-width="1"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="journal-name" id="tin-title">Tin House</h2>
+          <p class="journal-tagline">Portland, Oregon — Since 1999</p>
+        </div>
+      </div>
+      <div class="board-meta">
+        <strong>6</strong>
+        pins this season
+      </div>
+    </div>
+
+    <div class="board-statement">
+      <div class="statement-card">
+        <span class="statement-number" aria-hidden="true">"</span>
+        <div>
+          <p class="statement-text">We've always been drawn to fiction that trusts the reader's discomfort. The ending that refuses the earned catharsis. <em>The story that finishes before you are ready.</em></p>
+          <p class="statement-byline">— Tin House Editors, 2025</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-grid">
+      <article class="pin-card type-prose wide" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-inner">
+          <div class="card-text-col">
+            <div class="card-header">
+              <span class="card-form-label">Flash fiction</span>
+              <span class="card-type-badge badge-prose">Fiction</span>
+            </div>
+            <h3 class="card-title"><em>Inheritance</em></h3>
+            <div class="card-rule"></div>
+            <p class="card-excerpt">
+              My father left me his silence and a good knife. I use both to prepare fish. The silence I inherited whole; the knife I had to teach myself to hold properly because he never showed me. This is how most things are passed down.
+            </p>
+          </div>
+          <div class="card-meta-col">
+            <div>
+              <p class="wide-secondary-label">Why this works</p>
+              <p class="wide-secondary-text">102 words. An entire father-son story. The knife doing triple duty. Nothing wasted, nothing sentimental. We want more flash that works like this.</p>
+            </div>
+            <div class="card-footer" style="border-top:none;padding:0;">
+              <div class="card-author"><span>by</span> D. Ngozi</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+          <button class="card-action-btn">Request</button>
+        </div>
+      </article>
+
+      <article class="pin-card type-fragment" tabindex="0">
+        <div class="card-header">
+          <span class="card-form-label">Fragment</span>
+          <span class="card-type-badge badge-fragment">Frag.</span>
+        </div>
+        <div class="card-rule"></div>
+        <p class="card-excerpt style-fragment">
+          "The best endings feel inevitable only in retrospect. During the reading, they should feel impossible."
+        </p>
+        <div class="card-annotation">workshop notes — origin unknown</div>
+        <div class="card-footer">
+          <div class="card-author"><span>pinned by</span> Fiction Editor</div>
+        </div>
+      </article>
+
+      <article class="pin-card type-prose" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Fiction</span>
+          <span class="card-type-badge badge-prose">Fiction</span>
+        </div>
+        <h3 class="card-title"><em>What We Did on the Last Good Day</em></h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt">
+          Nobody knew it was the last good day while it was happening. That is the thing about last good days. They only become themselves in the past tense.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>by</span> E. Kaminski</div>
+          <div class="card-source">Submitted · Feb 2025</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+          <button class="card-action-btn">Add to issue</button>
+        </div>
+      </article>
+
+      <article class="pin-card note-card" tabindex="0">
+        <div class="card-header">
+          <span class="card-form-label">Looking for</span>
+          <span class="card-type-badge" style="background:var(--color-text-faint)">Note</span>
+        </div>
+        <div class="card-rule"></div>
+        <p class="card-excerpt" style="text-align:left;font-style:italic;color:var(--color-text);">
+          Stories in which one character fails to read another correctly, and the reader watches this happen in real time. Not irony for irony's sake. Real misreading. Real cost.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>note by</span> Editors</div>
+        </div>
+      </article>
+
+      <button class="pin-card add-pin-card" onclick="document.getElementById('addPinModal').classList.add('open')" aria-label="Add a new pin">
+        <div class="add-pin-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <span class="add-pin-label">Add a pin</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ BOARD: PAGE GALLERY ══════════════════════ -->
+  <section id="board-page-gallery" class="board-section" style="display:none" aria-labelledby="tpg-title">
+
+    <div class="board-header">
+      <div class="journal-identity">
+        <div class="journal-sigil" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="18" height="18" stroke="currentColor" stroke-width="1"/>
+            <rect x="8" y="8" width="12" height="12" stroke="currentColor" stroke-width="0.5"/>
+            <circle cx="14" cy="14" r="2" fill="currentColor" opacity="0.4"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="journal-name" id="tpg-title">The Page Gallery Journal</h2>
+          <p class="journal-tagline">Literary journal for inner worlds — London / New York</p>
+        </div>
+      </div>
+      <div class="board-meta">
+        <strong>5</strong>
+        pins this season
+      </div>
+    </div>
+
+    <div class="board-statement">
+      <div class="statement-card">
+        <span class="statement-number" aria-hidden="true">"</span>
+        <div>
+          <p class="statement-text">We publish writing that feels honest, unexpected, and emotionally resonant. No themes. No formulas. <em>If it matters to the writer, it matters.</em> We do not reject — we invite.</p>
+          <p class="statement-byline">— The Page Gallery, Editorial Philosophy</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-grid">
+      <article class="pin-card type-poem" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Poem in the Garden</span>
+          <span class="card-type-badge badge-poem">Bloom ❀</span>
+        </div>
+        <h3 class="card-title"><em>Archipelago</em></h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt style-poem">
+          There are islands in me<br>
+          that have no name yet —<br>
+          I reach them only by accident,<br>
+          when the weather turns<br>
+          and something in the language<br>
+          <span class="circled">gives way</span>.
+        </p>
+        <div class="card-annotation">a poem we couldn't stop thinking about after reading it</div>
+        <div class="card-footer">
+          <div class="card-author"><span>from</span> The Garden</div>
+          <div class="card-source">Seed → Bloom<br>April 2025</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Pinned to issue</button>
+        </div>
+      </article>
+
+      <article class="pin-card type-prose" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-header">
+          <span class="card-form-label">Essay fragment</span>
+          <span class="card-type-badge badge-essay">Sprout 🌿</span>
+        </div>
+        <h3 class="card-title">On the hour before I write anything good</h3>
+        <div class="card-rule"></div>
+        <p class="card-excerpt">
+          I have to be bored first. Not the performative boredom of putting down my phone — actual boredom, the kind that has a texture, a faint animal panic. That panic is <span class="underlined">the doorway</span>.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>from</span> The Garden</div>
+          <div class="card-source">Sprout stage · March 2025</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ Saved</button>
+          <button class="card-action-btn">Invite to submit</button>
+        </div>
+      </article>
+
+      <article class="pin-card note-card" tabindex="0">
+        <div class="card-header">
+          <span class="card-form-label">Editorial note</span>
+          <span class="card-type-badge" style="background:var(--color-text-faint)">Note</span>
+        </div>
+        <div class="card-rule"></div>
+        <p class="card-excerpt" style="text-align:left;font-style:italic;color:var(--color-text);">
+          We are interested in the sentence that does not know it is being written. The draft that has no idea it will become published. The rough draft as the actual person.
+        </p>
+        <div class="card-footer">
+          <div class="card-author"><span>note by</span> Editors</div>
+          <div class="card-source">Current brief</div>
+        </div>
+      </article>
+
+      <article class="pin-card type-fragment wide" tabindex="0">
+        <div class="pin-indicator" aria-hidden="true"></div>
+        <div class="card-inner">
+          <div class="card-text-col">
+            <div class="card-header">
+              <span class="card-form-label">Flash prose</span>
+              <span class="card-type-badge badge-prose">Fiction</span>
+            </div>
+            <h3 class="card-title"><em>The Last Visit</em></h3>
+            <div class="card-rule"></div>
+            <p class="card-excerpt">
+              She showed me her roses and I said they were beautiful when what I meant was: I am afraid of you dying. She said she was thinking of cutting them back. I said that sounded sensible. We talked about roses for forty minutes. We said nothing that wasn't true.
+            </p>
+          </div>
+          <div class="card-meta-col">
+            <div>
+              <p class="wide-secondary-label">Why this is us</p>
+              <p class="wide-secondary-text">The whole emotional landscape rendered in the gap between what is said and what is meant. Not subtext as technique — subtext as survival. This is exactly what The Page Gallery is for.</p>
+            </div>
+            <div class="card-footer" style="border-top:none;padding:0;">
+              <div class="card-author"><span>from</span> The Garden · Bloom</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn active">★ In next issue</button>
+        </div>
+      </article>
+
+      <button class="pin-card add-pin-card" onclick="document.getElementById('addPinModal').classList.add('open')" aria-label="Add a new pin">
+        <div class="add-pin-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <span class="add-pin-label">Add a pin</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ BOARD: EMPTY ══════════════════════ -->
+  <section id="board-empty" class="board-section" style="display:none" aria-labelledby="empty-title">
+    <div class="board-header">
+      <div class="journal-identity">
+        <div class="journal-sigil" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="18" height="18" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/>
+            <line x1="14" y1="9" x2="14" y2="19" stroke="currentColor" stroke-width="1"/>
+            <line x1="9" y1="14" x2="19" y2="14" stroke="currentColor" stroke-width="1"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="journal-name" id="empty-title">Your Board</h2>
+          <p class="journal-tagline">Create your journal's reading board</p>
+        </div>
+      </div>
+    </div>
+    <div class="board-grid">
+      <div class="empty-board">
+        <div class="empty-board-glyph" aria-hidden="true">❧</div>
+        <h3>Nothing pinned yet</h3>
+        <p>Your board is where you show writers — and each other — what kind of writing moves you. Pin excerpts, fragments, editor's notes, reference texts. Let the board speak before the submission guidelines do.</p>
+        <button class="btn-primary" style="margin-top:var(--space-6)" onclick="document.getElementById('addPinModal').classList.add('open')">Pin your first piece</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ ABOUT THE STUDIO ══════════════════════ -->
+  <div class="ornamental-rule" style="margin-top:var(--space-10)">
+    <hr><span class="ornament">❧</span><hr>
+  </div>
+
+  <div class="board-about">
+    <div class="about-card">
+      <div class="about-card-label">What is The Studio</div>
+      <p class="about-card-body">A space within The Page Gallery where literary journals curate reading boards — not submission calls, but sensibilities. A way of showing, before the writer submits, what the editors are actually drawn to.</p>
+    </div>
+    <div class="about-card">
+      <div class="about-card-label">How it works</div>
+      <p class="about-card-body">Any journal can create a board. Pin excerpts from submissions, published work, fragments, references, editor's notes. The board tells writers: <em>this is the kind of mind we are.</em></p>
+    </div>
+    <div class="about-card">
+      <div class="about-card-label">Boards so far</div>
+      <div class="about-stat">4</div>
+      <p class="about-card-body">journals have opened boards. 22 pins in total. Submissions to board-holding journals have increased in specificity.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-mark">The Page Gallery <span>Journal</span> · The Studio</div>
+  <div class="footer-note">
+    Submissions always open<br>
+    thepagegalleryjournal.com
+  </div>
+</footer>
+
+<!-- ADD PIN MODAL -->
+<div class="modal-overlay" id="addPinModal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Pin something to your board</span>
+      <button class="modal-close" onclick="document.getElementById('addPinModal').classList.remove('open')" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label" for="pin-type">Type</label>
+        <select class="form-select" id="pin-type">
+          <option>Poem</option>
+          <option>Prose excerpt</option>
+          <option>Essay fragment</option>
+          <option>Flash fiction</option>
+          <option>Editor's note</option>
+          <option>Reference / influence</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="pin-title">Title (optional)</label>
+        <input type="text" class="form-input" id="pin-title" placeholder="Leave blank for untitled fragments">
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="pin-excerpt">Excerpt or note</label>
+        <textarea class="form-textarea" id="pin-excerpt" placeholder="Paste the text, or write a note about what you're looking for…"></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="pin-author">Author / source</label>
+        <input type="text" class="form-input" id="pin-author" placeholder="Author name, publication, or 'Anonymous'">
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="pin-annotation">Your annotation (optional)</label>
+        <input type="text" class="form-input" id="pin-annotation" placeholder="Why are you pinning this? What does it do?">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="document.getElementById('addPinModal').classList.remove('open')">Cancel</button>
+      <button class="btn-primary" onclick="handlePin()">Pin to board</button>
+    </div>
+  </div>
 </div>
+
 <script>
-  // Placeholder: the full static studio markup supplied by user can be inserted here.
-  // This file is intentionally served as a standalone shell for /editor-studio route.
+// Theme toggle
+(function(){
+  const t=document.querySelector('[data-theme-toggle]');
+  const r=document.documentElement;
+  let d=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+  r.setAttribute('data-theme',d);
+  if(t) t.addEventListener('click',()=>{
+    d=d==='dark'?'light':'dark';
+    r.setAttribute('data-theme',d);
+    t.setAttribute('aria-label','Toggle theme');
+    t.innerHTML=d==='dark'
+      ?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      :'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  });
+})();
+
+// Tab switching
+function switchTab(btn, boardId) {
+  document.querySelectorAll('.studio-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.board-section').forEach(s => s.style.display = 'none');
+  const board = document.getElementById(boardId);
+  if (board) board.style.display = 'block';
+}
+
+// Close modal on overlay click
+document.getElementById('addPinModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+// Escape key closes modal
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+// Handle pin submission — add to current board
+function handlePin() {
+  const title = document.getElementById('pin-title').value;
+  const excerpt = document.getElementById('pin-excerpt').value;
+  const author = document.getElementById('pin-author').value;
+  const annotation = document.getElementById('pin-annotation').value;
+  const type = document.getElementById('pin-type').value;
+
+  if (!excerpt.trim()) {
+    document.getElementById('pin-excerpt').focus();
+    return;
+  }
+
+  // Find active board grid
+  const activeBoard = document.querySelector('.board-section:not([style*="display: none"])');
+  const grid = activeBoard ? activeBoard.querySelector('.board-grid') : null;
+
+  if (grid) {
+    const card = document.createElement('article');
+    card.className = 'pin-card type-prose';
+    card.tabIndex = 0;
+    card.innerHTML = `
+      <div class="pin-indicator" aria-hidden="true"></div>
+      <div class="card-header">
+        <span class="card-form-label">${type}</span>
+        <span class="card-type-badge badge-prose">New</span>
+      </div>
+      ${title ? `<h3 class="card-title"><em>${title}</em></h3>` : ''}
+      <div class="card-rule"></div>
+      <p class="card-excerpt">${excerpt}</p>
+      ${annotation ? `<div class="card-annotation">${annotation}</div>` : ''}
+      <div class="card-footer">
+        <div class="card-author"><span>by</span> ${author || 'Anonymous'}</div>
+        <div class="card-source">Just pinned</div>
+      </div>
+      <div class="card-actions">
+        <button class="card-action-btn active" onclick="this.closest('.pin-card').remove()">Remove</button>
+      </div>
+    `;
+    // Insert before the add button
+    const addBtn = grid.querySelector('.add-pin-card');
+    if (addBtn) grid.insertBefore(card, addBtn);
+    else grid.appendChild(card);
+  }
+
+  // Reset and close
+  document.getElementById('pin-title').value = '';
+  document.getElementById('pin-excerpt').value = '';
+  document.getElementById('pin-author').value = '';
+  document.getElementById('pin-annotation').value = '';
+  document.getElementById('addPinModal').classList.remove('open');
+}
+
+// Keyboard activation for cards
+document.querySelectorAll('.pin-card[tabindex]').forEach(card => {
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      card.querySelector('.card-action-btn')?.click();
+    }
+  });
+});
+
+// Save/unsave toggle on card action buttons
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.card-action-btn');
+  if (!btn) return;
+  if (btn.textContent.includes('Saved') || btn.textContent.includes('Pinned')) {
+    btn.classList.remove('active');
+    btn.textContent = '☆ Save';
+  } else if (btn.textContent.includes('Save') && btn.textContent.includes('☆')) {
+    btn.classList.add('active');
+    btn.textContent = '★ Saved';
+  }
+});
 </script>
+
 </body>
 </html>
