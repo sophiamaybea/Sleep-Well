@@ -1,12 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Rock+3D&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
         --font-sans: 'Inter', sans-serif;
-      --font-display: 'Fraunces', serif;
+              --font-display: 'Rock 3D', serif;
   --font-mono: 'Space Mono', monospace;
-          --font-serif: 'Fraunces', serif;
+                          --font-serif: 'Rock 3D', serif;
         --font-body: 'Inter', sans-serif;
 
     /* Type scale tokens */
