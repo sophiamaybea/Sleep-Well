@@ -12,8 +12,6 @@ import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import OnboardingModal from "@/components/OnboardingModal";
 import LoadingScreen from "@/components/garden/LoadingScreen";
 import { useAuth } from "@/hooks/use-auth";
-import StarBackground from "@/components/StarBackground";
-import IllustrationLayer from "@/components/IllustrationLayer";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Garden = lazy(() => import("@/pages/Garden"));
@@ -64,6 +62,7 @@ const Exhibit = lazy(() => import("@/pages/Exhibit"));
 const WorkshopRoom = lazy(() => import("@/pages/WorkshopRoom"));
 const Cultivator = lazy(() => import("@/pages/Cultivator"));
 const Grove = lazy(() => import("@/pages/Grove"));
+const FoundingEditions = lazy(() => import("@/pages/FoundingEditions"));
 
 function ProtectedRoute({ component: Component, path }: { component: React.ComponentType; path: string }) {
   const { user, isLoading } = useAuth();
@@ -183,6 +182,7 @@ function Router() {
         <Route path="/cultivator" component={Cultivator} />
         <Route path="/grove">{() => <ProtectedRoute component={Grove} path="/grove" />}</Route>
         <Route path="/atelier" component={Atelier} />
+        <Route path="/editions/founding" component={FoundingEditions} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
@@ -201,8 +201,6 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <SmoothScroll>
-            <StarBackground />
-            <IllustrationLayer />
             <NoiseOverlay />
             <AccessibilityToolbar />
             <OnboardingModal />

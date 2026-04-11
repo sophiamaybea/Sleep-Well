@@ -1,72 +1,81 @@
-@import url('https://fonts.googleapis.com/css2?family=Rock+3D&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Caveat:wght@400;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-        --font-sans: 'Inter', sans-serif;
-              --font-display: 'Rock 3D', serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
   --font-mono: 'Space Mono', monospace;
-                          --font-serif: 'Rock 3D', serif;
-        --font-body: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', sans-serif;
+  --font-handwritten: 'Caveat', cursive;
 
-    /* Type scale tokens */
-    --text-hero: clamp(2.5rem, 8vw, 6rem);
-    --text-section: clamp(2rem, 6vw, 3.5rem);
-    --text-card-title: 1.25rem;
-    --text-label: 0.6875rem;
-    --text-body: 1rem;
-    --text-small: 0.875rem;
+  /* Type scale tokens */
+  --text-hero: clamp(2.5rem, 8vw, 6rem);
+  --text-section: clamp(2rem, 6vw, 3.5rem);
+  --text-card-title: 1.25rem;
+  --text-label: 0.6875rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
 
-    /* Grid tokens */
-    --content-width: 1120px;
-    --side-padding-desktop: 80px;
-    --side-padding-mobile: 24px;
+  /* Grid tokens */
+  --content-width: 1120px;
+  --side-padding-desktop: 80px;
+  --side-padding-mobile: 24px;
 
-    /* Spacing scale */
-    --space-1: 8px;
-    --space-2: 16px;
-    --space-3: 24px;
-    --space-4: 32px;
-    --space-6: 48px;
-    --space-10: 80px;
+  /* Spacing scale */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-6: 48px;
+  --space-10: 80px;
 
-  /* Teal-Indigo Watercolor Night — bioluminescent garden palette */
-      --color-background: #000000;
-  --color-foreground: #ffffff;
-  
-  --color-card: #112838;
-  --color-card-foreground: #ffffff;
-  
-  --color-popover: #0d1e2d;
-  --color-popover-foreground: #ffffff;
-  
-  --color-primary: #ffffff;
-  --color-primary-foreground: #0d1e2d;
-  
-  --color-secondary: #ffffff;
-  --color-secondary-foreground: #ffffff;
-  
-  --color-muted: #1a3040;
-  --color-muted-foreground: #a8b8c8;
-  
-      /* Accent split: CTA green + ornament gold */
-    --color-accent-cta: #335B3B;
-    --color-accent-ornament: #c4a24d;
-    --color-accent: #335B3B;
-  --color-accent-foreground: #ffffff;
+  /* NY Writers Studio — warm, ink-stained, quietly expensive */
+  --color-background: #F8F4EC;
+  --color-foreground: #1C1208;
 
-  /* Extended semantic tokens */
-  --color-garden-bloom: #5eb5a0;   /* teal — published / bloom state */
-  --color-agent-lavender: #8b7ec8; /* lavender — AI agent UI */
-  
+  --color-card: #F0EBE0;
+  --color-card-foreground: #1C1208;
+
+  --color-popover: #EDE7D9;
+  --color-popover-foreground: #1C1208;
+
+  --color-primary: #6B2A2A;
+  --color-primary-foreground: #F8F4EC;
+
+  --color-secondary: #F0EBE0;
+  --color-secondary-foreground: #1C1208;
+
+  --color-muted: #E8E2D4;
+  --color-muted-foreground: #6B5E4A;
+
+  /* Accent split: burgundy CTA + gold ornament */
+  --color-accent-cta: #FF6B6B;
+  --color-accent-ornament: #c4a24d;
+  --color-accent: #6B2A2A;
+  --color-accent-foreground: #F8F4EC;
+
+  /* Studio palette */
+  --color-studio-burgundy: #6B2A2A;
+  --color-studio-olive: #8A8F6F;
+  --color-studio-coral: #FF6B6B;
+  --color-studio-ink: #1C1208;
+  --color-studio-paper: #F8F4EC;
+  --color-studio-parchment: #F0EBE0;
+
+  /* Legacy tokens kept for backward compat */
+  --color-garden-bloom: #8A8F6F;
+  --color-agent-lavender: #8b7ec8;
+
   --color-destructive: hsl(0 60% 50%);
   --color-destructive-foreground: hsl(0 0% 98%);
 
-  --color-border: #1a3040;
-  --color-input: #1a3040;
-      --color-ring: #335B3B;
-  
+  --color-border: rgba(107, 42, 42, 0.15);
+  --color-input: #E8E2D4;
+  --color-ring: #6B2A2A;
+
   --radius: 0.5rem;
 }
 
@@ -80,11 +89,23 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground;
+    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden;
+    background-color: #F8F4EC;
+    /* subtle paper texture via repeating gradient */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    selection-background-color: #6B2A2A;
+    selection-color: #F8F4EC;
   }
+
+  ::selection {
+    background-color: rgba(107, 42, 42, 0.15);
+    color: #1C1208;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-normal font-light;
-              }
+  }
   p {
     @apply leading-relaxed;
   }
@@ -96,7 +117,87 @@
     color: transparent;
   }
   .glass-panel {
-    @apply bg-background/50 backdrop-blur-md border border-white/5;
+    @apply bg-background/80 backdrop-blur-md border border-studio-burgundy/10;
+  }
+
+  /* Studio paper + ink aesthetic */
+  .studio-paper {
+    background-color: #F8F4EC;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  .studio-card {
+    background-color: #F0EBE0;
+    border: 1px solid rgba(107, 42, 42, 0.12);
+    box-shadow: 0 1px 3px rgba(28, 18, 8, 0.06), 0 4px 16px rgba(28, 18, 8, 0.04);
+  }
+
+  .studio-index-card {
+    background-color: #FAF6EE;
+    border: 1px solid rgba(107, 42, 42, 0.12);
+    box-shadow: 2px 3px 8px rgba(28, 18, 8, 0.08);
+    position: relative;
+  }
+
+  .studio-index-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6B2A2A 0%, #c4a24d 100%);
+    opacity: 0.6;
+  }
+
+  .handwritten-note {
+    font-family: 'Caveat', cursive;
+    background-color: #FFF9EC;
+    border: 1px solid rgba(196, 162, 77, 0.3);
+    box-shadow: 2px 4px 12px rgba(28, 18, 8, 0.10), 0 0 0 1px rgba(196, 162, 77, 0.1);
+    transform: rotate(-1.5deg);
+    position: relative;
+  }
+
+  .handwritten-note::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 12px;
+    background: rgba(196, 162, 77, 0.4);
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(28, 18, 8, 0.15);
+  }
+
+  .ink-smudge-border {
+    border-bottom: 2px solid transparent;
+    border-image: linear-gradient(90deg, transparent, rgba(107,42,42,0.3), rgba(196,162,77,0.4), rgba(107,42,42,0.3), transparent) 1;
+  }
+
+  .studio-section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(107,42,42,0.2) 30%, rgba(196,162,77,0.3) 50%, rgba(107,42,42,0.2) 70%, transparent 100%);
+  }
+
+  .font-handwritten {
+    font-family: 'Caveat', cursive;
+  }
+
+  .progress-bar-studio {
+    height: 6px;
+    background: #E8E2D4;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-bar-studio-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6B2A2A 0%, #c4a24d 100%);
+    border-radius: 3px;
+    transition: width 1s ease-out;
   }
   
   @keyframes noise {
@@ -451,7 +552,7 @@
 .prose-editor .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(28, 18, 8, 0.3);
   pointer-events: none;
   height: 0;
   font-style: italic;
@@ -479,7 +580,7 @@
   font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 300;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(28, 18, 8, 0.85);
   margin: 1.5em 0 0.5em;
   font-style: italic;
 }
@@ -487,7 +588,7 @@
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 300;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(28, 18, 8, 0.8);
   margin: 1.25em 0 0.4em;
   font-style: italic;
 }

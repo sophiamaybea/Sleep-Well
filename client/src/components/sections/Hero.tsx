@@ -1,158 +1,215 @@
-import { useRef, useEffect } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import StarTitle from "@/components/StarTitle";
+import { useRef, useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "wouter";
 import { gsap, prefersReducedMotion } from "@/lib/gsap-init";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 
-export default function Hero() {
-  const heroRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const { user, isLoading: authLoading } = useAuth();
+const FUNDING_GOAL = 5000;
 
-  // Framer-motion mouse tilt (original)
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+function FoundingProgressBar() {
+  const { data } = useQuery<{ raised: number }>({
+    queryKey: ["/api/funding/progress"],
+    queryFn: async () => {
+      const res = await fetch("/api/funding/progress", { credentials: "include" });
+      if (!res.ok) return { raised: 0 };
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
-  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-    // T36: skip mouse tilt when reduced motion is preferred
-    if (prefersReducedMotion) return;
-    const { left, top, width, height } = currentTarget.getBoundingClientRect();
-    const x = (clientX - left) / width - 0.5;
-    const y = (clientY - top) / height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  }
-
-  const textX = useTransform(mouseX, [-0.5, 0.5], ["2%", "-2%"]);
-  const textY = useTransform(mouseY, [-0.5, 0.5], ["2%", "-2%"]);
-
-  // GSAP: stagger entrance of hero text elements when section scrolls into view
-  useEffect(() => {
-    if (!textRef.current) return;
-    // T36: skip GSAP entrance animation when reduced motion is preferred
-    if (prefersReducedMotion) return;
-
-    const children = Array.from(textRef.current.children);
-    gsap.fromTo(
-      children,
-      { opacity: 0, y: 36, filter: "blur(4px)" },
-      {
-        opacity: 1,
-        y: 0,
-        filter: "blur(0px)",
-        duration: 1.1,
-        stagger: 0.18,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: textRef.current,
-          start: "top 82%",
-          toggleActions: "play none none reverse",
-        },
-      }
-    );
-  }, []);
-
-  // Resolve CTA destination: authenticated -> /garden, else -> /sign-in
-  const writingHref = !authLoading && user ? "/garden" : "/sign-in";
+  const raised = data?.raised ?? 0;
+  const pct = Math.min((raised / FUNDING_GOAL) * 100, 100);
 
   return (
-    <div ref={heroRef} className="relative">
-      {/* StarTitle: full-height illustrated splash with GSAP depth layers */}
-      <StarTitle />
-
-      {/* Hero text content: below the splash */}
-      <section
-        id="hero-content"
-        className="relative z-10 min-h-[50vh] pt-16 pb-12 px-6 md:px-12 lg:px-24"
-      >
-        <div
-          className="max-w-7xl mx-auto relative z-10"
-          onMouseMove={handleMouseMove}
-        >
-          <div className="grid lg:grid-cols-12 gap-12 items-center">
-            <div ref={textRef} className="lg:col-span-8 space-y-8">
-              {/* Label */}
-              <div>
-                <motion.p
-                  style={{ x: textX, y: textY }}
-                  className="font-sans text-[length:var(--text-label)] uppercase tracking-[0.06em] text-amber-200/60 uppercase mb-6 block"
-                >
-                  A Literary Journal & Digital Writing Garden
-                </motion.p>
-                <h1 className="font-display text-[clamp(2.5rem,8vw,6rem)] font-light leading-[0.95] tracking-tight text-white">
-                  Writing that lingers.
-                </h1>
-              </div>
-
-              {/* Mission statement */}
-              <div className="space-y-3">
-                <p
-                  className="max-w-lg text-sm md:text-base leading-relaxed font-sans text-white/60"
-                  data-testid="text-hero-mission"
-                >
-                  The Page Gallery publishes poetry, fiction, and essays that resist easy resolution.
-                  We believe in writing that earns its silences — work that asks something of the reader.
-                </p>
-                <p
-                  className="max-w-lg text-sm md:text-base leading-relaxed font-sans text-white/40"
-                  data-testid="text-hero-garden-proposition"
-                >
-                  No slush pile. No query letters. No waiting rooms.{" "}
-                  Every writer gets a Garden — a private space for drafts,
-                  fragments, and work that isn't ready yet.
-                </p>
-              </div>
-
-              {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-x-10 gap-y-4 pt-6">
-                {/* Primary: read the journal */}
-                <Link
-                  href="/in-bloom"
-                  className="group flex items-center gap-3"
-                  data-testid="cta-read-journal"
-                >
-                  <span className="font-display italic text-lg text-white group-hover:text-amber-100 transition-colors">
-                    Read the Journal
-                  </span>
-                  <span className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all">
-                    →
-                  </span>
-                </Link>
-
-                {/* Secondary: start writing */}
-                <Link
-                  href={writingHref}
-                  className="group flex items-center gap-3"
-                  data-testid="cta-start-writing"
-                >
-                  <span
-                    className="
-                    font-sans text-[length:var(--text-label)] uppercase tracking-[0.08em]
-                    px-5 py-2.5 rounded-full
-                    border border-amber-500/30 text-amber-200/80
-                    bg-amber-900/10 hover:bg-amber-900/20
-                    hover:border-amber-500/60 hover:text-amber-100
-                    transition-all duration-300
-                    "
-                  >
-                    {!authLoading && user ? "Open Your Garden" : "Start Writing — it's free"}
-                  </span>
-                </Link>
-
-                {/* Tertiary: about */}
-                <Link
-                  href="/about"
-                  className="font-sans text-[length:var(--text-label)] uppercase tracking-[0.06em] text-white/40 hover:text-white/70 transition-colors"
-                  data-testid="cta-about-us"
-                >
-                  About Us
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <span className="font-handwritten text-base text-[#6B2A2A]">
+          £{raised.toLocaleString()} raised
+        </span>
+        <span className="font-mono text-[length:var(--text-label)] text-[#1C1208]/50 uppercase tracking-wider">
+          Goal: £{FUNDING_GOAL.toLocaleString()}
+        </span>
+      </div>
+      <div className="progress-bar-studio">
+        <div className="progress-bar-studio-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <p className="font-mono text-[length:var(--text-label)] text-[#1C1208]/40 uppercase tracking-wider">
+        {pct.toFixed(0)}% funded — first print run
+      </p>
     </div>
   );
 }
+
+export default function Hero() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const headlineRef = useRef<HTMLHeadingElement>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const { user, isLoading: authLoading } = useAuth();
+  const [bannerVisible, setBannerVisible] = useState(true);
+
+  useEffect(() => {
+    if (!headlineRef.current || prefersReducedMotion) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        headlineRef.current,
+        { opacity: 0, y: 30, filter: "blur(2px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.2, ease: "power3.out", delay: 0.2 }
+      );
+    });
+    return () => ctx.revert();
+  }, []);
+
+  const writingHref = !authLoading && user ? "/garden" : "/sign-in";
+
+  return (
+    <div ref={heroRef} className="relative min-h-screen studio-paper flex flex-col">
+      {/* Founding Digital Edition Banner */}
+      {bannerVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1 }}
+          className="w-full bg-[#6B2A2A] text-[#F8F4EC] py-2.5 px-6 flex items-center justify-between z-40"
+        >
+          <p className="font-mono text-[length:var(--text-label)] tracking-[0.12em] uppercase text-center flex-1">
+            <span className="font-handwritten text-base normal-case tracking-normal mr-2">✦</span>
+            Founding Digital Edition Live — Digital drops now. First print run funded by you.
+            <Link href="/editions/founding" className="ml-3 underline underline-offset-2 hover:text-[#F8F4EC]/80 transition-colors">
+              Claim yours →
+            </Link>
+          </p>
+          <button
+            onClick={() => setBannerVisible(false)}
+            className="ml-4 opacity-60 hover:opacity-100 transition-opacity text-lg leading-none"
+            aria-label="Dismiss banner"
+          >
+            ×
+          </button>
+        </motion.div>
+      )}
+
+      {/* Hero Content */}
+      <section
+        id="hero-content"
+        className="flex-1 pt-32 pb-24 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto w-full"
+      >
+        <div className="grid lg:grid-cols-12 gap-16 items-start">
+          {/* Main headline column */}
+          <div className="lg:col-span-7 space-y-10">
+            <motion.p
+              initial={shouldReduceMotion ? {} : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.05 }}
+              className="font-mono text-[length:var(--text-label)] tracking-[0.2em] uppercase text-[#6B2A2A]/70"
+            >
+              The Page Gallery Journal — Est. 2024
+            </motion.p>
+
+            <h1
+              ref={headlineRef}
+              className="font-display text-[clamp(2.8rem,7vw,5.5rem)] font-bold leading-[0.95] tracking-tight text-[#1C1208]"
+              style={{ opacity: prefersReducedMotion ? 1 : 0 }}
+            >
+              Once an{" "}
+              <span className="italic text-[#6B2A2A]">ENTREPRENEUR,</span>
+              <br />
+              always an{" "}
+              <span className="italic text-[#6B2A2A]">ENTREPRENEUR.</span>
+            </h1>
+
+            {/* Mission copy */}
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.5 }}
+              className="space-y-4 max-w-xl"
+            >
+              <p className="font-sans text-base leading-relaxed text-[#1C1208]/70">
+                The Page Gallery publishes poetry, fiction, and essays that resist easy resolution.
+                We believe in writing that earns its silences — work that asks something of the reader.
+              </p>
+              <p className="font-sans text-sm leading-relaxed text-[#1C1208]/50">
+                No slush pile. No query letters. No waiting rooms.
+                Every writer gets a Desk — a private space for drafts, fragments, and work that isn't ready yet.
+              </p>
+            </motion.div>
+
+            {/* CTAs */}
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.65 }}
+              className="flex flex-wrap items-center gap-4 pt-2"
+            >
+              <Link
+                href="/editions/founding"
+                className="px-7 py-3 bg-[#6B2A2A] text-[#F8F4EC] rounded-full font-mono text-[length:var(--text-label)] tracking-[0.15em] uppercase hover:bg-[#5a2222] transition-colors shadow-md"
+                data-testid="cta-founding-editions"
+              >
+                Founding Editions
+              </Link>
+
+              <Link
+                href="/in-bloom"
+                className="group flex items-center gap-2 font-display italic text-lg text-[#1C1208]/70 hover:text-[#6B2A2A] transition-colors"
+                data-testid="cta-read-journal"
+              >
+                Read the Journal
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+
+              <Link
+                href={writingHref}
+                className="font-mono text-[length:var(--text-label)] uppercase tracking-[0.12em] text-[#1C1208]/40 hover:text-[#6B2A2A] transition-colors border-b border-transparent hover:border-[#6B2A2A]/40 pb-0.5"
+                data-testid="cta-start-writing"
+              >
+                {!authLoading && user ? "Open Your Desk" : "Start Writing — it's free"}
+              </Link>
+            </motion.div>
+
+            {/* Funding progress */}
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.8 }}
+              className="max-w-sm pt-2"
+            >
+              <FoundingProgressBar />
+            </motion.div>
+          </div>
+
+          {/* Handwritten note — 1992 story */}
+          <motion.aside
+            initial={shouldReduceMotion ? {} : { opacity: 0, rotate: -3, y: 20 }}
+            animate={{ opacity: 1, rotate: -1.5, y: 0 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 1.1, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:col-span-5 handwritten-note p-7 rounded-sm mt-8 lg:mt-24"
+            aria-label="Founder's note"
+          >
+            <p className="font-handwritten text-xl text-[#1C1208]/80 leading-relaxed mb-4">
+              1992. I was eleven, going door to door selling chocolate bars for the school.
+            </p>
+            <p className="font-handwritten text-lg text-[#1C1208]/70 leading-relaxed mb-4">
+              My mum said I didn't need to. I did it anyway —
+              something in me already knew: if you don't ask, the answer is always no.
+            </p>
+            <p className="font-handwritten text-lg text-[#1C1208]/70 leading-relaxed mb-4">
+              That kid never left. She just found better things to sell.
+            </p>
+            <p className="font-handwritten text-lg text-[#6B2A2A] leading-relaxed">
+              This journal is one of them. — S.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <span className="font-mono text-[10px] text-[#1C1208]/30 uppercase tracking-widest">Pinned — Founder's desk</span>
+            </div>
+          </motion.aside>
+        </div>
+      </section>
+
+      {/* Studio section divider */}
+      <div className="studio-section-divider mx-6 md:mx-12" />
+    </div>
+  );
+}
+
