@@ -183,7 +183,7 @@ export default function Navigation() {
                 </div>
               ) : (
                 <Link
-                  href="/editor-studio"
+                  href="/sign-in"
                   className="px-5 py-2 bg-[#6B2A2A] text-[#F8F4EC] rounded-full font-mono text-[length:var(--text-label)] tracking-[0.15em] uppercase hover:bg-[#5a2222] transition-colors shadow-sm"
                   data-testid="nav-enter-studio"
                 >
@@ -282,7 +282,7 @@ export default function Navigation() {
                     </motion.div>
                     <motion.div initial={shouldReduceMotion ? {} : { y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.48 }}>
                       <Link
-                        href="/editor-studio"
+                        href="/sign-in"
                         onClick={() => setIsOpen(false)}
                         className="inline-block px-8 py-3 bg-[#6B2A2A] text-[#F8F4EC] rounded-full font-mono text-[length:var(--text-label)] uppercase tracking-[0.15em] hover:bg-[#5a2222] transition-colors"
                       >

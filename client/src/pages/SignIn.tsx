@@ -185,7 +185,7 @@ function AuthForm() {
 
       <button
         type="submit"
-        disabled={isSubmitting || (!email && mode !== "forgot") || (!password && mode !== "forgot")}
+        disabled={isSubmitting || !email || (mode !== "forgot" && !password)}
         data-testid="button-submit-auth"
         className="w-full py-3.5 rounded-full bg-[#6B2A2A] text-[#F8F4EC] font-mono text-[10px] tracking-[0.25em] uppercase hover:bg-[#5a2222] transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
       >
